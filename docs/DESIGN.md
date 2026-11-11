@@ -1,8 +1,20 @@
 # Design
 
-Status: **draft, planning stage.** Nothing described here is implemented yet. This
-document records the decisions taken so far and the questions still open. When the
-code disagrees with it, one of the two is wrong and gets fixed.
+Status: **draft.** This document records the decisions taken so far and the
+questions still open. When the code disagrees with it, one of the two is wrong and
+gets fixed.
+
+Implemented so far:
+
+- the problem specs (section 5.1) and the job list (5.2);
+- one result file per job, with freshness (6.1, 6.2), and `gather` (6.3);
+- the serial and local-pool runners with deadlines (8);
+- the paired timing protocol (7);
+- one capability: ODE simulation of BNGL models against `run_network`, on five
+  provisional pilot models.
+
+Not yet: Slurm submission, bundles, the container, the validation of section 9,
+and every other capability.
 
 ## 1. What the suite is for
 
@@ -51,10 +63,24 @@ The suite is built so that anyone can run it:
 COPASI appears in the core tables and in the BioModels coverage count. It is not part
 of breadth timing.
 
+`run_network`'s reference runs use its default (dense) linear solver, as bngsim's
+own parity checks do. A model's `sparse` option (BNG2.pl `sparse=>1`, `run_network
+-b`, an iterative solver) is not a trustworthy oracle: on at least one pilot model
+(Barua et al. 2007) it leaves the solution by 2.5% of a species' peak, even at a
+tolerance of 1e-12, while BNGsim and the dense solver agree. When a model asks for
+`sparse`, the correctness job records whether the sparse run agrees with the dense
+one. The timing job times the authors' sparse setting only when it does, and
+otherwise times the dense solver, so a speedup is always measured against a
+reference run that gave the right answer.
+
 ## 3. Layers
 
 The suite has five layers. Each problem belongs to one layer, and the layer sets the
 rule for what may go in it.
+
+Until the core is chosen, a sixth, temporary layer, `pilot`, holds provisional
+problems that exercise the machinery. A pilot problem may record its verification
+as `pending`; no other layer may.
 
 ### 3.1 Standards
 
@@ -267,8 +293,10 @@ A timing job runs only on problems whose correctness job passed.
 Each job writes one JSON file, atomically, under a path derived from its job ID. The
 file holds:
 
-- the outcome, using one outcome vocabulary across all capabilities: PASS, DIFF,
-  EXCEPTION, TIMEOUT, UNSUPPORTED, SKIP;
+- the outcome, using bngsim's outcome vocabulary across all capabilities: PASS,
+  DIFF, EXCEPTION (BNGsim failed where the reference ran), REFERENCE_FAILED (the
+  reference failed where BNGsim ran), BAD_TEST (both failed, or the model could not
+  be prepared), TIMEOUT, UNSUPPORTED, SKIP;
 - the measured values, and every timing repetition rather than only the summary;
 - provenance:
   - the BNGsim version and compiled build commit;
@@ -345,12 +373,14 @@ One job list, three ways to run it, all writing the same result files:
 Other commands:
 
 - `bench list`: problems and jobs;
-- `bench plan`: what is stale, and what it would cost;
-- `bench status`: progress and failures;
-- `bench gather`;
-- `bench bundle`.
+- `bench plan`: what is current, stale, missing, waiting or blocked, and what it
+  would cost;
+- `bench gather`: per-capability reports and a readable summary;
+- `bench fetch-bionetgen`, `bench doctor`: set up and check the environment;
+- `bench submit` and `bench bundle`: not yet written.
 
-The command names are provisional.
+`bench run` takes `--budget 9h30m`, `--until HH:MM`, or `--until slurm` (the end of
+the current allocation, from `squeue`).
 
 An allocation has a maximum wall time, possibly around 10 hours on the cluster in
 view (unconfirmed). So:
@@ -397,8 +427,11 @@ Two checks run before any cluster timing is used:
   workflow. They guard bngsim's development; this repository measures releases.
 - This repository should use the same comparison protocol as bngsim's
   `parity_checks/_core` (tolerances, ensemble verdicts, outcome vocabulary), so a
-  verdict means the same thing in both places. How to share that code is open
-  (section 12).
+  verdict means the same thing in both places. For now it is copied verbatim into
+  `src/bench/_vendor/parity_core/` from one pinned bngsim commit, with each file's
+  sha256 recorded in `VENDOR.json`; a test fails if the copy is edited or drifts
+  from that commit. `tools/vendor_parity_core.py --ref <tag>` refreshes it when the
+  pinned bngsim release changes.
 - Benchmark harnesses migrate here from bngsim's `benchmarks/suites/` and from
   harnesses maintained elsewhere. They migrate one capability at a time.
 
@@ -444,9 +477,9 @@ Two checks run before any cluster timing is used:
   - package-index reachability from compute nodes.
 
   [`tools/survey_cluster.sh`](../tools/survey_cluster.sh) collects all of these.
-- **Sharing the comparison protocol with bngsim:** vendor a pinned copy of
-  `parity_checks/_core`, depend on a bngsim checkout at a pinned commit, or have
-  bngsim ship it as part of the package.
+- **Sharing the comparison protocol with bngsim:** a vendored, pinned copy for now
+  (section 10). The cleaner long-term answer is for bngsim to ship it as a public
+  module.
 - **Where bundles live:** as release assets of this repository linked from
   lanl/bngsim, or as release assets of lanl/bngsim itself.
 - **Core model selection:** which 15–20 models, and the knob ranges of each size

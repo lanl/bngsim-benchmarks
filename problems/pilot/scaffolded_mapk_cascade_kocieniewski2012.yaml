@@ -1,0 +1,31 @@
+# Scaffolded MAPK cascade. A provisional pilot problem: it exercises the job machinery
+# until the core suite is chosen and its verification audited (docs/DESIGN.md).
+# The protocol is the model's own ODE simulate action, at the same commit.
+id: scaffolded_mapk_cascade_kocieniewski2012
+layer: pilot
+title: "Scaffolded MAPK cascade"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/scaffolded_mapk_cascade_kocieniewski2012/scaffolded_mapk_cascade_kocieniewski2012.bngl
+  sha256: 5199f2dbedbc5282ca2b24bd1f4276d6622a2ec7e3a693ce4e77d6e509adb1e2
+  format: bngl
+publications:
+  - citation: "Kocieniewski P, Faeder JR, Lipniacki T (2012). The interplay of double phosphorylation and scaffolding in MAPK pathways. J Theor Biol 295:116-124."
+    doi: 10.1016/j.jtbi.2011.11.014
+verification:
+  kind: pending
+  evidence: models/scaffolded_mapk_cascade_kocieniewski2012/verify_kocieniewski2012.ipynb
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 500
+    n_steps: 500
+    rtol: 1.0e-8
+    atol: 1.0e-6
+    sparse: false
+size:
+  species: 85
+  reactions: 487

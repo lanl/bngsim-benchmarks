@@ -1,0 +1,21 @@
+# environment and downloads
+.pixi/
+.cache/
+
+# results and gathered reports are published as bundles, never committed
+results/
+reports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# editors and OS
+.DS_Store
+.vscode/
+.idea/

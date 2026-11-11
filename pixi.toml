@@ -1,0 +1,40 @@
+# The environment every job runs in. `pixi install` builds it from this file and
+# pixi.lock; `pixi run fetch-bionetgen` adds the BioNetGen distribution, which is
+# not a conda package and is pinned by release tarball and sha256 instead.
+#
+# Engines join as their capabilities migrate (docs/DESIGN.md section 11): this
+# first environment carries what the ODE pilot needs, bngsim and BioNetGen.
+# libRoadRunner, AMICI and COPASI come with the capabilities that compare against
+# them.
+
+[workspace]
+name = "bngsim-benchmarks"
+description = "Benchmark and cross-engine correctness jobs for BNGsim"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64"]
+
+[dependencies]
+python = "3.12.*"
+# BNG2.pl, BioNetGen's network generator, is a Perl program.
+perl = "*"
+numpy = ">=2.0"
+pyyaml = "*"
+pytest = "*"
+
+[pypi-dependencies]
+# The build under test. Every result records the version and compiled build
+# commit it measured, so a result from another build is never mistaken for one
+# from this one.
+bngsim = "==0.17.0"
+bngsim-benchmarks = { path = ".", editable = true }
+
+[activation.env]
+# The BioNetGen distribution `pixi run fetch-bionetgen` installs. Jobs use this
+# copy, not one found elsewhere on the machine, and record its sha256.
+BNGPATH = "$PIXI_PROJECT_ROOT/.cache/bionetgen/BioNetGen-2.9.3"
+
+[tasks]
+fetch-bionetgen = { cmd = "bench fetch-bionetgen", description = "Download BioNetGen 2.9.3 and check its sha256" }
+test = { cmd = "pytest -q -m 'not integration and not network'", description = "Unit tests; no simulator needed" }
+test-integration = { cmd = "pytest -q -m integration", description = "Real simulations; needs fetch-bionetgen first" }
+doctor = { cmd = "bench doctor", description = "Report the environment a job would record" }

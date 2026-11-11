@@ -1,0 +1,31 @@
+# Shp2 regulation and function. A provisional pilot problem: it exercises the job machinery
+# until the core suite is chosen and its verification audited (docs/DESIGN.md).
+# The protocol is the model's own ODE simulate action, at the same commit.
+id: shp2_regulation_and_function_barua2007
+layer: pilot
+title: "Shp2 regulation and function"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/shp2_regulation_and_function_barua2007/shp2_regulation_and_function_barua2007.bngl
+  sha256: 067378ad7b63bcaf6a05e05e2d78d02a20b6f5e2b19b40503dcb2165d21255ba
+  format: bngl
+publications:
+  - citation: "Barua D, Faeder JR, Haugh JM (2007). Structure-based kinetic models of modular signaling protein function: focus on Shp2. Biophys J 92(7):2290-2300."
+    doi: 10.1529/biophysj.106.093484
+verification:
+  kind: pending
+  evidence: models/shp2_regulation_and_function_barua2007/verify_barua2007.ipynb
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 1000
+    n_steps: 200
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    sparse: true
+size:
+  species: 149
+  reactions: 1032
