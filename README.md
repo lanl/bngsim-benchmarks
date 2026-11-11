@@ -17,6 +17,8 @@ BioNetGen (`run_network`, NFsim), libRoadRunner, AMICI, COPASI and PyBNF.
 - **In parallel on a cluster**, as well as serially on a laptop.
 - **Published results**, linked from [lanl/bngsim](https://github.com/lanl/bngsim).
 
+The design, and the decisions behind it, are in [docs/DESIGN.md](docs/DESIGN.md).
+
 ## Surveying a cluster
 
 Before the first run on a new cluster, describe it with
