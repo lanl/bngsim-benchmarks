@@ -1,0 +1,31 @@
+# Beta-catenin destruction complex. A provisional pilot problem: it exercises the job machinery
+# until the core suite is chosen and its verification audited (docs/DESIGN.md).
+# The protocol is the model's own ODE simulate action, at the same commit.
+id: beta_catenin_destruction_complex_barua2013
+layer: pilot
+title: "Beta-catenin destruction complex"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/beta_catenin_destruction_complex_barua2013/beta_catenin_destruction_complex_barua2013.bngl
+  sha256: cf61ed161abb4efddb5cccd423b278f984aa63777996095f1f041005ec8deb97
+  format: bngl
+publications:
+  - citation: "Barua D, Hlavacek WS (2013). Modeling the effect of APC truncation on destruction complex function in colorectal cancer cells. PLoS Comput Biol 9(9):e1003217."
+    doi: 10.1371/journal.pcbi.1003217
+verification:
+  kind: pending
+  evidence: models/beta_catenin_destruction_complex_barua2013/verify_barua2013.ipynb
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1,max_stoich=>{APC=>1,AXIN=>1,bCat=>1}})"
+    t_start: 0
+    t_end: 250000
+    n_steps: 1000
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    sparse: true
+size:
+  species: 409
+  reactions: 2737

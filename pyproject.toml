@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bngsim-benchmarks"
+version = "0.1.0"
+description = "Benchmark and cross-engine correctness jobs for BNGsim"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+# bngsim itself is not a dependency of the package: the environment (pixi.toml)
+# pins the build under test, and every result records which build it measured.
+dependencies = ["numpy>=1.26", "pyyaml>=6"]
+
+[project.scripts]
+bench = "bench.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bench"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "integration: runs real simulations; needs bngsim and BioNetGen (BNGPATH)",
+  "network: needs internet access",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["src/bench/_vendor"]

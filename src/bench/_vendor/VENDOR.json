@@ -1,0 +1,19 @@
+{
+  "upstream": "lanl/bngsim",
+  "path": "parity_checks/_core",
+  "ref": "v0.17.0",
+  "commit": "0b7b3424410a6e815b78c58580640883cc1e95ea",
+  "license": "MIT (same terms and copyright as this repository; see LICENSE)",
+  "note": "Copied verbatim. Do not edit: re-run tools/vendor_parity_core.py instead.",
+  "files": {
+    "__init__.py": "8b5b70c0a3dbd0e9ea7dd6fa977065945793bb756613c1a23d1561cfab888cbc",
+    "bngpath.py": "d366b41a8bb33caa1045ed917046327b708eef82c7eab47ce2292d0f9e710834",
+    "differ.py": "2b4971789fbbe88b812d625c9e7b8ebb2224abde6b31f95dac08a3802084a015",
+    "fingerprint.py": "573eb17b932b4a82e3bddec2a962a224abbff400271c9e54c6f40da7bb11ff07",
+    "oracles.py": "4aa97bc179aedfd629efa78fe8e3cd5bb42219f2aefc0f816f345dbacf6bdb6c",
+    "schema.py": "4bfdce5c268245bce4b1315dc311eb29303c8ba7de92c2e2feedb509448eb0cc",
+    "taxonomy.py": "55ba240d29ceb61dd5831b37ec7a1671b059c74c310c594601e3a47c15e52c44",
+    "versions.py": "a824caa9be0adf2a96683c21a3ca7a19e01f14e63faf18b0ad1ac3df3500a58d",
+    "work.py": "f217bdcc9f95741c5f5b9a3d9de75592e91c9e36cf0eee9c35f48f2a3fc30190"
+  }
+}

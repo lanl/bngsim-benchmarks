@@ -9,6 +9,10 @@ measure BNGsim's cost and check its results against other simulators on
 published models, so that anyone can re-run them. The comparisons are against
 BioNetGen (`run_network`, NFsim), libRoadRunner, AMICI, COPASI and PyBNF.
 
+What runs today: the job machinery, and one capability, ODE simulation of BNGL
+models against BioNetGen's `run_network`, on five provisional pilot models in
+[`problems/pilot/`](problems/pilot/).
+
 ## Goals
 
 - **Runnable by anyone**, from a pinned, documented software environment.
@@ -18,6 +22,52 @@ BioNetGen (`run_network`, NFsim), libRoadRunner, AMICI, COPASI and PyBNF.
 - **Published results**, linked from [lanl/bngsim](https://github.com/lanl/bngsim).
 
 The design, and the decisions behind it, are in [docs/DESIGN.md](docs/DESIGN.md).
+
+## Running it
+
+Install [pixi](https://pixi.sh), then, from a checkout of this repository:
+
+```bash
+pixi install
+```
+
+```bash
+pixi run fetch-bionetgen
+```
+
+```bash
+pixi run doctor
+```
+
+`pixi install` builds the pinned environment, including the bngsim release under
+test. `fetch-bionetgen` downloads BioNetGen 2.9.3 and checks its sha256. `doctor`
+prints what every result will record about the environment, and says READY when
+nothing is missing.
+
+Then run any part of the suite. A job is one problem, capability, engine pair,
+setting and kind (`correctness` or `timing`). Its id reads like
+`ode/kinetic_proofreading_hlavacek2001/bngsim-vs-run_network/auto/correctness`,
+and any part of an id selects jobs:
+
+| command | does |
+|---|---|
+| `pixi run bench list` | every problem and job |
+| `pixi run bench plan` | which jobs have a current result, and which would run |
+| `pixi run bench run kinetic_proofreading` | the jobs whose id contains the text, one at a time |
+| `pixi run bench run --workers 8` | every job without a current result, correctness jobs 8 at a time |
+| `pixi run bench run --budget 9h30m` | stop starting jobs that would not finish within 9.5 hours |
+| `pixi run bench run --until slurm` | the same, up to the end of the current Slurm allocation |
+| `pixi run bench gather` | collect results into `reports/`, with a readable `reports/summary.md` |
+
+Each job writes one file under `results/`, named after its id. A result stays
+current until something it depends on changes: the model file, the protocol, the
+harness, the bngsim build, BioNetGen, or, for a timing result, the node type.
+Running again runs only what is missing or out of date, so an interrupted run
+loses only the jobs in flight. Timing jobs run one at a time unless
+`--timing-workers` says otherwise, and only after their correctness job passed.
+
+`pixi run test` runs the unit tests in seconds. `pixi run test-integration`
+runs one real pilot problem end to end.
 
 ## Surveying a cluster
 
