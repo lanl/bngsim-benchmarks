@@ -90,3 +90,21 @@ def select(jobs: list[Job], patterns: list[str] | None) -> list[Job]:
         if req:
             chosen.add(req)
     return [j for j in jobs if j.id in chosen]
+
+
+def select_exact(jobs: list[Job], ids: list[str]) -> list[Job]:
+    """The jobs named in ``ids`` exactly, plus the correctness jobs they require
+    (a runner needs those to judge a timing job; a current one is not re-run).
+
+    Raises ValueError naming every id no spec defines.
+    """
+    by_id = {j.id: j for j in jobs}
+    unknown = [i for i in ids if i not in by_id]
+    if unknown:
+        raise ValueError("no such job: " + ", ".join(unknown))
+    chosen = set(ids)
+    for jid in ids:
+        req = by_id[jid].requires
+        if req:
+            chosen.add(req)
+    return [j for j in jobs if j.id in chosen]

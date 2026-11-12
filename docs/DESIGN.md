@@ -9,12 +9,13 @@ Implemented so far:
 - the problem specs (section 5.1) and the job list (5.2);
 - one result file per job, with freshness (6.1, 6.2), and `gather` (6.3);
 - the serial and local-pool runners with deadlines (8);
+- Slurm submission as job arrays, `bench submit` (8);
 - the paired timing protocol (7);
 - one capability: ODE simulation of BNGL models against `run_network`, on five
   provisional pilot models.
 
-Not yet: Slurm submission, bundles, the container, the validation of section 9,
-and every other capability.
+Not yet: bundles, the container, the validation of section 9, and every other
+capability.
 
 ## 1. What the suite is for
 
@@ -381,7 +382,8 @@ Other commands:
   would cost;
 - `bench gather`: per-capability reports and a readable summary;
 - `bench fetch-bionetgen`, `bench doctor`: set up and check the environment;
-- `bench submit` and `bench bundle`: not yet written.
+- `bench submit`: the Slurm mode below;
+- `bench bundle`: not yet written.
 
 `bench run` takes `--budget 9h30m`, `--until HH:MM`, or `--until slurm` (the end of
 the current allocation, from `squeue`).
@@ -394,10 +396,23 @@ view (unconfirmed). So:
   and it stops cleanly when the deadline arrives.
 - **No lost work:** completed jobs are already written, so the next allocation picks
   up the rest.
-- **Array tasks fit the limit:** jobs are packed into Slurm array tasks by estimated
-  cost, so no task approaches the time limit.
-- **Long jobs:** a single job that cannot finish within one allocation is split, or
-  else flagged before it is submitted.
+- **Array tasks fit the limit:** `bench submit` packs jobs into Slurm array tasks by
+  estimated cost (first-fit decreasing).
+  - Each task's estimated run time is bounded phase by phase, the way the runner runs
+    it: Graham's list-scheduling bound, sum/w + (1 − 1/w)·max, for the correctness
+    jobs on the task's CPUs, then for the timing jobs on its timing workers.
+  - That bound stays within the time limit, less a margin and a start-up allowance.
+  - A problem's correctness and timing jobs go to the same task, so a timing job
+    never waits on another task.
+  - Each task's `bench run` also has a deadline at the end of its allocation, so an
+    underestimate costs only the jobs in flight. Those jobs run again at the next
+    submit.
+- **Long jobs:** a problem whose own estimate exceeds one allocation is flagged and
+  not submitted. `--skip-long` submits the rest, and the long ones run on a
+  checked-out node.
+- **Settings stay local:** partition, account, QOS, constraint and time limit come
+  from `slurm.yaml`, which is git-ignored because it names local infrastructure.
+  `slurm.example.yaml` documents every key.
 
 The environment is pinned:
 
