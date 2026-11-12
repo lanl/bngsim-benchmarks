@@ -244,3 +244,37 @@ def test_passing_verdict_still_reports_how_close_the_runs_are():
     v = ode_bng._verdict(near, _decay(), atol=1e-8)
     assert v["passed"] is True
     assert v["max_err_over_peak"] == pytest.approx(1e-6, rel=1e-6)
+
+
+def test_reproducibility_passes_when_every_repetition_is_the_first_run():
+    anchor = _decay()
+    r = ode_bng._reproducibility(anchor, [_decay(), _decay() * (1 + 1e-9)], ode_bng.REPRO_TOL)
+    assert r["passed"] is True
+    assert r["n_reps"] == 2
+    assert r["max_err_over_peak"] < ode_bng.REPRO_TOL
+
+
+def test_reproducibility_fails_the_repetition_that_solves_another_trajectory():
+    # One repetition is off by 10% of a species' peak -- a reset that solved a
+    # different problem (issue #8). It is the worst, and it trips the check.
+    anchor = _decay()
+    good = _decay()
+    bad = _decay()
+    bad[:, 0] *= 1.10
+    r = ode_bng._reproducibility(anchor, [good, bad], ode_bng.REPRO_TOL)
+    assert r["passed"] is False
+    assert r["worst_rep"] == 1
+    assert r["max_err_over_peak"] == pytest.approx(0.10, rel=1e-9)
+
+
+def test_reproducibility_is_vacuously_true_with_nothing_to_compare():
+    # A subprocess comparator with a single kept repetition has no second run to
+    # disagree with; the check does not invent a failure.
+    r = ode_bng._reproducibility(_decay(), [], ode_bng.REPRO_TOL)
+    assert r["passed"] is True and r["n_reps"] == 0 and r["worst_rep"] is None
+
+
+def test_reproducibility_forgives_a_species_that_never_moves_off_zero():
+    anchor = np.hstack([_decay(), np.zeros((101, 1))])
+    r = ode_bng._reproducibility(anchor, [anchor.copy()], ode_bng.REPRO_TOL)
+    assert r["passed"] is True and r["per_rep"] == [0.0]

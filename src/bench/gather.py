@@ -94,15 +94,19 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
                 lines.append(f"| {r['problem']} | {_fmt(sp, 'd')} | {r['outcome']} | "
                              f"{_fmt(r.get('max_err_over_peak'), '.2e')} | {'yes' if r['current'] else 'no'} |")
         elif name.endswith(TIMING):
-            lines += ["| problem | species | speedup | 95% CI | BNGsim warm (s) | reference (s) "
-                      "| reference solver | pairs | current |",
-                      "|---|---:|---:|---|---:|---:|---|---:|---|"]
+            lines += ["| problem | species | outcome | speedup | 95% CI | BNGsim warm (s) "
+                      "| reference (s) | reference solver | pairs | current |",
+                      "|---|---:|---|---:|---|---:|---:|---|---:|---|"]
             for r in rows:
                 sp = (r.get("network") or {}).get("species")
+                # A speedup is only trusted when the job passed; a NOT_REPRODUCIBLE
+                # (or failed) row would otherwise publish the very number it distrusts.
+                trusted = r.get("outcome") == "PASS"
                 ci = (f"{_fmt(r.get('ci_low'), '.2f')}–{_fmt(r.get('ci_high'), '.2f')}"
-                      if r.get("ci_low") is not None else "")
+                      if trusted and r.get("ci_low") is not None else "")
                 lines.append(
-                    f"| {r['problem']} | {_fmt(sp, 'd')} | {_fmt(r.get('speedup'), '.2f')} | {ci} | "
+                    f"| {r['problem']} | {_fmt(sp, 'd')} | {r['outcome']} | "
+                    f"{_fmt(r.get('speedup'), '.2f') if trusted else ''} | {ci} | "
                     f"{_fmt(r.get('median_bngsim_seconds'), '.4f')} | "
                     f"{_fmt(r.get('median_reference_seconds'), '.4f')} | {r.get('reference_solver') or ''} | "
                     f"{_fmt(r.get('pairs'), 'd')} | "

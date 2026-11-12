@@ -27,6 +27,8 @@ def paired_interleaved(
     max_pairs: int = 20,
     budget_seconds: float = 120.0,
     clock: Callable[[], float] = time.perf_counter,
+    capture_a: Callable[[Any], Any] | None = None,
+    capture_b: Callable[[Any], Any] | None = None,
 ) -> dict[str, Any]:
     """Time ``run_a`` and ``run_b`` in alternation and return every repetition.
 
@@ -34,14 +36,21 @@ def paired_interleaved(
     measured, or until at least ``min_pairs`` are measured and the time spent
     measuring has passed ``budget_seconds``. Pair ``i`` runs A first when ``i``
     is even and B first when it is odd.
+
+    ``capture_a``/``capture_b``, when given, are called on each engine's return
+    value for every *kept* repetition (never a warm-up), and the results are
+    returned under ``a_outputs``/``b_outputs`` aligned with ``a_seconds``. The
+    capture runs outside the timed region, so it does not bias the ratio; what it
+    extracts, and what is done with it, is the caller's business (this module
+    knows nothing of trajectories). Warm-up return values are discarded.
     """
     if min_pairs < 1 or max_pairs < min_pairs:
         raise ValueError("need 1 <= min_pairs <= max_pairs")
 
-    def once(fn: Callable[[], Any]) -> float:
+    def once(fn: Callable[[], Any]) -> tuple[float, Any]:
         t0 = clock()
-        fn()
-        return clock() - t0
+        value = fn()
+        return clock() - t0, value
 
     for i in range(warmup_pairs):
         if i % 2 == 0:
@@ -53,28 +62,39 @@ def paired_interleaved(
 
     a_times: list[float] = []
     b_times: list[float] = []
+    a_outputs: list[Any] = []
+    b_outputs: list[Any] = []
     spent = 0.0
     i = 0
     while len(a_times) < max_pairs:
         if len(a_times) >= min_pairs and spent >= budget_seconds:
             break
         if i % 2 == 0:
-            ta = once(run_a)
-            tb = once(run_b)
+            ta, va = once(run_a)
+            tb, vb = once(run_b)
         else:
-            tb = once(run_b)
-            ta = once(run_a)
+            tb, vb = once(run_b)
+            ta, va = once(run_a)
         a_times.append(ta)
         b_times.append(tb)
+        if capture_a is not None:
+            a_outputs.append(capture_a(va))
+        if capture_b is not None:
+            b_outputs.append(capture_b(vb))
         spent += ta + tb
         i += 1
-    return {
+    reps: dict[str, Any] = {
         "a_seconds": a_times,
         "b_seconds": b_times,
         "warmup_pairs": warmup_pairs,
         "pairs": len(a_times),
         "order": "ABBA",
     }
+    if capture_a is not None:
+        reps["a_outputs"] = a_outputs
+    if capture_b is not None:
+        reps["b_outputs"] = b_outputs
+    return reps
 
 
 def speedup(

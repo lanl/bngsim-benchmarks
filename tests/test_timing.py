@@ -46,6 +46,36 @@ def test_engines_alternate_abba_after_warmup():
     assert "".join(clk.log) == "AB" + "AB" + "BA" + "AB" + "BA"
 
 
+def test_captures_one_output_per_kept_pair_not_warmups():
+    clk = FakeClock()
+    a_seen: list[int] = []
+    b_seen: list[int] = []
+
+    def a():
+        a_seen.append(len(a_seen))
+        clk.now += 1.0
+        return ("a", len(a_seen))
+
+    def b():
+        b_seen.append(len(b_seen))
+        clk.now += 1.0
+        return ("b", len(b_seen))
+
+    reps = paired_interleaved(a, b, warmup_pairs=1, min_pairs=3, max_pairs=3, clock=clk,
+                              capture_a=lambda v: v[1], capture_b=lambda v: v[1])
+    # One capture per kept pair, aligned with the timings; the warm-up pair (the
+    # first call of each engine) is not captured.
+    assert reps["a_outputs"] == [2, 3, 4] and reps["b_outputs"] == [2, 3, 4]
+    assert len(reps["a_outputs"]) == reps["pairs"] == len(reps["a_seconds"])
+
+
+def test_no_captures_leaves_the_output_keys_out():
+    clk = FakeClock()
+    reps = paired_interleaved(clk.engine("A", 1.0), clk.engine("B", 1.0),
+                              warmup_pairs=0, min_pairs=2, max_pairs=2, clock=clk)
+    assert "a_outputs" not in reps and "b_outputs" not in reps
+
+
 def test_warmup_repetitions_are_not_measured():
     clk = FakeClock()
     durations = iter([100.0, 1.0, 1.0, 1.0])  # the first A call is a slow cold start
