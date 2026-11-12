@@ -41,7 +41,7 @@ HARNESS_ENV = {
 
 def _read(path: str) -> str | None:
     try:
-        return Path(path).read_text().strip()
+        return Path(path).read_text(encoding="utf-8").strip()
     except OSError:
         return None
 
@@ -95,7 +95,7 @@ def bionetgen_identity() -> dict[str, Any]:
     marker = root / FETCH_MARKER
     if marker.exists():
         try:
-            m = json.loads(marker.read_text())
+            m = json.loads(marker.read_text(encoding="utf-8"))
             ident.update(version=m.get("version"), sha256=m.get("sha256"), fetched=True)
         except (OSError, ValueError):
             ident["fetched"] = False
@@ -154,7 +154,7 @@ def _glibc_launch() -> tuple[list[str], dict[str, Any]] | None:
     if root is None:
         return None
     try:
-        m = json.loads((root / GLIBC_MARKER).read_text())
+        m = json.loads((root / GLIBC_MARKER).read_text(encoding="utf-8"))
         ld_so = root / m["ld_so"]
         libpath = os.pathsep.join(str(root / d) for d in m["library_path"])
     except (OSError, ValueError, KeyError):
@@ -251,6 +251,8 @@ def harness_identity() -> dict[str, Any]:
 
 def environment() -> dict[str, Any]:
     """Everything a result records about where it ran."""
+    import locale
+
     return {
         "bngsim": bngsim_identity(),
         "bionetgen": bionetgen_identity(),
@@ -259,6 +261,11 @@ def environment() -> dict[str, Any]:
         "host": host_identity(),
         "node_type": node_type(),
         "python": platform.python_version(),
+        # The locale's text encoding, for provenance: the harness names UTF-8 at
+        # each read, but a model read by BNGsim rides on this. Not in the
+        # fingerprint -- PYTHONUTF8 makes it UTF-8 regardless, and it is recorded,
+        # not keyed on.
+        "text_encoding": locale.getpreferredencoding(False),
     }
 
 

@@ -78,7 +78,7 @@ def fetch_bionetgen(cache_dir: str | Path) -> Path:
     marker = dest / FETCH_MARKER
     if marker.exists():
         try:
-            if json.loads(marker.read_text()).get("sha256") == want:
+            if json.loads(marker.read_text(encoding="utf-8")).get("sha256") == want:
                 return dest
         except (OSError, ValueError):
             pass
@@ -104,7 +104,8 @@ def fetch_bionetgen(cache_dir: str | Path) -> Path:
         if exe.is_file():
             exe.chmod(exe.stat().st_mode | 0o111)
     marker.write_text(
-        json.dumps({"version": BIONETGEN_VERSION, "url": url, "sha256": want}, indent=2) + "\n"
+        json.dumps({"version": BIONETGEN_VERSION, "url": url, "sha256": want}, indent=2) + "\n",
+        encoding="utf-8",
     )
     return dest
 
@@ -186,7 +187,7 @@ def fetch_glibc(cache_dir: str | Path) -> Path:
     want = [r["sha256"] for r in GLIBC_RPMS]
     if marker.exists():
         try:
-            m = json.loads(marker.read_text())
+            m = json.loads(marker.read_text(encoding="utf-8"))
             if [r.get("sha256") for r in m.get("rpms", [])] == want:
                 return root
         except (OSError, ValueError):
@@ -224,7 +225,7 @@ def fetch_glibc(cache_dir: str | Path) -> Path:
         "library_path": [str(d.relative_to(root)) for d in libdirs],
         "glibc_version": _soname_version(libc, "GLIBC") if libc else None,
         "libstdcxx_version": _soname_version(libcxx, "GLIBCXX") if libcxx else None,
-    }, indent=2) + "\n")
+    }, indent=2) + "\n", encoding="utf-8")
     return root
 
 

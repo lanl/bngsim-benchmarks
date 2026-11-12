@@ -114,6 +114,26 @@ def test_read_dat_parses_header_time_and_values(tmp_path):
     assert names == ["S1", "S2"]
 
 
+def test_read_dat_reads_a_non_ascii_header_as_utf8(tmp_path):
+    # A column name with a non-ASCII byte (an em dash). Read as UTF-8 whatever the
+    # locale, so it does not raise under an ASCII locale (issue #9).
+    p = tmp_path / "x.cdat"
+    p.write_bytes("#  time  S—1\n 0.0  1.0\n".encode("utf-8"))
+    _, v, names = ode_bng.read_dat(p)
+    np.testing.assert_array_equal(v, [[1.0]])
+    assert names == ["S—1"]
+
+
+def test_netgen_model_keeps_a_non_ascii_comment(tmp_path):
+    # An em dash in a comment must survive the netgen rewrite and write out as UTF-8.
+    text = "# rate — see paper\n" + MODEL
+    out = ode_bng.netgen_bngl(text, NETGEN)
+    assert "—" in out
+    p = tmp_path / "m.bngl"
+    p.write_text(out, encoding="utf-8")
+    assert p.read_text(encoding="utf-8") == out
+
+
 def test_read_dat_without_header_names_columns(tmp_path):
     p = tmp_path / "x.cdat"
     p.write_text("0 1 2 3\n")
@@ -191,6 +211,19 @@ def _fake_reference(monkeypatch, values=None, error=None):
 
     monkeypatch.setattr(ode_bng, "_reference_run", fake)
     return calls
+
+
+def test_timing_prep_failure_is_a_bad_test_row_not_an_exception(monkeypatch):
+    # A model that cannot be read/built must be a labelled BAD_TEST row (as in the
+    # correctness job), not the worker's generic EXCEPTION or a missing row (issue
+    # #9). The failure happens in _prepare, before any engine runs.
+    def boom(problem, ctx):
+        raise UnicodeDecodeError("ascii", b"\xe2", 0, 1, "ordinal not in range(128)")
+
+    monkeypatch.setattr(ode_bng, "_prepare", boom)
+    rec = ode_bng.run_timing(job=None, problem=None, ctx={})
+    assert rec["outcome"] == "BAD_TEST"
+    assert "UnicodeDecodeError" in rec["error"]
 
 
 def test_sparse_check_skipped_when_the_model_does_not_ask_for_sparse(monkeypatch):

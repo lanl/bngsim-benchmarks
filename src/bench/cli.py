@@ -46,7 +46,7 @@ def _load_jobs(args) -> list[jobs_mod.Job]:
     if jobs_from is not None:
         if args.patterns:
             raise SystemExit("give job patterns or --jobs-from, not both")
-        ids = [ln.strip() for ln in jobs_from.read_text().splitlines()]
+        ids = [ln.strip() for ln in jobs_from.read_text(encoding="utf-8").splitlines()]
         ids = [i for i in ids if i and not i.startswith("#")]
         try:
             return jobs_mod.select_exact(all_jobs, ids)
@@ -279,7 +279,19 @@ def _check_run_network_loads(env) -> bool:
     return False
 
 
+def _encoding_is_utf8(enc: str) -> bool:
+    """Whether ``enc`` names UTF-8, however it is spelled (``UTF-8``, ``utf8``)."""
+    try:
+        import codecs
+
+        return codecs.lookup(enc).name == "utf-8"
+    except (LookupError, TypeError):
+        return False
+
+
 def cmd_doctor(args) -> int:
+    import locale
+
     from . import env
     from ._vendor import VENDOR_JSON, parity_core_record
     from .fetch import sha256_file
@@ -287,6 +299,13 @@ def cmd_doctor(args) -> int:
     ok = True
     info = env.environment()
     print(json.dumps(info, indent=2, default=str))
+    enc = locale.getpreferredencoding(False)
+    if _encoding_is_utf8(enc):
+        print(f"OK   text files are read as {enc}")
+    else:
+        ok = False
+        print(f"FAIL text files are read as {enc}, not UTF-8 "
+              "(set PYTHONUTF8=1; a model with a non-ASCII byte would fail to load)")
     b, g = info["bngsim"], info["bionetgen"]
     if not b.get("build_commit"):
         ok = False

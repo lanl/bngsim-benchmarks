@@ -41,7 +41,7 @@ def write_result(results_dir: str | Path, job: Job, record: dict[str, Any]) -> P
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-", suffix=".json")
     try:
-        with os.fdopen(fd, "w") as f:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(record, f, indent=2, sort_keys=True, default=str)
             f.write("\n")
             f.flush()
@@ -56,7 +56,7 @@ def write_result(results_dir: str | Path, job: Job, record: dict[str, Any]) -> P
 def read_result(results_dir: str | Path, job: Job | str) -> dict[str, Any] | None:
     path = result_path(results_dir, job)
     try:
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
 

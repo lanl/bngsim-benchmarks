@@ -213,7 +213,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
 def load(path: str | Path) -> Problem:
     path = Path(path)
     try:
-        data = yaml.safe_load(path.read_text())
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
         raise SpecError(path, [f"not valid YAML: {exc}"]) from exc
     return validate(data, path)
