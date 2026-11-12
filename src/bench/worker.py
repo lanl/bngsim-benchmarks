@@ -20,7 +20,7 @@ import time
 import traceback
 from pathlib import Path
 
-from .env import SINGLE_THREAD_ENV
+from .env import HARNESS_ENV, SINGLE_THREAD_ENV
 
 
 def _pin_to_cpu() -> int | None:
@@ -46,6 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     # Before anything imports numpy or bngsim: one thread per job.
     for k, v in SINGLE_THREAD_ENV.items():
         os.environ.setdefault(k, v)
+    os.environ.update(HARNESS_ENV)
     pinned = _pin_to_cpu()
     scratch = Path(tempfile.mkdtemp(prefix="bench-job-"))
     # An empty, node-local compile cache per job, so a cold measurement is cold

@@ -10,6 +10,9 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -71,6 +74,30 @@ def test_results_record_the_build_they_measured(run_dir):
     assert env["bngsim"]["build_commit"]
     assert env["bionetgen"]["fetched"] is True
     assert env["node_type"]
+
+
+def test_failed_codegen_build_fails_the_job_instead_of_falling_back(tmp_path):
+    # A compiler that always fails, and a threshold that asks for compiled code on
+    # this 9-species model. bngsim then falls back to the interpreter unless
+    # BNGSIM_CODEGEN_STRICT is in effect, and only then names it in the error. The
+    # caller's "0" shows the worker overrides it.
+    if not _bionetgen_present():
+        pytest.skip("BioNetGen not installed; run `pixi run fetch-bionetgen`")
+    pytest.importorskip("bngsim")
+    broken_cc = shutil.which("false")
+    assert broken_cc, "no `false` command to stand in for a broken compiler"
+    env = {**os.environ, "CC": broken_cc, "BNGSIM_CODEGEN_THRESHOLD": "1",
+           "BNGSIM_CODEGEN_STRICT": "0"}
+    job = f"{JOB}/correctness"
+    proc = subprocess.run(
+        [sys.executable, "-m", "bench.worker", "--job", job,
+         "--problems", str(REPO / "problems"), "--results", str(tmp_path),
+         "--cache", str(REPO / ".cache")],
+        env=env, capture_output=True, text=True, timeout=600, check=False)
+    assert proc.returncode == 0, proc.stderr[-2000:]
+    r = json.loads((tmp_path / f"{job}.json").read_text())
+    assert r["outcome"] == "EXCEPTION", r.get("verdict")
+    assert "BNGSIM_CODEGEN_STRICT is set" in r["bngsim_error"]
 
 
 def test_second_run_has_nothing_to_do(run_dir, capsys):

@@ -1,8 +1,8 @@
 {
   "upstream": "lanl/bngsim",
   "path": "parity_checks/_core",
-  "ref": "v0.17.0",
-  "commit": "0b7b3424410a6e815b78c58580640883cc1e95ea",
+  "ref": "v0.17.1",
+  "commit": "e6c2fc65ebe3def20a61fbcdce3df79f27577435",
   "license": "MIT (same terms and copyright as this repository; see LICENSE)",
   "note": "Copied verbatim. Do not edit: re-run tools/vendor_parity_core.py instead.",
   "files": {

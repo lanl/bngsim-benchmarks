@@ -348,6 +348,10 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
    - Cold cost (loading, code generation, compilation) is a separate phase, measured
      with an empty compile cache.
    - Compile caches live on node-local scratch, never on a shared filesystem.
+   - Every job runs with `BNGSIM_CODEGEN_STRICT=1`, whatever the caller set. A
+     compiled-code build that fails then fails the job, instead of falling back to the
+     interpreter with only a warning, so no job measures or checks the interpreter
+     without knowing. The setting is part of each result's freshness key.
 4. **One node type per artifact:**
    - Timing results that are compared with each other come from one declared node
      type (Slurm `--constraint`, or a recorded node type for interactive runs).

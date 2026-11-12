@@ -30,6 +30,14 @@ SINGLE_THREAD_ENV = {
     "NUMEXPR_NUM_THREADS": "1",
 }
 
+# Forced in every job's environment, whatever the caller set. Without
+# BNGSIM_CODEGEN_STRICT, a compiled-code build that fails falls back to the
+# interpreter with only a warning, so a job could time or check the interpreter
+# without knowing; with it, the job fails and says why (bngsim >= 0.17.1).
+HARNESS_ENV = {
+    "BNGSIM_CODEGEN_STRICT": "1",
+}
+
 
 def _read(path: str) -> str | None:
     try:
@@ -161,7 +169,7 @@ def node_type() -> str:
 def harness_identity() -> dict[str, Any]:
     from ._vendor import parity_core_identity
 
-    return {"bench": __version__, "parity_core": parity_core_identity()}
+    return {"bench": __version__, "parity_core": parity_core_identity(), "forced_env": HARNESS_ENV}
 
 
 def environment() -> dict[str, Any]:
