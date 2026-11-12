@@ -23,3 +23,7 @@ dist/
 # Slurm: local settings (they name local infrastructure) and submission directories
 slurm.yaml
 slurm/
+
+# Local, institution-specific scripts and notes (names of accounts, partitions,
+# hosts, etc.). Never committed; the generic, shareable equivalents live in tools/.
+dev/

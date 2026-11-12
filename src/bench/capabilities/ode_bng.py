@@ -205,6 +205,9 @@ def run_network_command(net: Path, proto: dict[str, Any], out_prefix: Path) -> l
     """The run_network call BNG2.pl makes for this simulate."""
     t_start, t_end, n_steps = float(proto["t_start"]), float(proto["t_end"]), int(proto["n_steps"])
     cmd = [
+        # On a host whose glibc is too old to load run_network, this prefixes the
+        # command with a newer loader (env.run_network_launch); [] otherwise.
+        *env.run_network_launch(),
         str(env.run_network_bin()), "-o", str(out_prefix), "-p", "cvode",
         "-a", repr(float(proto["atol"])), "-r", repr(float(proto["rtol"])),
     ]
@@ -217,6 +220,14 @@ def run_network_command(net: Path, proto: dict[str, Any], out_prefix: Path) -> l
         repr((t_end - t_start) / n_steps), str(n_steps),
     ]
     return cmd
+
+
+def recorded_command(cmd: list[str]) -> list[str]:
+    """The run_network flags to record: from the binary on, minus any loader
+    prefix prepended by ``env.run_network_launch`` and the binary path itself."""
+    rn = str(env.run_network_bin())
+    i = cmd.index(rn) if rn in cmd else 0
+    return cmd[i + 1:]
 
 
 def read_dat(path: Path) -> tuple[np.ndarray, np.ndarray, list[str]]:
@@ -351,7 +362,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     try:
         rn, cmd, seconds = _reference_run(net, proto, workdir, "rn", sparse=False,
                                           timeout=ctx["subprocess_timeout"])
-        info["run_network"] = {"seconds": seconds, "solver": "dense", "command": cmd[1:]}
+        info["run_network"] = {"seconds": seconds, "solver": "dense",
+                               "command": recorded_command(cmd)}
     except Exception as exc:  # noqa: BLE001
         rn_error = f"{type(exc).__name__}: {exc}"[:400]
     if rn is not None:

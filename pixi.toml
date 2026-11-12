@@ -35,6 +35,7 @@ BNGPATH = "$PIXI_PROJECT_ROOT/.cache/bionetgen/BioNetGen-2.9.3"
 
 [tasks]
 fetch-bionetgen = { cmd = "bench fetch-bionetgen", description = "Download BioNetGen 2.9.3 and check its sha256" }
+fetch-glibc = { cmd = "bench fetch-glibc", description = "Install a newer glibc loader so run_network loads on old-glibc Linux hosts" }
 test = { cmd = "pytest -q -m 'not integration and not network'", description = "Unit tests; no simulator needed" }
 test-integration = { cmd = "pytest -q -m integration", description = "Real simulations; needs fetch-bionetgen first" }
 doctor = { cmd = "bench doctor", description = "Report the environment a job would record" }

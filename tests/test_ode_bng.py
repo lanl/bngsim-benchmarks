@@ -81,6 +81,9 @@ def test_other_setoptions_are_dropped():
 @pytest.fixture
 def fake_bin(monkeypatch):
     monkeypatch.setattr(ode_bng.env, "run_network_bin", lambda: Path("/bng/bin/run_network"))
+    # These tests pin the native flags BNG2.pl runs; isolate them from any glibc
+    # tree in the real cache that would otherwise prepend a loader prefix.
+    monkeypatch.setattr(ode_bng.env, "run_network_launch", lambda: [])
 
 
 def test_run_network_command_matches_what_bng2pl_runs(fake_bin):
