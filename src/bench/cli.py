@@ -6,6 +6,7 @@
     bench submit [PATTERN...]        the same, as a Slurm job array (see slurm.example.yaml)
     bench gather                     assemble results into reports/
     bench fetch-bionetgen            download and check BioNetGen
+    bench fetch-glibc                install a newer glibc loader (old-glibc Linux)
     bench doctor                     the environment a job would record
 
 PATTERN selects jobs whose id contains it (a problem id, a capability, "timing").
@@ -232,6 +233,52 @@ def cmd_fetch_bionetgen(args) -> int:
     return 0
 
 
+def cmd_fetch_glibc(args) -> int:
+    from .fetch import fetch_glibc
+
+    print(fetch_glibc(args.cache))
+    return 0
+
+
+def _check_run_network_loads(env) -> bool:
+    """Whether run_network actually launches here, and under which loader.
+
+    run_network with no args prints its version and exits 1; the point is only
+    that it *loads*. A machine whose glibc is too old fails with a GLIBC error
+    unless a newer loader was fetched (`fetch-glibc`).
+    """
+    launch = env.run_network_launch()
+    loader = env.glibc_identity()
+    try:
+        proc = subprocess.run([*launch, str(env.run_network_bin())],
+                              capture_output=True, text=True, timeout=30, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"FAIL run_network: cannot launch ({type(exc).__name__}: {exc})")
+        return False
+    out = (proc.stdout + proc.stderr)
+    # The dynamic loader's failure phrasings: a shared object it cannot open, a
+    # symbol version the host libc lacks (the GLIBC_2.34 case this swap fixes), or
+    # a missing symbol. Any of them means run_network did not actually load -- key
+    # off the failure, not off the absence of "GLIBC" (a libstdc++ "cannot open
+    # shared object" failure carries no "GLIBC" and must not read as OK).
+    load_failed = any(s in out for s in (
+        "error while loading shared libraries",
+        "not found (required by",
+        "symbol lookup error",
+        "undefined symbol",
+    ))
+    if "run_network" in out and not load_failed:
+        where = (f"under glibc {loader.get('glibc_version')} ({loader.get('tag')})"
+                 if loader.get("swapped") else "with the host loader")
+        print(f"OK   run_network loads {where}")
+        return True
+    detail = out.strip().splitlines()
+    msg = detail[-1][:200] if detail else f"exit {proc.returncode}"
+    hint = "" if loader.get("swapped") else " (run `pixi run fetch-glibc`)"
+    print(f"FAIL run_network does not load: {msg}{hint}")
+    return False
+
+
 def cmd_doctor(args) -> int:
     from . import env
     from ._vendor import VENDOR_JSON, parity_core_record
@@ -249,6 +296,8 @@ def cmd_doctor(args) -> int:
         print(f"FAIL BioNetGen: {g['error']} (run `pixi run fetch-bionetgen`)")
     elif not g.get("fetched"):
         print("WARN BioNetGen: not the fetched, sha256-checked copy")
+    if not g.get("error"):
+        ok = _check_run_network_loads(env) and ok
     rec = parity_core_record()
     for name, want in rec["files"].items():
         if sha256_file(VENDOR_JSON.parent / "parity_core" / name) != want:
@@ -315,6 +364,11 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("fetch-bionetgen", help="download and check BioNetGen")
     _common(p)
     p.set_defaults(fn=cmd_fetch_bionetgen)
+
+    p = sub.add_parser("fetch-glibc",
+                       help="install a newer glibc loader (old-glibc Linux hosts only)")
+    _common(p)
+    p.set_defaults(fn=cmd_fetch_glibc)
 
     p = sub.add_parser("doctor", help="the environment a job would record")
     _common(p)

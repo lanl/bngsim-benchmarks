@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from bench import fetch
+from bench import env, fetch
 
 BODY = b"begin model\nend model\n"
 SHA = hashlib.sha256(BODY).hexdigest()
@@ -71,3 +71,115 @@ def test_bionetgen_with_wrong_tarball_is_refused(tmp_path, monkeypatch):
     with pytest.raises(SystemExit, match="sha256 mismatch"):
         fetch.fetch_bionetgen(tmp_path)
     assert not list((tmp_path / "bionetgen").glob("*.tar.gz"))
+
+
+# --------------------------------------------------------------------------- #
+# The glibc loader swap (fetch + how env builds the launch prefix from it)
+# --------------------------------------------------------------------------- #
+def _fake_glibc(tmp_path, monkeypatch):
+    """Install a stand-in glibc tree without touching the network or rpm2cpio.
+
+    ``_download`` writes a dummy RPM whose bytes hash to the pinned sha256;
+    ``_extract_rpm`` lays out the loader (``lib64``) and libstdc++
+    (``usr/lib64``) the way the real RPMs do.
+    """
+    bodies = {spec["url"]: f"rpm:{spec['sha256']}".encode() for spec in fetch.GLIBC_RPMS}
+    # Pin each RPM's sha256 to the bytes our fake download writes.
+    for spec in fetch.GLIBC_RPMS:
+        spec_sha = hashlib.sha256(bodies[spec["url"]]).hexdigest()
+        monkeypatch.setitem(spec, "sha256", spec_sha)
+
+    def fake_download(url, dest, timeout=120):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(bodies[url])
+
+    def fake_extract(rpm, dest):
+        if "glibc" in rpm.name:
+            lib = dest / "lib64"
+            lib.mkdir(parents=True, exist_ok=True)
+            (lib / "ld-linux-x86-64.so.2").write_bytes(b"\x7fELF ld")
+            (lib / "libc.so.6").write_bytes(b"GLIBC_2.34\x00GLIBC_2.17\x00")
+            (lib / "libm.so.6").write_bytes(b"GLIBC_2.34\x00")
+        else:
+            lib = dest / "usr" / "lib64"
+            lib.mkdir(parents=True, exist_ok=True)
+            (lib / "libstdc++.so.6.0.29").write_bytes(b"GLIBCXX_3.4.29\x00CXXABI_1.3.9\x00")
+            (lib / "libstdc++.so.6").symlink_to("libstdc++.so.6.0.29")
+
+    monkeypatch.setattr(fetch, "_download", fake_download)
+    monkeypatch.setattr(fetch, "_extract_rpm", fake_extract)
+
+
+def test_fetch_glibc_installs_and_records_the_loader(tmp_path, monkeypatch):
+    monkeypatch.setattr("platform.system", lambda: "Linux")
+    _fake_glibc(tmp_path, monkeypatch)
+    root = fetch.fetch_glibc(tmp_path)
+    assert root == tmp_path / "glibc" / fetch.GLIBC_TAG
+    m = json.loads((root / fetch.GLIBC_MARKER).read_text())
+    assert m["tag"] == fetch.GLIBC_TAG
+    assert m["ld_so"] == "tree/lib64/ld-linux-x86-64.so.2"
+    assert m["glibc_version"] == "2.34"
+    assert m["libstdcxx_version"] == "3.4.29"
+    # library_path covers both the loader's dir and libstdc++'s dir.
+    assert set(m["library_path"]) == {"tree/lib64", "tree/usr/lib64"}
+
+
+def test_fetch_glibc_reuses_a_matching_tree(tmp_path, monkeypatch):
+    monkeypatch.setattr("platform.system", lambda: "Linux")
+    _fake_glibc(tmp_path, monkeypatch)
+    fetch.fetch_glibc(tmp_path)
+
+    def no_download(*a, **k):
+        raise AssertionError("re-downloaded although the marker matched")
+
+    monkeypatch.setattr(fetch, "_download", no_download)
+    assert fetch.fetch_glibc(tmp_path) == tmp_path / "glibc" / fetch.GLIBC_TAG
+
+
+def test_fetch_glibc_is_linux_only(tmp_path, monkeypatch):
+    monkeypatch.setattr("platform.system", lambda: "Darwin")
+    with pytest.raises(SystemExit, match="only for Linux"):
+        fetch.fetch_glibc(tmp_path)
+
+
+def test_run_network_launch_is_empty_without_a_tree(tmp_path, monkeypatch):
+    env.glibc_identity.cache_clear()
+    env.run_network_launch.cache_clear()
+    monkeypatch.delenv("BENCH_GLIBC_ROOT", raising=False)
+    monkeypatch.setattr(env, "bngpath", lambda: tmp_path / "bionetgen" / "BioNetGen-x")
+    assert env.run_network_launch() == []
+    assert env.glibc_identity() == {"swapped": False}
+
+
+def test_incomplete_marker_is_native_for_both_identity_and_launch(tmp_path, monkeypatch):
+    # A marker that is valid JSON but missing the keys a prefix needs (or whose
+    # ld.so is gone) must read as native *consistently*: no prefix, and an
+    # identity that does not claim "swapped" -- otherwise a result could be
+    # labelled swapped while run_network actually ran under the host loader.
+    root = tmp_path / "glibc" / fetch.GLIBC_TAG
+    root.mkdir(parents=True)
+    (root / fetch.GLIBC_MARKER).write_text(json.dumps({"tag": fetch.GLIBC_TAG}))  # no ld_so
+    env.glibc_identity.cache_clear()
+    env.run_network_launch.cache_clear()
+    monkeypatch.setenv("BENCH_GLIBC_ROOT", str(root))
+    assert env.run_network_launch() == []
+    assert env.glibc_identity() == {"swapped": False}
+    env.glibc_identity.cache_clear()
+    env.run_network_launch.cache_clear()
+
+
+def test_run_network_launch_prefixes_the_loader_when_present(tmp_path, monkeypatch):
+    monkeypatch.setattr("platform.system", lambda: "Linux")
+    _fake_glibc(tmp_path, monkeypatch)
+    root = fetch.fetch_glibc(tmp_path)
+    env.glibc_identity.cache_clear()
+    env.run_network_launch.cache_clear()
+    monkeypatch.setenv("BENCH_GLIBC_ROOT", str(root))
+    launch = env.run_network_launch()
+    assert launch[0] == str(root / "tree" / "lib64" / "ld-linux-x86-64.so.2")
+    assert launch[1] == "--library-path"
+    assert str(root / "tree" / "usr" / "lib64") in launch[2]
+    ident = env.glibc_identity()
+    assert ident["swapped"] and ident["glibc_version"] == "2.34"
+    env.glibc_identity.cache_clear()
+    env.run_network_launch.cache_clear()

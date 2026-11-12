@@ -66,6 +66,46 @@ def test_node_type_decides_timing_freshness_only(monkeypatch):
     assert a_t != b_t
 
 
+def test_swapped_loader_decides_timing_freshness_only(monkeypatch):
+    # Running run_network under a different glibc changes its absolute speed, so
+    # it stales timing results -- but a correctness verdict is unaffected.
+    monkeypatch.setattr(env, "node_type", lambda: "CPU A | x86_64 | Linux")
+    monkeypatch.setattr(env, "glibc_identity",
+                        lambda: {"swapped": True, "tag": "rocky-9.5", "glibc_version": "2.34",
+                                 "libstdcxx_version": "3.4.29"})
+    a_c, a_t = env.fingerprint(timing=False), env.fingerprint(timing=True)
+    monkeypatch.setattr(env, "glibc_identity",
+                        lambda: {"swapped": True, "tag": "rocky-9.6", "glibc_version": "2.34",
+                                 "libstdcxx_version": "3.4.29"})
+    b_c, b_t = env.fingerprint(timing=False), env.fingerprint(timing=True)
+    assert a_c == b_c
+    assert "loader" not in a_c
+    assert a_t != b_t
+    assert a_t["loader"] == {"tag": "rocky-9.5", "glibc_version": "2.34",
+                             "libstdcxx_version": "3.4.29"}
+
+
+def test_a_libstdcxx_only_change_stales_timing(monkeypatch):
+    # The loader key carries libstdc++ too: run_network is linked against the
+    # swapped libstdc++, so a libstdc++-only bump (same tag, same glibc) changes
+    # its absolute speed and must stale prior timing results.
+    monkeypatch.setattr(env, "node_type", lambda: "CPU A | x86_64 | Linux")
+    monkeypatch.setattr(env, "glibc_identity",
+                        lambda: {"swapped": True, "tag": "rocky-9.5", "glibc_version": "2.34",
+                                 "libstdcxx_version": "3.4.29"})
+    a_t = env.fingerprint(timing=True)
+    monkeypatch.setattr(env, "glibc_identity",
+                        lambda: {"swapped": True, "tag": "rocky-9.5", "glibc_version": "2.34",
+                                 "libstdcxx_version": "3.4.30"})
+    b_t = env.fingerprint(timing=True)
+    assert a_t != b_t
+
+
+def test_native_loader_is_absent_from_the_fingerprint(monkeypatch):
+    monkeypatch.setattr(env, "glibc_identity", lambda: {"swapped": False})
+    assert "loader" not in env.fingerprint(timing=True)
+
+
 def test_write_then_read_round_trips(tmp_path, pair):
     c, _ = pair
     path = results.write_result(tmp_path, c, {"outcome": "PASS", "x": 1.5})

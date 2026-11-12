@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
-from .fetch import FETCH_MARKER
+from .fetch import FETCH_MARKER, GLIBC_MARKER, GLIBC_TAG
 
 # Set in every job's environment: a timing job measures one thread unless it
 # measures parallelism on purpose (docs/DESIGN.md section 7).
@@ -121,6 +121,83 @@ def run_network_bin() -> Path:
     return root / "bin" / "run_network"
 
 
+def glibc_root() -> Path | None:
+    """The fetched newer-glibc tree, if one is configured and present.
+
+    ``$BENCH_GLIBC_ROOT`` overrides; otherwise it is derived from BNGPATH, whose
+    grandparent is the cache dir (``.cache/bionetgen/BioNetGen-x`` ->
+    ``.cache/glibc/<tag>``). ``None`` when no such tree exists, which is the
+    normal case on a machine whose own glibc loads run_network.
+    """
+    override = os.environ.get("BENCH_GLIBC_ROOT")
+    if override:
+        root = Path(override)
+        return root if (root / GLIBC_MARKER).exists() else None
+    bng = bngpath()
+    if bng is None:
+        return None
+    root = bng.parent.parent / "glibc" / GLIBC_TAG
+    return root if (root / GLIBC_MARKER).exists() else None
+
+
+def _glibc_launch() -> tuple[list[str], dict[str, Any]] | None:
+    """The swapped-loader launch prefix and the marker it came from, or ``None``.
+
+    The single source of truth for "is a usable loader swap configured": both the
+    launch prefix (``run_network_launch``) and the recorded identity
+    (``glibc_identity``) derive from it, so a result can never be labelled
+    ``swapped`` while the binary in fact ran natively. ``None`` means no tree, an
+    unreadable/incomplete marker, or a loader file that no longer exists -- every
+    case in which no prefix can be built and the native loader is used.
+    """
+    root = glibc_root()
+    if root is None:
+        return None
+    try:
+        m = json.loads((root / GLIBC_MARKER).read_text())
+        ld_so = root / m["ld_so"]
+        libpath = os.pathsep.join(str(root / d) for d in m["library_path"])
+    except (OSError, ValueError, KeyError):
+        return None
+    if not ld_so.exists():
+        return None
+    return [str(ld_so), "--library-path", libpath], m
+
+
+@lru_cache(maxsize=1)
+def glibc_identity() -> dict[str, Any]:
+    """Whether run_network is launched under a swapped loader, and which one.
+
+    ``swapped`` is true only when a prefix can actually be built, so it agrees
+    with ``run_network_launch`` by construction.
+    """
+    launch = _glibc_launch()
+    if launch is None:
+        return {"swapped": False}
+    m = launch[1]
+    return {
+        "swapped": True,
+        "tag": m.get("tag"),
+        "glibc_version": m.get("glibc_version"),
+        "libstdcxx_version": m.get("libstdcxx_version"),
+        "rpms": [r.get("sha256") for r in m.get("rpms", [])],
+    }
+
+
+@lru_cache(maxsize=1)
+def run_network_launch() -> list[str]:
+    """Argv prefix that runs run_network under the fetched loader, or ``[]``.
+
+    ``[]`` means run the binary directly -- the normal case, and always so off
+    Linux. When a glibc tree is present the prefix is
+    ``[<ld.so>, "--library-path", <dirs>]``, which is identical and constant for
+    every call, so it does not bias the paired timing (it is a real part of
+    launching a fresh run_network process, which is what the reference measures).
+    """
+    launch = _glibc_launch()
+    return launch[0] if launch is not None else []
+
+
 def _cpu_model() -> str | None:
     if platform.system() == "Darwin":
         return _run(["sysctl", "-n", "machdep.cpu.brand_string"])
@@ -177,6 +254,7 @@ def environment() -> dict[str, Any]:
     return {
         "bngsim": bngsim_identity(),
         "bionetgen": bionetgen_identity(),
+        "loader": glibc_identity(),
         "harness": harness_identity(),
         "host": host_identity(),
         "node_type": node_type(),
@@ -199,4 +277,15 @@ def fingerprint(*, timing: bool) -> dict[str, Any]:
     }
     if timing:
         fp["node_type"] = node_type()
+        # The reference's absolute speed (and the launch cost folded into its
+        # measurement) rides on the libc/libstdc++ it runs under; node_type pins
+        # the hardware, this pins the loader. A correctness verdict does not
+        # depend on it, so it is a timing-only part of the key.
+        loader = glibc_identity()
+        if loader.get("swapped"):
+            fp["loader"] = {
+                "tag": loader.get("tag"),
+                "glibc_version": loader.get("glibc_version"),
+                "libstdcxx_version": loader.get("libstdcxx_version"),
+            }
     return fp

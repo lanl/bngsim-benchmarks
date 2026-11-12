@@ -12,6 +12,7 @@ import json
 import os
 import platform
 import shutil
+import subprocess
 import tarfile
 import tempfile
 import urllib.request
@@ -106,6 +107,125 @@ def fetch_bionetgen(cache_dir: str | Path) -> Path:
         json.dumps({"version": BIONETGEN_VERSION, "url": url, "sha256": want}, indent=2) + "\n"
     )
     return dest
+
+
+# --------------------------------------------------------------------------- #
+# A newer glibc, for machines whose own is too old to load run_network
+# --------------------------------------------------------------------------- #
+# BioNetGen's prebuilt Linux run_network (2.9.3) needs glibc >= 2.34 and
+# libstdc++ GLIBCXX_3.4.29; a cluster on an older OS (e.g. RHEL 8 / glibc 2.28)
+# cannot load it. Rather than rebuild it or pin an older BioNetGen, we run the
+# unchanged binary under a newer loader, extracted (no root) from public Rocky
+# Linux 9 RPMs. The binary's bytes -- and so its sha256 fingerprint -- are
+# untouched; only how it is launched changes (see env.run_network_launch).
+#
+# Pinned to the Rocky *vault* (archived point releases never garbage-collected,
+# unlike the rolling mirror). glibc provides the loader + libc/libm; libstdc++
+# provides GLIBCXX_3.4.29 / CXXABI_1.3.9. libgcc_s only needs GCC_3.0, which old
+# hosts already satisfy, so it is not fetched.
+GLIBC_TAG = "rocky-9.5"
+_ROCKY_VAULT = "https://dl.rockylinux.org/vault/rocky/9.5/BaseOS/x86_64/os/Packages"
+GLIBC_RPMS = [
+    {
+        "url": f"{_ROCKY_VAULT}/g/glibc-2.34-125.el9_5.1.x86_64.rpm",
+        "sha256": "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    },
+    {
+        "url": f"{_ROCKY_VAULT}/l/libstdc++-11.5.0-5.el9_5.x86_64.rpm",
+        "sha256": "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de",
+    },
+]
+GLIBC_MARKER = ".bench-glibc.json"
+_LOADER_NAME = "ld-linux-x86-64.so.2"
+
+
+def _extract_rpm(rpm: Path, dest: Path) -> None:
+    """Unpack an RPM payload into ``dest`` with ``rpm2cpio | cpio`` (no root)."""
+    for tool in ("rpm2cpio", "cpio"):
+        if shutil.which(tool) is None:
+            raise SystemExit(
+                f"{tool} is needed to install the glibc loader but was not found; "
+                "it ships with rpm/cpio on the Linux hosts that need this"
+            )
+    dest.mkdir(parents=True, exist_ok=True)
+    r2c = subprocess.Popen(["rpm2cpio", str(rpm)], stdout=subprocess.PIPE)
+    cpio = subprocess.Popen(
+        ["cpio", "-idmu", "--quiet"], stdin=r2c.stdout, cwd=dest,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    )
+    r2c.stdout.close()  # let rpm2cpio get SIGPIPE if cpio exits
+    cpio.communicate()
+    if r2c.wait() != 0 or cpio.returncode != 0:
+        raise SystemExit(f"failed to extract {rpm.name} (rpm2cpio|cpio)")
+
+
+def _soname_version(path: Path, prefix: str) -> str | None:
+    """The highest ``<prefix>_<ver>`` symbol version in a shared object."""
+    try:
+        blob = path.read_bytes()
+    except OSError:
+        return None
+    import re
+
+    vers = re.findall(rb"%b_([0-9][0-9.]*)" % prefix.encode(), blob)
+    if not vers:
+        return None
+    return max((v.decode() for v in vers), key=lambda s: [int(n) for n in s.split(".")])
+
+
+def fetch_glibc(cache_dir: str | Path) -> Path:
+    """Install a newer glibc + libstdc++ into ``<cache_dir>/glibc/<GLIBC_TAG>``.
+
+    Returns the tree root. A copy already present with a matching marker (same
+    set of RPM sha256s) is reused. Linux only; there is nothing to do elsewhere.
+    """
+    if platform.system() != "Linux":
+        raise SystemExit("the glibc loader swap is only for Linux hosts")
+    root = Path(cache_dir) / "glibc" / GLIBC_TAG
+    marker = root / GLIBC_MARKER
+    want = [r["sha256"] for r in GLIBC_RPMS]
+    if marker.exists():
+        try:
+            m = json.loads(marker.read_text())
+            if [r.get("sha256") for r in m.get("rpms", [])] == want:
+                return root
+        except (OSError, ValueError):
+            pass
+    if root.exists():
+        shutil.rmtree(root)
+    tree = root / "tree"
+    for spec in GLIBC_RPMS:
+        rpm = root / Path(spec["url"]).name
+        _download(spec["url"], rpm, timeout=600)
+        got = sha256_file(rpm)
+        if got != spec["sha256"]:
+            rpm.unlink(missing_ok=True)
+            shutil.rmtree(root, ignore_errors=True)
+            raise SystemExit(
+                f"sha256 mismatch for {spec['url']}\n  expected {spec['sha256']}\n  got      {got}"
+            )
+        _extract_rpm(rpm, tree)
+        rpm.unlink(missing_ok=True)
+    loaders = sorted(tree.rglob(_LOADER_NAME))
+    if not loaders:
+        shutil.rmtree(root, ignore_errors=True)
+        raise SystemExit(f"no {_LOADER_NAME} found after extracting the glibc RPMs")
+    ld_so = loaders[0]  # sorted, so the recorded loader is stable across reinstalls
+    libcxx = next(iter(tree.rglob("libstdc++.so.6")), None)
+    # The loader's own dir (libc/libm) plus libstdc++'s dir, as --library-path.
+    libdirs: list[Path] = [ld_so.parent]
+    if libcxx is not None and libcxx.parent not in libdirs:
+        libdirs.append(libcxx.parent)
+    libc = next((p for p in [ld_so.parent / "libc.so.6"] if p.exists()), None)
+    marker.write_text(json.dumps({
+        "tag": GLIBC_TAG,
+        "rpms": [{"url": r["url"], "sha256": r["sha256"]} for r in GLIBC_RPMS],
+        "ld_so": str(ld_so.relative_to(root)),
+        "library_path": [str(d.relative_to(root)) for d in libdirs],
+        "glibc_version": _soname_version(libc, "GLIBC") if libc else None,
+        "libstdcxx_version": _soname_version(libcxx, "GLIBCXX") if libcxx else None,
+    }, indent=2) + "\n")
+    return root
 
 
 def model_file(source: dict, cache_dir: str | Path) -> Path:
