@@ -19,3 +19,7 @@ dist/
 .DS_Store
 .vscode/
 .idea/
+
+# Slurm: local settings (they name local infrastructure) and submission directories
+slurm.yaml
+slurm/

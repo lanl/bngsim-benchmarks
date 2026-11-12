@@ -69,6 +69,31 @@ loses only the jobs in flight. Timing jobs run one at a time unless
 `pixi run test` runs the unit tests in seconds. `pixi run test-integration`
 runs one real pilot problem end to end.
 
+## Running unattended on Slurm
+
+`bench submit` takes the same job selection as `bench run` and submits the jobs
+without a current result as one Slurm job array. Jobs are packed into array
+tasks that fit the time limit, and each task runs `bench run` on its node until
+the end of its allocation.
+
+```bash
+cp slurm.example.yaml slurm.yaml
+```
+
+Fill in `slurm.yaml` (time limit, CPUs per task, partition, account, ...), and
+never commit it: it names local infrastructure, so it is git-ignored. Then, on a
+login node:
+
+| command | does |
+|---|---|
+| `pixi run bench submit --dry-run` | write the job array to `slurm/<time>/` without submitting it |
+| `pixi run bench submit` | the same, then submit it with `sbatch` |
+
+Before submitting, `bench submit` downloads and checks every model the array
+needs, so compute nodes need no network once `pixi install` has run on the login
+node. A job that does not finish within its task's allocation leaves no result;
+`bench plan` shows what is left, and the next `bench submit` picks it up.
+
 ## Surveying a cluster
 
 Before the first run on a new cluster, describe it with

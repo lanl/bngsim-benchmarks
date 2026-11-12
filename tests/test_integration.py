@@ -100,6 +100,36 @@ def test_failed_codegen_build_fails_the_job_instead_of_falling_back(tmp_path):
     assert "BNGSIM_CODEGEN_STRICT is set" in r["bngsim_error"]
 
 
+def test_slurm_array_task_runs_its_jobs_for_real(tmp_path, capsys):
+    # `bench submit --dry-run` on the smallest pilot model, then its batch script
+    # run by bash as Slurm would run array task 0, with the real bench.
+    if not _bionetgen_present():
+        pytest.skip("BioNetGen not installed; run `pixi run fetch-bionetgen`")
+    pytest.importorskip("bngsim")
+    config = tmp_path / "slurm.yaml"
+    config.write_text(
+        'time_limit: "30"\ncpus_per_task: 2\nmargin_seconds: 30\nstartup_seconds: 30\n'
+        f'bench: "{sys.executable} -m bench.cli"\n')
+    out, results = tmp_path / "slurm", tmp_path / "results"
+    common = ["--problems", str(REPO / "problems"), "--results", str(results),
+              "--cache", str(REPO / ".cache")]
+    assert cli.main(["submit", PROBLEM, *common, "--config", str(config),
+                     "--out", str(out), "--dry-run"]) == 0
+    assert "2 jobs in 1 array task" in capsys.readouterr().out
+    (sub_dir,) = out.iterdir()
+    env = {**os.environ, "SLURM_ARRAY_TASK_ID": "0"}
+    proc = subprocess.run(["bash", str(sub_dir / "submit.sbatch")], env=env, cwd=tmp_path,
+                          capture_output=True, text=True, timeout=600, check=False)
+    assert proc.returncode == 0, (proc.stdout + proc.stderr)[-3000:]
+    for kind in ("correctness", "timing"):
+        r = json.loads((results / JOB / f"{kind}.json").read_text())
+        assert r["outcome"] == "PASS", r.get("verdict") or r.get("error")
+    # Everything it was given now has a current result: nothing left to submit.
+    assert cli.main(["submit", PROBLEM, *common, "--config", str(config),
+                     "--out", str(out), "--dry-run"]) == 0
+    assert "nothing to run" in capsys.readouterr().out
+
+
 def test_second_run_has_nothing_to_do(run_dir, capsys):
     out, args = run_dir
     before = {p: p.stat().st_mtime_ns for p in (out / "results").rglob("*.json")}

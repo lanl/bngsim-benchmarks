@@ -3,6 +3,7 @@
     bench list [PATTERN...]          problems and the jobs they define
     bench plan [PATTERN...]          where each job stands: fresh, stale, missing, ...
     bench run  [PATTERN...]          run every job without a current result
+    bench submit [PATTERN...]        the same, as a Slurm job array (see slurm.example.yaml)
     bench gather                     assemble results into reports/
     bench fetch-bionetgen            download and check BioNetGen
     bench doctor                     the environment a job would record
@@ -39,7 +40,18 @@ def _common(ap: argparse.ArgumentParser) -> None:
 
 def _load_jobs(args) -> list[jobs_mod.Job]:
     problems = specs.load_all(args.problems)
-    return jobs_mod.select(jobs_mod.jobs_for(problems), getattr(args, "patterns", None))
+    all_jobs = jobs_mod.jobs_for(problems)
+    jobs_from = getattr(args, "jobs_from", None)
+    if jobs_from is not None:
+        if args.patterns:
+            raise SystemExit("give job patterns or --jobs-from, not both")
+        ids = [ln.strip() for ln in jobs_from.read_text().splitlines()]
+        ids = [i for i in ids if i and not i.startswith("#")]
+        try:
+            return jobs_mod.select_exact(all_jobs, ids)
+        except ValueError as exc:
+            raise SystemExit(f"{jobs_from}: {exc}") from exc
+    return jobs_mod.select(all_jobs, getattr(args, "patterns", None))
 
 
 _DURATION_RE = re.compile(r"^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$")
@@ -161,6 +173,47 @@ def cmd_run(args) -> int:
     return 1 if s.failed else 0
 
 
+def cmd_submit(args) -> int:
+    from . import slurm
+    from .results import fingerprints_now
+
+    try:
+        cfg = slurm.load_config(args.config)
+    except slurm.ConfigError as exc:
+        print(exc, file=sys.stderr)
+        return 2
+    problems = specs.load_all(args.problems)
+    jobs = _load_jobs(args)
+    try:
+        sub = slurm.submit(
+            jobs, problems, cfg, root=ROOT, problems_dir=args.problems,
+            results_dir=args.results, cache_dir=args.cache, out_dir=args.out,
+            fingerprints=fingerprints_now(), dry_run=args.dry_run, skip_long=args.skip_long,
+        )
+    except slurm.SubmitError as exc:
+        print(f"bench submit: {exc}", file=sys.stderr)
+        return 2
+    p = sub.packing
+    if not p.tasks:
+        print("nothing to run: every selected job has a current result"
+              + (f" ({len(p.long)} too long for one allocation, skipped)" if p.long else ""))
+        return 0
+    n_jobs = sum(len(t.jobs) for t in p.tasks)
+    longest = max(t.bound(cfg) for t in p.tasks)
+    n = len(p.tasks)
+    print(f"{n_jobs} jobs in {n} array task{'s' if n != 1 else ''} of {cfg.cpus_per_task} CPUs; "
+          f"longest estimate {longest / 3600:.2f} h of a {cfg.time_limit_seconds / 3600:.2f} h "
+          "time limit")
+    if p.long:
+        print(f"skipped {len(p.long)} problems too long for one allocation (listed in plan.json)")
+    print(f"wrote {sub.directory}")
+    if sub.job_id is None:
+        print(f"dry run: submit it with  sbatch {sub.directory / 'submit.sbatch'}")
+    else:
+        print(f"submitted Slurm job {sub.job_id}; logs in {sub.directory / 'logs'}")
+    return 0
+
+
 def cmd_gather(args) -> int:
     from .gather import gather
     from .results import fingerprints_now
@@ -237,7 +290,22 @@ def main(argv: list[str] | None = None) -> int:
                    help="seconds kept free before the deadline (default 300)")
     p.add_argument("--next", type=int, help="launch at most this many jobs")
     p.add_argument("--force", action="store_true", help="re-run jobs with a current result")
+    p.add_argument("--jobs-from", type=Path,
+                   help="run exactly the job ids in this file, one per line (as `bench submit` writes)")
     p.set_defaults(fn=cmd_run)
+
+    p = sub.add_parser("submit", help="submit jobs as a Slurm job array")
+    _common(p)
+    p.add_argument("patterns", nargs="*")
+    p.add_argument("--config", type=Path, default=ROOT / "slurm.yaml",
+                   help="cluster settings (default: ./slurm.yaml; see slurm.example.yaml)")
+    p.add_argument("--out", type=Path, default=ROOT / "slurm",
+                   help="where submission directories go (default: ./slurm)")
+    p.add_argument("--dry-run", action="store_true",
+                   help="write the submission directory but do not call sbatch")
+    p.add_argument("--skip-long", action="store_true",
+                   help="submit the rest when some problems would not fit one allocation")
+    p.set_defaults(fn=cmd_submit)
 
     p = sub.add_parser("gather", help="assemble results into reports")
     _common(p)

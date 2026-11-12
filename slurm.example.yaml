@@ -1,0 +1,58 @@
+# Settings for `bench submit`. Copy this file to slurm.yaml and fill it in:
+#
+#     cp slurm.example.yaml slurm.yaml
+#
+# slurm.yaml is git-ignored on purpose. It names local infrastructure
+# (partitions, accounts), so never commit it. `bash tools/survey_cluster.sh`
+# reports the values a cluster offers.
+
+# Required. Quote it: YAML reads an unquoted 10:00:00 as a number.
+# Slurm formats: "M", "M:S", "H:M:S", "D-H", "D-H:M", "D-H:M:S".
+time_limit: "10:00:00"
+
+# Required. CPUs per array task. Each task runs this many correctness jobs at
+# once, then its timing jobs `timing_workers` at a time.
+cpus_per_task: 64
+
+# Timing jobs run at once on one node. Keep 1 until the node-sharing check in
+# docs/DESIGN.md section 9 shows more do not disturb the ratios.
+timing_workers: 1
+
+# Passed to sbatch when set; leave null to use the cluster's default.
+partition: null
+account: null
+qos: null
+# The node feature that names one node type, so every timing result comes
+# from the same kind of node (docs/DESIGN.md section 7).
+constraint: null
+exclusive: true
+
+# The node type `bench doctor` prints on a compute node ("node_type": ...).
+# With it, `bench submit` judges which timing results are current for those
+# nodes. Without it, every timing job is submitted, and each task skips the
+# ones that are already current.
+node_type: null
+
+# Array tasks that may run at once (sbatch --array=...%N); null for no limit.
+max_concurrent: null
+# The cluster's MaxArraySize (`scontrol show config`); larger arrays are refused.
+max_array_size: 1001
+
+# Seconds kept free at the end of each task, and allowed for its start-up
+# (setup lines, environment activation). Jobs are packed into what is left.
+margin_seconds: 300
+startup_seconds: 300
+
+job_name: bngsim-bench
+
+# How a task runs bench. --frozen never changes pixi.lock; run `pixi install`
+# on the login node first, so compute nodes need no network.
+bench: pixi run --frozen bench
+
+# Shell lines run before bench in every task, e.g. to put compile caches and
+# temporary files on node-local scratch:
+#   - export TMPDIR=/tmp/$USER
+setup: []
+
+# Further sbatch options, one --option or --option=value each.
+extra_sbatch: []
