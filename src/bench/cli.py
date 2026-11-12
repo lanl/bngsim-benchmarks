@@ -256,7 +256,18 @@ def _check_run_network_loads(env) -> bool:
         print(f"FAIL run_network: cannot launch ({type(exc).__name__}: {exc})")
         return False
     out = (proc.stdout + proc.stderr)
-    if "run_network" in out and "GLIBC" not in out:
+    # The dynamic loader's failure phrasings: a shared object it cannot open, a
+    # symbol version the host libc lacks (the GLIBC_2.34 case this swap fixes), or
+    # a missing symbol. Any of them means run_network did not actually load -- key
+    # off the failure, not off the absence of "GLIBC" (a libstdc++ "cannot open
+    # shared object" failure carries no "GLIBC" and must not read as OK).
+    load_failed = any(s in out for s in (
+        "error while loading shared libraries",
+        "not found (required by",
+        "symbol lookup error",
+        "undefined symbol",
+    ))
+    if "run_network" in out and not load_failed:
         where = (f"under glibc {loader.get('glibc_version')} ({loader.get('tag')})"
                  if loader.get("swapped") else "with the host loader")
         print(f"OK   run_network loads {where}")

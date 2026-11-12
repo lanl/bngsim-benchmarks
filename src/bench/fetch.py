@@ -206,11 +206,11 @@ def fetch_glibc(cache_dir: str | Path) -> Path:
             )
         _extract_rpm(rpm, tree)
         rpm.unlink(missing_ok=True)
-    loaders = list(tree.rglob(_LOADER_NAME))
+    loaders = sorted(tree.rglob(_LOADER_NAME))
     if not loaders:
         shutil.rmtree(root, ignore_errors=True)
         raise SystemExit(f"no {_LOADER_NAME} found after extracting the glibc RPMs")
-    ld_so = loaders[0]
+    ld_so = loaders[0]  # sorted, so the recorded loader is stable across reinstalls
     libcxx = next(iter(tree.rglob("libstdc++.so.6")), None)
     # The loader's own dir (libc/libm) plus libstdc++'s dir, as --library-path.
     libdirs: list[Path] = [ld_so.parent]

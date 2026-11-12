@@ -140,16 +140,41 @@ def glibc_root() -> Path | None:
     return root if (root / GLIBC_MARKER).exists() else None
 
 
-@lru_cache(maxsize=1)
-def glibc_identity() -> dict[str, Any]:
-    """Whether run_network is launched under a swapped loader, and which one."""
+def _glibc_launch() -> tuple[list[str], dict[str, Any]] | None:
+    """The swapped-loader launch prefix and the marker it came from, or ``None``.
+
+    The single source of truth for "is a usable loader swap configured": both the
+    launch prefix (``run_network_launch``) and the recorded identity
+    (``glibc_identity``) derive from it, so a result can never be labelled
+    ``swapped`` while the binary in fact ran natively. ``None`` means no tree, an
+    unreadable/incomplete marker, or a loader file that no longer exists -- every
+    case in which no prefix can be built and the native loader is used.
+    """
     root = glibc_root()
     if root is None:
-        return {"swapped": False}
+        return None
     try:
         m = json.loads((root / GLIBC_MARKER).read_text())
-    except (OSError, ValueError) as exc:
-        return {"swapped": False, "error": f"{type(exc).__name__}: {exc}"}
+        ld_so = root / m["ld_so"]
+        libpath = os.pathsep.join(str(root / d) for d in m["library_path"])
+    except (OSError, ValueError, KeyError):
+        return None
+    if not ld_so.exists():
+        return None
+    return [str(ld_so), "--library-path", libpath], m
+
+
+@lru_cache(maxsize=1)
+def glibc_identity() -> dict[str, Any]:
+    """Whether run_network is launched under a swapped loader, and which one.
+
+    ``swapped`` is true only when a prefix can actually be built, so it agrees
+    with ``run_network_launch`` by construction.
+    """
+    launch = _glibc_launch()
+    if launch is None:
+        return {"swapped": False}
+    m = launch[1]
     return {
         "swapped": True,
         "tag": m.get("tag"),
@@ -169,18 +194,8 @@ def run_network_launch() -> list[str]:
     every call, so it does not bias the paired timing (it is a real part of
     launching a fresh run_network process, which is what the reference measures).
     """
-    root = glibc_root()
-    if root is None:
-        return []
-    try:
-        m = json.loads((root / GLIBC_MARKER).read_text())
-        ld_so = root / m["ld_so"]
-        libpath = os.pathsep.join(str(root / d) for d in m["library_path"])
-    except (OSError, ValueError, KeyError):
-        return []
-    if not ld_so.exists():
-        return []
-    return [str(ld_so), "--library-path", libpath]
+    launch = _glibc_launch()
+    return launch[0] if launch is not None else []
 
 
 def _cpu_model() -> str | None:
@@ -263,10 +278,14 @@ def fingerprint(*, timing: bool) -> dict[str, Any]:
     if timing:
         fp["node_type"] = node_type()
         # The reference's absolute speed (and the launch cost folded into its
-        # measurement) rides on the libc it runs under; node_type pins the
-        # hardware, this pins the loader. A correctness verdict does not depend
-        # on it, so it is a timing-only part of the key.
-        g = glibc_identity()
-        if g.get("swapped"):
-            fp["loader"] = {"tag": g.get("tag"), "glibc_version": g.get("glibc_version")}
+        # measurement) rides on the libc/libstdc++ it runs under; node_type pins
+        # the hardware, this pins the loader. A correctness verdict does not
+        # depend on it, so it is a timing-only part of the key.
+        loader = glibc_identity()
+        if loader.get("swapped"):
+            fp["loader"] = {
+                "tag": loader.get("tag"),
+                "glibc_version": loader.get("glibc_version"),
+                "libstdcxx_version": loader.get("libstdcxx_version"),
+            }
     return fp

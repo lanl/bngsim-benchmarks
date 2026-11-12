@@ -151,6 +151,23 @@ def test_run_network_launch_is_empty_without_a_tree(tmp_path, monkeypatch):
     assert env.glibc_identity() == {"swapped": False}
 
 
+def test_incomplete_marker_is_native_for_both_identity_and_launch(tmp_path, monkeypatch):
+    # A marker that is valid JSON but missing the keys a prefix needs (or whose
+    # ld.so is gone) must read as native *consistently*: no prefix, and an
+    # identity that does not claim "swapped" -- otherwise a result could be
+    # labelled swapped while run_network actually ran under the host loader.
+    root = tmp_path / "glibc" / fetch.GLIBC_TAG
+    root.mkdir(parents=True)
+    (root / fetch.GLIBC_MARKER).write_text(json.dumps({"tag": fetch.GLIBC_TAG}))  # no ld_so
+    env.glibc_identity.cache_clear()
+    env.run_network_launch.cache_clear()
+    monkeypatch.setenv("BENCH_GLIBC_ROOT", str(root))
+    assert env.run_network_launch() == []
+    assert env.glibc_identity() == {"swapped": False}
+    env.glibc_identity.cache_clear()
+    env.run_network_launch.cache_clear()
+
+
 def test_run_network_launch_prefixes_the_loader_when_present(tmp_path, monkeypatch):
     monkeypatch.setattr("platform.system", lambda: "Linux")
     _fake_glibc(tmp_path, monkeypatch)
