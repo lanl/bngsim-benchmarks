@@ -69,8 +69,9 @@ def gather(
     out = Path(reports_dir)
     out.mkdir(parents=True, exist_ok=True)
     for name, rows in reports.items():
-        (out / f"{name}.json").write_text(json.dumps(rows, indent=2, default=str) + "\n")
-    (out / "summary.md").write_text(render(reports))
+        (out / f"{name}.json").write_text(json.dumps(rows, indent=2, default=str) + "\n",
+                                          encoding="utf-8")
+    (out / "summary.md").write_text(render(reports), encoding="utf-8")
     return dict(reports)
 
 

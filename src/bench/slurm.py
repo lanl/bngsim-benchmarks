@@ -208,7 +208,7 @@ def load_config(path: Path | str) -> SlurmConfig:
             "no such file. Copy slurm.example.yaml to slurm.yaml and fill it in "
             "(slurm.yaml is git-ignored: it names local infrastructure)")])
     try:
-        data = yaml.safe_load(p.read_text())
+        data = yaml.safe_load(p.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
         raise ConfigError(p, [f"not valid YAML: {exc}"]) from exc
     return validate_config(data, p)
@@ -460,12 +460,14 @@ def submit(
     (sub_dir / "tasks").mkdir(parents=True)
     (sub_dir / "logs").mkdir()
     for i, t in enumerate(packing.tasks):
-        (sub_dir / "tasks" / f"{i:04d}.txt").write_text("".join(f"{j.id}\n" for j in t.jobs))
+        (sub_dir / "tasks" / f"{i:04d}.txt").write_text(
+            "".join(f"{j.id}\n" for j in t.jobs), encoding="utf-8")
     script = sub_dir / "submit.sbatch"
     script.write_text(batch_script(
         cfg, n_tasks=len(packing.tasks), sub_dir=sub_dir, root=root.resolve(),
         problems_dir=problems_dir.resolve(), results_dir=results_dir.resolve(),
-        cache_dir=cache_dir.resolve(), created=created.isoformat(timespec="seconds")))
+        cache_dir=cache_dir.resolve(), created=created.isoformat(timespec="seconds")),
+        encoding="utf-8")
     plan = {
         "created": created.isoformat(timespec="seconds"),
         "config": dataclasses.asdict(cfg),
@@ -476,11 +478,11 @@ def submit(
         "slurm_job_id": None,
     }
     plan_path = sub_dir / "plan.json"
-    plan_path.write_text(json.dumps(plan, indent=2) + "\n")
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
     sub = Submission(sub_dir, packing)
     if dry_run:
         return sub
     sub.job_id = (sbatch or run_sbatch)(script)
     plan["slurm_job_id"] = sub.job_id
-    plan_path.write_text(json.dumps(plan, indent=2) + "\n")
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
     return sub

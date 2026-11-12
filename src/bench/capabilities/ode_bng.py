@@ -128,7 +128,7 @@ def generate_network(
     bngl = workdir / "model.bngl"
     net = workdir / "model.net"
     net.unlink(missing_ok=True)
-    bngl.write_text(netgen_bngl(bngl_text, netgen_call))
+    bngl.write_text(netgen_bngl(bngl_text, netgen_call), encoding="utf-8")
     t0 = time.perf_counter()
     proc = subprocess.run(
         ["perl", str(env.bng2_pl()), str(bngl)],
@@ -144,7 +144,7 @@ def generate_network(
 def network_size(net: Path) -> dict[str, int]:
     counts: dict[str, int] = {}
     block = None
-    for line in net.read_text().splitlines():
+    for line in net.read_text(encoding="utf-8").splitlines():
         s = line.strip()
         if s.startswith("begin "):
             block = s.split()[1]
@@ -233,14 +233,14 @@ def recorded_command(cmd: list[str]) -> list[str]:
 def read_dat(path: Path) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """A BNG ``.cdat``/``.gdat``: a ``#`` header of column names, time first."""
     names: list[str] = []
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         for line in fh:
             s = line.strip()
             if s:
                 if s.startswith("#"):
                     names = s.lstrip("#").split()[1:]
                 break
-    data = np.loadtxt(path, comments="#", ndmin=2)
+    data = np.loadtxt(path, comments="#", ndmin=2, encoding="utf-8")
     if not names:
         names = [f"S{i + 1}" for i in range(data.shape[1] - 1)]
     return data[:, 0].copy(), data[:, 1:], names
@@ -264,7 +264,7 @@ def _prepare(problem: Problem, ctx: dict[str, Any]) -> tuple[Path, dict[str, Any
     proto = protocol(problem)
     model = fetch.model_file(problem.source, ctx["cache_dir"])
     net, netgen_seconds = generate_network(
-        model.read_text(), proto["netgen"], Path(ctx["workdir"]) / "netgen",
+        model.read_text(encoding="utf-8"), proto["netgen"], Path(ctx["workdir"]) / "netgen",
         timeout=ctx["subprocess_timeout"],
     )
     size = network_size(net)
@@ -385,7 +385,14 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
 
 
 def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
-    net, proto, info = _prepare(problem, ctx)
+    try:
+        net, proto, info = _prepare(problem, ctx)
+    except Exception as exc:  # noqa: BLE001
+        # A model that cannot be read or whose network cannot be built is a bad
+        # test input, as in the correctness job -- not an engine failure. Report it
+        # as such, so it shows as a labelled failed row and not the worker's generic
+        # EXCEPTION (and not a missing row in gather).
+        return {"outcome": "BAD_TEST", "error": f"{type(exc).__name__}: {exc}"}
     # Cold: load and first integration of a fresh model, with the empty compile
     # cache the worker gave this job.
     t0 = time.perf_counter()

@@ -84,3 +84,13 @@ def test_doctor_load_check_fails_on_the_glibc_version_error(monkeypatch):
     err = "run_network: /lib64/libc.so.6: version `GLIBC_2.34' not found (required by run_network)"
     monkeypatch.setattr(cli.subprocess, "run", _fake_run(err))
     assert cli._check_run_network_loads(_doctor_env()) is False
+
+
+@pytest.mark.parametrize("enc", ["utf-8", "UTF-8", "utf8", "UTF8"])
+def test_utf8_encodings_are_accepted(enc):
+    assert cli._encoding_is_utf8(enc) is True
+
+
+@pytest.mark.parametrize("enc", ["US-ASCII", "ascii", "latin-1", "ISO-8859-1", "cp1252", ""])
+def test_non_utf8_encodings_are_rejected(enc):
+    assert cli._encoding_is_utf8(enc) is False
