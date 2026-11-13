@@ -1,8 +1,12 @@
 """What a job ran on: the bngsim build, the reference engines, and the machine.
 
 Every result records ``environment()``. The parts that decide whether an old
-result still stands (``fingerprint``) are a subset: the bngsim build, the
-reference engines, the harness, and for timing jobs the node type.
+result still stands (``fingerprint``) are a subset: the bngsim build, BioNetGen,
+the harness, and for timing jobs the node type. A reference engine used by only
+some capabilities (libRoadRunner, for the SBML engines) is recorded here but
+kept out of the global fingerprint and keyed instead inside the job definition
+of the capabilities that use it, so changing it cannot stale a result that never
+touched it.
 """
 
 from __future__ import annotations
@@ -75,6 +79,22 @@ def bngsim_identity() -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         ident["error"] = f"build provenance unavailable: {type(exc).__name__}: {exc}"
     return ident
+
+
+@lru_cache(maxsize=1)
+def roadrunner_identity() -> dict[str, Any]:
+    """Version of the installed libRoadRunner, a reference ODE engine.
+
+    The version is read from package metadata, so it does not pay the import.
+    ``{version: None, error}`` when the package is absent -- the environment is
+    pinned to install it, so that is a broken environment, reported as such.
+    """
+    try:
+        from importlib.metadata import version
+
+        return {"version": version("libroadrunner")}
+    except Exception as exc:  # noqa: BLE001 - any failure means "absent/unreadable"
+        return {"version": None, "error": f"{type(exc).__name__}: {exc}"}
 
 
 def bngpath() -> Path | None:
@@ -256,6 +276,7 @@ def environment() -> dict[str, Any]:
     return {
         "bngsim": bngsim_identity(),
         "bionetgen": bionetgen_identity(),
+        "roadrunner": roadrunner_identity(),
         "loader": glibc_identity(),
         "harness": harness_identity(),
         "host": host_identity(),

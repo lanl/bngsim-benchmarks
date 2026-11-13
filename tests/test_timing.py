@@ -1,11 +1,12 @@
-"""The paired timing protocol, driven by a fake clock so every duration is exact."""
+"""The interleaved timing protocol, driven by a fake clock so every duration is
+exact, and the per-engine absolute-time statistics."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from bench.timing import paired_interleaved, speedup
+from bench.timing import absolute_time_stats, round_robin_interleaved
 
 
 class FakeClock:
@@ -22,128 +23,139 @@ class FakeClock:
         def run():
             self.log.append(name)
             self.now += seconds
+            return name
         return run
 
 
-def test_ratio_of_known_durations_is_exact():
+def test_every_engine_is_measured_the_same_number_of_rounds():
     clk = FakeClock()
-    reps = paired_interleaved(clk.engine("A", 1.0), clk.engine("B", 3.0),
-                              warmup_pairs=1, min_pairs=5, max_pairs=5, clock=clk)
-    assert reps["a_seconds"] == [1.0] * 5
-    assert reps["b_seconds"] == [3.0] * 5
-    s = speedup(reps["a_seconds"], reps["b_seconds"])
-    # B takes 3 s, A takes 1 s: A is exactly 3x faster, with no spread at all.
-    assert s["speedup"] == pytest.approx(3.0, rel=1e-12)
-    assert s["ci_low"] == pytest.approx(3.0, rel=1e-12)
-    assert s["ci_high"] == pytest.approx(3.0, rel=1e-12)
+    reps = round_robin_interleaved(
+        {"A": clk.engine("A", 1.0), "B": clk.engine("B", 3.0), "C": clk.engine("C", 5.0)},
+        warmup_rounds=1, min_rounds=5, max_rounds=5, clock=clk)
+    assert reps["rounds"] == 5
+    assert reps["order"] == "A B C"
+    for name, secs in (("A", 1.0), ("B", 3.0), ("C", 5.0)):
+        assert reps["engines"][name]["seconds"] == [secs] * 5
 
 
-def test_engines_alternate_abba_after_warmup():
+def test_two_engine_median_ratio_is_exact():
     clk = FakeClock()
-    paired_interleaved(clk.engine("A", 1.0), clk.engine("B", 1.0),
-                       warmup_pairs=1, min_pairs=4, max_pairs=4, clock=clk)
-    # warm-up pair AB, then measured pairs AB, BA, AB, BA
-    assert "".join(clk.log) == "AB" + "AB" + "BA" + "AB" + "BA"
+    reps = round_robin_interleaved(
+        {"A": clk.engine("A", 1.0), "B": clk.engine("B", 3.0)},
+        warmup_rounds=1, min_rounds=5, max_rounds=5, clock=clk)
+    stats = absolute_time_stats({k: v["seconds"] for k, v in reps["engines"].items()})
+    # No spread at all: each engine's median is its one duration, CI collapses to it.
+    assert stats["A"]["median_seconds"] == pytest.approx(1.0, rel=1e-12)
+    assert stats["B"]["median_seconds"] == pytest.approx(3.0, rel=1e-12)
+    for name in ("A", "B"):
+        assert stats[name]["ci_low"] == pytest.approx(stats[name]["median_seconds"], rel=1e-12)
+        assert stats[name]["ci_high"] == pytest.approx(stats[name]["median_seconds"], rel=1e-12)
 
 
-def test_captures_one_output_per_kept_pair_not_warmups():
+def test_engines_rotate_the_start_each_round_after_warmup():
+    clk = FakeClock()
+    round_robin_interleaved(
+        {"A": clk.engine("A", 1.0), "B": clk.engine("B", 1.0), "C": clk.engine("C", 1.0)},
+        warmup_rounds=1, min_rounds=3, max_rounds=3, clock=clk)
+    # warm-up round starts at A (ABC), then measured rounds rotate the start:
+    # round 0 ABC, round 1 BCA, round 2 CAB -- no engine is always first.
+    assert "".join(clk.log) == "ABC" + "ABC" + "BCA" + "CAB"
+
+
+def test_captures_one_output_per_kept_round_not_warmups():
     clk = FakeClock()
     a_seen: list[int] = []
-    b_seen: list[int] = []
 
     def a():
         a_seen.append(len(a_seen))
         clk.now += 1.0
         return ("a", len(a_seen))
 
-    def b():
-        b_seen.append(len(b_seen))
-        clk.now += 1.0
-        return ("b", len(b_seen))
-
-    reps = paired_interleaved(a, b, warmup_pairs=1, min_pairs=3, max_pairs=3, clock=clk,
-                              capture_a=lambda v: v[1], capture_b=lambda v: v[1])
-    # One capture per kept pair, aligned with the timings; the warm-up pair (the
+    reps = round_robin_interleaved(
+        {"A": a, "B": clk.engine("B", 1.0)},
+        warmup_rounds=1, min_rounds=3, max_rounds=3, clock=clk,
+        captures={"A": lambda v: v[1]})
+    # One capture per kept round, aligned with the timings; the warm-up round (the
     # first call of each engine) is not captured.
-    assert reps["a_outputs"] == [2, 3, 4] and reps["b_outputs"] == [2, 3, 4]
-    assert len(reps["a_outputs"]) == reps["pairs"] == len(reps["a_seconds"])
+    assert reps["engines"]["A"]["outputs"] == [2, 3, 4]
+    assert len(reps["engines"]["A"]["outputs"]) == reps["rounds"]
+    # An engine with no capture carries no outputs key.
+    assert "outputs" not in reps["engines"]["B"]
 
 
-def test_no_captures_leaves_the_output_keys_out():
-    clk = FakeClock()
-    reps = paired_interleaved(clk.engine("A", 1.0), clk.engine("B", 1.0),
-                              warmup_pairs=0, min_pairs=2, max_pairs=2, clock=clk)
-    assert "a_outputs" not in reps and "b_outputs" not in reps
-
-
-def test_warmup_repetitions_are_not_measured():
+def test_warmup_rounds_are_not_measured():
     clk = FakeClock()
     durations = iter([100.0, 1.0, 1.0, 1.0])  # the first A call is a slow cold start
 
     def a():
         clk.now += next(durations)
 
-    reps = paired_interleaved(a, clk.engine("B", 2.0), warmup_pairs=1, min_pairs=3,
-                              max_pairs=3, clock=clk)
-    assert reps["a_seconds"] == [1.0, 1.0, 1.0]
+    reps = round_robin_interleaved(
+        {"A": a, "B": clk.engine("B", 2.0)},
+        warmup_rounds=1, min_rounds=3, max_rounds=3, clock=clk)
+    assert reps["engines"]["A"]["seconds"] == [1.0, 1.0, 1.0]
 
 
-def test_budget_stops_after_min_pairs_but_never_before():
+def test_budget_stops_after_min_rounds_but_never_before():
     clk = FakeClock()
-    # Each pair costs 10 s; the 15 s budget is spent after 2 pairs, but 3 are required.
-    reps = paired_interleaved(clk.engine("A", 5.0), clk.engine("B", 5.0), warmup_pairs=0,
-                              min_pairs=3, max_pairs=20, budget_seconds=15.0, clock=clk)
-    assert reps["pairs"] == 3
+    # Each round costs 10 s; the 15 s budget is spent after 2 rounds, but 3 required.
+    reps = round_robin_interleaved(
+        {"A": clk.engine("A", 5.0), "B": clk.engine("B", 5.0)},
+        warmup_rounds=0, min_rounds=3, max_rounds=20, budget_seconds=15.0, clock=clk)
+    assert reps["rounds"] == 3
 
 
-def test_max_pairs_caps_a_cheap_job():
+def test_max_rounds_caps_a_cheap_job():
     clk = FakeClock()
-    reps = paired_interleaved(clk.engine("A", 1e-4), clk.engine("B", 1e-4), warmup_pairs=0,
-                              min_pairs=2, max_pairs=7, budget_seconds=1e9, clock=clk)
-    assert reps["pairs"] == 7
+    reps = round_robin_interleaved(
+        {"A": clk.engine("A", 1e-4), "B": clk.engine("B", 1e-4)},
+        warmup_rounds=0, min_rounds=2, max_rounds=7, budget_seconds=1e9, clock=clk)
+    assert reps["rounds"] == 7
 
 
-def _noisy(seed=1, n=15, true_ratio=2.0):
+def _noisy(seed=1, n=15, ratios=(1.0, 2.0)):
     rng = np.random.default_rng(seed)
-    a = 0.010 * rng.lognormal(0.0, 0.1, n)
-    b = true_ratio * 0.010 * rng.lognormal(0.0, 0.1, n)
-    return a.tolist(), b.tolist()
+    return {chr(ord("A") + i): (r * 0.010 * rng.lognormal(0.0, 0.1, n)).tolist()
+            for i, r in enumerate(ratios)}
 
 
-def test_interval_brackets_the_point_estimate():
-    s = speedup(*_noisy())
-    assert s["ci_low"] <= s["speedup"] <= s["ci_high"]
-    assert s["ci_low"] < s["ci_high"]
-
-
-def test_speedup_is_unchanged_by_the_unit_of_time():
-    a, b = _noisy()
-    s1 = speedup(a, b)
-    s2 = speedup([x * 1000 for x in a], [x * 1000 for x in b])  # seconds -> milliseconds
-    for k in ("speedup", "ci_low", "ci_high"):
-        assert s2[k] == pytest.approx(s1[k], rel=1e-12)
-
-
-def test_swapping_engines_inverts_the_speedup():
-    a, b = _noisy()
-    fwd, rev = speedup(a, b), speedup(b, a)
-    assert rev["speedup"] == pytest.approx(1 / fwd["speedup"], rel=1e-12)
-    # Same resampled pairs, so the interval inverts too (bounds swap).
-    assert rev["ci_low"] == pytest.approx(1 / fwd["ci_high"], rel=1e-9)
-    assert rev["ci_high"] == pytest.approx(1 / fwd["ci_low"], rel=1e-9)
+def test_interval_brackets_each_engine_median():
+    stats = absolute_time_stats(_noisy())
+    for name, s in stats.items():
+        assert s["ci_low"] <= s["median_seconds"] <= s["ci_high"]
+        assert s["ci_low"] < s["ci_high"]
 
 
 def test_same_repetitions_give_the_same_interval():
-    a, b = _noisy()
-    assert speedup(a, b) == speedup(a, b)
+    secs = _noisy()
+    assert absolute_time_stats(secs) == absolute_time_stats(secs)
 
 
-@pytest.mark.parametrize("a, b", [([], []), ([1.0], [1.0, 2.0]), ([0.0], [1.0]), ([1.0], [-1.0])])
-def test_bad_repetitions_are_refused(a, b):
+def test_scaling_time_scales_the_medians_and_bounds():
+    secs = _noisy()
+    s1 = absolute_time_stats(secs)
+    s2 = absolute_time_stats({k: [x * 1000 for x in v] for k, v in secs.items()})
+    for name in secs:
+        for key in ("median_seconds", "ci_low", "ci_high"):
+            assert s2[name][key] == pytest.approx(s1[name][key] * 1000, rel=1e-12)
+
+
+@pytest.mark.parametrize("secs", [
+    {},                                   # no engines
+    {"A": [], "B": []},                   # no rounds
+    {"A": [1.0, 2.0], "B": [1.0]},        # unequal round counts
+    {"A": [0.0, 1.0], "B": [1.0, 1.0]},   # a non-positive time
+])
+def test_bad_repetitions_are_refused(secs):
     with pytest.raises(ValueError):
-        speedup(a, b)
+        absolute_time_stats(secs)
 
 
-def test_min_pairs_above_max_pairs_is_refused():
+def test_no_engines_is_refused():
     with pytest.raises(ValueError):
-        paired_interleaved(lambda: None, lambda: None, min_pairs=5, max_pairs=4)
+        round_robin_interleaved({}, min_rounds=1, max_rounds=1)
+
+
+def test_min_rounds_above_max_rounds_is_refused():
+    with pytest.raises(ValueError):
+        round_robin_interleaved({"A": lambda: None}, min_rounds=5, max_rounds=4)

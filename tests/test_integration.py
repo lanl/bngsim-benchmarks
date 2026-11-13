@@ -1,9 +1,11 @@
-"""End to end on the smallest pilot model: BioNetGen builds the network, BNGsim
-and run_network integrate it, the verdict and the paired timing are recorded.
+"""End to end on the smallest pilot model: BioNetGen builds the network, BNGsim,
+run_network and libRoadRunner integrate it, the cross-engine verdict and the
+interleaved timing are recorded.
 
-run_network is the independent implementation that serves as the oracle; the
-cell count and network size are exact known answers. Needs bngsim, BioNetGen
-(`pixi run fetch-bionetgen`) and network access to download the model.
+run_network and libRoadRunner are the independent implementations that serve as
+oracles; the cell count and network size are exact known answers. Needs bngsim,
+BioNetGen (`pixi run fetch-bionetgen`), libRoadRunner and network access to
+download the model.
 """
 
 from __future__ import annotations
@@ -19,11 +21,12 @@ import pytest
 from conftest import REPO
 
 from bench import cli
+from bench.capabilities import ode
 
 pytestmark = pytest.mark.integration
 
 PROBLEM = "kinetic_proofreading_hlavacek2001"
-JOB = f"ode/{PROBLEM}/bngsim-vs-run_network/auto"
+JOB = f"ode/{PROBLEM}/{ode.engines_id()}/auto"
 
 
 def _bionetgen_present() -> bool:
@@ -47,31 +50,45 @@ def _result(out: Path, kind: str) -> dict:
     return json.loads((out / "results" / JOB / f"{kind}.json").read_text())
 
 
-def test_bngsim_agrees_with_run_network(run_dir):
+def test_bngsim_agrees_with_every_reference(run_dir):
     out, _ = run_dir
     r = _result(out, "correctness")
-    assert r["outcome"] == "PASS", r.get("verdict") or r.get("error")
-    # 9 species x (300 steps + the initial point) = 2709 compared cells.
-    assert r["verdict"]["n_cells"] == 9 * 301
+    assert r["outcome"] == "PASS", r.get("verdicts") or r.get("error")
+    # One verdict per reference engine; BNGsim must agree with all of them.
+    assert set(r["verdicts"]) == set(ode.REFERENCE_ENGINES)
+    for name, v in r["verdicts"].items():
+        assert v["passed"] is True, (name, v)
+        # 9 species x (300 steps + the initial point) = 2709 compared cells.
+        assert v["n_cells"] == 9 * 301
     assert r["measurements"]["network"] == {"species": 9, "reactions": 14}
     assert "size_mismatch" not in r["measurements"]
 
 
-def test_timing_records_paired_repetitions(run_dir):
+def test_timing_records_interleaved_repetitions_for_every_engine(run_dir):
     out, _ = run_dir
     r = _result(out, "timing")
     assert r["outcome"] == "PASS"
+    engines = ["bngsim", *ode.REFERENCE_ENGINES]
     reps = r["measurements"]["repetitions"]
-    assert 5 <= reps["pairs"] <= 20 and len(reps["a_seconds"]) == reps["pairs"]
-    s = r["measurements"]["summary"]
-    assert s["ci_low"] <= s["speedup"] <= s["ci_high"]
-    assert all(x > 0 for x in reps["a_seconds"] + reps["b_seconds"])
-    # Raw per-repetition trajectories are consumed into the reproducibility block,
-    # never serialized (issue #8). Both engines reproduced their first run.
-    assert "a_outputs" not in reps and "b_outputs" not in reps
+    assert 5 <= reps["rounds"] <= 20
+    # Every engine is measured the same number of rounds, all positive.
+    for name in engines:
+        secs = reps["engines"][name]["seconds"]
+        assert len(secs) == reps["rounds"]
+        assert all(x > 0 for x in secs)
+        # Raw per-repetition trajectories are consumed into the reproducibility
+        # block, never serialized (issue #8).
+        assert "outputs" not in reps["engines"][name]
+    # Each engine reports an absolute median bracketed by its bootstrap CI.
+    times = r["measurements"]["times"]
+    for name in engines:
+        s = times[name]
+        assert s["ci_low"] <= s["median_seconds"] <= s["ci_high"]
+    # Every engine reproduced its own first run.
     repro = r["measurements"]["reproducibility"]
-    assert repro["bngsim"]["passed"] is True and repro["run_network"]["passed"] is True
-    assert repro["bngsim"]["n_reps"] == reps["pairs"]
+    for name in engines:
+        assert repro[name]["passed"] is True, (name, repro[name])
+    assert repro["bngsim"]["n_reps"] == reps["rounds"]
 
 
 def test_results_record_the_build_they_measured(run_dir):

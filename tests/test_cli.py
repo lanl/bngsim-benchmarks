@@ -94,3 +94,17 @@ def test_utf8_encodings_are_accepted(enc):
 @pytest.mark.parametrize("enc", ["US-ASCII", "ascii", "latin-1", "ISO-8859-1", "cp1252", ""])
 def test_non_utf8_encodings_are_rejected(enc):
     assert cli._encoding_is_utf8(enc) is False
+
+
+def test_roadrunner_check_fails_when_the_package_is_absent():
+    # The environment is pinned to install libRoadRunner; a missing package is a
+    # broken environment and must FAIL, not warn.
+    env = types.SimpleNamespace(
+        roadrunner_identity=lambda: {"version": None, "error": "PackageNotFoundError"})
+    assert cli._check_roadrunner_loads(env) is False
+
+
+def test_roadrunner_check_passes_when_it_imports():
+    pytest.importorskip("roadrunner")
+    env = types.SimpleNamespace(roadrunner_identity=lambda: {"version": "2.11.0"})
+    assert cli._check_roadrunner_loads(env) is True

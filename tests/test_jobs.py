@@ -15,11 +15,14 @@ def problem(spec_data, write_spec):
 
 
 def test_job_ids_follow_the_documented_scheme(problem):
+    from bench.capabilities import ode
+
     ids = [j.id for j in jobs.jobs_for([problem])]
+    engines = ode.engines_id()  # BNGsim vs every registered reference engine
     # capability / problem / engines / setting / kind (docs/DESIGN.md 5.2)
     assert ids == [
-        "ode/toy_model/bngsim-vs-run_network/auto/correctness",
-        "ode/toy_model/bngsim-vs-run_network/auto/timing",
+        f"ode/toy_model/{engines}/auto/correctness",
+        f"ode/toy_model/{engines}/auto/timing",
     ]
 
 
@@ -39,9 +42,9 @@ def test_definition_pins_model_bytes_and_filled_protocol(problem):
     assert "timing" not in d and "timing" in timing.definition
     # The reproducibility-check token is a timing-only sibling of the protocol, so
     # bumping it restales timing results without touching correctness (issue #8).
-    from bench.capabilities import ode_bng
+    from bench.capabilities import ode
     assert "timing_check" not in d
-    assert timing.definition["timing_check"] == ode_bng.REPRO_CHECK_VERSION
+    assert timing.definition["timing_check"] == ode.REPRO_CHECK_VERSION
 
 
 def test_generation_is_deterministic(problem):

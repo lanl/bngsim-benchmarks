@@ -73,11 +73,13 @@ def test_correctness_phase_runs_before_timing(tmp_path, two_problems):
 
 
 def test_timing_not_run_when_correctness_fails(tmp_path, two_problems):
-    bad = "ode/second_model/bngsim-vs-run_network/auto/correctness"
-    fake = FakeLauncher({bad: "DIFF"})
+    from bench.capabilities import ode
+
+    base = f"ode/second_model/{ode.engines_id()}/auto"
+    fake = FakeLauncher({f"{base}/correctness": "DIFF"})
     s = run(two_problems, cfg_for(tmp_path), fingerprints=FPS, launcher=fake)
-    assert "ode/second_model/bngsim-vs-run_network/auto/timing" not in ids(fake.calls)
-    assert s.skipped["ode/second_model/bngsim-vs-run_network/auto/timing"] == "blocked"
+    assert f"{base}/timing" not in ids(fake.calls)
+    assert s.skipped[f"{base}/timing"] == "blocked"
 
 
 def test_second_run_finds_everything_fresh(tmp_path, two_problems):
@@ -177,6 +179,8 @@ def test_pool_never_exceeds_its_worker_count(tmp_path, spec_data, write_spec):
 
 
 def test_results_land_where_the_job_id_says(tmp_path, two_problems):
+    from bench.capabilities import ode
+
     run(two_problems, cfg_for(tmp_path), fingerprints=FPS, launcher=FakeLauncher())
-    expected = tmp_path / "results" / "ode" / "toy_model" / "bngsim-vs-run_network" / "auto"
+    expected = tmp_path / "results" / "ode" / "toy_model" / ode.engines_id() / "auto"
     assert sorted(p.name for p in Path(expected).iterdir()) == ["correctness.json", "timing.json"]
