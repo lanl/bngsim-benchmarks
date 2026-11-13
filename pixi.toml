@@ -12,6 +12,13 @@
 name = "bngsim-benchmarks"
 description = "Benchmark and cross-engine correctness jobs for BNGsim"
 channels = ["conda-forge"]
+# The floor every pixi -- local and CI -- must clear. pixi.lock is serialized by
+# the pixi that writes it, and an older pixi rejects a newer pixi's lock under
+# --locked (the mismatch that reddened CI once). CI tracks the latest pixi so it
+# never trails the writer; this line is the shared minimum that makes the lock's
+# serialization legible to both. Raise it when a pixi feature the suite depends
+# on lands; it need not track the exact local version.
+requires-pixi = ">=0.84"
 # libRoadRunner 2.11.0 ships its Apple-silicon wheel as macosx_14_0_arm64; pixi's
 # default osx-arm64 floor is macOS 13, which would reject it. Raise the osx-arm64
 # floor to 14 so that wheel resolves. (linux-64 is unaffected.)

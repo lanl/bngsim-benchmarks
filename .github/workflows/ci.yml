@@ -22,7 +22,13 @@ jobs:
 
       - uses: prefix-dev/setup-pixi@v0.11.3
         with:
-          pixi-version: v0.74.0
+          # No pixi-version: install the latest pixi. A pinned, older pixi
+          # recomputes the workspace hash from an older serialization and rejects
+          # a pixi.lock that a newer local pixi wrote (`locked: true`), failing
+          # every job before a test runs. The skew is one-directional -- newer
+          # pixi reads older locks fine -- so tracking latest keeps CI's pixi at
+          # or ahead of whatever wrote the lock and the mismatch cannot recur.
+          # `requires-pixi` in pixi.toml sets the floor both sides must clear.
           cache: true
           locked: true
 
