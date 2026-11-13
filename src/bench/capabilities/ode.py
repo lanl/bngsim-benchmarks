@@ -392,7 +392,7 @@ class RoadRunnerODE:
 
     def __init__(self, sbml: Path, species_names: list[str], name_to_id: dict[str, str],
                  proto: dict[str, Any]):
-        import roadrunner
+        roadrunner = env.import_roadrunner()
 
         missing = [n for n in species_names if n not in name_to_id]
         if missing:

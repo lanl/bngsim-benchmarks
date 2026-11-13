@@ -10,6 +10,7 @@ import types
 import pytest
 
 from bench import cli
+from bench import env as bench_env
 from bench.cli import parse_duration, parse_until
 
 
@@ -106,5 +107,7 @@ def test_roadrunner_check_fails_when_the_package_is_absent():
 
 def test_roadrunner_check_passes_when_it_imports():
     pytest.importorskip("roadrunner")
-    env = types.SimpleNamespace(roadrunner_identity=lambda: {"version": "2.11.0"})
+    env = types.SimpleNamespace(
+        roadrunner_identity=lambda: {"version": "2.11.0"},
+        import_roadrunner=bench_env.import_roadrunner)
     assert cli._check_roadrunner_loads(env) is True

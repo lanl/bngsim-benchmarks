@@ -293,7 +293,7 @@ def _check_roadrunner_loads(env) -> bool:
               "(pinned in pixi.toml as `libroadrunner`)")
         return False
     try:
-        import roadrunner  # noqa: F401
+        env.import_roadrunner()
     except Exception as exc:  # noqa: BLE001
         print(f"FAIL libRoadRunner {ident['version']} does not import: {type(exc).__name__}: {exc}")
         return False

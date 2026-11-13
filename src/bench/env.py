@@ -97,6 +97,52 @@ def roadrunner_identity() -> dict[str, Any]:
         return {"version": None, "error": f"{type(exc).__name__}: {exc}"}
 
 
+def _preload_libpython() -> None:
+    """Make this interpreter's ``libpython`` findable by extensions that need it.
+
+    libRoadRunner's wheel ships ``_roadrunner.so`` with ``NEEDED
+    libpython3.x.so.1.0`` and a RUNPATH (``$ORIGIN:$ORIGIN/../lib64``) that does
+    not point at the conda env's ``lib/``. conda's ``python`` is statically
+    linked, so libpython is not already in the process, and the env's copy is not
+    on the loader's search path -- the import then succeeds only on a host that
+    happens to have a *system* libpython3.x (e.g. a developer box), and fails on a
+    clean runner. Loading the env's own libpython with ``RTLD_GLOBAL`` puts its
+    symbols in the global namespace and satisfies the dependency by soname,
+    independent of the host. In-process, so it never touches the environment the
+    ``run_network`` subprocess inherits. A no-op if the library is not found.
+    """
+    import ctypes
+    import glob
+    import sys
+    import sysconfig
+
+    libdir = sysconfig.get_config_var("LIBDIR")
+    if not libdir:
+        return
+    ver = f"{sys.version_info.major}.{sys.version_info.minor}"
+    # Prefer the versioned soname (``libpython3.12.so.1.0``) over the dev symlink.
+    cands = sorted(glob.glob(os.path.join(libdir, f"libpython{ver}.so*")),
+                   key=lambda p: (".so." not in p, p))
+    for cand in cands:
+        try:
+            ctypes.CDLL(cand, mode=ctypes.RTLD_GLOBAL)
+            return
+        except OSError:
+            continue
+
+
+def import_roadrunner():
+    """Import and return the ``roadrunner`` module, preloading libpython first.
+
+    The single entry point every caller uses, so the libpython workaround lives
+    in one place. See :func:`_preload_libpython`.
+    """
+    _preload_libpython()
+    import roadrunner
+
+    return roadrunner
+
+
 def bngpath() -> Path | None:
     value = os.environ.get("BNGPATH")
     return Path(value) if value else None
