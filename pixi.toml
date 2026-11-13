@@ -3,15 +3,19 @@
 # not a conda package and is pinned by release tarball and sha256 instead.
 #
 # Engines join as their capabilities migrate (docs/DESIGN.md section 11): this
-# first environment carries what the ODE pilot needs, bngsim and BioNetGen.
-# libRoadRunner, AMICI and COPASI come with the capabilities that compare against
-# them.
+# environment carries what the ODE capability needs -- bngsim and BioNetGen, plus
+# libRoadRunner as a second reference ODE engine (reads SBML exported from the
+# same network). AMICI and COPASI come with later capabilities that compare
+# against them.
 
 [workspace]
 name = "bngsim-benchmarks"
 description = "Benchmark and cross-engine correctness jobs for BNGsim"
 channels = ["conda-forge"]
-platforms = ["linux-64", "osx-arm64"]
+# libRoadRunner 2.11.0 ships its Apple-silicon wheel as macosx_14_0_arm64; pixi's
+# default osx-arm64 floor is macOS 13, which would reject it. Raise the osx-arm64
+# floor to 14 so that wheel resolves. (linux-64 is unaffected.)
+platforms = ["linux-64", { name = "osx-arm64-14", platform = "osx-arm64", macos = "14.0" }]
 
 [dependencies]
 python = "3.12.*"
@@ -26,6 +30,14 @@ pytest = "*"
 # commit it measured, so a result from another build is never mistaken for one
 # from this one.
 bngsim = "==0.17.2"
+# libRoadRunner, a second reference ODE engine. PyPI-only (no conda-forge build);
+# the import name is `roadrunner`. 2.11.0 ships a cp312 manylinux_2_28 x86_64
+# wheel (matches Darwin's glibc 2.28) and a macosx_14_0_arm64 wheel. There is no
+# linux-aarch64 wheel (nor an sdist), so on ARM it must be built from source
+# (sys-bio/roadrunner v2.11.0; LLVM from source) before the ARM leg of the
+# cross-platform gate can add it. The ARM fleet itself is available, and BNGsim
+# and run_network already build and run there (docs/DESIGN.md section 9.1).
+libroadrunner = "==2.11.0"
 bngsim-benchmarks = { path = ".", editable = true }
 
 [activation.env]

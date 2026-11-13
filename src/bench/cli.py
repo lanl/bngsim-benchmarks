@@ -279,6 +279,28 @@ def _check_run_network_loads(env) -> bool:
     return False
 
 
+def _check_roadrunner_loads(env) -> bool:
+    """Whether libRoadRunner, the SBML reference ODE engine, imports here.
+
+    The environment is pinned to install it (``libroadrunner`` on PyPI, imported
+    as ``roadrunner``); a missing or unimportable package is a broken environment,
+    so this FAILs rather than warns. The version comes from package metadata
+    without the import; the import confirms the wheel actually loads on this host.
+    """
+    ident = env.roadrunner_identity()
+    if not ident.get("version"):
+        print(f"FAIL libRoadRunner: {ident.get('error') or 'not installed'} "
+              "(pinned in pixi.toml as `libroadrunner`)")
+        return False
+    try:
+        env.import_roadrunner()
+    except Exception as exc:  # noqa: BLE001
+        print(f"FAIL libRoadRunner {ident['version']} does not import: {type(exc).__name__}: {exc}")
+        return False
+    print(f"OK   libRoadRunner {ident['version']} imports")
+    return True
+
+
 def _encoding_is_utf8(enc: str) -> bool:
     """Whether ``enc`` names UTF-8, however it is spelled (``UTF-8``, ``utf8``)."""
     try:
@@ -317,6 +339,7 @@ def cmd_doctor(args) -> int:
         print("WARN BioNetGen: not the fetched, sha256-checked copy")
     if not g.get("error"):
         ok = _check_run_network_loads(env) and ok
+    ok = _check_roadrunner_loads(env) and ok
     rec = parity_core_record()
     for name, want in rec["files"].items():
         if sha256_file(VENDOR_JSON.parent / "parity_core" / name) != want:

@@ -10,8 +10,9 @@ Implemented so far:
 - one result file per job, with freshness (6.1, 6.2), and `gather` (6.3);
 - the serial and local-pool runners with deadlines (8);
 - Slurm submission as job arrays, `bench submit` (8);
-- the paired timing protocol (7);
-- one capability: ODE simulation of BNGL models against `run_network`, on five
+- the interleaved timing protocol (7);
+- one capability: ODE simulation of BNGL models, comparing BNGsim against a
+  registry of reference engines (`run_network` and libRoadRunner), on five
   provisional pilot models.
 
 Not yet: bundles, the container, the validation of section 9, and every other
@@ -49,7 +50,7 @@ The suite is built so that anyone can run it:
 
 | Capability | Correctness reference | Cost comparison |
 |---|---|---|
-| ODE simulation, BNGL models | BioNetGen `run_network` | `run_network` |
+| ODE simulation, BNGL models | BioNetGen `run_network`; libRoadRunner (SBML exported from the generated network) | `run_network`; libRoadRunner |
 | ODE simulation, SBML models | libRoadRunner | libRoadRunner; AMICI; COPASI (core only) |
 | ODE settings: dense, KLU, automatic; compiled vs interpreted | each other | forced dense and forced KLU vs automatic |
 | Re-simulation of a loaded model with new parameters | — | `run_network`, libRoadRunner, AMICI |
@@ -170,7 +171,8 @@ Scaling claims that need no variant model vary a run setting instead:
 Whole public corpora, used for distributions:
 
 - correctness pass rates;
-- the spread of cost ratios.
+- the spread of per-engine absolute times, and of any baseline-relative cost derived
+  from them (§6.3).
 
 Cost headlines use all public models in the breadth tier. The corpora are:
 
@@ -273,12 +275,17 @@ COPASI. Re-generating the references is a separate job type.
 
 A job is the unit of work:
 
-> one problem × one capability × one engine (or engine pair, for paired timing) × one setting
+> one problem × one capability × one setting × the engine, or engines timed together
+
+A correctness job compares BNGsim against every reference engine on that problem, and
+a timing job interleaves all of them (§7.1) in one drift-cancelling run, so their
+absolute times are measured together. Both name the whole set of engines, derived from
+the reference-engine registry, rather than a single pair.
 
 Job IDs are deterministic and readable, for example
-`ode/dushek2011@sites=8/bngsim-vs-run_network/auto`. Generating the job list from the
-problem specs and the suite configuration is itself a command, so the list never
-drifts from the specs.
+`ode/dushek2011@sites=8/bngsim-vs-run_network-roadrunner/auto`. Generating the job list
+from the problem specs and the suite configuration is itself a command, so the list
+never drifts from the specs.
 
 Correctness jobs and timing jobs are separate:
 
@@ -322,6 +329,9 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
 
 ### 6.3 Gathering and publishing
 
+- The primary published artifact is an **absolute time per (engine, problem, setting)**,
+  always tagged with its platform (§7.5). With more than two engines there is no pairwise
+  matrix: any speedup is a derived column against a baseline the reader chooses.
 - `gather` assembles per-job results into one report per capability and layer.
 - A **result bundle** packages one complete set of results for one BNGsim build:
   - per-job results;
@@ -336,10 +346,12 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
 
 ## 7. Timing protocol
 
-1. **Paired and interleaved:**
-   - A timing job runs BNGsim and its comparator in the same process tree, pinned to
-     one core.
-   - Repetitions alternate between the two (A B A B …).
+1. **Interleaved, drift-cancelling:**
+   - A timing job runs all the engines compared on the problem in the same process
+     tree, pinned to one core.
+   - Repetitions cycle round-robin through the engines (A B A B … for two, A B C A B C …
+     for more), so each engine's runs sit adjacent in time to the others' and the
+     common-mode drift of §7.6 cancels out of every comparison.
    - Warm-up repetitions are discarded, and every remaining repetition is kept.
    - **Every kept repetition must reproduce the first run.** A kept repetition's full
      trajectory is compared with the first run's (for BNGsim, its cold first run; for a
@@ -350,8 +362,10 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
      the species but not a parameter an event changed, so a warm re-run after it can be a
      cheaper, different trajectory (issue #8). Each engine's adapter chooses the reset
      after which a re-run is the first run again.
-   - The job reports the per-problem ratio, with a bootstrap confidence interval over
-     pairs.
+   - The job reports each engine's absolute time with a bootstrap confidence interval
+     over its kept repetitions (§7.5). A speedup is a derived view, computed against
+     whichever engine the reader takes as baseline; the suite never stores or publishes
+     an N×N matrix of pairwise ratios.
 2. **Single-threaded:** `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and the equivalents
    are set to 1, unless a job measures parallelism on purpose.
 3. **Cold vs warm:**
@@ -367,12 +381,18 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
      type (Slurm `--constraint`, or a recorded node type for interactive runs).
    - Each result records the node name, CPU model, microcode, frequency governor and
      turbo state, kernel, and how many other jobs shared the node.
-5. **Absolute times** are always reported with their node type. They are more
-   sensitive than ratios to everything above.
+5. **Absolute times are the artifact.** Every timing result is an absolute time
+   reported with its full platform record (node type, CPU model, microcode, governor,
+   turbo, kernel). This is what `gather` publishes (§6.3). Absolute times are more
+   sensitive than ratios to everything above, which is exactly why the interleaving of
+   §7.1 is kept: it makes a single platform's absolute numbers trustworthy, rather than
+   leaving drift to be divided out of a ratio.
 6. **Node sharing is settled by measurement, not assumed** (section 9).
 
 Run-to-run drift on a single machine can be as large as the effects being measured.
-That is why ratios are formed inside one job, never across separate runs.
+That is why the engines compared on a problem are timed inside one interleaved job,
+never across separate runs — so any comparison drawn between them, absolute or derived,
+rests on runs that were adjacent in time on the same core.
 
 ## 8. Running
 
@@ -437,14 +457,33 @@ Corpora are fetched at pinned versions and checked by sha256.
 
 Two checks run before any cluster timing is used:
 
-1. **Laptop vs cluster:**
-   - One corpus is timed on a laptop and on the cluster, both with the paired protocol.
-   - The candidate corpus is BNGL models exported to SBML, BNGsim vs libRoadRunner.
-   - It passes if the geometric mean of the per-problem ratio-of-ratios lies within a
-     stated tolerance (for example 5%) and the per-problem ratios correlate tightly.
+1. **Cross-platform sanity (ARM vs x86):**
+   - The published artifact is an absolute time tagged with its platform (§6.3, §7.5),
+     so the suite does not claim a timing transfers between machines. This is therefore
+     a measurement-hygiene check, not the portability proof it used to be.
+   - One corpus is timed on two deliberately different node types on the same cluster:
+     an x86 node (Platinum 8260) and an ARM node (Ampere Altra / Neoverse), both under
+     the protocol of §7. The candidate corpus is BNGL models exported to SBML, BNGsim
+     vs libRoadRunner.
+   - It passes if, on each platform independently, the per-problem absolute times are
+     repeatable within a stated tolerance and the reproducibility check of §7.1 holds
+     (no residual drift). The derived ratios are reported on both platforms and their
+     agreement is informative, but it is not a pass condition.
+   - An ARM node is used, not a laptop: it is the most different machine reachable on
+     the same Slurm, needs no off-cluster handling, and forces the pinned stack to be
+     shown building and running on aarch64 — itself worth knowing.
+   - The cluster has an ample ARM fleet to serve as the second platform: dedicated
+     aarch64 partitions with ThunderX2 nodes, bare-metal Neoverse-N1 nodes, and NVIDIA
+     Grace (Neoverse-V2) nodes. The one remaining task is the stack itself: libRoadRunner
+     publishes no `linux-aarch64` artifact on PyPI — no wheel, and no sdist — so it is
+     built from upstream source (`sys-bio/roadrunner` v2.11.0). The one heavy step is
+     LLVM, because the `libroadrunner-deps` prebuilt bundle covers x86-64 Linux,
+     macOS-arm64 and Windows but not linux-aarch64, so on ARM Linux LLVM is compiled
+     from source — which is exactly what the ARM fleet is for. None of this affects the
+     x86-64 wheel the suite runs on today.
 2. **Node sharing:**
    - The same timing jobs are run one per node, then packed onto a full node.
-   - If the ratios agree, timing jobs may share nodes.
+   - If the absolute times agree, timing jobs may share nodes.
    - If they don't, each node runs fewer timing jobs at once, down to one.
    - Nodes are not shared with other users, so this is only about the suite's own
      concurrent jobs.

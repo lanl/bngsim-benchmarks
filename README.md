@@ -10,8 +10,13 @@ published models, so that anyone can re-run them. The comparisons are against
 BioNetGen (`run_network`, NFsim), libRoadRunner, AMICI, COPASI and PyBNF.
 
 What runs today: the job machinery, and one capability, ODE simulation of BNGL
-models against BioNetGen's `run_network`, on five provisional pilot models in
-[`problems/pilot/`](problems/pilot/).
+models, comparing BNGsim against a registry of reference engines — BioNetGen's
+`run_network` and libRoadRunner — on five provisional pilot models in
+[`problems/pilot/`](problems/pilot/). Each reference reads the same generated
+network (run_network directly, libRoadRunner via SBML exported from it); the
+correctness job passes only when BNGsim agrees with every one, and the timing
+job interleaves all the engines in one run and reports each engine's absolute
+time. AMICI, COPASI, NFsim and PyBNF are on the roadmap as further engines.
 
 ## Goals
 
@@ -22,6 +27,8 @@ models against BioNetGen's `run_network`, on five provisional pilot models in
 - **Published results**, linked from [lanl/bngsim](https://github.com/lanl/bngsim).
 
 The design, and the decisions behind it, are in [docs/DESIGN.md](docs/DESIGN.md).
+Building an engine on a platform without a prebuilt artifact (chiefly
+linux-aarch64) is covered in [docs/BUILD_NOTES.md](docs/BUILD_NOTES.md).
 
 ## Running it
 
@@ -44,9 +51,9 @@ test. `fetch-bionetgen` downloads BioNetGen 2.9.3 and checks its sha256. `doctor
 prints what every result will record about the environment, and says READY when
 nothing is missing.
 
-Then run any part of the suite. A job is one problem, capability, engine pair,
+Then run any part of the suite. A job is one problem, capability, set of engines,
 setting and kind (`correctness` or `timing`). Its id reads like
-`ode/kinetic_proofreading_hlavacek2001/bngsim-vs-run_network/auto/correctness`,
+`ode/kinetic_proofreading_hlavacek2001/bngsim-vs-run_network-roadrunner/auto/correctness`,
 and any part of an id selects jobs:
 
 | command | does |
@@ -61,7 +68,8 @@ and any part of an id selects jobs:
 
 Each job writes one file under `results/`, named after its id. A result stays
 current until something it depends on changes: the model file, the protocol, the
-harness, the bngsim build, BioNetGen, or, for a timing result, the node type.
+harness, the bngsim build, BioNetGen, the libRoadRunner version, or, for a timing
+result, the node type.
 Running again runs only what is missing or out of date, so an interrupted run
 loses only the jobs in flight. Timing jobs run one at a time unless
 `--timing-workers` says otherwise, and only after their correctness job passed.

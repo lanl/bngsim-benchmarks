@@ -1,10 +1,10 @@
 """Jobs: the unit of work.
 
-A job is one problem x one capability x one engine pair x one setting x one kind
-(correctness or timing). Its id is deterministic and readable,
+A job is one problem x one capability x one set of engines x one setting x one
+kind (correctness or timing). Its id is deterministic and readable,
 
     <capability>/<problem>/<engines>/<setting>/<kind>
-    ode/kinetic_proofreading_hlavacek2001/bngsim-vs-run_network/auto/correctness
+    ode/kinetic_proofreading_hlavacek2001/bngsim-vs-run_network-roadrunner/auto/correctness
 
 and its ``definition`` is everything that decides what it computes. The job list
 is generated from the problem specs, so it never drifts from them.
