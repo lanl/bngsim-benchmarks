@@ -14,7 +14,7 @@ from bench.capabilities import CAPABILITIES
 from bench.results import result_path
 
 FP = {
-    "bngsim": {"version": "0.17.1", "build_commit": "e6c2fc65ebe3"},
+    "bngsim": {"version": "0.17.2", "build_commit": "932ea5e13396"},
     "bionetgen": {"version": "2.9.3", "sha256": "c" * 64},
     "harness": env.harness_identity(),
 }

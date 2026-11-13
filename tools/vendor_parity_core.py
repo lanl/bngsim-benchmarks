@@ -8,7 +8,7 @@ copied here verbatim from one pinned commit of lanl/bngsim, with the sha256 of
 every file recorded in VENDOR.json. tests/test_vendor.py fails if a copied file
 is edited, or (with network access) if it no longer matches the pinned commit.
 
-    python tools/vendor_parity_core.py --ref v0.17.1
+    python tools/vendor_parity_core.py --ref v0.17.2
 
 Re-run it when the pinned bngsim release changes, and commit the result.
 """

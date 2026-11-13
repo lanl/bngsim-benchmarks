@@ -25,7 +25,7 @@ pytest = "*"
 # The build under test. Every result records the version and compiled build
 # commit it measured, so a result from another build is never mistaken for one
 # from this one.
-bngsim = "==0.17.1"
+bngsim = "==0.17.2"
 bngsim-benchmarks = { path = ".", editable = true }
 
 [activation.env]
