@@ -341,6 +341,15 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
      one core.
    - Repetitions alternate between the two (A B A B …).
    - Warm-up repetitions are discarded, and every remaining repetition is kept.
+   - **Every kept repetition must reproduce the first run.** A kept repetition's full
+     trajectory is compared with the first run's (for BNGsim, its cold first run; for a
+     subprocess comparator, its own first kept repetition), and the job is
+     `NOT_REPRODUCIBLE` — its speedup not trusted, not published — if any repetition
+     disagrees by more than `max_err_over_peak` of `REPRO_TOL` (1e-6). Otherwise the
+     ratio can compare BNGsim with a run of something else: `RoadRunner.reset()` restores
+     the species but not a parameter an event changed, so a warm re-run after it can be a
+     cheaper, different trajectory (issue #8). Each engine's adapter chooses the reset
+     after which a re-run is the first run again.
    - The job reports the per-problem ratio, with a bootstrap confidence interval over
      pairs.
 2. **Single-threaded:** `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and the equivalents

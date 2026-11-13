@@ -37,6 +37,11 @@ def test_definition_pins_model_bytes_and_filled_protocol(problem):
     assert d["protocol"]["t_start"] == 0
     assert d["protocol"]["sparse"] is False
     assert "timing" not in d and "timing" in timing.definition
+    # The reproducibility-check token is a timing-only sibling of the protocol, so
+    # bumping it restales timing results without touching correctness (issue #8).
+    from bench.capabilities import ode_bng
+    assert "timing_check" not in d
+    assert timing.definition["timing_check"] == ode_bng.REPRO_CHECK_VERSION
 
 
 def test_generation_is_deterministic(problem):

@@ -66,6 +66,12 @@ def test_timing_records_paired_repetitions(run_dir):
     s = r["measurements"]["summary"]
     assert s["ci_low"] <= s["speedup"] <= s["ci_high"]
     assert all(x > 0 for x in reps["a_seconds"] + reps["b_seconds"])
+    # Raw per-repetition trajectories are consumed into the reproducibility block,
+    # never serialized (issue #8). Both engines reproduced their first run.
+    assert "a_outputs" not in reps and "b_outputs" not in reps
+    repro = r["measurements"]["reproducibility"]
+    assert repro["bngsim"]["passed"] is True and repro["run_network"]["passed"] is True
+    assert repro["bngsim"]["n_reps"] == reps["pairs"]
 
 
 def test_results_record_the_build_they_measured(run_dir):

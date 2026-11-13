@@ -54,6 +54,17 @@ ENGINES = "bngsim-vs-run_network"
 HARNESS_VERSION = "3"
 
 TIMING_PROTOCOL = {"warmup_pairs": 1, "min_pairs": 5, "max_pairs": 20, "budget_seconds": 120.0}
+
+# A timing-only part of the key (sibling of the protocol, not inside it): bump to
+# restale every timing result without disturbing correctness. 1 adds the
+# per-repetition reproducibility check (issue #8).
+REPRO_CHECK_VERSION = 1
+# Worst a kept repetition may disagree with the first run, as a fraction of each
+# species' peak, before the timing is not trusted. bngsim reproduces its first run
+# to ~3e-9; a reset that solves another trajectory is off by >=10% of the peak, so
+# this sits far from both. Loosen to 1e-4 if a stiff model ever drifts legitimately
+# near it (still a 1000x margin over the bug).
+REPRO_TOL = 1e-6
 LINEAR_SOLVER_NAMES = {0: "dense", 1: "KLU", 2: "LAPACK-dense"}
 
 # Actions BNG2.pl would execute; none may run before the appended netgen.
@@ -96,7 +107,7 @@ def jobs(problem: Problem) -> list[Job]:
     )
     timing = Job(
         CAPABILITY, problem.id, ENGINES, "auto", TIMING,
-        definition={**base, "timing": TIMING_PROTOCOL},
+        definition={**base, "timing": TIMING_PROTOCOL, "timing_check": REPRO_CHECK_VERSION},
         est_seconds=60.0 + 0.5 * species,
         requires=correctness.id,
     )
@@ -309,6 +320,34 @@ def max_err_over_peak(a: np.ndarray, b: np.ndarray) -> float | None:
     return float(np.max(err / peak[moving]))
 
 
+def _reproducibility(anchor: np.ndarray, others: list[np.ndarray], tol: float) -> dict[str, Any]:
+    """Whether every repetition in ``others`` reproduces ``anchor``.
+
+    Each timed repetition must solve the same problem the first run did; one that
+    does not makes the ratio compare BNGsim with a run of something else (issue
+    #8). The disagreement of each repetition is ``max_err_over_peak`` against the
+    anchor (full trajectory, so a wrong transient that reconverges to the same
+    final state is still caught); a species that never moves off zero contributes
+    nothing (None reads as 0.0). ``passed`` is true when every repetition is within
+    ``tol``; with nothing to compare (a single repetition) it is vacuously true.
+    """
+    per_rep: list[float] = []
+    for other in others:
+        n_t = min(anchor.shape[0], other.shape[0])
+        n_sp = min(anchor.shape[1], other.shape[1])
+        err = max_err_over_peak(other[:n_t, :n_sp], anchor[:n_t, :n_sp])
+        per_rep.append(0.0 if err is None else float(err))
+    worst = max(per_rep) if per_rep else 0.0
+    return {
+        "passed": worst <= tol,
+        "tol": tol,
+        "n_reps": len(others),
+        "max_err_over_peak": worst,
+        "worst_rep": int(np.argmax(per_rep)) if per_rep else None,
+        "per_rep": per_rep,
+    }
+
+
 def _reference_run(net: Path, proto: dict[str, Any], workdir: Path, name: str, *,
                    sparse: bool, timeout: float) -> tuple[np.ndarray, list[str], float]:
     cmd = run_network_command(net, dict(proto, sparse=sparse), workdir / name)
@@ -400,6 +439,9 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     first = engine.run()
     info["bngsim_cold_seconds"] = time.perf_counter() - t0
     info["bngsim"] = engine.config(first)
+    # Copy now: .species may be a buffer the next run overwrites, which would make
+    # the reproducibility anchor silently track the last warm run.
+    cold_a = np.array(first.species)
     workdir = Path(ctx["workdir"])
     timeout = ctx["subprocess_timeout"]
     # Time run_network as the authors ran it only if that run is right.
@@ -417,15 +459,31 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     reps = paired_interleaved(
         engine.warm,
         lambda: run_network(cmd, out, timeout=timeout),
+        capture_a=lambda result: np.array(result.species),
+        capture_b=lambda res: np.array(res[1]),
         **job.definition["timing"],
     )
+    # Every kept repetition must reproduce the first run, or the ratio compares
+    # BNGsim with a run of something else (issue #8). BNGsim's warm re-runs are
+    # measured against its cold first run (a reset bug shows on the first warm run,
+    # which warm-vs-warm would miss); run_network's are measured against its own
+    # first repetition, not the dense reference -- a legitimately-sparse timed run
+    # differs from dense but is still reproducible.
+    a_outputs = reps.pop("a_outputs")
+    b_outputs = reps.pop("b_outputs")
+    repro = {
+        "bngsim": _reproducibility(cold_a, a_outputs, REPRO_TOL),
+        "run_network": _reproducibility(b_outputs[0], b_outputs[1:], REPRO_TOL),
+    }
+    reproducible = repro["bngsim"]["passed"] and repro["run_network"]["passed"]
     stats = speedup(reps["a_seconds"], reps["b_seconds"])
     return {
-        "outcome": "PASS",
+        "outcome": "PASS" if reproducible else "NOT_REPRODUCIBLE",
         "measurements": {
             **info,
             "engines": {"a": "bngsim (warm, in-process)", "b": "run_network (subprocess)"},
             "repetitions": reps,
+            "reproducibility": repro,
             "summary": stats,
         },
     }
