@@ -106,7 +106,13 @@ def test_roadrunner_check_fails_when_the_package_is_absent():
 
 
 def test_roadrunner_check_passes_when_it_imports():
-    pytest.importorskip("roadrunner")
+    # Skip only when roadrunner is genuinely unusable; a bare importorskip would
+    # miss the preload that makes the wheel's _roadrunner.so find libpython, so it
+    # would fail on a host without a system libpython even though the engine works.
+    try:
+        bench_env.import_roadrunner()
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"roadrunner not importable: {exc}")
     env = types.SimpleNamespace(
         roadrunner_identity=lambda: {"version": "2.11.0"},
         import_roadrunner=bench_env.import_roadrunner)
