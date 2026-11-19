@@ -43,13 +43,20 @@ pixi run fetch-bionetgen
 ```
 
 ```bash
+pixi run fetch-models
+```
+
+```bash
 pixi run doctor
 ```
 
 `pixi install` builds the pinned environment, including the bngsim release under
-test. `fetch-bionetgen` downloads BioNetGen 2.9.3 and checks its sha256. `doctor`
-prints what every result will record about the environment, and says READY when
-nothing is missing.
+test. `fetch-bionetgen` downloads BioNetGen 2.9.3 and checks its sha256.
+`fetch-models` downloads every model file the problem specs pin, each from its
+repository at a pinned commit, into the git-ignored `.cache/models/`, and checks its
+sha256. After that no job needs the network. The step is optional: a job downloads
+its own model the first time it needs it. `doctor` prints what every result will
+record about the environment, and says READY when nothing is missing.
 
 Then run any part of the suite. A job is one problem, capability, set of engines,
 setting and kind (`correctness` or `timing`). Its id reads like
