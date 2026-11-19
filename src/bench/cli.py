@@ -6,6 +6,7 @@
     bench submit [PATTERN...]        the same, as a Slurm job array (see slurm.example.yaml)
     bench gather                     assemble results into reports/
     bench fetch-bionetgen            download and check BioNetGen
+    bench fetch-models [PATTERN...]  download and check the pinned model files
     bench fetch-glibc                install a newer glibc loader (old-glibc Linux)
     bench doctor                     the environment a job would record
 
@@ -239,6 +240,69 @@ def cmd_fetch_glibc(args) -> int:
 
     print(fetch_glibc(args.cache))
     return 0
+
+
+def _model_sources(problems: list[specs.Problem]) -> dict[tuple[str, str], tuple[dict, list[str]]]:
+    """Each distinct cached model file the problems read, keyed as the cache is
+    (sha256, file name), with the problems that read it. Same bytes under the
+    same name are one entry; under another name they are a second entry, since
+    BioNetGen names its outputs after the model file and a job reads that path."""
+    from .fetch import model_cache_path
+
+    out: dict[tuple[str, str], tuple[dict, list[str]]] = {}
+    for p in problems:
+        key = (p.source["sha256"], model_cache_path(p.source, "").name)
+        out.setdefault(key, (p.source, []))[1].append(p.id)
+    return out
+
+
+def cmd_fetch_models(args) -> int:
+    from .fetch import model_cache_state, model_file
+
+    problems = specs.load_all(args.problems)
+    if args.patterns:
+        wanted = {j.problem for j in _load_jobs(args)}
+        problems = [p for p in problems if p.id in wanted]
+    counts: Counter[str] = Counter()
+    for (sha, _), (source, ids) in _model_sources(problems).items():
+        where = f"{source['repo']}@{source['commit'][:12]}:{source['path']}"
+        state = model_cache_state(source, args.cache)
+        if state == "cached":
+            counts["cached"] += 1
+            print(f"{'cached':<9} {sha[:12]}  {where}")
+            continue
+        try:
+            model_file(source, args.cache)
+        except Exception as exc:  # report every file, then fail
+            counts["failed"] += 1
+            print(f"{'FAIL':<9} {sha[:12]}  {where}\n{'':<10}{exc}\n"
+                  f"{'':<10}(named by {', '.join(ids)})")
+            continue
+        counts["fetched"] += 1
+        print(f"{'refetched' if state == 'corrupt' else 'fetched':<9} {sha[:12]}  {where}")
+    total = sum(counts.values())
+    print(f"\n{total} model files for {len(problems)} problems: "
+          f"{counts['cached']} already cached, {counts['fetched']} fetched, "
+          f"{counts['failed']} failed -> {args.cache / 'models'}")
+    return 1 if counts["failed"] else 0
+
+
+def _report_model_cache(problems: list[specs.Problem], cache_dir: Path) -> None:
+    """One doctor line on the model cache. A gap is a warning, not a failure:
+    a job downloads its own model on first use (and `bench submit` fetches all
+    of them up front), so only a host with no network would be stuck."""
+    from .fetch import model_cache_state
+
+    states = Counter(model_cache_state(src, cache_dir)
+                     for src, _ in _model_sources(problems).values())
+    total = sum(states.values())
+    if states["cached"] == total:
+        print(f"OK   {total} model files cached and sha256-checked ({cache_dir / 'models'})")
+        return
+    gaps = [f"{n} {what}" for what, n in (("not cached", states["missing"]),
+                                          ("with the wrong sha256", states["corrupt"])) if n]
+    print(f"WARN {total} model files: {', '.join(gaps)} "
+          "(run `pixi run fetch-models`; otherwise each job downloads its own)")
 
 
 def _check_run_network_loads(env) -> bool:
@@ -563,8 +627,9 @@ def cmd_doctor(args) -> int:
             ok = False
             print(f"FAIL vendored parity_core/{name} differs from VENDOR.json")
     try:
-        n = len(specs.load_all(args.problems))
-        print(f"OK   {n} problem specs load")
+        problems = specs.load_all(args.problems)
+        print(f"OK   {len(problems)} problem specs load")
+        _report_model_cache(problems, args.cache)
     except specs.SpecError as exc:
         ok = False
         print(f"FAIL problem specs:\n{exc}")
@@ -623,6 +688,13 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("fetch-bionetgen", help="download and check BioNetGen")
     _common(p)
     p.set_defaults(fn=cmd_fetch_bionetgen)
+
+    p = sub.add_parser("fetch-models",
+                       help="download and check every model file the specs pin")
+    _common(p)
+    p.add_argument("patterns", nargs="*",
+                   help="only the problems with a job matching one of these")
+    p.set_defaults(fn=cmd_fetch_models)
 
     p = sub.add_parser("fetch-glibc",
                        help="install a newer glibc loader (old-glibc Linux hosts only)")

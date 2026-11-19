@@ -233,7 +233,12 @@ A variant file counts as verified only if its verification covers that exact fil
 ### 4.2 Pinning
 
 Every model file is identified by repository, commit, path and sha256. The suite
-refers to files; it does not need to redistribute them.
+refers to files; it does not need to redistribute them. `bench fetch-models`
+downloads each file from its repository at the pinned commit into a git-ignored
+cache keyed by sha256 and file name. A download, or a
+cached copy, whose bytes do not match is never read: the download is refused, and a
+mismatched cached copy is downloaded again. Once the cache is filled, no job needs
+the network.
 
 ### 4.3 Breadth admission and labels
 
@@ -428,7 +433,8 @@ Other commands:
 - `bench plan`: what is current, stale, missing, waiting or blocked, and what it
   would cost;
 - `bench gather`: per-capability reports and a readable summary;
-- `bench fetch-bionetgen`, `bench doctor`: set up and check the environment;
+- `bench fetch-bionetgen`, `bench fetch-models`, `bench doctor`: set up and check the
+  environment;
 - `bench submit`: the Slurm mode below;
 - `bench bundle`: not yet written.
 

@@ -1,4 +1,5 @@
-"""Downloads, each pinned by sha256: the BioNetGen distribution and model files.
+"""Downloads, each pinned by sha256: the BioNetGen distribution, a glibc loader
+for old-glibc Linux hosts, and model files.
 
 Nothing a job reads is taken on trust from the network or from a local checkout:
 every file is identified by its sha256, and a download that does not match is
@@ -229,19 +230,39 @@ def fetch_glibc(cache_dir: str | Path) -> Path:
     return root
 
 
+def model_url(source: dict) -> str:
+    """Where a spec's ``source`` is downloaded from: the file at its pinned commit."""
+    return f"https://raw.githubusercontent.com/{source['repo']}/{source['commit']}/{source['path']}"
+
+
+def model_cache_path(source: dict, cache_dir: str | Path) -> Path:
+    """Where the file a spec's ``source`` names is cached, whether or not it is yet."""
+    return Path(cache_dir) / "models" / source["sha256"] / Path(source["path"]).name
+
+
+def model_cache_state(source: dict, cache_dir: str | Path) -> str:
+    """``cached``, ``missing`` or ``corrupt`` (present, wrong bytes). No network."""
+    dest = model_cache_path(source, cache_dir)
+    if not dest.is_file():
+        return "missing"
+    return "cached" if sha256_file(dest) == source["sha256"] else "corrupt"
+
+
 def model_file(source: dict, cache_dir: str | Path) -> Path:
     """The model file a spec's ``source`` names, downloaded once and sha256-checked.
 
     ``source`` carries ``repo`` (GitHub owner/name), ``commit``, ``path`` and
-    ``sha256``. Files are cached by sha256, so two specs naming the same bytes
-    share one copy and a changed upstream file can never be read in place of the
-    pinned one.
+    ``sha256``. Files are cached by sha256 and file name, so two specs naming the
+    same bytes under the same name share one copy, and a changed upstream file can
+    never be read in place of the pinned one. The name is kept because BioNetGen
+    names its outputs after the model file. A cached copy whose bytes no longer
+    match is downloaded again.
     """
     want = source["sha256"]
-    dest = Path(cache_dir) / "models" / want / Path(source["path"]).name
+    dest = model_cache_path(source, cache_dir)
     if dest.exists() and sha256_file(dest) == want:
         return dest
-    url = f"https://raw.githubusercontent.com/{source['repo']}/{source['commit']}/{source['path']}"
+    url = model_url(source)
     _download(url, dest)
     got = sha256_file(dest)
     if got != want:
