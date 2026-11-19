@@ -1,0 +1,162 @@
+{
+  "capability": "ode",
+  "copasi_error": "KeyError: \"['I'] not in index\"",
+  "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+  "environment": {
+    "bngsim": {
+      "build_commit": "932ea5e13396"
+    },
+    "node_type": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz | x86_64 | Linux"
+  },
+  "job_id": "ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+  "key": "sample-not-current",
+  "kind": "timing",
+  "measurements": {
+    "bngsim": {
+      "codegen_backend": "cc",
+      "codegen_cache_hit": false,
+      "codegen_seconds": 10.510268240999721,
+      "jacobian": "analytical",
+      "jacobian_seconds": 0.00014922400077921338,
+      "linear_solver": "KLU",
+      "load_seconds": 0.011428072000853717
+    },
+    "bngsim_cold_seconds": 11.057953188999818,
+    "engine_roles": {
+      "amici": "warm, in-process",
+      "bngsim": "warm, in-process (system under test)",
+      "roadrunner": "warm, in-process",
+      "run_network": "fresh subprocess"
+    },
+    "netgen_seconds": 21.85167170099885,
+    "network": {
+      "reactions": 2737,
+      "species": 409
+    },
+    "references": {
+      "amici": {
+        "codegen_seconds": 220.42275485999926,
+        "integrator": "CVODES BDF",
+        "load_seconds": 0.006247659999644384,
+        "output": "amount",
+        "sensitivities": "none",
+        "version": "1.1.0"
+      },
+      "roadrunner": {
+        "integrator": "cvode",
+        "load_seconds": 11.50861388300109,
+        "output": "amount",
+        "version": "2.11.0"
+      },
+      "run_network": {
+        "solver": "sparse (-b)"
+      }
+    },
+    "repetitions": {
+      "order": "bngsim run_network roadrunner amici",
+      "rounds": 8,
+      "warmup_rounds": 1
+    },
+    "reproducibility": {
+      "amici": {
+        "max_err_over_peak": 0.0,
+        "n_reps": 7,
+        "passed": true,
+        "per_rep": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tol": 1e-06,
+        "worst_rep": 0
+      },
+      "bngsim": {
+        "max_err_over_peak": 0.0,
+        "n_reps": 8,
+        "passed": true,
+        "per_rep": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tol": 1e-06,
+        "worst_rep": 0
+      },
+      "roadrunner": {
+        "max_err_over_peak": 0.0,
+        "n_reps": 7,
+        "passed": true,
+        "per_rep": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tol": 1e-06,
+        "worst_rep": 0
+      },
+      "run_network": {
+        "max_err_over_peak": 0.0,
+        "n_reps": 7,
+        "passed": true,
+        "per_rep": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tol": 1e-06,
+        "worst_rep": 0
+      }
+    },
+    "times": {
+      "amici": {
+        "ci_high": 0.7256388069981767,
+        "ci_low": 0.712960328999543,
+        "confidence": 0.95,
+        "median_seconds": 0.7153965715006052,
+        "rounds": 8
+      },
+      "bngsim": {
+        "ci_high": 0.5244660059979651,
+        "ci_low": 0.5235563780006487,
+        "confidence": 0.95,
+        "median_seconds": 0.5236887989995012,
+        "rounds": 8
+      },
+      "roadrunner": {
+        "ci_high": 0.8091758604987263,
+        "ci_low": 0.8080744709986902,
+        "confidence": 0.95,
+        "median_seconds": 0.80892931100243,
+        "rounds": 8
+      },
+      "run_network": {
+        "ci_high": 14.985149729000113,
+        "ci_low": 14.823988159998407,
+        "confidence": 0.95,
+        "median_seconds": 14.858215960499365,
+        "rounds": 8
+      }
+    }
+  },
+  "outcome": "PASS",
+  "problem": "beta_catenin_destruction_complex_barua2013",
+  "schema": 1,
+  "setting": "auto"
+}

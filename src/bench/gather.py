@@ -48,10 +48,13 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         # and whether that engine reproduced its first run. A speedup is derived in
         # rendering against a baseline, never stored here (docs/DESIGN.md 6.3).
         repro = m.get("reproducibility") or {}
+        reps = m.get("repetitions") or {}
         row.update(
             times=m.get("times") or {},
             reproducible={name: (r or {}).get("passed") for name, r in repro.items()},
-            rounds=(m.get("repetitions") or {}).get("rounds"),
+            rounds=reps.get("rounds"),
+            warmup_rounds=reps.get("warmup_rounds"),
+            presim=_presim(m),
             bngsim_cold_seconds=m.get("bngsim_cold_seconds"),
             reference_solver=((m.get("references") or {}).get("run_network") or {}).get("solver"),
             bngsim_config={k: (m.get("bngsim") or {}).get(k)
@@ -92,6 +95,77 @@ def _fmt(x: Any, spec: str) -> str:
     return "" if x is None else format(x, spec)
 
 
+def _sec(x: Any) -> str:
+    """Seconds at four significant figures, so a millisecond solve reads as
+    ``0.001108`` and not ``0.00``. The run-to-run spread (the CI) bounds the real
+    precision; this just stops the renderer from throwing digits away."""
+    return "" if x is None else f"{x:.4g}"
+
+
+# Pre-simulation cost: the one-time load/build an engine pays before the timed solve.
+# BNGsim's is network generation + codegen + load; a reference's is its own codegen
+# (AMICI compiles SBML->C++) + load. It is reported beside the solve time because a
+# small solve can hide a large build -- the re-simulation claim (docs/DESIGN.md 1, 7.3).
+_PRESIM_PARTS = ("netgen_seconds", "codegen_seconds", "load_seconds")
+
+
+def _presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Per-engine pre-simulation breakdown, pulled from the timing measurements.
+
+    Each entry carries the engine's recorded ``role`` (``engine_roles``), so the
+    renderer can tell an engine whose load is genuinely folded into every solve
+    (``fresh subprocess``: run_network) from one whose pre-sim number is missing."""
+    roles = m.get("engine_roles") or {}
+    bng = m.get("bngsim") or {}
+    out: dict[str, dict[str, Any]] = {
+        "bngsim": {
+            "netgen_seconds": m.get("netgen_seconds"),
+            "codegen_seconds": bng.get("codegen_seconds"),
+            "load_seconds": bng.get("load_seconds"),
+            "backend": bng.get("codegen_backend"),
+            "role": roles.get("bngsim"),
+        }
+    }
+    for name, rv in (m.get("references") or {}).items():
+        rv = rv or {}
+        out[name] = {
+            "codegen_seconds": rv.get("codegen_seconds"),
+            "load_seconds": rv.get("load_seconds"),
+            "role": roles.get(name),
+        }
+    return out
+
+
+# The role ``run_timing`` records for an engine run as a fresh process per solve: its
+# load is inside every timed rep, so there is no separate pre-sim number to report.
+_FRESH_SUBPROCESS = "fresh subprocess"
+_IN_SIM = "in sim"
+
+
+def _presim_total(d: dict[str, Any] | None) -> float | None:
+    if not d:
+        return None
+    vals = [d.get(k) for k in _PRESIM_PARTS]
+    vals = [v for v in vals if isinstance(v, (int, float))]
+    return sum(vals) if vals else None
+
+
+def _presim_cells(d: dict[str, Any] | None) -> tuple[str, str]:
+    """The (total, breakdown) pre-sim cells for one engine. A fresh-subprocess engine
+    is labelled, not given an invented split; a missing number stays blank."""
+    if d and d.get("role") == _FRESH_SUBPROCESS:
+        return _IN_SIM, "fresh subprocess per rep"
+    parts = []
+    for key in _PRESIM_PARTS:
+        v = (d or {}).get(key)
+        if isinstance(v, (int, float)):
+            label = key[: -len("_seconds")]
+            if key == "codegen_seconds" and (d or {}).get("backend"):
+                label += f" [{d['backend']}]"
+            parts.append(f"{label} {_sec(v)}")
+    return _sec(_presim_total(d)), " + ".join(parts)
+
+
 # The derived-speedup baseline: the reference every other engine's time is divided
 # against. run_network is the trusted dense oracle and the historical baseline, so
 # a reader sees "how much faster than run_network" without a stored ratio (6.3).
@@ -125,42 +199,85 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
     return "\n".join(lines)
 
 
+def _errored_engines(r: dict[str, Any]) -> set[str]:
+    """References that failed to run, recorded as ``<name>_error`` (not the generic
+    job-level ``error``)."""
+    return {k[: -len("_error")] for k in r
+            if k.endswith("_error") and k != "error" and r.get(k)}
+
+
+def reference_agreement(r: dict[str, Any]) -> str:
+    """BNGsim's agreement with its references as one derived label, beside (never
+    instead of) the outcome enum: ``FULL 4/4`` when every reference ran and agreed;
+    ``PARTIAL 3/4 (copasi: crash)`` when the only shortfall is a reference that failed
+    to run; ``DIFF 3/4 (roadrunner: diff)`` when a reference ran and disagreed. ``n/m``
+    is agreed / attempted, where a crashed reference counts as attempted. Blank when no
+    reference was attempted (e.g. the job failed before any engine ran)."""
+    verdicts = r.get("verdicts") or {}
+    crashed = _errored_engines(r) - set(verdicts)
+    attempted = len(verdicts) + len(crashed)
+    if not attempted:
+        return ""
+    passed = sum(1 for v in verdicts.values() if v.get("passed"))
+    diffs = sorted(name for name, v in verdicts.items() if not v.get("passed"))
+    misses = sorted([(name, "crash") for name in crashed]
+                    + [(name, "diff") for name in diffs])
+    label = "DIFF" if diffs else ("PARTIAL" if crashed else "FULL")
+    named = f" ({', '.join(f'{n}: {why}' for n, why in misses)})" if misses else ""
+    return f"{label} {passed}/{attempted}{named}"
+
+
 def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
-    """One row per problem: BNGsim's worst agreement across every reference, and
-    whether it agreed with each reference individually."""
-    refs = sorted({name for r in rows for name in (r.get("verdicts") or {})})
-    header = ["problem", "species", "outcome", "max error / peak",
+    """One row per problem: the outcome enum, BNGsim's agreement with its references
+    (``FULL 4/4`` / ``PARTIAL 3/4 (copasi: crash)``, see ``reference_agreement``), the
+    worst agreement, and each reference individually -- ``ok``, ``DIFF`` (ran but
+    disagreed) or ``crash`` (failed to run). A single broken reference no longer hides
+    the others behind one ``REFERENCE_FAILED``."""
+    refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
+                  | {name for r in rows for name in _errored_engines(r)})
+    header = ["problem", "species", "outcome", "references", "max error / peak",
               *(f"vs {name}" for name in refs), "current"]
     lines = ["| " + " | ".join(header) + " |",
-             "|---|---:|---|---:|" + "---|" * len(refs) + "--|"]
+             "|---|---:|---|---|---:|" + "---|" * len(refs) + "--|"]
     for r in rows:
         sp = (r.get("network") or {}).get("species")
         verdicts = r.get("verdicts") or {}
-        agree = []
+        errs = _errored_engines(r)
+        cells = []
         for name in refs:
             v = verdicts.get(name)
-            agree.append("" if not v else ("ok" if v.get("passed") else "DIFF"))
+            if v is not None:
+                cells.append("ok" if v.get("passed") else "DIFF")
+            elif name in errs:
+                cells.append("crash")
+            else:
+                cells.append("")
         lines.append("| " + " | ".join([
-            r["problem"], _fmt(sp, "d"), r["outcome"],
-            _fmt(r.get("max_err_over_peak"), ".2e"), *agree,
+            r["problem"], _fmt(sp, "d"), r["outcome"], reference_agreement(r),
+            _fmt(r.get("max_err_over_peak"), ".2e"), *cells,
             "yes" if r["current"] else "no",
         ]) + " |")
     return lines
 
 
 def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
-    """One row per (problem, engine): the engine's absolute median time with its
-    bootstrap CI, whether it reproduced its first run, and a derived speedup versus
-    the baseline reference. Absolute times are the artifact; the speedup is a view
-    (docs/DESIGN.md 6.3)."""
+    """One row per (problem, engine): the one-time pre-sim cost (load/compile) and its
+    breakdown beside the per-solve median time with its bootstrap CI, whether the
+    engine reproduced its first run, and a derived speedup versus the baseline
+    reference. Two numbers, not one: a fast solve can sit behind a slow build (AMICI
+    compiles SBML->C++), and the fitting-loop amortization argument needs both. A
+    reference that crashed during timing gets a row saying so rather than vanishing.
+    Absolute times are the artifact; the speedup is a view (docs/DESIGN.md 6.3, 7.3)."""
     engines = _engine_order(rows)
-    header = ["problem", "species", "engine", "outcome", "median (s)", "95% CI",
+    header = ["problem", "species", "engine", "outcome", "pre-sim (s)",
+              "pre-sim parts (s)", "sim median (s)", "sim 95% CI (s)",
               f"x {SPEEDUP_BASELINE}", "reproducible", "rounds", "current"]
     lines = ["| " + " | ".join(header) + " |",
-             "|---|---:|---|---|---:|---|---:|---|---:|---|"]
+             "|---|---:|---|---|---:|---|---:|---|---:|---|---:|---|"]
     for r in rows:
         sp = (r.get("network") or {}).get("species")
         times = r.get("times") or {}
+        presim = r.get("presim") or {}
         repro = r.get("reproducible") or {}
         # A derived number is only trusted when the job passed; a NOT_REPRODUCIBLE
         # (or failed) row would otherwise publish a speedup against times it distrusts.
@@ -171,14 +288,27 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
             if not t:
                 continue
             median = t.get("median_seconds")
-            ci = (f"{_fmt(t.get('ci_low'), '.4f')}–{_fmt(t.get('ci_high'), '.4f')}"
+            ci = (f"{_sec(t.get('ci_low'))}–{_sec(t.get('ci_high'))}"
                   if trusted and t.get("ci_low") is not None else "")
             speed = (base / median if trusted and base and median else None)
             rep = repro.get(engine)
+            total, parts = _presim_cells(presim.get(engine))
             lines.append("| " + " | ".join([
                 r["problem"], _fmt(sp, "d"), engine, r["outcome"],
-                _fmt(median, ".4f"), ci, _fmt(speed, ".2f"),
+                total, parts, _sec(median), ci, _fmt(speed, ".2f"),
                 "" if rep is None else ("yes" if rep else "NO"),
                 _fmt(r.get("rounds"), "d"), "yes" if r["current"] else "no",
             ]) + " |")
+        for engine in sorted(_errored_engines(r) - set(times)):
+            lines.append("| " + " | ".join([
+                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", "crash",
+                "", "", "", "", "yes" if r["current"] else "no",
+            ]) + " |")
+    lines += ["", "Times in seconds. *pre-sim* is the one-time load/build before the "
+              "timed solve, measured once (cold), so it has no CI: bngsim = netgen + "
+              "codegen [backend] + load; a reference = its own codegen + load. *in sim*: "
+              "the engine runs as a fresh subprocess per solve, so its load is inside "
+              "every sim rep. *sim* is the warm-solve median over the rounds, with a "
+              "bootstrap 95% CI; *crash*: the reference failed to run and was dropped "
+              "from the timed set (its error is in the JSON row)."]
     return lines
