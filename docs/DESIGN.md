@@ -339,6 +339,18 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
   always tagged with its platform (§7.5). With more than two engines there is no pairwise
   matrix: any speedup is a derived column against a baseline the reader chooses.
 - `gather` assembles per-job results into one report per capability and layer.
+- **Timing is two numbers per engine, never one:** the one-time *pre-sim* cost (load
+  plus any network generation or codegen/compile, measured once and cold, so it has no
+  CI) beside the warm *sim* median with its bootstrap 95% CI. A small solve can hide a
+  large build -- AMICI's SBML-to-C++ compile, libRoadRunner's SBML read -- and the
+  re-simulation claim of §1 (claim 2) needs both; see §7.3. An engine run as a fresh
+  subprocess per solve (run_network) has its load inside every rep, and is labelled
+  so rather than split.
+- **Correctness reads agreed/attempted references** beside the outcome enum:
+  `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`, `DIFF 3/4 (roadrunner: diff)`, so one
+  broken reference does not hide the others behind a single REFERENCE_FAILED.
+- Both are derived in rendering from fields every result already records; neither
+  changes the per-job result schema.
 - A **result bundle** packages one complete set of results for one BNGsim build:
   - per-job results;
   - gathered reports;
