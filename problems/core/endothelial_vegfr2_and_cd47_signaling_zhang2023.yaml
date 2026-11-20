@@ -1,0 +1,36 @@
+# Endothelial VEGFR2 and CD47 signaling. A core problem: member 8 of the ode-net suite (docs/DESIGN.md §3.2).
+# The protocol is the model's own ODE simulate action, at the same commit (time in seconds).
+# The file's parameter scan, which the data check rests on, is not part of the protocol.
+id: endothelial_vegfr2_and_cd47_signaling_zhang2023
+layer: core
+title: "Endothelial VEGFR2 and CD47 signaling"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/endothelial_vegfr2_and_cd47_signaling_zhang2023/endothelial_vegfr2_and_cd47_signaling_zhang2023.bngl
+  sha256: a12dc63cabbabc4929f7bf3844a696bc320f4b0bab39c2a82bad053c98f91a26
+  format: bngl
+publications:
+  - citation: "Zhang Y, Popel AS, Bazzazi H (2023). Combining multikinase tyrosine kinase inhibitors targeting the vascular endothelial growth factor and cluster of differentiation 47 signaling pathways is predicted to increase the efficacy of antiangiogenic combination therapies. ACS Pharmacol Transl Sci 6:710-726."
+    doi: 10.1021/acsptsci.3c00008
+verification:
+  kind: data
+  evidence: models/endothelial_vegfr2_and_cd47_signaling_zhang2023/verify_zhang2023.ipynb
+  check: "digitized Fig. 3A/3B/3G vs the file's kpr2 scan maxima, distance to the curve < 8% of the plotted range asserted"
+  result: "3.9% (3A), 5.1% (3B), 0.5% (3G)"
+  supporting: "structure: 870 species, the paper's 870-ODE system"
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1,max_agg=>10})"
+    t_start: 0
+    t_end: 1800
+    n_steps: 360
+    rtol: 1.0e-10
+    atol: 1.0e-12
+    sparse: true
+size:
+  species: 870
+  reactions: 5602
+suites:
+  ode-net: 8

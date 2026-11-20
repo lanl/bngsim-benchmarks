@@ -1,8 +1,7 @@
-# Combinatorial EGFR signaling. A provisional pilot problem: it exercises the job machinery
-# until the core suite is chosen and its verification audited (docs/DESIGN.md).
+# Combinatorial EGFR signaling. A core problem: member 6 of the ode-net suite (docs/DESIGN.md §3.2).
 # The protocol is the model's own ODE simulate action, at the same commit.
 id: combinatorial_egfr_signaling_blinov2006
-layer: pilot
+layer: core
 title: "Combinatorial EGFR signaling"
 source:
   repo: wshlavacek/BNGL-Models
@@ -14,8 +13,10 @@ publications:
   - citation: "Blinov ML, Faeder JR, Goldstein B, Hlavacek WS (2006). A network model of early events in epidermal growth factor receptor signaling that accounts for combinatorial complexity. BioSystems 83:136-151."
     doi: 10.1016/j.biosystems.2005.06.014
 verification:
-  kind: pending
+  kind: data
   evidence: models/combinatorial_egfr_signaling_blinov2006/verify_blinov2006.ipynb
+  check: "digitized Fig. 2 A/C/D/E network curves, RMS within 2-4 nM per panel asserted"
+  result: "RMS 0.44 / 1.51 / 1.33 / 1.72 nM"
 capabilities: [ode]
 protocol:
   ode:
@@ -29,3 +30,5 @@ protocol:
 size:
   species: 356
   reactions: 3749
+suites:
+  ode-net: 6

@@ -10,13 +10,15 @@ published models, so that anyone can re-run them. The comparisons are against
 BioNetGen (`run_network`, NFsim), libRoadRunner, AMICI, COPASI and PyBNF.
 
 What runs today: the job machinery, and one capability, ODE simulation of BNGL
-models, comparing BNGsim against a registry of reference engines — BioNetGen's
-`run_network` and libRoadRunner — on five provisional pilot models in
-[`problems/pilot/`](problems/pilot/). Each reference reads the same generated
-network (run_network directly, libRoadRunner via SBML exported from it); the
-correctness job passes only when BNGsim agrees with every one, and the timing
-job interleaves all the engines in one run and reports each engine's absolute
-time. AMICI, COPASI, NFsim and PyBNF are on the roadmap as further engines.
+models. It compares BNGsim against a registry of reference engines: BioNetGen's
+`run_network`, libRoadRunner, COPASI and AMICI. The models are the first core suite,
+`ode-net`, with 10 published, verified models in
+[`problems/core/`](problems/core/) (see [docs/core_suites.md](docs/core_suites.md)),
+plus one provisional pilot model in [`problems/pilot/`](problems/pilot/).
+Each reference reads the same generated network: run_network directly, the others via
+SBML exported from it. The correctness job passes only when BNGsim agrees with every
+reference. The timing job interleaves all the engines in one run and reports each
+engine's absolute time. NFsim and PyBNF are on the roadmap as further engines.
 
 ## Goals
 

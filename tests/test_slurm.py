@@ -337,7 +337,7 @@ def test_preflight_sees_only_the_needed_problems_and_runs_before_writing(setup):
 
 
 def test_too_long_problems_stop_the_submission_unless_skipped(setup):
-    # The toy jobs are estimated at about 21 s and 64.5 s; 30 s leaves no room.
+    # The toy jobs are estimated at about 30 s and 105 s; 30 s leaves no room.
     cfg = cfg_with(time_limit="0:40", margin_seconds=5, startup_seconds=5)
     with pytest.raises(slurm.SubmitError, match="longer than one allocation"):
         do_submit(setup, cfg)
@@ -347,7 +347,8 @@ def test_too_long_problems_stop_the_submission_unless_skipped(setup):
 
 
 def test_more_tasks_than_the_array_allows_are_refused(setup):
-    cfg = cfg_with(max_array_size=1, time_limit="2", margin_seconds=10, startup_seconds=10)
+    # 3 min less 20 s holds one toy problem (about 135 s of jobs) but not both.
+    cfg = cfg_with(max_array_size=1, time_limit="3", margin_seconds=10, startup_seconds=10)
     with pytest.raises(slurm.SubmitError, match="exceed max_array_size 1"):
         do_submit(setup, cfg)
 

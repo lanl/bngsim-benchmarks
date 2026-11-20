@@ -1,0 +1,36 @@
+# TCR signaling bistability. A core problem: member 2 of the ode-net suite (docs/DESIGN.md §3.2).
+# The model's only live simulate is SSA; the protocol is its ODE simulate, which the file
+# keeps commented out and the verification notebook runs in its place (time in seconds
+# since stimulation). The model body is the same either way.
+id: tcr_signaling_bistability_lipniacki2008
+layer: core
+title: "TCR signaling bistability"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/tcr_signaling_bistability_lipniacki2008/tcr_signaling_bistability_lipniacki2008.bngl
+  sha256: 82c8d6184c995b38ec82ad19c0ae1e25189b12d3a1dddeeca5b8a7e178436c6d
+  format: bngl
+publications:
+  - citation: "Lipniacki T, Hat B, Faeder JR, Hlavacek WS (2008). Stochastic effects and bistability in T cell receptor signaling. J Theor Biol 254:110-122."
+    doi: 10.1016/j.jtbi.2008.05.001
+verification:
+  kind: data
+  evidence: models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008.ipynb
+  check: "digitized Fig. 7B deterministic ppERK vs the BioNetGen ODE: NRMSE <= 1% FS, peak <= 2%, plateau <= 1% asserted"
+  result: "NRMSE 0.22% FS, peak 1.1%, plateau 0.10%"
+  supporting: "equations: hand-written 37-state SciPy ODE vs BioNetGen, max relative error 4.2e-9 (follows the supplied chemical specification rather than the paper's Appendix A)"
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 10800
+    n_steps: 600
+    rtol: 1.0e-10
+    atol: 1.0e-10
+size:
+  species: 37
+  reactions: 97
+suites:
+  ode-net: 2
