@@ -1,0 +1,38 @@
+# Adaptive MAPK signaling under vemurafenib, pre-equilibrated. A core problem: member 9 of the
+# ode-net suite (docs/DESIGN.md §3.2). The file is the MARM2.0 network seeded with the authors'
+# steady state at 1 uM vemurafenib, as their Fig. 2A pipeline seeds it; the primary file's seeds
+# are a 24 h integration instead, which misses the authors' simulation by up to 1.1e-2
+# (docs/core_suites.md). The protocol is the model's own ODE simulate action, at the same
+# commit: the 100 ng/mL EGF pulse (time in hours).
+id: mapk_adaptive_resistance_frohlich2023
+layer: core
+title: "Adaptive MAPK signaling under vemurafenib (pre-equilibrated)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: c467443f95775990fa05d916af3df05e7f2d22e0
+  path: models/mapk_adaptive_resistance_frohlich2023/mapk_adaptive_resistance_frohlich2023_preeq.bngl
+  sha256: 09244b803220aa9f717b46815b1056b01e7df306cbd02b614989565b91a40ae4
+  format: bngl
+publications:
+  - citation: "Fröhlich F, Gerosa L, Muhlich JL, Sorger PK (2023). Mechanistic model of MAPK signaling reveals how allostery and rewiring contribute to drug resistance. Molecular Systems Biology 19:e10988."
+    doi: 10.15252/msb.202210988
+verification:
+  kind: author_file
+  evidence: models/mapk_adaptive_resistance_frohlich2023/run_frohlich2023.py
+  check: "parameters, network, dy/dt and seeds vs the authors' MARM2.0 release (labsyspharm/marm2-supplement @ 7e97789, row 0), built with PySB and run under their protocol (steady state at 1 uM vemurafenib, then 100 ng/mL EGF); the committed run_network output vs the authors' trajectory over pERK_IF_obs, pMEK_IF_obs and the 30 observables, tolerance 1e-5"
+  result: "run_network output max relative error 1.8e-6; seeds 4.6e-13; parameters 1.3e-13; network identical (1612 species, 17516 reactions)"
+  supporting: "equations: an independent SciPy integration of the generated .net agrees with the authors' trajectory to 2.7e-11 (pERK_IF_obs), species to 9.4e-7 of peak"
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 2
+    n_steps: 200
+    rtol: 1.0e-9
+    atol: 1.0e-11
+size:
+  species: 1612
+  reactions: 17516
+suites:
+  ode-net: 9

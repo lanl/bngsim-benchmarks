@@ -21,9 +21,19 @@ import yaml
 LAYERS = ("pilot", "standards", "core", "series", "breadth", "application")
 
 # docs/DESIGN.md section 4.1. "pending" is allowed only in the pilot layer, whose
-# models are provisional until the core is chosen and audited.
+# models are provisional until the core suites are chosen and audited.
 VERIFICATION_KINDS = ("author_file", "equations", "data", "theory", "structure")
 PENDING = "pending"
+
+# docs/DESIGN.md section 3.2. A core suite is one feature on one input format,
+# holding exactly SUITE_SIZE problems in a fixed order (positions 1..SUITE_SIZE).
+# Each entry: the capability its members exercise, and the source formats it takes.
+# A suite is registered when its members are committed, so every registered suite
+# that appears in a set of specs must be complete.
+SUITE_SIZE = 10
+SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "ode-net": ("ode", ("bngl",)),  # ODE on the .net generated from published BNGL
+}
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -51,6 +61,7 @@ class Problem:
     capabilities: tuple[str, ...]
     protocol: dict[str, dict[str, Any]]
     size: dict[str, int] = field(default_factory=dict)
+    suites: dict[str, int] = field(default_factory=dict)
     path: str = ""
 
     def protocol_for(self, capability: str) -> dict[str, Any]:
@@ -108,7 +119,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
 
     allowed = {
         "id", "layer", "title", "source", "publications", "verification",
-        "capabilities", "protocol", "size",
+        "capabilities", "protocol", "size", "suites",
     }
     for k in sorted(set(data) - allowed):
         errs.append(f"unknown key {k!r}")
@@ -194,6 +205,24 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         errs.append("size: a mapping of non-negative integers")
         size = {}
 
+    suites = data.get("suites", {})
+    if not isinstance(suites, dict):
+        errs.append("suites: a mapping of suite name to position")
+        suites = {}
+    for name, pos in suites.items():
+        if name not in SUITES:
+            errs.append(f"suites: unknown suite {name!r} (one of {', '.join(SUITES)})")
+            continue
+        cap, formats = SUITES[name]
+        if layer != "core":
+            errs.append(f"suites.{name}: only a core problem may belong to a suite")
+        if cap not in caps:
+            errs.append(f"suites.{name}: a member must list capability {cap!r}")
+        if isinstance(source, dict) and source.get("format") not in formats:
+            errs.append(f"suites.{name}: source.format must be one of {', '.join(formats)}")
+        if not isinstance(pos, int) or isinstance(pos, bool) or not 1 <= pos <= SUITE_SIZE:
+            errs.append(f"suites.{name}: position must be an integer from 1 to {SUITE_SIZE}")
+
     if errs:
         raise SpecError(path, errs)
     return Problem(
@@ -206,6 +235,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         capabilities=tuple(caps),
         protocol={k: dict(v) for k, v in protocol.items()},
         size=dict(size),
+        suites=dict(suites),
         path=str(path),
     )
 
@@ -240,4 +270,34 @@ def load_all(root: str | Path) -> list[Problem]:
         seen[p.id] = p.path
     if dups:
         raise SpecError(root, dups)
+    suite_errs = check_suites(problems)
+    if suite_errs:
+        raise SpecError(root, suite_errs)
     return sorted(problems, key=lambda p: p.id)
+
+
+def suite_members(problems: list[Problem]) -> dict[str, list[Problem]]:
+    """Each suite named by ``problems``, its members in position order."""
+    out: dict[str, list[Problem]] = {}
+    for p in problems:
+        for name in p.suites:
+            out.setdefault(name, []).append(p)
+    return {name: sorted(ms, key=lambda p: p.suites[name]) for name, ms in sorted(out.items())}
+
+
+def check_suites(problems: list[Problem]) -> list[str]:
+    """Every suite the problems name holds exactly SUITE_SIZE of them, one at
+    each position 1..SUITE_SIZE (docs/DESIGN.md section 3.2)."""
+    errs: list[str] = []
+    for name, members in suite_members(problems).items():
+        by_pos: dict[int, list[str]] = {}
+        for p in members:
+            by_pos.setdefault(p.suites[name], []).append(p.id)
+        for pos, ids in sorted(by_pos.items()):
+            if len(ids) > 1:
+                errs.append(f"suite {name!r}: position {pos} is held by {', '.join(ids)}")
+        missing = [i for i in range(1, SUITE_SIZE + 1) if i not in by_pos]
+        if missing:
+            errs.append(f"suite {name!r}: {len(members)} of {SUITE_SIZE} members; "
+                        f"no member at position {', '.join(map(str, missing))}")
+    return errs

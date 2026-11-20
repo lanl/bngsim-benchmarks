@@ -80,9 +80,9 @@ reference run that gave the right answer.
 The suite has five layers. Each problem belongs to one layer, and the layer sets the
 rule for what may go in it.
 
-Until the core is chosen, a sixth, temporary layer, `pilot`, holds provisional
-problems that exercise the machinery. A pilot problem may record its verification
-as `pending`; no other layer may.
+Until the core suites are chosen, a sixth, temporary layer, `pilot`, holds provisional
+problems that exercise the machinery. A pilot problem may record its verification as
+`pending`; no other layer may.
 
 ### 3.1 Standards
 
@@ -94,31 +94,68 @@ These are used whole, as published by their maintainers:
 
 They are conformance sets, not representative models.
 
-### 3.2 Core
+### 3.2 Core suites
 
-About 15–20 published models, each tagged with the capabilities it exercises. Each
-model is reused across capabilities wherever possible, so results for ODE,
-sensitivity and steady state on the same model can be read together.
+The core is a set of **suites**. A suite is one bngsim feature on one input format --
+ODE on `.net`, ODE on SBML, sensitivities on SBML, and so on -- and holds **exactly 10**
+published, verified models (section 4.1), in a fixed order. There are as many suites as
+the feature surface needs. A feature and format get a suite only where bngsim supports
+that pair: network-free simulation, for example, runs only from BNGL.
 
-A core model must be **published and verified** (section 4.1).
+Each suite has its own models, rather than one shared set serving every feature:
 
-The core as a whole should span:
+- **Features need models with opposite properties.** Exact SSA needs low copy numbers.
+  Network-free simulation needs aggregation models with no finite network, which have
+  no ODE form. Sensitivities need parameter-estimation problems with data. A shared set
+  would be a compromise that serves none of them well.
+- **Each format is its own code path, with its own references.** bngsim reads `.net`,
+  SBML and Antimony through separate readers, and the reference engines differ by
+  format: `run_network` reads only `.net`; COPASI and AMICI read SBML; libRoadRunner
+  reads SBML and Antimony. One format per suite keeps every row of a suite against the
+  same engines, and a slow or wrong reader shows up as that suite's result.
 
-- **Size:** from about 10 species to thousands. Include models on both sides of the
-  automatic dense/KLU threshold, and one near it.
-- **Dynamics:**
-  - relaxation to steady state;
-  - an oscillator;
-  - a bistable switch.
-- **Stiffness:** at least one strongly stiff model.
-- **Format:**
-  - BNGL-native and SBML-native models;
-  - one or two models available in both formats, for a cross-format check.
-- **Stochastic behaviour:**
-  - low copy numbers;
-  - one model with known analytic moments;
-  - for PSA, species whose populations differ by orders of magnitude.
-- **Network-free behaviour:**
+A model may still sit in several suites; a `.net` ODE model is often a steady-state
+model too. Each problem spec records the suites it belongs to and its position in each
+(`suites: {ode-net: 3}`). A suite that is not complete, with one member at each position
+1–10, does not load. [core_suites.md](core_suites.md) lists each suite's members and what
+they cover.
+
+**Seeding.** Each suite starts from the models the BNGsim paper already selected and
+vetted for that feature, kept whole:
+
+- A set larger than 10 is split along the paper's own grouping, such as network-free
+  aggregation models versus signaling models, and each part becomes a suite.
+- A set smaller than 10 is topped up to 10, from the same sources, by the paper's own
+  selection criterion. For the SBML ODE suite that is the next-largest curated
+  BioModels with a figure-reproducing SED-ML horizon.
+- An added model is held to the same rule as the seed: published and verified.
+
+**Derived suites.** Where a format has no suitable published models of its own, its
+suite is derived from other suites by a pinned conversion. The Antimony ODE suite
+interleaves the other two ODE suites:
+
+- its odd positions are the `.net` suite's models 1, 3, 5, 7 and 9, exported to SBML
+  and converted to Antimony;
+- its even positions are the SBML suite's models 2, 4, 6, 8 and 10, converted to
+  Antimony.
+
+The conversion tools are pinned, and the converted file's sha256 is recorded. A
+derived model is as published and verified as the model it came from. It also gives a
+cross-format check: the same model read from two formats must agree. Handcrafted
+Antimony test sets are left to the breadth tier: they are small models, and a suite
+drawn only from them would be biased toward small sizes.
+
+**What each suite spans.** Within its 10, a suite should cover what its feature is
+sensitive to:
+
+- **ODE:**
+  - size from about 10 species to thousands, with models on both sides of the
+    automatic dense/KLU threshold and one near it;
+  - relaxation to steady state, an oscillator and a bistable switch;
+  - at least one strongly stiff model.
+- **SSA:** low copy numbers, and one model with known analytic moments.
+- **PSA:** species whose populations differ by orders of magnitude.
+- **Network-free:**
   - aggregation models with no finite network;
   - at least one model whose network is finite, so network-free results can be
     checked against SSA on that network.
@@ -537,8 +574,9 @@ Two checks run before any cluster timing is used:
    - the validation of section 9.
 2. **Breadth correctness:** parallel, with no timing constraints. It reuses bngsim's
    parity comparisons.
-3. **Core selection and verification audit:** choose the core models, then confirm
-   that each one's evidence covers the exact file used.
+3. **Core suites:** seed each suite from the paper's set and top it up to 10, then
+   confirm that each model's evidence covers the exact file used. Each suite lands
+   with its capability (step 4); the three ODE suites come first.
 4. **Capabilities, in order:**
    1. ODE, with the size series;
    2. SSA and PSA;
@@ -573,7 +611,7 @@ Two checks run before any cluster timing is used:
   module.
 - **Where bundles live:** as release assets of this repository linked from
   lanl/bngsim, or as release assets of lanl/bngsim itself.
-- **Core model selection:** which 15–20 models, and the knob ranges of each size
-  series.
+- **Core suites:** the models that top each suite up to 10 beyond the paper's seed,
+  and the knob ranges of each size series.
 - **Tolerances:** per-capability correctness tolerances, and the acceptance tolerance
   for section 9.

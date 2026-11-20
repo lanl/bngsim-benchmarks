@@ -1,0 +1,34 @@
+# Noise-resistant circadian oscillator. A core problem: member 1 of the ode-net suite (docs/DESIGN.md §3.2).
+# The protocol is the model's own ODE simulate action, at the same commit (time in hours).
+id: noise_resistant_circadian_oscillator_vilar2002
+layer: core
+title: "Noise-resistant circadian oscillator"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/noise_resistant_circadian_oscillator_vilar2002/noise_resistant_circadian_oscillator_vilar2002.bngl
+  sha256: 0495750da101490549b9bed83b4d70f2e829d46244466a87e418f7f3882273d9
+  format: bngl
+publications:
+  - citation: "Vilar JMG, Kueh HY, Barkai N, Leibler S (2002). Mechanisms of noise-resistance in genetic oscillators. PNAS 99:5988-5992."
+    doi: 10.1073/pnas.092133899
+verification:
+  kind: equations
+  evidence: models/noise_resistant_circadian_oscillator_vilar2002/verify_vilar2002.ipynb
+  check: "independent SciPy LSODA integration of the paper's Eq. 1 (parameters from the Fig. 1 caption, not read from the .net) vs the BioNetGen ODE, tolerance 1e-6"
+  result: "max relative error 2.6e-7"
+  supporting: "data: digitized Fig. 2a/2b, RMSE/panel height 0.030 (A) and 0.038 (R) against a stated 0.06"
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 400
+    n_steps: 4000
+    rtol: 1.0e-10
+    atol: 1.0e-10
+size:
+  species: 9
+  reactions: 16
+suites:
+  ode-net: 1
