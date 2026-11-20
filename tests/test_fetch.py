@@ -30,6 +30,15 @@ def test_model_file_downloads_checks_and_caches(tmp_path, monkeypatch):
     assert len(calls) == 1  # second call served from the cache
 
 
+def test_model_url_percent_encodes_the_path_but_keeps_its_slashes():
+    source = {**SOURCE, "path": "final/BIOMD0000000589/Valero et al 2015 #10a?.xml"}
+    assert fetch.model_url(source) == (
+        f"https://raw.githubusercontent.com/o/r/{'a' * 40}/"
+        "final/BIOMD0000000589/Valero%20et%20al%202015%20%2310a%3F.xml")
+    # The cached copy keeps the file's own name.
+    assert fetch.model_cache_path(source, "c").name == "Valero et al 2015 #10a?.xml"
+
+
 def test_model_file_with_wrong_bytes_is_discarded(tmp_path, monkeypatch):
     def fake_download(url, dest, timeout=120):
         dest.parent.mkdir(parents=True, exist_ok=True)
