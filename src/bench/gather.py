@@ -92,8 +92,9 @@ STOCHASTIC = frozenset({"ssa"})
 
 
 def _p_value(v: dict[str, Any]) -> float | None:
-    """A stochastic verdict's p-value: the permutation p-value of a two-ensemble
-    comparison, or the smallest per-cell p-value against exact moments."""
+    """A stochastic verdict's p-value, comparable to its alpha: the permutation
+    p-value of a two-ensemble comparison, or the Bonferroni-adjusted one against
+    exact moments (the smallest per-cell p-value, ``p_min``, for a record without it)."""
     p = v.get("p_value", v.get("p_min"))
     return p if isinstance(p, (int, float)) else None
 

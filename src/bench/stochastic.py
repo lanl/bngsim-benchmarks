@@ -313,7 +313,8 @@ def analytic_verdict(
     }
     if m == 0:
         passed = bool(det_ok.all())
-        out.update(passed=passed, p_min=1.0 if passed else 0.0, z_max=0.0)
+        out.update(passed=passed, p_value=1.0 if passed else 0.0,
+                   p_min=1.0 if passed else 0.0, z_max=0.0)
         return out
     z_all = np.concatenate([np.abs(zm[live]), np.abs(zv[live_var])])
     p_all = _normal_two_sided(z_all)
@@ -322,6 +323,9 @@ def analytic_verdict(
     flat = (np.flatnonzero(live).tolist() + np.flatnonzero(live_var).tolist())[k]
     out.update(
         passed=bool(det_ok.all() and p_all.min() > threshold),
+        # The family's p-value, comparable to alpha as the permutation test's is:
+        # it is above alpha exactly when the smallest cell's is above alpha / m.
+        p_value=float(min(1.0, m * p_all.min())) if det_ok.all() else 0.0,
         p_min=float(p_all.min()),
         bonferroni_threshold=threshold,
         n_rejected=int((p_all <= threshold).sum()),

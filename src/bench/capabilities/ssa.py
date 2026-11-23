@@ -714,7 +714,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     if moments is not None and ensembles:
         info["reference_vs_analytic"] = {
             name: {k: v for k, v in _analytic(stack, moments, prep).items()
-                   if k in ("passed", "p_min", "z_max", "worst", "n_rejected")}
+                   if k in ("passed", "p_value", "p_min", "z_max", "worst", "n_rejected")}
             for name, stack in ensembles.items()}
     names = prep["species_names"]
     info["ensembles"] = {name: _final_moments(stack, names)

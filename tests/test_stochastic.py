@@ -284,6 +284,7 @@ def test_analytic_detects_a_wrong_mean_and_a_wrong_variance():
     x = rng.poisson(10.3, (10_000, 5, 1)).astype(float)
     v = st.analytic_verdict(x, mu, mu, alpha=1e-3)
     assert v["passed"] is False and v["worst"]["statistic"] == "mean"
+    assert v["p_value"] <= 1e-3  # the family p-value, comparable to alpha
     # Right mean, variance 20 instead of 10.
     y = rng.negative_binomial(10, 0.5, (10_000, 5, 1)).astype(float)
     w = st.analytic_verdict(y, mu, mu, alpha=1e-3)
@@ -295,7 +296,8 @@ def test_analytic_holds_a_deterministic_cell_to_its_exact_value():
     x[:, 1, 0] = np.random.default_rng(8).poisson(2.0, 10_000)
     mean = np.array([[0.0], [2.0]])
     var = np.array([[0.0], [2.0]])
-    assert st.analytic_verdict(x, mean, var, alpha=1e-3)["passed"]
+    ok = st.analytic_verdict(x, mean, var, alpha=1e-3)
+    assert ok["passed"] and ok["p_value"] == pytest.approx(min(1.0, 2 * ok["p_min"]))
     x[17, 0, 0] = 1.0  # one trajectory leaves the initial condition
     v = st.analytic_verdict(x, mean, var, alpha=1e-3)
     assert v["passed"] is False and v["n_deterministic_failed"] == 1

@@ -142,8 +142,8 @@ def _ssa_records():
                             "replicates": [10000, 10000], "test": "permutation"},
             "copasi": {"passed": True, "p_value": 0.052, "z_max": 3.9, "alpha": 1e-3,
                        "replicates": [10000, 10000], "test": "permutation"},
-            "analytic": {"passed": True, "p_min": 0.0031, "z_max": 2.9, "alpha": 1e-3,
-                         "replicates": 10000, "test": "bonferroni"},
+            "analytic": {"passed": True, "p_value": 0.0031, "p_min": 2.6e-6, "z_max": 2.9,
+                         "alpha": 1e-3, "replicates": 10000, "test": "bonferroni"},
         },
         "roadrunner_error": "UNSUPPORTED: 1 reaction(s) consume one species twice",
     }
