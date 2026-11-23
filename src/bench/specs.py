@@ -321,14 +321,17 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     The measured grid ``0..t_end`` in ``n_steps`` and the solves' tolerances; which
     ``parameters`` to differentiate -- a convention or a list -- with the problem's
     ``fitted`` set beside it; a scale for any parameter whose value is zero
-    (``parameter_scales``); and the finite differences' step and tolerances. The
-    capability builds its jobs from BNGL only, so the source format changes nothing
-    here."""
+    (``parameter_scales``); the finite differences' step and tolerances; and,
+    optionally, a two-phase protocol: a ``preequilibration`` phase of a given
+    ``duration`` (with parameter values of its own, ``set``) before t = 0, and the
+    ``stimulus``, the parameter values from t = 0 on. The capability builds its jobs
+    from BNGL only, so the source format changes nothing here."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
     allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "fitted",
-               "parameter_scales", "fd_step", "fd_rtol", "fd_atol"}
+               "parameter_scales", "preequilibration", "stimulus",
+               "fd_step", "fd_rtol", "fd_atol"}
     for k in sorted(set(p) - allowed):
         errs.append(f"{where}: unknown key {k!r}")
     for k in ("netgen", "t_end", "n_steps", "rtol", "atol", "parameters"):
@@ -340,7 +343,8 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     ):
         errs.append(f"{where}.netgen: must be a generate_network(...) call")
     if "t_end" in p and not _positive(p["t_end"]):
-        errs.append(f"{where}.t_end: must be a positive number (the solves run from t = 0)")
+        errs.append(f"{where}.t_end: must be a positive number (the measured phase starts "
+                    "at t = 0)")
     if "n_steps" in p and not _int_in(p["n_steps"], 1, 10**5):
         errs.append(f"{where}.n_steps: an integer from 1 to 100000")
     for k in ("rtol", "atol", "fd_rtol", "fd_atol"):
@@ -373,6 +377,24 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
                     "fitted set)")
     if "parameter_scales" in p:
         _values(p["parameter_scales"], f"{where}.parameter_scales", errs, positive=True)
+
+    pre, stim = p.get("preequilibration"), p.get("stimulus")
+    if (pre is None) != (stim is None):
+        errs.append(f"{where}: preequilibration and stimulus come together (a two-phase "
+                    "protocol)")
+    if pre is not None:
+        if not isinstance(pre, dict):
+            errs.append(f"{where}.preequilibration: a mapping (duration, set)")
+        else:
+            for k in sorted(set(pre) - {"duration", "set"}):
+                errs.append(f"{where}.preequilibration: unknown key {k!r}")
+            if not _positive(pre.get("duration")):
+                errs.append(f"{where}.preequilibration.duration: a positive time, the "
+                            "length of the phase before t = 0")
+            if "set" in pre:
+                _values(pre["set"], f"{where}.preequilibration.set", errs)
+    if stim is not None:
+        _values(stim, f"{where}.stimulus", errs)
 
 
 # One validator per capability's protocol. A capability without one cannot be

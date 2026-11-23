@@ -34,6 +34,23 @@ scale is its value's magnitude by default, and the finite differences step by
 ``fd_step * scale``, so a zero-valued dose or switch gets an absolute step. Every
 parameter left out is recorded with its reason.
 
+**Protocol.** One phase -- the measured grid from the network's initial state -- or
+two: pre-equilibrate, then stimulate (``preequilibration`` and ``stimulus``). The
+equilibration phase runs over ``[-duration, 0]`` with parameter values of its own
+(``set``), unmeasured; at t = 0 the stimulus sets its parameters, and the measured
+phase continues from the state the first ended in, its sensitivities carried across
+t = 0: BNGsim with ``carry_sensitivities=True`` on the same Simulator; AMICI with its
+own pre-simulation (``t_presim``, the set parameters compiled as its fixed
+parameters); the finite differences through both phases (a fresh run_network per
+phase, the second started from the first's state, as BNG2.pl continues a run). The
+equilibration has a duration, not a steady-state criterion, since a model need not
+reach a steady state (the p38-ATF2 network has an absorbing state its authors'
+20000 s equilibration is far from); how far the phase still moved over its second
+half is recorded (``drift_last_half``). A parameter the protocol sets is the
+protocol's, not the model's, and is not differentiated. COPASI's time-course
+sensitivities task cannot begin from an equilibration's sensitivities, so it is
+recorded as not applicable to a two-phase protocol (named, not run, not counted).
+
 **Correctness.** Each engine builds and solves cold in its own forked child under a
 wall budget (``run_isolated``), so an AMICI compile that would take hours is stopped
 and recorded, and the job goes on. The verdict of BNGsim against a reference is the
@@ -56,9 +73,10 @@ REFERENCE_FAILED when a reference failed, was refuted, or left a parameter that 
 agreeing reference judged; otherwise PASS. A BNGsim failure is EXCEPTION (TIMEOUT
 when it ran out of time).
 
-**Timing.** The interleave times one forward-sensitivity solve per engine: each BNGsim
-configuration, AMICI and COPASI, beside a plain solve of BNGsim (``bngsim_ode``) and
-of run_network, the unit of a finite-difference gradient. The job reports each
+**Timing.** The interleave times one forward-sensitivity solve of the protocol per
+engine: each BNGsim configuration, AMICI and COPASI, beside a plain solve of the same
+protocol by BNGsim (``bngsim_ode``) and by run_network, the unit of a finite-difference
+gradient. The job reports each
 engine's absolute time with its bootstrap CI, the one-time cost before solving --
 BNGsim's load and compile, AMICI's code generation and C++ compile, COPASI's import
 -- measured once and cold, and the finite-difference baselines derived from the
@@ -254,14 +272,16 @@ def engine_seconds(problem: Problem, setting: str = DEFAULT_SETTING) -> dict[str
     """Planned seconds for each engine's cold build and first solve."""
     reactions = problem.size.get("reactions") or 10 * problem.size.get("species", 100)
     n = parameter_count(problem, setting)
-    solve = 0.002 + 2e-6 * reactions ** 1.5  # one plain solve at the protocol's tolerances
+    phases = 2 if problem.protocol_for(CAPABILITY).get("preequilibration") else 1
+    # One plain solve of the protocol (every phase) at its tolerances.
+    solve = phases * (0.002 + 2e-6 * reactions ** 1.5)
     sens = 2.0 * (1 + n) * solve  # a forward-sensitivity solve
     return {
         "bngsim": 5.0 + 1e-3 * reactions + sens,
         "bngsim_simultaneous": 1.0 + sens,
         "amici": 25.0 + 3e-4 * reactions ** 1.7 + sens,
-        # 4N + 1 solves, each a fresh process at tolerances 100x tighter.
-        "run_network_fd": (4 * n + 1) * (0.02 + 3.0 * solve),
+        # 4N + 1 solves, each a fresh process per phase at tolerances 100x tighter.
+        "run_network_fd": (4 * n + 1) * (phases * 0.02 + 3.0 * solve),
         "copasi": 5.0 + 50.0 * sens,
     }
 
@@ -289,6 +309,7 @@ def engine_budget_seconds(problem: Problem, setting: str = DEFAULT_SETTING) -> f
 def select_parameters(structure: netfile.Structure, chosen: str | list[str], *,
                       fitted: list[str] | None = None,
                       scales: dict[str, float] | None = None,
+                      switched: set[str] | frozenset[str] = frozenset(),
                       ) -> tuple[list[str], dict[str, str]]:
     """The parameters to differentiate, in ``.net`` order, and those left out with
     the reason.
@@ -298,8 +319,9 @@ def select_parameters(structure: netfile.Structure, chosen: str | list[str], *,
     those that reach a rate; ``fitted``, the ``fitted`` list. A parameter that sizes a
     compartment is left out (bngsim folds a volume into constants at load), and so is
     one whose value is zero unless ``scales`` gives it a scale: a relative step and a
-    semi-scaled sensitivity of a zero are zero. Raises ValueError for a listed name
-    the network cannot honour."""
+    semi-scaled sensitivity of a zero are zero; and so is one a two-phase protocol
+    sets (``switched``), which is the protocol's, not the model's. Raises ValueError
+    for a listed name the network cannot honour."""
     primary = structure.primary()
     rates = structure.reaching_rates()
     initial = structure.reaching_initial()
@@ -335,7 +357,9 @@ def select_parameters(structure: netfile.Structure, chosen: str | list[str], *,
         candidates = [p for p in candidates if p not in excluded]
     chosen_out = []
     for p in candidates:
-        if p in sizes:
+        if p in switched:
+            excluded[p] = "set by the two-phase protocol"
+        elif p in sizes:
             excluded[p] = "sizes a compartment"
         elif primary[p] == 0.0 and p not in scales:
             excluded[p] = "zero value: no relative step (give it a parameter_scales entry)"
@@ -367,6 +391,42 @@ def parameter_scales(structure: netfile.Structure, params: list[str],
 # --------------------------------------------------------------------------- #
 # The system under test and the reference engines
 # --------------------------------------------------------------------------- #
+def two_phase(structure: netfile.Structure, proto: dict[str, Any]) -> dict[str, Any] | None:
+    """The protocol's two phases, or None for a single one.
+
+    ``duration``: the equilibration phase's length, which runs over ``[-duration, 0]``;
+    ``phase1`` and ``phase2``: the value of every parameter the protocol sets, in the
+    equilibration (its ``set``, else the network's own value) and from t = 0 on (the
+    ``stimulus``, else the equilibration's). Raises ValueError for a protocol the
+    engines could not all run the same way: a set parameter that is not a number in
+    the network, or that reaches an initial amount or a compartment size (whether a
+    change after t = 0 moves a species is where engines differ: BioNetGen's
+    setParameter does not), or one that reaches no rate at all; and a network whose
+    rates read the clock, since run_network starts every phase at t = 0."""
+    pre = proto.get("preequilibration")
+    if not pre:
+        return None
+    before, after = dict(pre.get("set") or {}), dict(proto["stimulus"])
+    switched = sorted(set(before) | set(after))
+    primary = structure.primary()
+    rates, initial = structure.reaching_rates(), structure.reaching_initial()
+    sizes = structure.sizing_compartments()
+    bad = [f"{p} is not a number in the network" for p in switched if p not in primary]
+    bad += [f"{p} reaches an initial amount or a compartment size" for p in switched
+            if p in primary and (p in initial or p in sizes)]
+    bad += [f"{p} reaches no reaction rate" for p in switched
+            if p in primary and p not in rates and p not in initial and p not in sizes]
+    if bad:
+        raise ValueError("protocol.sens: a two-phase protocol must set rate parameters only: "
+                         + "; ".join(bad))
+    if structure.reads_clock():
+        raise ValueError("protocol.sens: a two-phase protocol on a network whose rates read "
+                         "the clock (time()): the engines would not agree on when it starts")
+    phase1 = {p: float(before.get(p, primary[p])) for p in switched}
+    phase2 = {p: float(after.get(p, phase1[p])) for p in switched}
+    return {"duration": float(pre["duration"]), "phase1": phase1, "phase2": phase2}
+
+
 def _grid(proto: dict[str, Any]) -> tuple[float, int]:
     return float(proto["t_end"]), int(proto["n_steps"])
 
@@ -389,16 +449,62 @@ def unpack(a: np.ndarray, n_p: int) -> tuple[list[np.ndarray], np.ndarray]:
     return [a[:, :, j * n_p:(j + 1) * n_p] for j in range(k)], a[:, :, -1]
 
 
-class BngsimSens:
+def _drift(pre_species: np.ndarray) -> float | None:
+    """How far the equilibration phase still moved over its second half: the
+    largest change from its midpoint to its end, as a fraction of the largest
+    species at the end (a diagnostic of the protocol, not a verdict)."""
+    x = np.asarray(pre_species, dtype=float)
+    peak = float(np.max(np.abs(x[-1]))) if x.size else 0.0
+    return float(np.max(np.abs(x[-1] - x[-2])) / peak) if peak > 0 and len(x) >= 2 else None
+
+
+class _BngsimProtocol:
+    """Runs the protocol on one bngsim model and Simulator: the measured phase from
+    the network's initial state after ``model.reset()``, or, for a two-phase
+    protocol, the equilibration phase over ``[-duration, 0]`` with its parameter
+    values, then the stimulus, then the measured phase continuing from the state
+    the first one ended in (``carry`` its sensitivities across t = 0 when the
+    Simulator has them: ``carry_sensitivities=True``)."""
+
+    def _protocol(self, carry: bool):
+        t_end, n_steps = _grid(self.proto)
+        rtol = float(self.proto["rtol"])
+        tp = self.two_phase
+        if tp is None:
+            self.model.reset()
+            return self.sim.run(t_span=(0.0, t_end), n_points=n_steps + 1, rtol=rtol,
+                                atol=self.atol)
+        for name, value in tp["phase1"].items():
+            self.model.set_param(name, value)
+        self.model.reset()
+        pre = self.sim.run(t_span=(-tp["duration"], 0.0), n_points=3, rtol=rtol, atol=self.atol)
+        self.pre_drift = _drift(np.asarray(pre.species, dtype=float))
+        for name, value in tp["phase2"].items():
+            self.model.set_param(name, value)
+        extra = {"carry_sensitivities": True} if carry else {}
+        return self.sim.run(t_span=(0.0, t_end), n_points=n_steps + 1, rtol=rtol, atol=self.atol,
+                            **extra)
+
+    def _phases_config(self) -> dict[str, Any]:
+        tp = self.two_phase
+        if tp is None:
+            return {}
+        return {"preequilibration": {"duration": tp["duration"], "phase1": tp["phase1"],
+                                     "phase2": tp["phase2"], "drift_last_half": self.pre_drift}}
+
+
+class BngsimSens(_BngsimProtocol):
     """BNGsim's forward sensitivities on the ``.net``: one model, one Simulator built
     for the parameters (which compiles the model with its analytic sensitivity
-    right-hand side), solved after ``model.reset()`` each time."""
+    right-hand side), solved after ``model.reset()`` each time -- through both
+    phases of a two-phase protocol, with the sensitivities carried across t = 0."""
 
     def __init__(self, net: Path, proto: dict[str, Any], params: list[str], *,
-                 sensitivity_method: str = "staggered"):
+                 sensitivity_method: str = "staggered", two_phase: dict[str, Any] | None = None):
         import bngsim
 
         self.proto, self.params, self.method = proto, list(params), sensitivity_method
+        self.two_phase, self.pre_drift = two_phase, None
         t0 = time.perf_counter()
         self.model = bngsim.Model.from_net(str(net))
         self.load_seconds = time.perf_counter() - t0
@@ -412,10 +518,7 @@ class BngsimSens:
         self.stats: dict[str, Any] = {}
 
     def run(self):
-        t_end, n_steps = _grid(self.proto)
-        self.model.reset()
-        return self.sim.run(t_span=(0.0, t_end), n_points=n_steps + 1,
-                            rtol=float(self.proto["rtol"]), atol=self.atol)
+        return self._protocol(carry=True)
 
     def tensors(self, result) -> tuple[np.ndarray, np.ndarray]:
         names = list(result.sensitivity_params)
@@ -449,7 +552,38 @@ class BngsimSens:
                               "n_sens_err_test_fails", "n_sens_nonlin_conv_fails")},
             "load_seconds": self.load_seconds,
             "codegen_seconds": self.codegen_seconds,
+            **self._phases_config(),
         }
+
+
+class BngsimPlain(_BngsimProtocol):
+    """BNGsim's plain solve of the same protocol, no sensitivities: the unit a
+    finite-difference gradient is paid in, timed beside the sensitivity solve."""
+
+    def __init__(self, net: Path, proto: dict[str, Any], *,
+                 two_phase: dict[str, Any] | None = None):
+        import bngsim
+
+        self.proto, self.two_phase, self.pre_drift = proto, two_phase, None
+        t0 = time.perf_counter()
+        self.model = bngsim.Model.from_net(str(net))
+        self.load_seconds = time.perf_counter() - t0
+        t1 = time.perf_counter()
+        self.sim = bngsim.Simulator(self.model, method="ode")
+        self.codegen_seconds = time.perf_counter() - t1
+        self.atol = bngsim.ExactAtol(float(proto["atol"]))
+
+    def run(self):
+        return self._protocol(carry=False)
+
+    @staticmethod
+    def trajectory(result) -> np.ndarray:
+        return np.array(result.species, dtype=float)
+
+    def config(self) -> dict[str, Any]:
+        return {"codegen_backend": getattr(self.sim, "codegen_backend", None),
+                "load_seconds": self.load_seconds, "codegen_seconds": self.codegen_seconds,
+                **self._phases_config()}
 
 
 def _align(species_names: list[str], name_to_id: dict[str, str]) -> list[str]:
@@ -477,23 +611,35 @@ class AmiciSens:
     -- is not differentiated, and recorded. Every run uses a fresh solver (as in
     ode), with forward sensitivities at the protocol's tolerances and AMICI's own
     defaults otherwise (its corrector is ``simultaneous``).
+
+    A two-phase protocol is AMICI's own pre-simulation: the parameters the protocol
+    sets are compiled as AMICI's fixed parameters, and each run's ``ExpData`` gives
+    the equilibration phase as ``t_presim`` (from ``t0 - t_presim`` to ``t0 = 0``) at
+    ``fixed_parameters_presimulation``, then the measured phase at
+    ``fixed_parameters``; AMICI carries the state and its sensitivities across
+    ``t0`` itself. Not AMICI's steady-state pre-equilibration: the protocol's
+    equilibration has a duration, which a model need not reach a steady state in
+    (p38-ATF2 has an absorbing state its authors' 20000 s equilibration is far from).
     """
 
     NAME = "amici"
     INPUT = "sbml"
 
     def __init__(self, sbml: Path, species_names: list[str], name_to_id: dict[str, str],
-                 proto: dict[str, Any], params: list[str]):
+                 proto: dict[str, Any], params: list[str], *,
+                 two_phase: dict[str, Any] | None = None):
         import amici
         from amici.sim import sundials as ss
 
         self._ss = ss
         want_ids = _align(species_names, name_to_id)
-        self.proto, self.params = proto, list(params)
+        self.proto, self.params, self.two_phase = proto, list(params), two_phase
+        fixed = sorted(two_phase["phase1"]) if two_phase else []
         outdir = sbml.parent / "amici_sens_model"
         t0 = time.perf_counter()
         amici.SbmlImporter(str(sbml)).sbml2amici(
-            "bench_sens_model", str(outdir), generate_sensitivity_code=True, verbose=False)
+            "bench_sens_model", str(outdir), generate_sensitivity_code=True, verbose=False,
+            fixed_parameters=fixed or None)
         self.codegen_seconds = time.perf_counter() - t0
 
         t1 = time.perf_counter()
@@ -518,6 +664,26 @@ class AmiciSens:
         self.idx = [pos[i] for i in want_ids]
         self.uncovered = _not_covered(self.params, self.covered,
                                       "not a free parameter of the AMICI model")
+        self.edata = self._phases(fixed) if two_phase else None
+
+    def _phases(self, fixed: list[str]):
+        """The ``ExpData`` of a two-phase protocol: AMICI's pre-simulation."""
+        ss, tp = self._ss, self.two_phase
+        ids = list(self.model.get_fixed_parameter_ids())
+        name = {}
+        for p in fixed:
+            aid = p if p in ids else (f"amici_{p}" if f"amici_{p}" in ids else None)
+            if aid is None:
+                raise RuntimeError(f"AMICI has no fixed parameter for {p}, which the protocol sets")
+            name[aid] = p
+        missing = [i for i in ids if i not in name]
+        if missing:
+            raise RuntimeError(f"AMICI has fixed parameters the protocol does not set: {missing}")
+        edata = ss.ExpData(self.model)
+        edata.t_presim = float(tp["duration"])
+        edata.fixed_parameters_presimulation = [tp["phase1"][name[i]] for i in ids]
+        edata.fixed_parameters = [tp["phase2"][name[i]] for i in ids]
+        return edata
 
     def run(self):
         ss = self._ss
@@ -526,7 +692,7 @@ class AmiciSens:
         solver.set_absolute_tolerance(float(self.proto["atol"]))
         solver.set_sensitivity_order(ss.SensitivityOrder.first)
         solver.set_sensitivity_method(ss.SensitivityMethod.forward)
-        rdata = ss.run_simulation(self.model, solver)
+        rdata = ss.run_simulation(self.model, solver, self.edata)
         if rdata.status != 0:
             raise RuntimeError(f"AMICI simulation failed with status {rdata.status}")
         return rdata
@@ -547,6 +713,8 @@ class AmiciSens:
             "version": env.amici_identity().get("version"),
             "parameter_scale": "linear",
             "internal_sensitivity_method": "AMICI default (simultaneous)",
+            **({"two_phase": "pre-simulation (t_presim) at fixed parameters, carried "
+                             "across t0 by AMICI"} if self.two_phase else {}),
             "not_differentiated": self.uncovered,
             "load_seconds": self.load_seconds,
             "codegen_seconds": self.codegen_seconds,
@@ -568,9 +736,23 @@ class CopasiSens:
     NAME = "copasi"
     INPUT = "sbml"
 
+    @staticmethod
+    def not_applicable(prep: dict[str, Any]) -> str | None:
+        """Why COPASI cannot run this protocol, or None. Its time-course
+        sensitivities task starts every sensitivity from the initial state's own
+        derivative; it has no way to begin from an equilibration phase's."""
+        if prep.get("two_phase"):
+            return ("a two-phase protocol: COPASI's time-course sensitivities task cannot "
+                    "carry the equilibration phase's sensitivities into the measured phase")
+        return None
+
     def __init__(self, sbml: Path, species_names: list[str], name_to_id: dict[str, str],
-                 proto: dict[str, Any], params: list[str]):
+                 proto: dict[str, Any], params: list[str], *,
+                 two_phase: dict[str, Any] | None = None):
         import basico
+
+        if two_phase:
+            raise ValueError("COPASI's time-course sensitivities run a single phase")
         import COPASI
 
         self._copasi = COPASI
@@ -670,9 +852,11 @@ class CopasiSens:
 
 
 def run_network_command(net: Path, proto: dict[str, Any], out_prefix: Path, *,
-                        rtol: float, atol: float) -> list[str]:
-    """The run_network call BNG2.pl makes for an ODE simulate, at the given tolerances."""
-    t_end, n_steps = _grid(proto)
+                        rtol: float, atol: float,
+                        grid: tuple[float, int] | None = None) -> list[str]:
+    """The run_network call BNG2.pl makes for an ODE simulate, at the given tolerances,
+    over the protocol's measured grid (or ``grid``: ``(t_end, n_steps)`` from t = 0)."""
+    t_end, n_steps = grid or _grid(proto)
     return [
         *env.run_network_launch(),
         str(env.run_network_bin()), "-o", str(out_prefix), "-p", "cvode",
@@ -682,42 +866,27 @@ def run_network_command(net: Path, proto: dict[str, Any], out_prefix: Path, *,
     ]
 
 
-class FdRunNetwork:
-    """Central finite differences from run_network, an engine independent of BNGsim.
+class _RunNetworkProtocol:
+    """run_network through the protocol, one fresh process per phase, as BNG2.pl runs
+    a multi-phase protocol: the equilibration phase from the ``.net`` with its
+    parameter values, then the measured phase from a ``.net`` whose initial amounts
+    are the state the first ended in (13 significant digits, as run_network writes
+    them) and whose parameters are the stimulus's. run_network starts each phase's
+    clock at 0, which is why a two-phase protocol refuses a network that reads it."""
 
-    For each parameter, the ``.net`` is written with the parameter at ``p + h s``
-    and ``p - h s`` (``s`` its scale: its value's magnitude, so a relative step, or
-    the protocol's ``parameter_scales`` entry for a parameter at zero, an absolute
-    one) and solved by a fresh run_network process, which re-derives every derived
-    parameter, rate and initial amount from it -- so the derivative is the total
-    one, through every chain the network has. For a parameter at zero the lower
-    point is negative: outside a dose's or a switch's physical range, but not the
-    ODE's, whose right-hand side is as smooth there. Two steps, ``h`` and ``h/2``,
-    at the protocol's ``fd_rtol``/``fd_atol``: ``4N + 1`` solves in all.
-    ``D(h/2)`` is the reference; ``|D(h) - D(h/2)|`` bounds its error
-    (``bench.sensitivity``).
-    """
-
-    NAME = "run_network_fd"
-    INPUT = "net"
-
-    def __init__(self, net: Path, proto: dict[str, Any], params: list[str], values: np.ndarray,
-                 scales: np.ndarray, workdir: Path, *, timeout: float):
+    def _setup(self, net: Path, proto: dict[str, Any], workdir: Path, *, timeout: float,
+               rtol: float, atol: float, two_phase: dict[str, Any] | None):
         self.text = net.read_text(encoding="utf-8")
-        self.proto, self.params = proto, list(params)
-        self.values, self.scales = np.asarray(values, float), np.asarray(scales, float)
-        self.workdir, self.timeout = workdir, timeout
+        self.proto, self.workdir, self.timeout = proto, workdir, timeout
+        self.rtol, self.atol, self.two_phase = float(rtol), float(atol), two_phase
         workdir.mkdir(parents=True, exist_ok=True)
-        self.covered = np.ones(len(self.params), bool)
-        self.solves = 0
-        self.solve_seconds = 0.0
+        self.solves, self.solve_seconds, self.pre_drift = 0, 0.0, None
 
-    def _solve(self, text: str) -> np.ndarray:
+    def _process(self, text: str, t_end: float, n_steps: int) -> np.ndarray:
         net = self.workdir / "fd.net"
         net.write_text(text, encoding="utf-8")
-        cmd = run_network_command(net, self.proto, self.workdir / "fd",
-                                  rtol=float(self.proto["fd_rtol"]),
-                                  atol=float(self.proto["fd_atol"]))
+        cmd = run_network_command(net, self.proto, self.workdir / "fd", rtol=self.rtol,
+                                  atol=self.atol, grid=(t_end, n_steps))
         t0 = time.perf_counter()
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout,
                               check=False)
@@ -729,10 +898,65 @@ class FdRunNetwork:
         cdat = self.workdir / "fd.cdat"
         _, values, _ = read_dat(cdat)
         cdat.unlink()
-        n_t = _grid(self.proto)[1] + 1
-        if values.shape[0] != n_t:
-            raise RuntimeError(f"run_network wrote {values.shape[0]} time points, expected {n_t}")
+        if values.shape[0] != n_steps + 1:
+            raise RuntimeError(f"run_network wrote {values.shape[0]} time points, "
+                               f"expected {n_steps + 1}")
         return values
+
+    def _solve(self, text: str) -> np.ndarray:
+        """The protocol's measured trajectory ``(n_t, n_species)`` for this ``.net``."""
+        tp = self.two_phase
+        if tp is None:
+            return self._process(text, *_grid(self.proto))
+        pre = self._process(netfile.with_parameters(text, tp["phase1"]), tp["duration"], 2)
+        self.pre_drift = _drift(pre)
+        measured = netfile.with_initial_amounts(netfile.with_parameters(text, tp["phase2"]),
+                                                pre[-1])
+        return self._process(measured, *_grid(self.proto))
+
+    def _command(self) -> list[str]:
+        cmd = recorded_command(run_network_command(
+            self.workdir / "fd.net", self.proto, self.workdir / "fd", rtol=self.rtol,
+            atol=self.atol))
+        names = {str(self.workdir / "fd.net"): "<perturbed>.net", str(self.workdir / "fd"): "<out>"}
+        return [names.get(c, c) for c in cmd]
+
+    def _phases_config(self) -> dict[str, Any]:
+        tp = self.two_phase
+        if tp is None:
+            return {}
+        return {"preequilibration": {"duration": tp["duration"], "processes_per_solve": 2,
+                                     "drift_last_half": self.pre_drift}}
+
+
+class FdRunNetwork(_RunNetworkProtocol):
+    """Central finite differences from run_network, an engine independent of BNGsim.
+
+    For each parameter, the ``.net`` is written with the parameter at ``p + h s``
+    and ``p - h s`` (``s`` its scale: its value's magnitude, so a relative step, or
+    the protocol's ``parameter_scales`` entry for a parameter at zero, an absolute
+    one) and solved by fresh run_network processes, which re-derive every derived
+    parameter, rate and initial amount from it -- so the derivative is the total
+    one, through every chain the network has, and through both phases of a
+    two-phase protocol. For a parameter at zero the lower point is negative:
+    outside a dose's or a switch's physical range, but not the ODE's, whose
+    right-hand side is as smooth there. Two steps, ``h`` and ``h/2``, at the
+    protocol's ``fd_rtol``/``fd_atol``: ``4N + 1`` protocol solves in all.
+    ``D(h/2)`` is the reference; ``|D(h) - D(h/2)|`` bounds its error
+    (``bench.sensitivity``).
+    """
+
+    NAME = "run_network_fd"
+    INPUT = "net"
+
+    def __init__(self, net: Path, proto: dict[str, Any], params: list[str], values: np.ndarray,
+                 scales: np.ndarray, workdir: Path, *, timeout: float,
+                 two_phase: dict[str, Any] | None = None):
+        self._setup(net, proto, workdir, timeout=timeout, rtol=proto["fd_rtol"],
+                    atol=proto["fd_atol"], two_phase=two_phase)
+        self.params = list(params)
+        self.values, self.scales = np.asarray(values, float), np.asarray(scales, float)
+        self.covered = np.ones(len(self.params), bool)
 
     def run(self) -> np.ndarray:
         """``pack(D(h/2), D(h), x)``: the finer quotient first."""
@@ -749,21 +973,41 @@ class FdRunNetwork:
         return pack(quotients[0], base, quotients[1])
 
     def config(self) -> dict[str, Any]:
-        cmd = recorded_command(run_network_command(
-            self.workdir / "fd.net", self.proto, self.workdir / "fd",
-            rtol=float(self.proto["fd_rtol"]), atol=float(self.proto["fd_atol"])))
-        names = {str(self.workdir / "fd.net"): "<perturbed>.net", str(self.workdir / "fd"): "<out>"}
         return {
             "method": "central differences at steps h and h/2 (relative to each "
                       "parameter's scale)",
             "engine": "run_network (fresh process per solve)",
             "step": float(self.proto["fd_step"]),
-            "rtol": float(self.proto["fd_rtol"]),
-            "atol": float(self.proto["fd_atol"]),
-            "command": [names.get(c, c) for c in cmd],
+            "rtol": self.rtol,
+            "atol": self.atol,
+            "command": self._command(),
             "solves": self.solves,
             "solve_seconds": self.solve_seconds,
+            **self._phases_config(),
         }
+
+
+class RunNetworkPlain(_RunNetworkProtocol):
+    """run_network's plain solve of the protocol at its own tolerances, as BNG2.pl
+    runs it: the unit of a finite-difference gradient, timed (a fresh process per
+    phase, its load inside every solve)."""
+
+    def __init__(self, net: Path, proto: dict[str, Any], workdir: Path, *, timeout: float,
+                 two_phase: dict[str, Any] | None = None):
+        self._setup(net, proto, workdir, timeout=timeout, rtol=proto["rtol"], atol=proto["atol"],
+                    two_phase=two_phase)
+
+    def run(self) -> np.ndarray:
+        return self._solve(self.text)
+
+    warm = run
+
+    @staticmethod
+    def trajectory(values: np.ndarray) -> np.ndarray:
+        return np.asarray(values)
+
+    def config(self) -> dict[str, Any]:
+        return {"command": self._command(), **self._phases_config()}
 
 
 # The reference engines BNGsim is compared against, in a fixed order.
@@ -787,9 +1031,21 @@ def _build_reference(name: str, prep: dict[str, Any], workdir: Path, timeout: fl
     cls = REFERENCE_ENGINES[name]
     if cls.INPUT == "net":
         return cls(prep["net"], prep["proto"], prep["params"], prep["values"], prep["scales"],
-                   workdir, timeout=timeout)
+                   workdir, timeout=timeout, two_phase=prep.get("two_phase"))
     return cls(prep["sbml"], prep["species_names"], prep["name_to_id"], prep["proto"],
-               prep["params"])
+               prep["params"], two_phase=prep.get("two_phase"))
+
+
+def not_applicable(prep: dict[str, Any]) -> dict[str, str]:
+    """The references that do not apply to this problem's protocol, with the reason:
+    named in the record, not run and not counted (``not_applicable``)."""
+    out = {}
+    for name, cls in REFERENCE_ENGINES.items():
+        check = getattr(cls, "not_applicable", None)
+        reason = check(prep) if check else None
+        if reason:
+            out[name] = reason
+    return out
 
 
 def _progress(msg: str) -> None:
@@ -807,8 +1063,10 @@ def _prepare(problem: Problem, ctx: dict[str, Any], setting: str = DEFAULT_SETTI
     if structure.species != [n.lstrip("$") for n in prep["species_names"]]:
         raise RuntimeError("the .net's species and BNGsim's species_names disagree")
     scales = proto.get("parameter_scales") or {}
+    phases = two_phase(structure, proto)
     params, excluded = select_parameters(structure, proto["parameters"],
-                                         fitted=proto.get("fitted"), scales=scales)
+                                         fitted=proto.get("fitted"), scales=scales,
+                                         switched=set(phases["phase1"]) if phases else set())
     if not params:
         raise ValueError(f"no parameter to differentiate ({proto['parameters']!r}; "
                          f"left out: {excluded})")
@@ -816,12 +1074,15 @@ def _prepare(problem: Problem, ctx: dict[str, Any], setting: str = DEFAULT_SETTI
     prep.update(proto=proto, structure=structure, params=params,
                 values=np.array([structure.literal(p) for p in params]),
                 scales=parameter_scales(structure, params, scales),
-                observables=observables, weights=weights)
+                observables=observables, weights=weights, two_phase=phases)
     prep["info"]["parameters"] = {
         "selection": proto["parameters"], "convention": convention(proto), "n": len(params),
         "names": params, "excluded": excluded,
         "scales": {p: float(scales[p]) for p in params if p in scales},
     }
+    if phases:
+        prep["info"]["protocol_phases"] = {"preequilibration": phases["duration"],
+                                           "phase1": phases["phase1"], "phase2": phases["phase2"]}
     prep["info"]["network"]["observables"] = len(observables)
     return prep
 
@@ -830,7 +1091,8 @@ def _cold_bngsim(prep: dict[str, Any], name: str):
     def fn(stage):
         t0 = time.perf_counter()
         stage(BUILD_STAGE.get(name, "build"))
-        engine = BngsimSens(prep["net"], prep["proto"], prep["params"], **CONFIGURATIONS[name])
+        engine = BngsimSens(prep["net"], prep["proto"], prep["params"],
+                            two_phase=prep.get("two_phase"), **CONFIGURATIONS[name])
         stage("first solve")
         t1 = time.perf_counter()
         result = engine.run()
@@ -1037,7 +1299,11 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     references: dict[str, Any] = {}
     ref_runs: dict[str, _Run] = {}
     ref_errors: dict[str, str] = {}
+    skipped = not_applicable(prep)
     for name in REFERENCE_ENGINES:
+        if name in skipped:
+            _progress(f"{name}: not applicable, {skipped[name]}")
+            continue
         out = isolated(name, _cold_reference(name, prep, workdir / name, timeout))
         if "error" in out:
             ref_errors[name] = out["error"]
@@ -1073,8 +1339,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     if bn_error is None:
         bn_error = next((f"{name}: {err}" for name, err in bn_errors.items()), None)
     unjudged = info.get("coverage", {}).get("unjudged", [])
-    result = sens_outcome(bn_error, ref_errors, len(REFERENCE_ENGINES), verdict_json,
-                          consistent, unjudged)
+    result = sens_outcome(bn_error, ref_errors, len(REFERENCE_ENGINES) - len(skipped),
+                          verdict_json, consistent, unjudged)
     if bn_error and result == "EXCEPTION" and \
             any(part.strip() == "TIMEOUT" for part in bn_error.split(":")[:2]):
         result = "TIMEOUT"
@@ -1085,6 +1351,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         rec["bngsim_error"] = bn_error
     for name, err in ref_errors.items():
         rec[f"{name}_error"] = err
+    if skipped:
+        rec["not_applicable"] = skipped
     return rec
 
 
@@ -1098,6 +1366,10 @@ def _role(name: str) -> str:
     return engine_role(name)
 
 
+# The plain solves timed beside the sensitivity solves: the unit of an FD gradient.
+PLAIN = ("bngsim_ode", "run_network")
+
+
 def _capture(engine, scales: np.ndarray):
     """What a timed repetition is checked on: its semi-scaled sensitivities, one
     column per (species, parameter) -- extracted outside the timed region. A
@@ -1109,8 +1381,6 @@ def _capture(engine, scales: np.ndarray):
 
 
 def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
-    from .ode import BngsimODE, RunNetworkODE
-
     try:
         prep = _prepare(problem, ctx, job.setting)
     except Exception as exc:  # noqa: BLE001 - a bad test input, a labelled row
@@ -1123,8 +1393,9 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     # BNGsim cold: load, compile and a first solve of the default configuration,
     # with the empty compile cache the worker gave this job. Its result anchors the
     # warm repetitions.
+    phases = prep.get("two_phase")
     t0 = time.perf_counter()
-    bngsim_engine = BngsimSens(prep["net"], proto, prep["params"],
+    bngsim_engine = BngsimSens(prep["net"], proto, prep["params"], two_phase=phases,
                                **CONFIGURATIONS[DEFAULT_CONFIGURATION])
     first = bngsim_engine.run()
     info["bngsim_cold_seconds"] = time.perf_counter() - t0
@@ -1135,17 +1406,17 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     for name, cfg in CONFIGURATIONS.items():
         if name == DEFAULT_CONFIGURATION:
             continue
-        eng = BngsimSens(prep["net"], proto, prep["params"], **cfg)
+        eng = BngsimSens(prep["net"], proto, prep["params"], two_phase=phases, **cfg)
         eng.tensors(eng.run())  # trial run
         engines[name] = eng
         configs[name] = eng.config()
-    # The unit of a finite-difference gradient: one plain solve, by BNGsim and by
-    # run_network (a fresh process, as BNG2.pl and a finite-difference fit run it).
-    plain_proto = {**proto, "t_start": 0, "sparse": False}
-    plain = BngsimODE(prep["net"], plain_proto)
-    plain.warm()
+    # The unit of a finite-difference gradient: one plain solve of the protocol, by
+    # BNGsim and by run_network (a fresh process per phase, as BNG2.pl and a
+    # finite-difference fit run it), at the protocol's tolerances.
+    plain = BngsimPlain(prep["net"], proto, two_phase=phases)
+    plain.run()  # trial run
     engines["bngsim_ode"] = plain
-    configs["bngsim_ode"] = {"load_seconds": plain.load_seconds}
+    configs["bngsim_ode"] = plain.config()
     info["configurations"] = configs
 
     # Each reference: build and give it one trial run, so one that crashes is
@@ -1154,16 +1425,17 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     references: dict[str, Any] = {}
     ref_errors: dict[str, str] = {}
     timed_out = correctness_timeouts(job, ctx, REFERENCE_ENGINES)
+    skipped = not_applicable(prep)
     try:
-        rn = RunNetworkODE(prep["net"], plain_proto, workdir / "rn_plain", sparse=False,
-                           timeout=timeout)
+        rn = RunNetworkPlain(prep["net"], proto, workdir / "rn_plain", timeout=timeout,
+                             two_phase=phases)
         rn.run()
         engines["run_network"] = rn
         references["run_network"] = rn.config()
     except Exception as exc:  # noqa: BLE001
         ref_errors["run_network"] = f"{type(exc).__name__}: {exc}"[:400]
     for name in REFERENCE_ENGINES:
-        if name == FD:
+        if name == FD or name in skipped:
             continue
         if name in timed_out:
             ref_errors[name] = f"TIMEOUT in the correctness job, so not timed ({timed_out[name]})"
@@ -1180,10 +1452,8 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     info["references"] = references
 
     _progress(f"interleaved timing of {', '.join(engines)}")
-    runs = {name: (eng.warm if name in ("bngsim_ode", "run_network") else eng.run)
-            for name, eng in engines.items()}
-    captures = {name: (type(eng).trajectory if name in ("bngsim_ode", "run_network")
-                       else _capture(eng, prep["scales"]))
+    runs = {name: eng.run for name, eng in engines.items()}
+    captures = {name: (type(eng).trajectory if name in PLAIN else _capture(eng, prep["scales"]))
                 for name, eng in engines.items()}
     reps = round_robin_interleaved(runs, captures=captures, **job.definition["timing"])
 
@@ -1202,7 +1472,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     baselines = {name: {"forward_seconds": (n + 1) * times_[name]["median_seconds"],
                         "central_seconds": 2 * n * times_[name]["median_seconds"],
                         "parameters": n}
-                 for name in ("bngsim_ode", "run_network") if name in times_}
+                 for name in PLAIN if name in times_}
     rec: dict[str, Any] = {
         "outcome": "PASS" if reproducible else "NOT_REPRODUCIBLE",
         "measurements": {
@@ -1216,6 +1486,8 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     }
     for name, err in ref_errors.items():
         rec[f"{name}_error"] = err
+    if skipped:
+        rec["not_applicable"] = skipped
     return rec
 
 

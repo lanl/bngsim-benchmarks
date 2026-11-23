@@ -89,6 +89,15 @@ def test_a_spec_can_carry_ode_and_sens_and_the_ode_jobs_do_not_change(spec_data,
     ({"fd_step": 0.5}, "fd_step: a relative step"),
     ({"fd_rtol": 1e-6}, "fd_rtol: must not be looser than rtol"),
     ({"fd_atol": 1e-6}, "fd_atol: must not be looser than atol"),
+    ({"stimulus": {"Stim": 1}}, "preequilibration and stimulus come together"),
+    ({"preequilibration": {"duration": 100}}, "preequilibration and stimulus come together"),
+    ({"preequilibration": {"duration": 0}, "stimulus": {"Stim": 1}},
+     "preequilibration.duration: a positive time"),
+    ({"preequilibration": {"duration": 9, "t_end": 9}, "stimulus": {"Stim": 1}},
+     "preequilibration: unknown key 't_end'"),
+    ({"preequilibration": {"duration": 9, "set": {"Stim": "off"}}, "stimulus": {"Stim": 1}},
+     "preequilibration.set.Stim: must be a finite number"),
+    ({"preequilibration": {"duration": 9}, "stimulus": {}}, "stimulus: a non-empty mapping"),
     ({"netgen": "simulate({})"}, "netgen"),
 ])
 def test_invalid_sens_protocol_is_refused_with_its_name(sens_spec, write_spec, change, message):
@@ -312,7 +321,8 @@ def _prep():
 
 def _fake_bngsim(shift=None, boom=None, simultaneous_shift=None, own_obs_off=False):
     class FakeBngsim:
-        def __init__(self, net, proto, params, *, sensitivity_method="staggered"):
+        def __init__(self, net, proto, params, *, sensitivity_method="staggered",
+                     two_phase=None):
             if boom and (boom == "all" or sensitivity_method == boom):
                 raise RuntimeError(f"bngsim {sensitivity_method} broke")
             self.method, self.t = sensitivity_method, sens.times(proto)
@@ -372,7 +382,8 @@ def _fake_fd(shift=None, noise=0.0):
         INPUT = "net"
         NAME = sens.FD
 
-        def __init__(self, net, proto, params, values, scales, workdir, *, timeout):
+        def __init__(self, net, proto, params, values, scales, workdir, *, timeout,
+                     two_phase=None):
             self.t = sens.times(proto)
             self.covered = np.ones(2, bool)
 
@@ -557,7 +568,7 @@ def _timing_job(requires=None):
 
 
 class _Plain:
-    """Stands in for ode.BngsimODE / ode.RunNetworkODE: a plain solve."""
+    """Stands in for sens.BngsimPlain / sens.RunNetworkPlain: a plain solve."""
 
     def __init__(self, *args, **kwargs):
         self.load_seconds = 0.001
@@ -577,8 +588,8 @@ class _Plain:
 
 def test_timing_interleaves_every_engine_and_derives_the_fd_baselines(monkeypatch, tmp_path):
     _install(monkeypatch, _refs())
-    monkeypatch.setattr(ode, "BngsimODE", _Plain)
-    monkeypatch.setattr(ode, "RunNetworkODE", _Plain)
+    monkeypatch.setattr(sens, "BngsimPlain", _Plain)
+    monkeypatch.setattr(sens, "RunNetworkPlain", _Plain)
     rec = sens.run_timing(_timing_job(), None, _ctx(tmp_path))
     m = rec["measurements"]
     assert rec["outcome"] == "PASS"
@@ -604,8 +615,8 @@ def test_timing_flags_an_engine_whose_rerun_is_not_its_first_run(monkeypatch, tm
             return _exact(self.t, (0, 0, 1e-3 * Drifting.calls))
 
     _install(monkeypatch, {"amici": Drifting})
-    monkeypatch.setattr(ode, "BngsimODE", _Plain)
-    monkeypatch.setattr(ode, "RunNetworkODE", _Plain)
+    monkeypatch.setattr(sens, "BngsimPlain", _Plain)
+    monkeypatch.setattr(sens, "RunNetworkPlain", _Plain)
     rec = sens.run_timing(_timing_job(), None, _ctx(tmp_path))
     assert rec["outcome"] == "NOT_REPRODUCIBLE"
     assert not rec["measurements"]["reproducibility"]["amici"]["passed"]
@@ -622,8 +633,8 @@ def test_timing_drops_a_crashing_or_timed_out_reference_and_times_the_rest(
                                 "amici_error": "TIMEOUT: no result within the 3600 s budget"}))
     _install(monkeypatch, _refs(amici=_fake_reference(sleep=300, name="amici"),
                                 copasi=_fake_reference(boom="x", name="copasi")))
-    monkeypatch.setattr(ode, "BngsimODE", _Plain)
-    monkeypatch.setattr(ode, "RunNetworkODE", _Plain)
+    monkeypatch.setattr(sens, "BngsimPlain", _Plain)
+    monkeypatch.setattr(sens, "RunNetworkPlain", _Plain)
     rec = sens.run_timing(_timing_job(requires=corr), None,
                           _ctx(tmp_path, results_dir=str(tmp_path)))
     assert "amici" not in rec["measurements"]["times"]
@@ -631,3 +642,139 @@ def test_timing_drops_a_crashing_or_timed_out_reference_and_times_the_rest(
     assert rec["amici_error"].startswith("TIMEOUT in the correctness job")
     assert rec["copasi_error"].startswith("RuntimeError")
     assert rec["outcome"] == "PASS"
+
+
+# --------------------------------------------------------------------------- #
+# A two-phase protocol: pre-equilibrate, then stimulate
+# --------------------------------------------------------------------------- #
+GATED_NET = """begin parameters
+    1 k0    0.2  # Constant
+    2 k1    0.5  # Constant
+    3 A0    10  # Constant
+    4 Stim  0  # Constant
+end parameters
+begin species
+    1 A() A0
+    2 B() 0
+end species
+begin reactions
+    1 1 2 kA #decay
+end reactions
+begin functions
+    1 kA() k0+Stim*k1
+end functions
+"""
+TP_PROTO = {**PROTOCOL, "parameters": "independent", "t_end": 4.0, "n_steps": 8,
+            "preequilibration": {"duration": 3.0, "set": {"Stim": 0}}, "stimulus": {"Stim": 1}}
+
+
+def test_a_two_phase_protocol_names_each_phases_values_and_leaves_its_switch_out():
+    st = netfile.structure(GATED_NET)
+    tp = sens.two_phase(st, TP_PROTO)
+    assert tp == {"duration": 3.0, "phase1": {"Stim": 0.0}, "phase2": {"Stim": 1.0}}
+    params, excluded = sens.select_parameters(st, "independent", switched=set(tp["phase1"]),
+                                              scales={"Stim": 1.0})
+    assert params == ["k0", "k1", "A0"]
+    assert excluded == {"Stim": "set by the two-phase protocol"}
+    assert sens.two_phase(st, {**PROTOCOL}) is None
+
+
+@pytest.mark.parametrize("stimulus, message", [
+    ({"A0": 20}, "A0 reaches an initial amount"),
+    ({"kA": 1}, "kA is not a number in the network"),
+    ({"nope": 1}, "nope is not a number in the network"),
+])
+def test_a_two_phase_protocol_sets_rate_parameters_only(stimulus, message):
+    with pytest.raises(ValueError, match=message):
+        sens.two_phase(netfile.structure(GATED_NET), {**TP_PROTO, "stimulus": stimulus})
+
+
+def test_a_two_phase_protocol_refuses_a_network_that_reads_the_clock():
+    clocked = GATED_NET.replace("k0+Stim*k1", "k0+Stim*k1*time()")
+    with pytest.raises(ValueError, match="read the clock"):
+        sens.two_phase(netfile.structure(clocked), TP_PROTO)
+
+
+def test_bngsim_runs_the_equilibration_then_the_stimulus_carrying_its_sensitivities():
+    calls = []
+    model = types.SimpleNamespace(set_param=lambda k, v: calls.append(("set", k, v)),
+                                  reset=lambda: calls.append(("reset",)))
+
+    def run(**kw):
+        calls.append(("run", kw["t_span"], kw.get("carry_sensitivities", False)))
+        return types.SimpleNamespace(species=np.array([[1.0, 0.0], [0.6, 0.4], [0.5, 0.5]]))
+
+    engine = sens._BngsimProtocol()
+    engine.proto, engine.atol = TP_PROTO, 1e-8
+    engine.model, engine.sim = model, types.SimpleNamespace(run=run)
+    engine.two_phase = {"duration": 3.0, "phase1": {"Stim": 0.0}, "phase2": {"Stim": 1.0}}
+    engine._protocol(carry=True)
+    assert calls == [("set", "Stim", 0.0), ("reset",), ("run", (-3.0, 0.0), False),
+                     ("set", "Stim", 1.0), ("run", (0.0, 4.0), True)]
+    assert engine.pre_drift == pytest.approx(0.2)  # 0.1 moved over the second half, of 0.5
+    calls.clear()
+    engine._protocol(carry=False)  # a plain solve: the same phases, nothing carried
+    assert calls[-1] == ("run", (0.0, 4.0), False)
+
+
+def _gated_exact(text, t_end, n_steps):
+    """The closed-form solution of GATED_NET as written in ``text`` (its parameters
+    and initial amounts), over ``0..t_end``: what run_network would write."""
+    net = netfile.parse(text)
+    k = net.parameters["k0"] + net.parameters["Stim"] * net.parameters["k1"]
+    a0, b0 = net.initial
+    t = np.linspace(0.0, t_end, n_steps + 1)
+    a = a0 * np.exp(-k * t)
+    return np.stack([a, b0 + a0 - a], axis=1)
+
+
+def test_fd_differentiates_through_both_phases(monkeypatch, tmp_path):
+    proto = {**TP_PROTO, **sens.FD_DEFAULTS}
+    seen = []
+
+    def process(self, text, t_end, n_steps):
+        seen.append((netfile.parse(text).parameters["Stim"], t_end, n_steps))
+        return _gated_exact(text, t_end, n_steps)
+
+    monkeypatch.setattr(sens.FdRunNetwork, "_process", process)
+    net = tmp_path / "m.net"
+    net.write_text(GATED_NET)
+    tp = sens.two_phase(netfile.structure(GATED_NET), proto)
+    fd = sens.FdRunNetwork(net, proto, ["k0", "k1", "A0"], np.array([0.2, 0.5, 10.0]),
+                           np.array([0.2, 0.5, 10.0]), tmp_path / "fd", timeout=10,
+                           two_phase=tp)
+    (fine, coarse), X = sens.unpack(fd.run(), 3)
+    # Every protocol solve is two processes: the equilibration (Stim 0, over its
+    # duration), then the measured phase (Stim 1) from the state it ended in.
+    assert len(seen) == 2 * (4 * 3 + 1)
+    assert seen[:2] == [(0.0, 3.0, 2), (1.0, 4.0, 8)]
+    t = sens.times(proto)
+    a = 10.0 * np.exp(-0.2 * 3.0 - 0.7 * t)
+    np.testing.assert_allclose(X[:, 0], a, rtol=1e-12)
+    np.testing.assert_allclose(fine[:, 0, 0], -(3.0 + t) * a, rtol=1e-6)   # d/dk0
+    np.testing.assert_allclose(fine[:, 0, 1], -t * a, rtol=1e-6, atol=1e-12)  # d/dk1
+    np.testing.assert_allclose(fine[:, 0, 2], a / 10.0, rtol=1e-6)          # d/dA0
+    assert fd.config()["preequilibration"]["processes_per_solve"] == 2
+
+
+def test_copasi_does_not_apply_to_a_two_phase_protocol_and_the_rest_still_judge(
+        monkeypatch, tmp_path):
+    class Copasi(_fake_reference(name="copasi")):
+        not_applicable = staticmethod(sens.CopasiSens.not_applicable)
+
+    def prep(problem, ctx, setting):
+        out = _prep()
+        out["two_phase"] = {"duration": 3.0, "phase1": {"Stim": 0.0}, "phase2": {"Stim": 1.0}}
+        return out
+
+    _install(monkeypatch, _refs(copasi=Copasi))
+    monkeypatch.setattr(sens, "_prepare", prep)
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
+    assert rec["outcome"] == "PASS", rec
+    assert set(rec["verdicts"]) == {"amici", sens.FD}
+    assert "copasi_error" not in rec and "two-phase" in rec["not_applicable"]["copasi"]
+    monkeypatch.setattr(sens, "BngsimPlain", _Plain)
+    monkeypatch.setattr(sens, "RunNetworkPlain", _Plain)
+    timing = sens.run_timing(_timing_job(), None, _ctx(tmp_path))
+    assert "copasi" not in timing["measurements"]["times"]
+    assert timing["not_applicable"] == rec["not_applicable"]

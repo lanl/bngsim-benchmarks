@@ -540,6 +540,13 @@ class Structure:
             if self.compartments else set()
         return self.closure(roots) & set(self.expressions)
 
+    def reads_clock(self) -> bool:
+        """Whether some reaction rate depends on the time (BNGL's ``time()``), directly
+        or through a function: such a network's dynamics depend on where its clock
+        starts, not only on its state."""
+        roots = set().union(*(names_in(r) for r in self.rates)) if self.rates else set()
+        return "time" in self.closure(roots)
+
     def observable_weights(self) -> tuple[list[str], np.ndarray]:
         """The observables' names and their ``(n_observables, n_species)`` weights."""
         names = list(self.groups)
@@ -608,3 +615,41 @@ def structure(text: str) -> Structure:
 
 def read_structure(path: str | Path) -> Structure:
     return structure(Path(path).read_text(encoding="utf-8"))
+
+
+# A species-block line: index, name, the initial amount as written (up to any
+# comment), then the comment with the spacing before it.
+_SPECIES_LINE_RE = re.compile(r"^(\s*\d+\s+)(\S+)(\s+)([^#]*?)(\s*(?:#.*)?)$")
+
+
+def with_initial_amounts(text: str, amounts) -> str:
+    """``text`` with every species' initial amount set to the number in ``amounts``
+    (one per species, in file order), every other byte unchanged.
+
+    The way BNG2.pl continues a simulation in a fresh run_network process: the state
+    one run ended in becomes the next run's initial amounts. Raises NetFileError
+    when the count differs from the species block's, or for an amount that is not
+    a finite number.
+    """
+    values = [float(a) for a in amounts]
+    if not all(math.isfinite(v) for v in values):
+        raise NetFileError("an initial amount is not a finite number")
+    out, block, i = [], None, 0
+    for line in text.splitlines(keepends=True):
+        s = line.strip()
+        if _BLOCK_RE.match(line):
+            block = s.split()[1].lower()
+        elif _END_RE.match(line):
+            block = None
+        elif block == "species":
+            m = _SPECIES_LINE_RE.match(line.rstrip("\n"))
+            if m and m.group(4):
+                if i >= len(values):
+                    raise NetFileError(f"more species than the {len(values)} amounts given")
+                nl = "\n" if line.endswith("\n") else ""
+                line = f"{m.group(1)}{m.group(2)}{m.group(3)}{values[i]!r}{m.group(5)}{nl}"
+                i += 1
+        out.append(line)
+    if i != len(values):
+        raise NetFileError(f"{len(values)} amounts given for {i} species")
+    return "".join(out)

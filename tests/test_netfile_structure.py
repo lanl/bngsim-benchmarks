@@ -99,3 +99,22 @@ def test_a_derived_parameter_is_overridden_only_when_asked():
     assert "    4 kon       2.0  # ConstantExpression" in out.splitlines()
     st = netfile.structure(out)
     assert st.literal("kon") == 2.0 and "kon_M" not in st.reaching_rates()
+
+
+def test_with_initial_amounts_sets_every_species_and_nothing_else():
+    out = netfile.with_initial_amounts(NET, [1.5, 2.0, 0.25])
+    st = netfile.structure(out)
+    assert st.initial == ["1.5", "2.0", "0.25"]
+    assert out.replace("1.5", "L0").replace("2.0", "R0").replace("0.25", "0") == NET
+    with pytest.raises(netfile.NetFileError, match="more species than the 2 amounts given"):
+        netfile.with_initial_amounts(NET, [1.0, 2.0])
+    with pytest.raises(netfile.NetFileError, match="4 amounts given for 3 species"):
+        netfile.with_initial_amounts(NET, [1.0, 2.0, 3.0, 4.0])
+    with pytest.raises(netfile.NetFileError, match="not a finite number"):
+        netfile.with_initial_amounts(NET, [1.0, float("inf"), 0.0])
+
+
+def test_a_network_reads_the_clock_only_through_a_rate():
+    assert not netfile.structure(NET).reads_clock()
+    clocked = NET.replace("Stim*koff/(Km+Rtot)", "Stim*koff*time()")
+    assert netfile.structure(clocked).reads_clock()
