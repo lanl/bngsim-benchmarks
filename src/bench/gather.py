@@ -121,11 +121,21 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
     # counted as attempted.
     if rec.get("not_applicable"):
         row["not_applicable"] = dict(rec["not_applicable"])
+    # Whatever else a capability reports, by its own hook (psa: per-N_c rows).
+    extra = getattr(_capability(job.capability), "report_fields", None)
+    if extra is not None:
+        row.update(extra(job.kind, m))
     return row
 
 
+def _capability(name: str):
+    from .capabilities import CAPABILITIES
+
+    return CAPABILITIES.get(name)
+
+
 # Capabilities whose correctness verdict is a statistical test on ensembles.
-STOCHASTIC = frozenset({"ssa", "nf"})
+STOCHASTIC = frozenset({"ssa", "psa", "nf"})
 # Capabilities whose correctness verdict is a steady state's agreement, point by point.
 STEADY = frozenset({"steady_state"})
 
@@ -313,6 +323,9 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
         elif name.endswith(TIMING):
             lines += _timing_table(rows, per_trajectory=stochastic,
                                    baseline=SPEEDUP_BASELINES.get(capability, SPEEDUP_BASELINE))
+        extra = getattr(_capability(capability), "report_lines", None)
+        if extra is not None:
+            lines += extra(name.rsplit("-", 1)[1], rows)
         lines.append("")
     return "\n".join(lines)
 

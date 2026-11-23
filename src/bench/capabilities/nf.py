@@ -39,7 +39,7 @@ points, the steps one after another); the comparison is on the model's
 observables, by name. The verdict of BNGsim against each reference is the SSA
 capability's: a permutation max-T test on per-cell means and variances, with an
 exact false-alarm rate of ``VERDICT["alpha"]`` per comparison, and bngsim's own
-``parity_core`` ensemble verdict recorded beside it (docs/DESIGN.md §5.3-5.4). The
+``parity_core`` ensemble verdict recorded beside it (docs/DESIGN.md §5.3, §5.5). The
 job passes only when BNGsim agrees with every reference. Failures are attributed
 as in ``ssa``. Recorded beside the verdicts, and not gating:
 

@@ -19,6 +19,9 @@ Implemented so far:
 - a second capability: exact stochastic simulation (SSA) of BNGL models, comparing
   BNGsim's ensembles against `run_network`, libRoadRunner and COPASI, and against
   exact moments where a model has them (§5.3), on two provisional pilot models.
+- a third: partial scaling (PSA) of BNGL models, comparing BNGsim's PSA with
+  `run_network`'s at each critical population size N_c, and with exact SSA, its
+  N_c = infinity limit (§5.4), on two provisional pilot models.
 
 Not yet: bundles, the container, the validation of section 9, and every other
 capability.
@@ -61,7 +64,7 @@ The suite is built so that anyone can run it:
 | Re-simulation of a loaded model with new parameters | — | `run_network`, libRoadRunner, AMICI |
 | Exact stochastic simulation (SSA) | `run_network` SSA, libRoadRunner and COPASI (ensemble statistics, §5.3); exact moments of first-order networks; DSMTS analytic moments | `run_network` SSA; libRoadRunner; COPASI (core only) |
 | Partial scaling (PSA) | exact SSA, as the critical population N_c varies; `run_network` PSA | `run_network` PSA; exact SSA |
-| Network-free simulation (BNGsim's `nf_reject` and `nf_exact`, two settings) | standalone NFsim driven by BNG2.pl through the protocol's own actions; standalone RuleMonkey (same lineage as `nf_exact`, a secondary reference); exact SSA (`run_network`, BNGsim) on the generated network where it is finite (ensemble statistics, §5.4); BNGsim's two engines against each other (recorded) | standalone NFsim; standalone RuleMonkey |
+| Network-free simulation (BNGsim's `nf_reject` and `nf_exact`, two settings) | standalone NFsim driven by BNG2.pl through the protocol's own actions; standalone RuleMonkey (same lineage as `nf_exact`, a secondary reference); exact SSA (`run_network`, BNGsim) on the generated network where it is finite (ensemble statistics, §5.5); BNGsim's two engines against each other (recorded) | standalone NFsim; standalone RuleMonkey |
 | Forward sensitivities | AMICI; finite differences | AMICI; COPASI (core only) |
 | Steady state | long-time integration; AMICI steady state | integration to steady state; AMICI |
 | SBML compliance | SBML Test Suite semantic cases; DSMTS | — |
@@ -440,7 +443,102 @@ cost before sampling -- BNGsim's load and propensity compile, libRoadRunner's SB
 load and JIT, COPASI's import -- is measured once, cold, beside it (§6.3);
 run_network loads the `.net` in every trajectory, so its load is inside its time.
 
-### 5.4 Network-free verdicts
+### 5.4 Partial scaling (PSA)
+
+PSA (Lin, Feng & Hlavacek 2019, *J Chem Phys* 150:244101, doi:10.1063/1.5096774)
+accelerates SSA by letting a reaction whose smallest participating population is N
+fire `m = max(1, floor(N / N_c))` molecules at once, at `1/m` of its propensity. A
+reaction's mean drift is unchanged and its noise becomes that of a population near
+N_c: the method trades variance for events, more so the smaller N_c. The system
+under test is BNGsim's `Simulator(method="psa", poplevel=N_c)`.
+
+**Protocol fields** (`protocol.psa`, validated in `specs.py`): those of the SSA
+protocol (§5.3) except `moments`, plus `poplevels`, the N_c grid -- a strictly
+increasing list of up to 10 numbers above 1, by default 10, 30, 100, 300 and 1000,
+as in bngsim's `psa` suite and Lin et al. `size.psa_events`, the exact-SSA events per
+trajectory under this protocol, is a planning estimate (else `size.ssa_events`).
+
+**Ensembles.** A job draws `2 (K + 1)` ensembles of `replicates` trajectories: BNGsim
+and `run_network`, each at exact SSA (N_c = infinity) and at each of the K values of
+N_c. `run_network`'s PSA is BioNetGen's own implementation of the method (`-p psa
+--poplevel N_c`, what BNG2.pl runs for `simulate({method=>"psa", poplevel=>N_c})`),
+a fresh process per trajectory. Each ensemble has a seed block of its own: level k
+(0 for exact SSA, i + 1 for the i-th N_c) of engine e (BNGsim 0, run_network 1) draws
+from block `2k + e`, so the exact-SSA ensembles are the ones an SSA job on the same
+protocol draws (§5.3). They must be disjoint: BNGsim's PSA at an N_c where nothing
+scales reproduces its exact SSA trajectory for trajectory from the same seed.
+
+**What is gated.** These comparisons decide PASS or DIFF. Each is the SSA permutation
+max-T test on means and variances (§5.3, `alpha` = 10^-3 each), with bngsim's
+parity-core verdict recorded beside it:
+
+1. **Like for like**, at every N_c and at N_c = infinity: BNGsim against `run_network`
+   (verdicts `run_network@nc=<N_c>` and `run_network`). Both implement one method on
+   one network, so they must sample one law.
+2. **Exactness where nothing scaled.** At an N_c where no BNGsim trajectory scaled a
+   channel, PSA *is* exact SSA, and BNGsim's PSA ensemble must sample the law of its
+   exact one (verdict `exact@nc=<N_c>`). A trajectory scaled when some channel fired
+   with `m > 1` while it had propensity, that is, when some `qexc_integral` of its
+   `Result.psa_diagnostics` is nonzero. `activation_crossed` (some population past 2
+   N_c) is not enough: on the Rohrs 2018 pilot, at N_c of 30 and above, every
+   trajectory crosses it while every reaction keeps `m = 1`, because a 20-copy kinase
+   takes part in all of them.
+
+A job with K = 5 makes at most 11 gated comparisons, so a correct BNGsim fails it
+with probability at most 0.011, and a ten-problem suite at most 0.11. A disagreement
+is DIFF even when some reference failed, as for steady state, so a wrong answer is
+never timed.
+
+**What is reported.** PSA's departure from exact SSA is the method's approximation,
+measured and never a failure. At every N_c, each engine's PSA ensemble is compared
+with that engine's exact one, and the record keeps:
+
+- a means-only permutation max-T test (`two_sample_verdict(variance=False)`, same
+  `alpha`): are the means those of exact SSA?
+- the largest mean error as a fraction of the species' exact peak mean (as the ODE
+  verdict measures error), the largest mean shift in exact-SSA standard deviations,
+  and the median and extremes of the variance ratio PSA / exact, each at its cell and,
+  for the means, with that cell's standard error in the same units. They do not shrink
+  with the ensemble size, but they carry its noise: where PSA has inflated a cell's
+  variance a hundredfold, its mean is ten times noisier than exact SSA's there, which
+  is why the shift in SD units is not the headline.
+- BNGsim's diagnostics: the share of trajectories that scaled, the event-rate ratio
+  `speedup` (exact over scaled events per trajectory), the largest dwell-time-averaged
+  multiplier and the reactions that scaled.
+
+Variance inflation is the price the method states, so it is only reported. The means
+are what PSA preserves to first order, so a **flag** is raised, beside the outcome and
+never instead of it, at every N_c of at least 100 (bngsim documents 100 to 1000 as
+PSA's working range) where BNGsim's PSA scaled and its means differ significantly
+from exact SSA's. The flag records whether `run_network`'s PSA differs too: if it
+does, the method is inaccurate on this model at that N_c; if not, BNGsim is, and the
+like-for-like comparison at that N_c will usually have failed too. Error that
+shrinks as N_c grows is the expected picture, and the per-N_c rows of the report show
+it.
+
+**Failures.** As for SSA: a BNGsim ensemble that fails is EXCEPTION (TIMEOUT); a
+`run_network` ensemble that fails is REFERENCE_FAILED with its `<variant>_error`, and
+BNGsim is judged against the rest. `run_network`'s PSA aborts at t = 0 on a
+zeroth-order reaction (`ERROR: scaling factor of 0 th reaction < 1`, for Lin &
+Doering 2016 at every N_c); that is recorded, never worked around, and the record
+counts the network's zeroth-order reactions beside it. A `run_network` trajectory is
+stopped after 50 times its planned cost (at least 60 s), so a process that hangs
+fails its ensemble quickly.
+
+**Timing.** Every ensemble of the correctness job is timed again, warm, as in §5.3:
+`timing_replicates` trajectories from the same seeds every round, every variant
+interleaved round-robin, each repetition checked against the first. The artifact is
+each variant's absolute time per ensemble and per trajectory. The PSA speed-up over
+exact SSA of the same engine at each N_c is derived from those times in the report,
+beside BNGsim's event-rate ratio, which is what the speed-up would be if an event
+cost the same under both. Each BNGsim simulator's load and build is its one-time
+cost; `run_network` loads the `.net` inside every trajectory. A `run_network` variant
+the correctness job recorded as failed is not timed.
+
+**Format.** BNGsim's PSA also reads SBML, but no independent PSA engine does, so
+this capability takes BNGL only. PSA on SBML is to be a setting of the SBML
+stochastic suites, checked there against exact SSA alone.
+### 5.5 Network-free verdicts
 
 A network-free job (`bench.capabilities.nf`) runs one of BNGsim's two network-free
 engines, the system under test of its **setting**: `nf_reject`, the embedded NFsim
@@ -902,3 +1000,7 @@ Two checks run before any cluster timing is used:
 - **SSA verdict:** whether the SSA suites gate on the permutation test of §5.3 (a
   stated false-alarm rate) or on bngsim's parity-core ensemble verdict (the same
   verdict in both repositories, §10); both are recorded.
+- **PSA flag threshold and exact-SSA cost:** the flag of §5.4 starts at N_c = 100,
+  from bngsim's documented working range; and the psa-net members whose exact SSA
+  takes minutes per trajectory (Kochanczyk 2017, Blinov 2006) cannot afford as many
+  exact as PSA trajectories, which may call for a separate exact-SSA ensemble size.

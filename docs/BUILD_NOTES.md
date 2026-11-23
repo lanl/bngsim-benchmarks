@@ -380,7 +380,7 @@ the two platform legs stay comparable.
 
 ## Network-free references: standalone NFsim and RuleMonkey
 
-The network-free capability (`docs/DESIGN.md` section 5.4) runs two standalone
+The network-free capability (`docs/DESIGN.md` section 5.5) runs two standalone
 engines beside BNGsim's embedded copies. Neither is in the pinned environment.
 
 ### NFsim: the binary BioNetGen bundles, under the loader swap

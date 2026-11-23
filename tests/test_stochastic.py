@@ -301,3 +301,25 @@ def test_analytic_holds_a_deterministic_cell_to_its_exact_value():
     x[17, 0, 0] = 1.0  # one trajectory leaves the initial condition
     v = st.analytic_verdict(x, mean, var, alpha=1e-3)
     assert v["passed"] is False and v["n_deterministic_failed"] == 1
+
+
+def _decay_stack(n, seed, shift=0.0, inflate=1.0):
+    """Counts around a decay; ``inflate`` widens the law without moving its mean,
+    ``shift`` moves the mean."""
+    lam = 5 * np.exp(-np.linspace(0, 1, 11))[:, None] * np.ones(2)
+    x = np.random.default_rng(seed).poisson(lam, (n, 11, 2)).astype(float)
+    x = lam + inflate * (x - lam) + shift
+    x[:, 0, :] = 5.0  # the initial condition
+    return x
+
+
+def test_the_means_only_test_ignores_a_wider_law_and_catches_a_shifted_one():
+    exact = _decay_stack(400, 1)
+    wide = _decay_stack(400, 2, inflate=3.0)
+    kw = dict(alpha=1e-3, permutations=999, seed=5)
+    assert not st.two_sample_verdict(wide, exact, **kw)["passed"]
+    means = st.two_sample_verdict(wide, exact, variance=False, **kw)
+    assert means["passed"] and means["test"] == st.MEANS_TEST
+    assert means["n_tested"]["variance"] == 0 and means["z_max_variance"] is None
+    shifted = _decay_stack(400, 3, shift=1.0)
+    assert not st.two_sample_verdict(shifted, exact, variance=False, **kw)["passed"]
