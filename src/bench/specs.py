@@ -269,6 +269,35 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
         errs.append(f"{where}.scan: a log scale needs min > 0")
 
 
+# Partial scaling's critical population sizes (bench.capabilities.psa): each is an
+# ensemble per engine, with seed blocks of its own.
+PSA_MAX_POPLEVELS = 10
+
+
+def _validate_psa_protocol(p: Any, where: str, errs: list[str],
+                           source_format: str | None = None) -> None:
+    """Partial scaling (PSA) on the generated network against exact SSA: the ssa
+    protocol (grid, ensemble sizes, seed) without exact moments -- PSA's law is an
+    approximation -- plus the critical population sizes ``poplevels``, a strictly
+    increasing list of numbers above 1 (bench.capabilities.psa)."""
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    if "moments" in p:
+        errs.append(f"{where}: unknown key 'moments' (PSA samples an approximate law; "
+                    "exact moments belong to the ssa protocol)")
+    _validate_ssa_protocol({k: v for k, v in p.items() if k not in ("poplevels", "moments")},
+                           where, errs)
+    if "poplevels" in p:
+        lv = p["poplevels"]
+        if not (isinstance(lv, list) and 1 <= len(lv) <= PSA_MAX_POPLEVELS
+                and all(_number(v) and 1 < v < float("inf") for v in lv)):
+            errs.append(f"{where}.poplevels: a list of 1 to {PSA_MAX_POPLEVELS} numbers, "
+                        "each greater than 1 (N_c)")
+        elif any(b <= a for a, b in zip(lv, lv[1:])):
+            errs.append(f"{where}.poplevels: strictly increasing, each N_c once")
+
+
 # One validator per capability's protocol. A capability without one cannot be
 # named in a spec. Each is called with the source's format (``source_format``);
 # one whose capability runs on a single input format may ignore it.
@@ -276,6 +305,7 @@ PROTOCOL_VALIDATORS = {
     "ode": _validate_ode_protocol,
     "ssa": _validate_ssa_protocol,
     "steady_state": _validate_steady_protocol,
+    "psa": _validate_psa_protocol,
 }
 
 
