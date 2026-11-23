@@ -14,6 +14,9 @@ Implemented so far:
 - one capability: ODE simulation of BNGL models, comparing BNGsim against a
   registry of reference engines (`run_network` and libRoadRunner), on five
   provisional pilot models.
+- a second capability: exact stochastic simulation (SSA) of BNGL models, comparing
+  BNGsim's ensembles against `run_network`, libRoadRunner and COPASI, and against
+  exact moments where a model has them (§5.3), on two provisional pilot models.
 
 Not yet: bundles, the container, the validation of section 9, and every other
 capability.
@@ -54,7 +57,7 @@ The suite is built so that anyone can run it:
 | ODE simulation, SBML models | libRoadRunner | libRoadRunner; AMICI; COPASI (core only) |
 | ODE settings: dense, KLU, automatic; compiled vs interpreted | each other | forced dense and forced KLU vs automatic |
 | Re-simulation of a loaded model with new parameters | — | `run_network`, libRoadRunner, AMICI |
-| Exact stochastic simulation (SSA) | `run_network` SSA (ensemble statistics); DSMTS analytic moments | `run_network` SSA; libRoadRunner; COPASI (core only) |
+| Exact stochastic simulation (SSA) | `run_network` SSA, libRoadRunner and COPASI (ensemble statistics, §5.3); exact moments of first-order networks; DSMTS analytic moments | `run_network` SSA; libRoadRunner; COPASI (core only) |
 | Partial scaling (PSA) | exact SSA, as the critical population N_c varies; `run_network` PSA | `run_network` PSA; exact SSA |
 | Network-free simulation | standalone NFsim; RuleMonkey; SSA on the generated network where it is finite | standalone NFsim |
 | Forward sensitivities | AMICI; finite differences | AMICI; COPASI (core only) |
@@ -342,6 +345,99 @@ gives each reference a trial run and drops any that crash (recording a
 that survive. Any other correctness outcome (DIFF, EXCEPTION, BAD_TEST, …) blocks
 the timing job.
 
+### 5.3 Stochastic verdicts (SSA)
+
+An exact SSA has no single right trajectory: two correct engines sample the same
+probability law. So an SSA correctness job compares **ensembles**, with a stated
+false-alarm rate, and every number it rests on is reproducible.
+
+**Protocol fields** (`protocol.ssa`, validated in `specs.py`):
+
+| Field | Meaning |
+|---|---|
+| `netgen` | the `generate_network(...)` call, as for ODE |
+| `t_end`, `n_steps` | the output grid: `n_steps + 1` uniform points over `[0, t_end]` |
+| `replicates` | trajectories per engine in the correctness job (100 to 10^6) |
+| `timing_replicates` | trajectories per timed repetition (default 100) |
+| `seed` | the base seed every engine's seeds derive from (default 1) |
+| `moments` | `linear`: compare also against the network's exact moments (needs `replicates` >= 10^4) |
+
+`size.ssa_events`, the mean reaction events per trajectory, is a planning estimate
+only, like the rest of `size`.
+
+**Seeds.** Each engine draws from a fixed block of its own, `seed + 10^7 k` (BNGsim
+k = 0, run_network 1, libRoadRunner 2, COPASI 3), so no two ensembles share a
+seed. A reference's trajectory `i` uses the block's first seed plus `i`; BNGsim's
+ensemble is `run_replicates(seed=...)`, whose per-replicate seeds bngsim derives
+from that base. Every engine reproduces a trajectory from its seed exactly, so a
+correctness job re-run on the same build gives the same ensembles, and the same
+verdicts to the bit.
+
+**BNGsim against a reference engine: a permutation max-T test.** At every cell
+(time point, species) two statistics, the per-time-point tests of DSMTS (Evans,
+Gillespie & Wilkinson 2008, *Bioinformatics* 24:285) made two-sample:
+
+- the difference of the ensemble means over its pooled standard error;
+- the difference of the ensemble variances over its pooled large-sample standard
+  error, `sqrt((m4 - m2^2)(1/n_A + 1/n_B))` -- valid whatever the distribution,
+  where a Gaussian formula is not for the skewed, discrete counts of a low-copy
+  model.
+
+The test statistic is the largest of their absolute values over all cells. Its null
+distribution comes from relabelling (Westfall & Young 1993, *Resampling-Based
+Multiple Testing*, single-step max-T): if the two engines sample the same law, the
+pooled trajectories are exchangeable, and every split into groups of `n_A` and
+`n_B` is equally likely. The p-value is the share of 1999 seeded random splits whose
+maximum reaches the observed one, and the comparison fails when it is at most
+`alpha` = 10^-3. This makes the false-alarm rate at most `alpha` **exactly**, at any
+ensemble size, under any dependence between time points and species (trajectories
+are strongly autocorrelated), and for any marginal -- zeros, skew and discreteness
+included -- with no normal approximation and none of Bonferroni's conservatism under
+dependence. Relabelling stops at the 20th split that beats the observed maximum
+(Besag & Clifford 1991, *Biometrika* 78:301); the p-value is then 20 over the
+splits drawn, which is valid and can only be a pass, so only a comparison near
+failing draws all 1999. Cells constant across both ensembles (the initial
+condition) are left out, and so, for the variance test, are cells taking at most
+two values (a 0/1 promoter), whose variance is fixed by their mean.
+
+**BNGsim against exact moments: Bonferroni z-tests.** Where `moments: linear` is set,
+every reaction must be of order 0 or 1 (in unfixed species), so the mean and
+covariance obey closed linear ODEs (Gadgil, Lee & Othmer 2005, *Bull Math Biol*
+67:901), which the harness solves exactly, by a matrix exponential, from its own
+reading of the `.net` -- no engine's code is involved. Per cell, `sqrt(n)(mean - mu) /
+sigma` with the exact `mu` and `sigma`, and `log(s^2 / sigma^2)` over its delta-method
+standard error from the sample kurtosis (DSMTS's variance test assumes a Gaussian
+kurtosis); the comparison fails when the smallest two-sided normal p-value is at
+most `alpha / m` over the `m` tests. There is nothing to relabel against a fixed
+law, so this test is asymptotic: it is calibrated at DSMTS's recommended 10^4
+trajectories, which a spec with exact moments must ask for. A cell whose exact
+variance is zero is deterministic, and every trajectory must hit it. Each
+reference's ensemble is checked against the exact moments too, unscored, to say
+which side of a disagreement is wrong.
+
+**The job.** It passes only when every comparison passes; failures are attributed as
+for ODE (§6.1). A job with three references and exact moments makes four
+comparisons, so a correct BNGsim fails it with probability at most 4 x 10^-3, and a
+ten-problem suite at most 0.04. A reference that cannot simulate a model's exact
+SSA at all is recorded as `UNSUPPORTED` and not run: libRoadRunner's gillespie fires
+the SBML rate law as the propensity, which for a repeated reactant (`A + A`) is
+`k A^2` where the exact propensity is `k A (A - 1)`.
+
+bngsim's own parity suites judge ensembles by a K-sigma test on the means that
+passes when 99% of cells pass (`parity_core.differ.ensemble_verdict`). It has no
+stated false-alarm rate, so it does not gate here, but each SSA verdict reports it
+beside the gating test, so the two repositories can be compared (§10).
+
+**Timing.** A timed repetition is one ensemble of `timing_replicates` trajectories,
+from the same seeds every round, interleaved round-robin as in §7. Since the seeds
+repeat, every kept repetition must reproduce the first exactly (`NOT_REPRODUCIBLE`
+otherwise), which also shows that each engine's reset between ensembles is
+complete. The artifact is each engine's absolute time per ensemble with its
+bootstrap CI, and per trajectory as that divided by the ensemble size. The one-time
+cost before sampling -- BNGsim's load and propensity compile, libRoadRunner's SBML
+load and JIT, COPASI's import -- is measured once, cold, beside it (§6.3);
+run_network loads the `.net` in every trajectory, so its load is inside its time.
+
 ## 6. Results
 
 ### 6.1 One file per job
@@ -615,3 +711,6 @@ Two checks run before any cluster timing is used:
   and the knob ranges of each size series.
 - **Tolerances:** per-capability correctness tolerances, and the acceptance tolerance
   for section 9.
+- **SSA verdict:** whether the SSA suites gate on the permutation test of §5.3 (a
+  stated false-alarm rate) or on bngsim's parity-core ensemble verdict (the same
+  verdict in both repositories, §10); both are recorded.

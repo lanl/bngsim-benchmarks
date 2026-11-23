@@ -20,6 +20,13 @@ SBML exported from it. The correctness job passes only when BNGsim agrees with e
 reference. The timing job interleaves all the engines in one run and reports each
 engine's absolute time. NFsim and PyBNF are on the roadmap as further engines.
 
+A second capability, exact stochastic simulation (SSA), compares ensembles of
+BNGsim trajectories with ensembles from `run_network`, libRoadRunner and COPASI on
+the same generated network, and with exact moments where a model has them. Its
+verdict is a statistical test with a stated false-alarm rate, from fixed seeds, so
+it is reproducible (see [docs/DESIGN.md](docs/DESIGN.md) §5.3). It runs on two
+provisional pilot models for now; its core suite is still to be chosen.
+
 ## Goals
 
 - **Runnable by anyone**, from a pinned, documented software environment.
