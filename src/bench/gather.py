@@ -74,6 +74,7 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         row["worst_column_err"] = max(errs) if errs else None
         params = m.get("parameters") or {}
         row["parameters"] = params.get("n")
+        row["convention"] = params.get("convention")
         row["parameters_excluded"] = params.get("excluded")
         row["configurations"] = {name: {"passed": c.get("passed"), "max_error": c.get("max_error")}
                                  for name, c in (m.get("configurations") or {}).items()}
@@ -116,7 +117,8 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
             # Every BNGsim configuration and the plain solves are engines of their
             # own; the finite-difference baselines are derived from the plain solves.
             row.update(presim=_sens_presim(m), fd_baselines=m.get("fd_baselines") or {},
-                       parameters=(m.get("parameters") or {}).get("n"))
+                       parameters=(m.get("parameters") or {}).get("n"),
+                       convention=(m.get("parameters") or {}).get("convention"))
         if job.capability in STOCHASTIC:
             # A timed repetition is an ensemble; the per-trajectory time is derived.
             row.update(timing_replicates=m.get("timing_replicates"),
@@ -329,6 +331,10 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
         lines += [f"## {name}", "", tally + (f" ({stale} not current)" if stale else ""), ""]
         capability = name.rsplit("-", 1)[0]
         stochastic = capability in STOCHASTIC
+        if capability in SENSITIVITY:
+            # A problem runs at more than one setting (its convention, and its fitted
+            # set beside it): name the setting where it is not the default.
+            rows = [{**r, "problem": _with_setting(r)} for r in rows]
         if name.endswith(CORRECTNESS):
             if capability in SENSITIVITY:
                 lines += _sens_correctness_table(rows)
@@ -345,6 +351,11 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
                 lines += _timing_table(rows, per_trajectory=stochastic)
         lines.append("")
     return "\n".join(lines)
+
+
+def _with_setting(r: dict[str, Any]) -> str:
+    setting = r.get("setting")
+    return r["problem"] if setting in (None, "auto") else f"{r['problem']} [{setting}]"
 
 
 def _errored_engines(r: dict[str, Any]) -> set[str]:
@@ -665,9 +676,12 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     not refuted, and each reference's result with its own worst column error --
     ``ok (3.5e-07)``, ``DIFF (0.12)``, ``refuted (1.1)`` (two other references agree
     with BNGsim where it does not), or why it did not run; and whether every further
-    BNGsim configuration agreed with the default one."""
+    BNGsim configuration agreed with the default one. *parameters* is their number
+    and the problem's convention (``independent``, ``fitted``, ``listed``)."""
     refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
-                  | {name for r in rows for name in _errored_engines(r)} - {"bngsim"})
+                  | {name for r in rows for name in _errored_engines(r)}
+                  | {name for r in rows for name in (r.get("not_applicable") or {})}
+                  - {"bngsim"})
     header = ["problem", "species", "parameters", "outcome", "references", "max column error",
               *(f"vs {name}" for name in refs), "configurations", "current"]
     lines = ["| " + " | ".join(header) + " |",
@@ -686,12 +700,15 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
                                      f" ({e})" if e else ""))
             elif name in errs:
                 cells.append(_why(r, name))
+            elif name in (r.get("not_applicable") or {}):
+                cells.append("n/a")
             else:
                 cells.append("")
         configs = r.get("configurations") or {}
         bad = sorted(n for n, c in configs.items() if not c.get("passed"))
+        n_params = " ".join(filter(None, [_fmt(r.get("parameters"), "d"), r.get("convention")]))
         lines.append("| " + " | ".join([
-            r["problem"], _fmt(sp, "d"), _fmt(r.get("parameters"), "d"), r["outcome"],
+            r["problem"], _fmt(sp, "d"), n_params, r["outcome"],
             reference_agreement(r), _fmt(r.get("worst_column_err"), ".2e"), *cells,
             ("DIFF (" + ", ".join(bad) + ")") if bad else ("agree" if configs else ""),
             "yes" if r["current"] else "no",
@@ -701,8 +718,10 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
               "the column's peak (with absolute floors), and a comparison passes when every "
               "column it judges is within the tolerance in the JSON row (docs/DESIGN.md §5.4). "
               "*refuted*: the reference disagreed with BNGsim, and on every column it failed "
-              "another reference agreed with BNGsim and not with it. *configurations*: each "
-              "further BNGsim configuration against the default one."]
+              "another reference agreed with BNGsim and not with it. *n/a*: the reference "
+              "does not apply to the problem's protocol (COPASI to a two-phase one). "
+              "*configurations*: each further BNGsim configuration against the default one. "
+              "A problem's *[fitted]* row differentiates its fitted set only."]
     return lines
 
 

@@ -318,7 +318,8 @@ def _sens_records():
         "outcome": "REFERENCE_FAILED",
         "measurements": {
             "network": network,
-            "parameters": {"n": 11, "excluded": {"IGF1_cold_conc": "zero value: no relative step"}},
+            "parameters": {"n": 11, "convention": "independent",
+                           "excluded": {"IGF1_cold_conc": "zero value: no relative step"}},
             "configurations": {"bngsim_simultaneous": {"passed": True, "max_error": 1.8e-7}},
             "coverage": {"n_columns": 308, "n_significant": 120, "n_judged": 120, "unjudged": []},
         },
@@ -376,7 +377,7 @@ def test_sens_correctness_names_a_refuted_reference_and_the_worst_column_error(s
     _, summary, reports = sens_gathered
     header = _row(summary, "problem", "species", "parameters", "outcome")
     row = dict(zip(header, _row(summary, "igf1r", "27")))
-    assert row["parameters"] == "11" and row["outcome"] == "REFERENCE_FAILED"
+    assert row["parameters"] == "11 independent" and row["outcome"] == "REFERENCE_FAILED"
     assert row["references"] == "PARTIAL 2/3 (copasi: refuted)"
     # The worst error over the references that were not refuted.
     assert row["max column error"] == "5.10e-07"
@@ -403,3 +404,24 @@ def test_a_sensitivity_disagreement_nobody_refutes_reads_diff():
     row = {"verdicts": {"a": {"passed": True}, "b": {"passed": False},
                         "c": {"passed": False, "refuted_by": ["a"]}}}
     assert g.reference_agreement(row) == "DIFF 1/3 (b: diff, c: refuted)"
+
+
+def test_a_sens_setting_and_a_reference_that_does_not_apply_are_named(tmp_path):
+    """A problem's fitted-set setting is a row of its own, and a reference that does
+    not apply to a two-phase protocol reads n/a, not a failure."""
+    job = Job("sens", "atf2", SENS_ENGINES, "fitted", CORRECTNESS)
+    rec = {"outcome": "PASS",
+           "measurements": {"network": {"species": 48}, "parameters": {"n": 4,
+                                                                         "convention": "fitted"}},
+           "verdicts": {"amici": {"passed": True, "max_error": 4e-6, "n_judged": 200},
+                        "run_network_fd": {"passed": True, "max_error": 1e-5, "n_judged": 200}},
+           "not_applicable": {"copasi": "a two-phase protocol"}}
+    dest = tmp_path / "results" / f"{job.id}.json"
+    dest.parent.mkdir(parents=True)
+    dest.write_text(json.dumps(rec))
+    g.gather([job], tmp_path / "results", tmp_path / "reports", {CORRECTNESS: {}, TIMING: {}})
+    summary = (tmp_path / "reports" / "summary.md").read_text(encoding="utf-8")
+    header = _row(summary, "problem", "species", "parameters", "outcome")
+    row = dict(zip(header, _row(summary, "atf2 [fitted]", "48")))
+    assert row["parameters"] == "4 fitted" and row["vs copasi"] == "n/a"
+    assert row["references"] == "FULL 2/2 (copasi: n/a)"
