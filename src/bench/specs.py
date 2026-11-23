@@ -159,9 +159,100 @@ def _validate_ssa_protocol(p: Any, where: str, errs: list[str]) -> None:
                         f"{SSA_MOMENTS_MIN_REPLICATES}")
 
 
+def _number(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+# The most points a steady-state scan may ask for: each is a solve per engine.
+STEADY_MAX_POINTS = 1000
+_PARAM_NAME_RE = re.compile(r"^[A-Za-z_]\w*$")
+
+
+def _validate_steady_protocol(p: Any, where: str, errs: list[str]) -> None:
+    """Steady state of the generated network, from its seed species
+    (bench.capabilities.steady): the integration horizon ``t_end`` and its output
+    grid ``n_steps`` for the integration references, the integrators' ``rtol`` and
+    ``atol``, parameters set for every point (``parameters``), and optionally a
+    dose-response ``scan`` of one parameter -- explicit ``values``, or ``min``,
+    ``max`` and ``points``, spaced on a ``log`` scale or linearly."""
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "scan"}
+    for k in sorted(set(p) - allowed):
+        errs.append(f"{where}: unknown key {k!r}")
+    for k in ("netgen", "t_end", "rtol", "atol"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    netgen = p.get("netgen")
+    if netgen is not None and not (
+        isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
+    ):
+        errs.append(f"{where}.netgen: must be a generate_network(...) call")
+    if "t_end" in p and not (_number(p["t_end"]) and p["t_end"] > 0):
+        errs.append(f"{where}.t_end: must be a positive number (integration runs from t = 0)")
+    # The integration references are judged settled on the second half of their
+    # output, so the grid needs a point inside it besides the last.
+    if "n_steps" in p and not _int_in(p["n_steps"], 2, 10**5):
+        errs.append(f"{where}.n_steps: an integer from 2 to 100000")
+    for k in ("rtol", "atol"):
+        if k in p and not (_number(p[k]) and p[k] > 0):
+            errs.append(f"{where}.{k}: must be a positive number")
+    params = p.get("parameters", {})
+    if not isinstance(params, dict):
+        errs.append(f"{where}.parameters: a mapping of parameter name to value")
+        params = {}
+    for name, v in params.items():
+        if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
+            errs.append(f"{where}.parameters: {name!r} is not a parameter name")
+        if not _number(v):
+            errs.append(f"{where}.parameters.{name}: must be a number")
+    scan = p.get("scan")
+    if scan is None:
+        return
+    if not isinstance(scan, dict):
+        errs.append(f"{where}.scan: a mapping (parameter, and values or min/max/points)")
+        return
+    for k in sorted(set(scan) - {"parameter", "values", "min", "max", "points", "log"}):
+        errs.append(f"{where}.scan: unknown key {k!r}")
+    name = scan.get("parameter")
+    if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
+        errs.append(f"{where}.scan.parameter: the name of the parameter scanned")
+    elif name in params:
+        errs.append(f"{where}.scan.parameter: {name!r} is also set in parameters")
+    if "values" in scan:
+        if any(k in scan for k in ("min", "max", "points", "log")):
+            errs.append(f"{where}.scan: values, or min/max/points/log, not both")
+        vals = scan["values"]
+        if not (isinstance(vals, list) and 1 <= len(vals) <= STEADY_MAX_POINTS
+                and all(_number(v) for v in vals)):
+            errs.append(f"{where}.scan.values: a list of 1 to {STEADY_MAX_POINTS} numbers")
+        elif len(set(vals)) != len(vals):
+            errs.append(f"{where}.scan.values: each value once")
+        return
+    for k in ("min", "max", "points"):
+        if k not in scan:
+            errs.append(f"{where}.scan: missing {k!r} (or give values)")
+    lo, hi = scan.get("min"), scan.get("max")
+    if ("min" in scan and not _number(lo)) or ("max" in scan and not _number(hi)):
+        errs.append(f"{where}.scan: min and max must be numbers")
+    elif _number(lo) and _number(hi) and not hi > lo:
+        errs.append(f"{where}.scan: max must be greater than min")
+    if "points" in scan and not _int_in(scan["points"], 2, STEADY_MAX_POINTS):
+        errs.append(f"{where}.scan.points: an integer from 2 to {STEADY_MAX_POINTS}")
+    if "log" in scan and not isinstance(scan["log"], bool):
+        errs.append(f"{where}.scan.log: must be true or false")
+    elif scan.get("log") and _number(lo) and not lo > 0:
+        errs.append(f"{where}.scan: a log scale needs min > 0")
+
+
 # One validator per capability's protocol. A capability without one cannot be
 # named in a spec.
-PROTOCOL_VALIDATORS = {"ode": _validate_ode_protocol, "ssa": _validate_ssa_protocol}
+PROTOCOL_VALIDATORS = {
+    "ode": _validate_ode_protocol,
+    "ssa": _validate_ssa_protocol,
+    "steady_state": _validate_steady_protocol,
+}
 
 
 def validate(data: Any, path: Path | str = "<spec>") -> Problem:
