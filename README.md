@@ -33,6 +33,13 @@ verdict is a statistical test with a stated false-alarm rate, from fixed seeds, 
 it is reproducible (see [docs/DESIGN.md](docs/DESIGN.md) §5.3). It runs on two
 provisional pilot models for now; its core suite is still to be chosen.
 
+A third, partial scaling (PSA), runs BNGsim's approximate stochastic method at a grid
+of critical population sizes N_c. At each N_c it must sample the same law as
+`run_network`'s PSA, and where nothing scales, the law of exact SSA. Its departure
+from exact SSA, the approximation's error, is measured and reported per N_c, and
+flagged where PSA should be accurate; so is its speed-up over exact SSA (see
+[docs/DESIGN.md](docs/DESIGN.md) §5.4). It also runs on two provisional pilot models.
+
 ## Goals
 
 - **Runnable by anyone**, from a pinned, documented software environment.
