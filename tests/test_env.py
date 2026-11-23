@@ -149,3 +149,123 @@ def test_amici_identity_reports_absence_as_an_error(monkeypatch):
         env.amici_identity.cache_clear()
     assert ident["version"] is None
     assert "PackageNotFoundError" in ident["error"]
+
+
+# --------------------------------------------------------------------------- #
+# The network-free references: NFsim through BNG2.pl, and standalone RuleMonkey
+# --------------------------------------------------------------------------- #
+def _bng_dist(root):
+    """A BioNetGen layout: BNG2.pl, Perl2/, a marker, and the two launched binaries."""
+    (root / "bin").mkdir(parents=True)
+    (root / "Perl2").mkdir()
+    (root / "BNG2.pl").write_text("#!/usr/bin/perl\n")
+    (root / ".bench-fetch.json").write_text('{"version": "2.9.3"}')
+    for name in ("NFsim", "run_network", "sundials-config"):
+        (root / "bin" / name).write_text("binary")
+    return root
+
+
+def test_without_a_loader_swap_bng2pl_runs_the_distribution_itself(tmp_path, monkeypatch):
+    root = _bng_dist(tmp_path / "BioNetGen-2.9.3")
+    monkeypatch.setenv("BNGPATH", str(root))
+    monkeypatch.setattr(env, "run_network_launch", lambda: [])
+    assert env.bng_launch_tree(tmp_path / "tree") == root
+    assert not (tmp_path / "tree").exists()
+
+
+def test_the_launch_tree_wraps_nfsim_and_run_network_in_the_loader(tmp_path, monkeypatch):
+    root = _bng_dist(tmp_path / "BioNetGen-2.9.3")
+    monkeypatch.setenv("BNGPATH", str(root))
+    monkeypatch.setattr(env, "run_network_launch",
+                        lambda: ["/g/ld.so", "--library-path", "/g/lib64:/g/usr lib64"])
+    tree = env.bng_launch_tree(tmp_path / "tree")
+    assert tree == tmp_path / "tree"
+    # Everything else is the distribution itself, through a symlink.
+    for name in ("BNG2.pl", "Perl2", ".bench-fetch.json"):
+        assert (tree / name).is_symlink() and (tree / name).resolve() == (root / name).resolve()
+    assert (tree / "bin" / "sundials-config").resolve() == (root / "bin" / "sundials-config")
+    for name in ("NFsim", "run_network"):
+        wrapper = tree / "bin" / name
+        assert not wrapper.is_symlink() and wrapper.stat().st_mode & 0o111
+        text = wrapper.read_text()
+        assert text.startswith("#!/bin/sh\n")
+        assert f"exec /g/ld.so --library-path '/g/lib64:/g/usr lib64' {root / 'bin' / name} \"$@\"" \
+            in text
+    # The binaries themselves are untouched.
+    assert (root / "bin" / "NFsim").read_text() == "binary"
+    # Rebuilt on every call, so it follows the loader.
+    monkeypatch.setattr(env, "run_network_launch", lambda: ["/h/ld.so", "--library-path", "/h"])
+    env.bng_launch_tree(tree)
+    assert "/h/ld.so" in (tree / "bin" / "NFsim").read_text()
+
+
+def test_nfsim_identity_is_the_binary_bioNetGen_bundles(tmp_path, monkeypatch):
+    root = _bng_dist(tmp_path / "BioNetGen-2.9.3")
+    monkeypatch.setenv("BNGPATH", str(root))
+    monkeypatch.setattr(env, "bionetgen_identity", lambda: {"version": "2.9.3"})
+    env.nfsim_identity.cache_clear()
+    try:
+        ident = env.nfsim_identity()
+        assert ident["version"] == "1.14.3" and ident["bundled_with"] == "BioNetGen 2.9.3"
+        assert ident["path"] == str(root / "bin" / "NFsim") and len(ident["sha256"]) == 64
+    finally:
+        env.nfsim_identity.cache_clear()
+
+
+def _rm_install(root, marker=True):
+    (root / "bin").mkdir(parents=True)
+    exe = root / "bin" / "rm_driver"
+    exe.write_bytes(b"driver")
+    if marker:
+        from bench import fetch
+
+        (root / ".bench-build.json").write_text(
+            '{"version": "3.13.0", "commit": "ad3bd75", "compiler": {"version": "gcc 15"}, '
+            f'"binary_sha256": "{fetch.sha256_file(exe)}"}}')
+    return root
+
+
+def test_rulemonkey_is_found_from_bngpath_in_the_shared_cache(tmp_path, monkeypatch):
+    monkeypatch.delenv("BENCH_RULEMONKEY_PATH", raising=False)
+    monkeypatch.setenv("BNGPATH", str(tmp_path / "bionetgen" / "BioNetGen-2.9.3"))
+    assert env.rulemonkey_root() is None
+    root = _rm_install(tmp_path / "rulemonkey" / "RuleMonkey-3.13.0")
+    assert env.rulemonkey_root() == root
+    assert env.rulemonkey_bin() == root / "bin" / "rm_driver"
+
+
+def test_bench_rulemonkey_path_names_another_install(tmp_path, monkeypatch):
+    root = _rm_install(tmp_path / "elsewhere", marker=False)
+    monkeypatch.setenv("BENCH_RULEMONKEY_PATH", str(root))
+    env.rulemonkey_identity.cache_clear()
+    try:
+        ident = env.rulemonkey_identity()
+        # Usable, but without a matching marker it is not the pinned build.
+        assert ident["path"] == str(root / "bin" / "rm_driver")
+        assert ident["version"] is None and ident["built"] is False
+    finally:
+        env.rulemonkey_identity.cache_clear()
+
+
+def test_rulemonkey_identity_reads_the_build_marker(tmp_path, monkeypatch):
+    root = _rm_install(tmp_path / "rm")
+    monkeypatch.setenv("BENCH_RULEMONKEY_PATH", str(root))
+    env.rulemonkey_identity.cache_clear()
+    try:
+        ident = env.rulemonkey_identity()
+        assert (ident["version"], ident["commit"], ident["compiler"], ident["built"]) == \
+            ("3.13.0", "ad3bd75", "gcc 15", True)
+    finally:
+        env.rulemonkey_identity.cache_clear()
+
+
+def test_a_missing_rulemonkey_is_reported_not_raised(tmp_path, monkeypatch):
+    monkeypatch.setenv("BENCH_RULEMONKEY_PATH", str(tmp_path / "none"))
+    env.rulemonkey_identity.cache_clear()
+    try:
+        assert env.rulemonkey_identity()["version"] is None
+        assert "fetch-rulemonkey" in env.rulemonkey_identity()["error"]
+        with pytest.raises(RuntimeError, match="fetch-rulemonkey"):
+            env.rulemonkey_bin()
+    finally:
+        env.rulemonkey_identity.cache_clear()

@@ -642,6 +642,78 @@ def _check_amici_loads(env) -> bool:
     return False
 
 
+_LOAD_FAILURES = (
+    "error while loading shared libraries",
+    "not found (required by",
+    "symbol lookup error",
+    "undefined symbol",
+)
+
+
+def _check_nfsim_loads(env) -> bool:
+    """Whether the standalone NFsim (bundled with BioNetGen) launches here, under
+    the same loader as run_network, and which version it reports.
+
+    NFsim with no arguments prints its banner (``starting NFsim v1.14.3...``) and
+    exits. The network-free capability runs it through BNG2.pl, whose ``bin/NFsim``
+    the harness wraps with this launch prefix (``env.bng_launch_tree``).
+    """
+    ident = env.nfsim_identity()
+    if not ident.get("path"):
+        print(f"FAIL NFsim: {ident.get('error')}")
+        return False
+    try:
+        proc = subprocess.run([*env.run_network_launch(), ident["path"]], capture_output=True,
+                              text=True, timeout=30, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"FAIL NFsim: cannot launch ({type(exc).__name__}: {exc})")
+        return False
+    out = proc.stdout + proc.stderr
+    m = re.search(r"starting NFsim v([0-9][0-9.]*[0-9])", out)
+    if m and not any(s in out for s in _LOAD_FAILURES):
+        want = ident.get("version")
+        if want and m.group(1) != want:
+            print(f"FAIL NFsim reports v{m.group(1)}, but {ident.get('bundled_with')} "
+                  f"should bundle v{want}")
+            return False
+        print(f"OK   NFsim {m.group(1)} loads ({ident['path']})")
+        return True
+    detail = out.strip().splitlines()
+    print(f"FAIL NFsim does not load: {detail[-1][:200] if detail else proc.returncode}")
+    return False
+
+
+def _check_rulemonkey_runs(env) -> bool:
+    """Whether the standalone RuleMonkey driver is built and runs here.
+
+    It is not part of the pinned environment (it is built from source by `bench
+    fetch-rulemonkey`), so a missing driver is a warning -- only the network-free
+    capability needs it, and records its absence as a reference failure. A driver
+    that is present but does not run is a failure.
+    """
+    ident = env.rulemonkey_identity()
+    if not ident.get("path"):
+        print(f"WARN RuleMonkey: {ident.get('error')}")
+        return True
+    try:
+        proc = subprocess.run([ident["path"]], capture_output=True, text=True, timeout=30,
+                              check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"FAIL RuleMonkey: cannot launch {ident['path']} ({type(exc).__name__}: {exc})")
+        return False
+    if "Usage: rm_driver" not in proc.stdout + proc.stderr:
+        detail = (proc.stdout + proc.stderr).strip().splitlines()
+        print(f"FAIL RuleMonkey rm_driver does not run: {detail[-1][:200] if detail else ''}")
+        return False
+    if not ident.get("built"):
+        print(f"WARN RuleMonkey: {ident['path']} runs but has no matching build marker "
+              "(not the pinned build of `bench fetch-rulemonkey`)")
+        return True
+    print(f"OK   RuleMonkey {ident.get('version')} rm_driver runs ({ident.get('compiler')}; "
+          f"{ident['path']})")
+    return True
+
+
 def _encoding_is_utf8(enc: str) -> bool:
     """Whether ``enc`` names UTF-8, however it is spelled (``UTF-8``, ``utf8``)."""
     try:
@@ -688,6 +760,9 @@ def cmd_doctor(args) -> int:
     ok = _check_roadrunner_loads(env) and ok
     ok = _check_copasi_loads(env) and ok
     ok = _check_amici_loads(env) and ok
+    if not g.get("error"):
+        ok = _check_nfsim_loads(env) and ok
+    ok = _check_rulemonkey_runs(env) and ok
     rec = parity_core_record()
     for name, want in rec["files"].items():
         if sha256_file(VENDOR_JSON.parent / "parity_core" / name) != want:

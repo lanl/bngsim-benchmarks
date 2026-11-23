@@ -15,6 +15,7 @@ import json
 import os
 import platform
 import re
+import shutil
 import socket
 import subprocess
 from functools import lru_cache
@@ -22,7 +23,14 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
-from .fetch import FETCH_MARKER, GLIBC_MARKER, GLIBC_TAG
+from .fetch import (
+    FETCH_MARKER,
+    GLIBC_MARKER,
+    GLIBC_TAG,
+    RULEMONKEY_MARKER,
+    RULEMONKEY_VERSION,
+    sha256_file,
+)
 
 # Set in every job's environment: a timing job measures one thread unless it
 # measures parallelism on purpose (docs/DESIGN.md section 7).
@@ -352,6 +360,127 @@ def run_network_launch() -> list[str]:
     return launch[0] if launch is not None else []
 
 
+# --------------------------------------------------------------------------- #
+# The network-free reference engines: NFsim (bundled with BioNetGen) and RuleMonkey
+# --------------------------------------------------------------------------- #
+# The NFsim BioNetGen 2.9.3 bundles (its banner: "starting NFsim v1.14.3"; `bench
+# doctor` runs it and checks). A BioNetGen release pins its NFsim, so the version
+# follows from the distribution, whose sha256 is in every fingerprint.
+NFSIM_VERSION = {"2.9.3": "1.14.3"}
+# The binaries BNG2.pl execs from ``$BNGPATH/bin``, which a loader swap must wrap.
+LAUNCHED_BINARIES = ("NFsim", "run_network")
+
+
+def nfsim_bin() -> Path:
+    root = bngpath()
+    if root is None:
+        raise RuntimeError("BNGPATH is not set; run `pixi run fetch-bionetgen` and use `pixi run`")
+    return root / "bin" / "NFsim"
+
+
+@lru_cache(maxsize=1)
+def nfsim_identity() -> dict[str, Any]:
+    """The standalone NFsim: the binary BioNetGen bundles, its version and sha256."""
+    root = bngpath()
+    if root is None:
+        return {"version": None, "error": "BNGPATH is not set"}
+    exe = root / "bin" / "NFsim"
+    if not exe.is_file():
+        return {"version": None, "error": f"no NFsim under {root / 'bin'}"}
+    bng = bionetgen_identity().get("version")
+    return {"version": NFSIM_VERSION.get(str(bng)), "bundled_with": f"BioNetGen {bng}",
+            "path": str(exe), "sha256": sha256_file(exe)}
+
+
+def bng_launch_tree(dest: Path) -> Path:
+    """A BNGPATH under which BNG2.pl runs its binaries the way the harness does.
+
+    BNG2.pl execs ``$BNGPATH/bin/NFsim`` (and ``run_network``) itself, so the
+    loader prefix of ``run_network_launch`` cannot be spliced into its command.
+    Where a loader swap is configured, this builds at ``dest`` a mirror of the
+    fetched distribution -- every entry a symlink to the original, except those
+    two binaries, which are shell scripts that exec the unchanged binary under the
+    swapped loader. Run BNG2.pl with ``BNGPATH=<the returned path>``. Where no swap
+    is configured it returns the distribution itself and writes nothing. The
+    mirror is rebuilt on every call, so it always follows the current loader tree.
+    """
+    import shlex
+
+    root = bngpath()
+    if root is None:
+        raise RuntimeError("BNGPATH is not set; run `pixi run fetch-bionetgen` and use `pixi run`")
+    prefix = run_network_launch()
+    if not prefix:
+        return root
+    if dest.exists():
+        shutil.rmtree(dest)
+    (dest / "bin").mkdir(parents=True)
+    for entry in sorted(root.iterdir()):
+        if entry.name != "bin":
+            (dest / entry.name).symlink_to(entry)
+    for exe in sorted((root / "bin").iterdir()):
+        target = dest / "bin" / exe.name
+        if exe.name in LAUNCHED_BINARIES:
+            cmd = " ".join(shlex.quote(a) for a in [*prefix, str(exe)])
+            target.write_text(
+                "#!/bin/sh\n"
+                f"# {exe.name} from {root}, unchanged, under the loader swap (bench.env).\n"
+                f'exec {cmd} "$@"\n', encoding="utf-8")
+            target.chmod(0o755)
+        else:
+            target.symlink_to(exe)
+    return dest
+
+
+def rulemonkey_root() -> Path | None:
+    """The standalone RuleMonkey install, a directory holding ``bin/rm_driver``.
+
+    ``$BENCH_RULEMONKEY_PATH`` names it when set; otherwise it is the build `bench
+    fetch-rulemonkey` makes in the cache, found from BNGPATH the way the glibc tree
+    is (``.cache/bionetgen/BioNetGen-x`` -> ``.cache/rulemonkey/RuleMonkey-<v>``).
+    ``None`` when neither holds a driver.
+    """
+    value = os.environ.get("BENCH_RULEMONKEY_PATH")
+    if value:
+        root = Path(value)
+    else:
+        bng = bngpath()
+        if bng is None:
+            return None
+        root = bng.parent.parent / "rulemonkey" / f"RuleMonkey-{RULEMONKEY_VERSION}"
+    return root if (root / "bin" / "rm_driver").is_file() else None
+
+
+def rulemonkey_bin() -> Path:
+    root = rulemonkey_root()
+    if root is None:
+        raise RuntimeError("no rm_driver: run `bench fetch-rulemonkey` (or set "
+                           "BENCH_RULEMONKEY_PATH to an install holding bin/rm_driver)")
+    return root / "bin" / "rm_driver"
+
+
+@lru_cache(maxsize=1)
+def rulemonkey_identity() -> dict[str, Any]:
+    """The standalone RuleMonkey: version, commit and toolchain from its build
+    marker. ``built`` is false for a driver found without one (usable, recorded as
+    unverified, and never keyed as the pinned build)."""
+    root = rulemonkey_root()
+    if root is None:
+        return {"version": None,
+                "error": "rm_driver not found (run `bench fetch-rulemonkey`, or set "
+                         "BENCH_RULEMONKEY_PATH)"}
+    exe = root / "bin" / "rm_driver"
+    ident: dict[str, Any] = {"path": str(exe), "sha256": sha256_file(exe)}
+    try:
+        m = json.loads((root / RULEMONKEY_MARKER).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {**ident, "version": None, "built": False}
+    ident.update(version=m.get("version"), commit=m.get("commit"),
+                 compiler=(m.get("compiler") or {}).get("version"),
+                 built=m.get("binary_sha256") == ident["sha256"])
+    return ident
+
+
 def _cpu_model() -> str | None:
     if platform.system() == "Darwin":
         return _run(["sysctl", "-n", "machdep.cpu.brand_string"])
@@ -435,6 +564,8 @@ def environment() -> dict[str, Any]:
         "roadrunner": roadrunner_identity(),
         "copasi": copasi_identity(),
         "amici": amici_identity(),
+        "nfsim": nfsim_identity(),
+        "rulemonkey": rulemonkey_identity(),
         "loader": glibc_identity(),
         "harness": harness_identity(),
         "harness_source": harness_source(),
