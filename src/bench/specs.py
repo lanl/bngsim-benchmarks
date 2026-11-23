@@ -185,9 +185,17 @@ def _number(v: Any) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
+def _positive(v: Any) -> bool:
+    return _number(v) and v > 0
+
+
+# A parameter name as BioNetGen writes one in a .net (and an SBML id allows): ASCII
+# letters, digits and underscores, not starting with a digit. One pattern for every
+# protocol that names parameters (steady_state's doses, sens's parameter lists).
+_PARAM_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
 # The most points a steady-state scan may ask for: each is a solve per engine.
 STEADY_MAX_POINTS = 1000
-_PARAM_NAME_RE = re.compile(r"^[A-Za-z_]\w*$")
 
 
 def _validate_steady_protocol(p: Any, where: str, errs: list[str],
@@ -269,6 +277,65 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
         errs.append(f"{where}.scan: a log scale needs min > 0")
 
 
+# The parameter classes a sensitivity protocol may name instead of a list
+# (bench.capabilities.sens.select_parameters reads the same two).
+SENS_PARAMETER_CLASSES = ("rate_constants", "all")
+
+
+def _validate_sens_protocol(p: Any, where: str, errs: list[str],
+                            source_format: str | None = None) -> None:
+    """Forward sensitivities on the generated network: the grid ``0..t_end`` in
+    ``n_steps``, the tolerances of the sensitivity solves, which ``parameters`` to
+    differentiate (a class or a list of names), and the finite differences' relative
+    step and tolerances (bench.capabilities.sens). The capability builds its jobs
+    from BNGL only, so the source format changes nothing here."""
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters",
+               "fd_step", "fd_rtol", "fd_atol"}
+    for k in sorted(set(p) - allowed):
+        errs.append(f"{where}: unknown key {k!r}")
+    for k in ("netgen", "t_end", "n_steps", "rtol", "atol"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    netgen = p.get("netgen")
+    if netgen is not None and not (
+        isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
+    ):
+        errs.append(f"{where}.netgen: must be a generate_network(...) call")
+    if "t_end" in p and not _positive(p["t_end"]):
+        errs.append(f"{where}.t_end: must be a positive number (the solves run from t = 0)")
+    if "n_steps" in p and not _int_in(p["n_steps"], 1, 10**5):
+        errs.append(f"{where}.n_steps: an integer from 1 to 100000")
+    for k in ("rtol", "atol", "fd_rtol", "fd_atol"):
+        if k in p and not _positive(p[k]):
+            errs.append(f"{where}.{k}: must be a positive number")
+    if "fd_step" in p and not (_positive(p["fd_step"]) and p["fd_step"] <= 0.1):
+        errs.append(f"{where}.fd_step: a relative step in (0, 0.1]")
+    # The finite differences judge the sensitivity solves, so they must be the
+    # tighter of the two.
+    for fd, k in (("fd_rtol", "rtol"), ("fd_atol", "atol")):
+        if _positive(p.get(fd)) and _positive(p.get(k)) and not p[fd] <= p[k]:
+            errs.append(f"{where}.{fd}: must not be looser than {k}")
+    params = p.get("parameters")
+    if params is None:
+        pass
+    elif isinstance(params, str):
+        if params not in SENS_PARAMETER_CLASSES:
+            errs.append(f"{where}.parameters: one of {', '.join(SENS_PARAMETER_CLASSES)}, "
+                        "or a list of parameter names")
+    elif isinstance(params, list) and params:
+        bad = [x for x in params if not (isinstance(x, str) and _PARAM_NAME_RE.match(x))]
+        if bad:
+            errs.append(f"{where}.parameters: not parameter names: {bad[:5]}")
+        elif len(set(params)) != len(params):
+            errs.append(f"{where}.parameters: a name is listed twice")
+    else:
+        errs.append(f"{where}.parameters: one of {', '.join(SENS_PARAMETER_CLASSES)}, "
+                    "or a non-empty list of parameter names")
+
+
 # One validator per capability's protocol. A capability without one cannot be
 # named in a spec. Each is called with the source's format (``source_format``);
 # one whose capability runs on a single input format may ignore it.
@@ -276,6 +343,7 @@ PROTOCOL_VALIDATORS = {
     "ode": _validate_ode_protocol,
     "ssa": _validate_ssa_protocol,
     "steady_state": _validate_steady_protocol,
+    "sens": _validate_sens_protocol,
 }
 
 

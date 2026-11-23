@@ -4,10 +4,11 @@ here and has a protocol validator in ``bench.specs``."""
 
 from __future__ import annotations
 
-from . import ode, ssa, steady
+from . import ode, sens, ssa, steady
 
 CAPABILITIES = {
     "ode": ode,
     "ssa": ssa,
     "steady_state": steady,
+    "sens": sens,
 }
