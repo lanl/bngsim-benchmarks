@@ -8,12 +8,17 @@ Implemented so far:
 
 - the problem specs (section 5.1) and the job list (5.2);
 - one result file per job, with freshness (6.1, 6.2), and `gather` (6.3);
+- stored correctness trajectories, and re-scoring them with `rescore` (6.1, 6.2);
+- the correctness verdict: bngsim's own, and a per-species check (6.4);
 - the serial and local-pool runners with deadlines (8);
 - Slurm submission as job arrays, `bench submit` (8);
 - the interleaved timing protocol (7);
-- one capability: ODE simulation of BNGL models, comparing BNGsim against a
-  registry of reference engines (`run_network` and libRoadRunner), on five
-  provisional pilot models.
+- one capability: ODE simulation of BNGL and SBML models, comparing BNGsim against
+  a registry of reference engines (`run_network`, libRoadRunner, COPASI and AMICI),
+  on two core suites, `ode-net` and `ode-sbml` (section 3.2).
+- a second capability: exact stochastic simulation (SSA) of BNGL models, comparing
+  BNGsim's ensembles against `run_network`, libRoadRunner and COPASI, and against
+  exact moments where a model has them (§5.3), on two provisional pilot models.
 
 Not yet: bundles, the container, the validation of section 9, and every other
 capability.
@@ -54,7 +59,7 @@ The suite is built so that anyone can run it:
 | ODE simulation, SBML models | libRoadRunner | libRoadRunner; AMICI; COPASI (core only) |
 | ODE settings: dense, KLU, automatic; compiled vs interpreted | each other | forced dense and forced KLU vs automatic |
 | Re-simulation of a loaded model with new parameters | — | `run_network`, libRoadRunner, AMICI |
-| Exact stochastic simulation (SSA) | `run_network` SSA (ensemble statistics); DSMTS analytic moments | `run_network` SSA; libRoadRunner; COPASI (core only) |
+| Exact stochastic simulation (SSA) | `run_network` SSA, libRoadRunner and COPASI (ensemble statistics, §5.3); exact moments of first-order networks; DSMTS analytic moments | `run_network` SSA; libRoadRunner; COPASI (core only) |
 | Partial scaling (PSA) | exact SSA, as the critical population N_c varies; `run_network` PSA | `run_network` PSA; exact SSA |
 | Network-free simulation | standalone NFsim; RuleMonkey; SSA on the generated network where it is finite | standalone NFsim |
 | Forward sensitivities | AMICI; finite differences | AMICI; COPASI (core only) |
@@ -342,6 +347,99 @@ gives each reference a trial run and drops any that crash (recording a
 that survive. Any other correctness outcome (DIFF, EXCEPTION, BAD_TEST, …) blocks
 the timing job.
 
+### 5.3 Stochastic verdicts (SSA)
+
+An exact SSA has no single right trajectory: two correct engines sample the same
+probability law. So an SSA correctness job compares **ensembles**, with a stated
+false-alarm rate, and every number it rests on is reproducible.
+
+**Protocol fields** (`protocol.ssa`, validated in `specs.py`):
+
+| Field | Meaning |
+|---|---|
+| `netgen` | the `generate_network(...)` call, as for ODE |
+| `t_end`, `n_steps` | the output grid: `n_steps + 1` uniform points over `[0, t_end]` |
+| `replicates` | trajectories per engine in the correctness job (100 to 10^6) |
+| `timing_replicates` | trajectories per timed repetition (default 100) |
+| `seed` | the base seed every engine's seeds derive from (default 1) |
+| `moments` | `linear`: compare also against the network's exact moments (needs `replicates` >= 10^4) |
+
+`size.ssa_events`, the mean reaction events per trajectory, is a planning estimate
+only, like the rest of `size`.
+
+**Seeds.** Each engine draws from a fixed block of its own, `seed + 10^7 k` (BNGsim
+k = 0, run_network 1, libRoadRunner 2, COPASI 3), so no two ensembles share a
+seed. A reference's trajectory `i` uses the block's first seed plus `i`; BNGsim's
+ensemble is `run_replicates(seed=...)`, whose per-replicate seeds bngsim derives
+from that base. Every engine reproduces a trajectory from its seed exactly, so a
+correctness job re-run on the same build gives the same ensembles, and the same
+verdicts to the bit.
+
+**BNGsim against a reference engine: a permutation max-T test.** At every cell
+(time point, species) two statistics, the per-time-point tests of DSMTS (Evans,
+Gillespie & Wilkinson 2008, *Bioinformatics* 24:285) made two-sample:
+
+- the difference of the ensemble means over its pooled standard error;
+- the difference of the ensemble variances over its pooled large-sample standard
+  error, `sqrt((m4 - m2^2)(1/n_A + 1/n_B))` -- valid whatever the distribution,
+  where a Gaussian formula is not for the skewed, discrete counts of a low-copy
+  model.
+
+The test statistic is the largest of their absolute values over all cells. Its null
+distribution comes from relabelling (Westfall & Young 1993, *Resampling-Based
+Multiple Testing*, single-step max-T): if the two engines sample the same law, the
+pooled trajectories are exchangeable, and every split into groups of `n_A` and
+`n_B` is equally likely. The p-value is the share of 1999 seeded random splits whose
+maximum reaches the observed one, and the comparison fails when it is at most
+`alpha` = 10^-3. This makes the false-alarm rate at most `alpha` **exactly**, at any
+ensemble size, under any dependence between time points and species (trajectories
+are strongly autocorrelated), and for any marginal -- zeros, skew and discreteness
+included -- with no normal approximation and none of Bonferroni's conservatism under
+dependence. Relabelling stops at the 20th split that beats the observed maximum
+(Besag & Clifford 1991, *Biometrika* 78:301); the p-value is then 20 over the
+splits drawn, which is valid and can only be a pass, so only a comparison near
+failing draws all 1999. Cells constant across both ensembles (the initial
+condition) are left out, and so, for the variance test, are cells taking at most
+two values (a 0/1 promoter), whose variance is fixed by their mean.
+
+**BNGsim against exact moments: Bonferroni z-tests.** Where `moments: linear` is set,
+every reaction must be of order 0 or 1 (in unfixed species), so the mean and
+covariance obey closed linear ODEs (Gadgil, Lee & Othmer 2005, *Bull Math Biol*
+67:901), which the harness solves exactly, by a matrix exponential, from its own
+reading of the `.net` -- no engine's code is involved. Per cell, `sqrt(n)(mean - mu) /
+sigma` with the exact `mu` and `sigma`, and `log(s^2 / sigma^2)` over its delta-method
+standard error from the sample kurtosis (DSMTS's variance test assumes a Gaussian
+kurtosis); the comparison fails when the smallest two-sided normal p-value is at
+most `alpha / m` over the `m` tests. There is nothing to relabel against a fixed
+law, so this test is asymptotic: it is calibrated at DSMTS's recommended 10^4
+trajectories, which a spec with exact moments must ask for. A cell whose exact
+variance is zero is deterministic, and every trajectory must hit it. Each
+reference's ensemble is checked against the exact moments too, unscored, to say
+which side of a disagreement is wrong.
+
+**The job.** It passes only when every comparison passes; failures are attributed as
+for ODE (§6.1). A job with three references and exact moments makes four
+comparisons, so a correct BNGsim fails it with probability at most 4 x 10^-3, and a
+ten-problem suite at most 0.04. A reference that cannot simulate a model's exact
+SSA at all is recorded as `UNSUPPORTED` and not run: libRoadRunner's gillespie fires
+the SBML rate law as the propensity, which for a repeated reactant (`A + A`) is
+`k A^2` where the exact propensity is `k A (A - 1)`.
+
+bngsim's own parity suites judge ensembles by a K-sigma test on the means that
+passes when 99% of cells pass (`parity_core.differ.ensemble_verdict`). It has no
+stated false-alarm rate, so it does not gate here, but each SSA verdict reports it
+beside the gating test, so the two repositories can be compared (§10).
+
+**Timing.** A timed repetition is one ensemble of `timing_replicates` trajectories,
+from the same seeds every round, interleaved round-robin as in §7. Since the seeds
+repeat, every kept repetition must reproduce the first exactly (`NOT_REPRODUCIBLE`
+otherwise), which also shows that each engine's reset between ensembles is
+complete. The artifact is each engine's absolute time per ensemble with its
+bootstrap CI, and per trajectory as that divided by the ensemble size. The one-time
+cost before sampling -- BNGsim's load and propensity compile, libRoadRunner's SBML
+load and JIT, COPASI's import -- is measured once, cold, beside it (§6.3);
+run_network loads the `.net` in every trajectory, so its load is inside its time.
+
 ## 6. Results
 
 ### 6.1 One file per job
@@ -363,6 +461,12 @@ file holds:
   - start and end time;
   - exit status.
 
+A correctness job also stores the trajectories its verdict was computed from, beside
+its JSON file as `<job id>.npz` (compressed float64): every engine's compared
+trajectory, the output times and the compared species. The JSON file names it, with
+its size and sha256, so an `.npz` left by another run of the job is never read as
+this one's. On the core suites each is a few MB, and none is above about 10 MB.
+
 ### 6.2 Freshness
 
 A result is current when its key matches what would run now. The key combines:
@@ -374,6 +478,19 @@ A result is current when its key matches what would run now. The key combines:
 - for timing jobs, the node type.
 
 Only stale or missing jobs run. An interrupted run loses at most the jobs in flight.
+
+A part of the job spec can belong to one kind of job only. The timing protocol's
+reproducibility check (`timing_check`) is in the timing job's definition alone, and
+the correctness verdict's version (`verdict`, §6.4) in the correctness job's alone.
+So a new verdict makes every correctness result stale and leaves every timing job's
+definition, id and key as they were.
+
+A correctness result can be stale only in how it is scored: the vendored comparison
+core, or the verdict version in its definition (§6.4). Such a result does not need to
+re-run. `bench rescore` recomputes its verdicts and outcome from its stored
+trajectories and rewrites it with the current key, keeping a history of the outcomes
+it replaced. A result that is stale for any other reason, or that stored no
+trajectories, is left to re-run.
 
 ### 6.3 Gathering and publishing
 
@@ -393,6 +510,9 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
   broken reference does not hide the others behind a single REFERENCE_FAILED.
 - Both are derived in rendering from fields every result already records; neither
   changes the per-job result schema.
+- **Each reference shows both halves of the correctness gate (§6.4):** `ok`, or
+  `DIFF (species)`, `DIFF (vendored)` or `DIFF (both)`. Each row names its worst
+  species across the references, with its error as a fraction of its own peak.
 - A **result bundle** packages one complete set of results for one BNGsim build:
   - per-job results;
   - gathered reports;
@@ -403,6 +523,87 @@ Only stale or missing jobs run. An interrupted run loses at most the jobs in fli
   [lanl/bngsim](https://github.com/lanl/bngsim). Each bundle comes with a rendered
   summary page.
 - Raw outputs are never committed to git history.
+
+### 6.4 The correctness verdict
+
+A correctness job compares BNGsim with each reference that ran. A reference agrees
+only when two checks both pass.
+
+1. **bngsim's deterministic verdict** (`parity_core.differ`, vendored unmodified, §10).
+   It applies a per-cell tolerance, a fail-fraction budget behind hard ceilings, and
+   a movement gate. It can fail a species only when that species is significant:
+   - its peak is past 1e-3 of the largest peak in the model, or
+   - its range is past 1e-3 of the largest range.
+
+   (An absolute ceiling, 1e-2 of the file-wide peak, applies to every species. It
+   never binds on a small one.) When a model's species span many decades, most of
+   them are never judged. On the ode-sbml suite it judges 1 of Nishio 2008's 59
+   compared species, 9 of Ouzounoglou 2014's 89, 10 of Koo 2013's 79 and 16 of Smith
+   2013's 105. It passes AMICI on Smith 2013, although AMICI never gives the first of
+   the two insulin doses that the model's events administer.
+2. **A per-species check**, which judges every compared species on its own scale. A
+   species fails when its worst disagreement over the run, max over t of |a − b|, is
+   past the larger of two bounds:
+   - 1e-2 of its peak, the largest magnitude it reaches in either engine;
+   - a floor of 10 times the protocol's absolute tolerance.
+
+   The floor exists because no solver here resolves a difference below its atol. So a
+   species that is numerically zero, within a few atol in both engines, cannot fail.
+   On Lang 2024, for example, BNGsim holds two TP53 Ser15~p species at exactly 0 and
+   run_network and libRoadRunner report round-off of 1e-26 to 1e-25, against an atol
+   of 1e-12. That is 100% of the reference's own peak, but it is not a disagreement.
+
+Each reference's verdict records both checks:
+
+- the vendored verdict's counts, and its pass as `vendored_passed`;
+- the per-species check's worst species, with its error, its peak, what it was
+  allowed, and the time of its worst cell;
+- how many species failed, and how many sat at the floor.
+
+`passed` is true only when both checks pass.
+
+**Calibration.** The two constants were set on the trajectories of the ode-net and
+ode-sbml correctness jobs.
+
+- **1e-2 of the peak** is the vendored movement gate's own ceiling, now applied to
+  every species. Every comparison that should pass is inside it:
+  - the worst is libRoadRunner on Koo 2013, at 4.6e-3 of a species' peak. That is
+    its own integration error at the SED-ML's rtol of 1e-6: it is 4.4e-3 from the
+    converged solution, and it converges at tighter tolerances;
+  - next come Koo 2013 at 5.8e-4 and Verma 2016 at 2.2e-4;
+  - every ode-net comparison is under 1e-4.
+
+  The known-bad comparisons are past it by 13× or more: AMICI on Smith 2013 (1.0 of
+  the insulin's peak, from the dose it never gives), and COPASI (1.0) and
+  libRoadRunner (0.13) on Winter 2017.
+- **10 × atol** is the vendored movement gate's floor. bngsim's own census of
+  BioModels found solvers that agree differing by up to 3.8 atol on a species near
+  zero. On the suites here, a species of a passing comparison is never further off
+  than 1e-2 of its peak unless it is numerically zero: all such species are within
+  2e-8 atol.
+
+**The floor ties the check to the protocol.** A species whose peak sits below the
+protocol's atol is judged only by the floor. The protocol must then resolve the
+model's species, or a disagreement measures the tolerance rather than the engines.
+Nishio 2008 is the one member where it did not:
+- 34 of its 59 compared species peak between 1.5e-11 and 1e-9, under an atol of 1e-9;
+- the engines that hold atol exactly (AMICI and run_network) were 2–6% of a species'
+  peak off the converged solution, so it failed the check;
+- at atol 1e-15 every engine is within 7.5e-4.
+
+Its spec records the change ([core_suites.md](core_suites.md)).
+
+**What does not change.** Two other comparisons decide something in both kinds of job:
+- the faithfulness check of a network derived from SBML;
+- the check of run_network's `sparse` setting against its dense run.
+
+Both keep deciding on the vendored verdict alone, so the timing job decides as before.
+The correctness record carries the per-species check of each beside it.
+
+**Versioning.** The check's version is `VERDICT_VERSION`, part of the correctness
+job's definition only (§6.2). Changing the check, its constants, or how the two
+checks combine bumps it. Every correctness result then goes stale and is re-scored
+with `bench rescore`, from the trajectories it stored (§6.1).
 
 ## 7. Timing protocol
 
@@ -470,6 +671,7 @@ Other commands:
 - `bench plan`: what is current, stale, missing, waiting or blocked, and what it
   would cost;
 - `bench gather`: per-capability reports and a readable summary;
+- `bench rescore`: re-score stored correctness results after a verdict change (§6.4);
 - `bench fetch-bionetgen`, `bench fetch-models`, `bench doctor`: set up and check the
   environment;
 - `bench submit`: the Slurm mode below;
@@ -615,3 +817,6 @@ Two checks run before any cluster timing is used:
   and the knob ranges of each size series.
 - **Tolerances:** per-capability correctness tolerances, and the acceptance tolerance
   for section 9.
+- **SSA verdict:** whether the SSA suites gate on the permutation test of §5.3 (a
+  stated false-alarm rate) or on bngsim's parity-core ensemble verdict (the same
+  verdict in both repositories, §10); both are recorded.

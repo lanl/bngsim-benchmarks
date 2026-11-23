@@ -1,0 +1,44 @@
+# The phosphotransferase system for glucose uptake in E. coli (BioModels BIOMD0000000571). A core
+# problem: member 4 of the ode-sbml suite (docs/DESIGN.md §3.2). The file is the curated BioModels
+# file as sys-bio/temp-biomodels holds it; the protocol is the time course of the SED-ML beside it
+# (final/BIOMD0000000571/Nishio2008.sedml), whose <model source> is this file. rtol is the
+# SED-ML's; the SED-ML gives no absolute tolerance (only COPASI's adjustment factor).
+# atol is 1e-15, not the 1e-9 lanl/bngsim's rr_parity job manifest uses for the other members:
+# 34 of the 59 compared species (promoter binding sites, free or bound, in molar units) peak
+# between 1.5e-11 and 1e-9, wholly below 1e-9. An engine that holds atol exactly (AMICI,
+# run_network, BNGsim given bngsim.ExactAtol) does not resolve them at 1e-9, and lands 2-6% of a
+# species' peak off the converged solution (rtol 1e-10, atol 1e-18) on species at 1e2-5e2 atol;
+# the engines that scale atol per species are within 1e-5. At 1e-15 every compared species
+# peaks at 1.5e4 atol or more and every engine is within 7.5e-4 of the converged solution
+# (run_network the worst, AMICI 1.1e-5). Like every protocol setting, it applies to all engines.
+# One SBML event depletes glucose at t=500.
+id: glucose_phosphotransferase_system_nishio2008
+layer: core
+title: "Phosphotransferase system for glucose uptake in E. coli"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000571/BIOMD0000000571_url.xml
+  sha256: 9410de3b8aff1ec7826b0fd9ff5cbc16647d9709aa5097ddc3a5b14ebeaf5cf5
+  format: sbml
+publications:
+  - citation: "Nishio Y, Usuda Y, Matsui K, Kurata H (2008). Computer-aided rational design of the phosphotransferase system for enhanced glucose uptake in Escherichia coli. Mol Syst Biol 4:160."
+    doi: 10.1038/msb4100201
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000571: its curation figure and curation notes, and final/BIOMD0000000571/Nishio2008.sedml at the pinned commit"
+  check: "BioModels curation: the curators reproduced Fig. 3A of the paper in COPASI, the IIAGlc time course in response to glucose depletion over 1000 min; the SED-ML beside it at the pinned commit names Fig. 3a-d and runs exactly this file"
+  result: "curated; the curation figure reproduces Fig. 3A"
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 1000
+    n_steps: 1000
+    rtol: 1.0e-6
+    atol: 1.0e-15
+size:
+  species: 76
+  reactions: 92
+suites:
+  ode-sbml: 4

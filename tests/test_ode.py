@@ -94,8 +94,8 @@ def test_reference_versions_are_part_of_the_ode_freshness_key(spec_data, write_s
     assert "reference_versions" in correctness.canonical()
 
 
-def test_non_bngl_source_gets_no_jobs(spec_data, write_spec):
-    spec_data["source"]["format"] = "sbml"
+def test_a_net_source_gets_no_jobs(spec_data, write_spec):
+    spec_data["source"]["format"] = "net"
     assert ode.jobs(specs.load(write_spec(spec_data))) == []
 
 
@@ -831,7 +831,9 @@ def test_run_isolated_attributes_a_hard_crash(tmp_path):
 
     def fn(stage):
         import faulthandler
+        import resource
         faulthandler.disable()  # pytest's handler would dump a traceback first
+        resource.setrlimit(resource.RLIMIT_CORE, (0, 0))  # and the kernel a core file
         os.kill(os.getpid(), signal.SIGSEGV)  # a segfault in a C++ engine
 
     out = ode.run_isolated(fn, 30, tmp_path / "x", poll=0.01)

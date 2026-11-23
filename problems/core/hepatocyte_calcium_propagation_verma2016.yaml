@@ -1,0 +1,39 @@
+# Ca2+ signal propagation along hepatocyte cords (BioModels BIOMD0000000834). A core problem:
+# member 5 of the ode-sbml suite (docs/DESIGN.md §3.2). The file is the curated BioModels file as
+# sys-bio/temp-biomodels holds it; the protocol is the time course of the SED-ML beside it
+# (final/BIOMD0000000834/Verma2016.sedml), whose <model source> is this file. rtol is the
+# SED-ML's; the SED-ML gives no absolute tolerance (only COPASI's adjustment factor), so atol is
+# the 1e-9 lanl/bngsim's rr_parity job manifest uses for it.
+# The SED-ML integrates from t=0 and outputs from t=400; one SBML event sets the parameter H at
+# t=200. 75 SBML species; bngsim counts 76, H among them (the suite's ranking count).
+id: hepatocyte_calcium_propagation_verma2016
+layer: core
+title: "Ca2+ signal propagation along hepatocyte cords"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000834/Verma2016.xml
+  sha256: 3017cdddfddf0594cd8cc3d1f2ee00a64e95327f7c65d7d9258196987d90ef2d
+  format: sbml
+publications:
+  - citation: "Verma A, Makadia H, Hoek JB, Ogunnaike BA, Vadigepalli R (2016). Computational Modeling of Spatiotemporal Ca2+ Signal Propagation Along Hepatocyte Cords. IEEE Trans Biomed Eng 63:2047-2055."
+    doi: 10.1109/TBME.2016.2550045
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000834: its curation figure and curation notes, and final/BIOMD0000000834/Verma2016.sedml at the pinned commit"
+  check: "BioModels curation: the curators reproduced Fig. 2 of the paper in COPASI over 700 s, similar in pattern though not exact by their note, with the parameters H and KH as this file gives them; the SED-ML beside it at the pinned commit names Fig. 2 and runs exactly this file"
+  result: "curated; the curation figure reproduces the pattern of Fig. 2"
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    output_start: 400
+    t_end: 700
+    n_steps: 43
+    rtol: 1.0e-6
+    atol: 1.0e-9
+size:
+  species: 76
+  reactions: 134
+suites:
+  ode-sbml: 5

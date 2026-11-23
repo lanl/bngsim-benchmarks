@@ -1,0 +1,37 @@
+# An alpha-synuclein-based biochemical systems model of Parkinson's disease (BioModels
+# BIOMD0000000575). A core problem: member 3 of the ode-sbml suite (docs/DESIGN.md §3.2). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it; the protocol is the time
+# course of the SED-ML beside it (final/BIOMD0000000575/Sass2009.sedml), whose <model source> is
+# this file. rtol is the SED-ML's; the SED-ML gives no absolute tolerance (only COPASI's
+# adjustment factor), so atol is the 1e-9 lanl/bngsim's rr_parity job manifest uses for it. uses
+# for it.
+id: alpha_synuclein_parkinsons_bst_sass2009
+layer: core
+title: "Alpha-synuclein-based biochemical systems model of Parkinson's disease"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000575/BIOMD0000000575_url.xml
+  sha256: 97597fe0d586e237947843c08622e4cfc2382fa39c5952946f62380c87e2eac1
+  format: sbml
+publications:
+  - citation: "Sass MB, Lorenz AN, Green RL, Coleman RA (2009). A pragmatic approach to biochemical systems theory applied to an alpha-synuclein-based model of Parkinson's disease. J Neurosci Methods 178:366-377."
+    doi: 10.1016/j.jneumeth.2008.12.014
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000575: its curation figure and curation notes, and final/BIOMD0000000575/Sass2009.sedml at the pinned commit"
+  check: "BioModels curation: the curators reproduced Fig. 15 of the paper in COPASI, the disease model (alpha-synuclein raised 10%, to 0.22) against this baseline (0.2); the SED-ML beside it at the pinned commit names Fig. 15 and runs exactly this file"
+  result: "curated; the curation figure reproduces Fig. 15"
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 100
+    n_steps: 1000
+    rtol: 1.0e-6
+    atol: 1.0e-9
+size:
+  species: 76
+  reactions: 58
+suites:
+  ode-sbml: 3

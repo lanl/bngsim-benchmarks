@@ -403,6 +403,28 @@ def harness_identity() -> dict[str, Any]:
     return {"bench": __version__, "parity_core": parity_core_identity(), "forced_env": HARNESS_ENV}
 
 
+@lru_cache(maxsize=1)
+def harness_source() -> dict[str, Any]:
+    """The git commit of the harness checkout that ran a job, and whether its
+    tracked files had local changes. Provenance only: it is recorded, never part
+    of a freshness key (``harness_identity`` is). Empty outside a git checkout."""
+    root = Path(__file__).resolve().parents[2]
+
+    def git(*argv: str) -> str | None:
+        try:
+            out = subprocess.run(["git", "-C", str(root), *argv], capture_output=True,
+                                 text=True, timeout=30, check=False)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return out.stdout.strip() if out.returncode == 0 else None
+
+    commit = git("rev-parse", "HEAD")
+    if not commit:
+        return {}
+    status = git("status", "--porcelain", "--untracked-files=no")
+    return {"commit": commit, "dirty": bool(status) if status is not None else None}
+
+
 def environment() -> dict[str, Any]:
     """Everything a result records about where it ran."""
     import locale
@@ -415,6 +437,7 @@ def environment() -> dict[str, Any]:
         "amici": amici_identity(),
         "loader": glibc_identity(),
         "harness": harness_identity(),
+        "harness_source": harness_source(),
         "host": host_identity(),
         "node_type": node_type(),
         "python": platform.python_version(),

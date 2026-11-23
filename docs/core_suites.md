@@ -75,3 +75,113 @@ model's own trajectory. Peak is the maximum over time; sustained is the median.
   the authors' own simulation to 1.8e-6.
 - **Top-ups** fill what the seed lacks: a small model, a bistable switch, the gap between
   409 and 1612 species, and a network in the thousands.
+
+## ode-sbml: ODE on published SBML, read as it is
+
+Every member is a curated BioModels file, pinned at `sys-bio/temp-biomodels`
+`6a09daf4`, the commit lanl/bngsim's rr_parity corpus pins. Its protocol is the time
+course of the SED-ML that sits beside it there, whose `<model source>` is the pinned
+file. Members are ordered by size. Positions 2, 4, 6, 8 and 10 also seed the Antimony
+ODE suite (#38).
+
+| # | problem | BioModels | species / reactions | events | output (from t=0) | evidence | how it entered |
+|---|---|---|---|---|---|---|---|
+| 1 | `brain_energy_metabolism_winter2017` | BIOMD0000000627 | 66 (65) / 64 | none | t=100–400, 1000 steps | `author_file`: Fig. 3 | top-up |
+| 2 | `map3k8_vemurafenib_resistance_giani2019` | BIOMD0000000883 | 75 / 85 | none | 0–14400, 1000 | `author_file`: Fig. 2C, the with-inhibitor curve | top-up |
+| 3 | `alpha_synuclein_parkinsons_bst_sass2009` | BIOMD0000000575 | 76 / 58 | none | 0–100, 1000 | `author_file`: Fig. 15, the baseline model | top-up |
+| 4 | `glucose_phosphotransferase_system_nishio2008` | BIOMD0000000571 | 76 / 92 | 1 (t=500) | 0–1000, 1000 | `author_file`: Fig. 3A | top-up |
+| 5 | `hepatocyte_calcium_propagation_verma2016` | BIOMD0000000834 | 76 (75) / 134 | 1 (t=200) | t=400–700, 43 | `author_file`: Fig. 2 ‡ | paper seed |
+| 6 | `shear_stress_nitric_oxide_koo2013` | BIOMD0000000468 | 79 / 74 | none | 0–12000, 1000 | `author_file`: Fig. 6, the shear-stress curve | paper seed |
+| 7 | `alpha_synuclein_neuronal_homeostasis_ouzounoglou2014` | BIOMD0000000559 | 90 / 136 | none | 0–600000, 1000 | `author_file`: Fig. 7 of Supplementary material 5 | paper seed |
+| 8 | `mapk_signalling_control_hornberg2005` | BIOMD0000000667 | 103 / 148 | none | 0–6000, 100 | `author_file`: Fig. 2 | paper seed |
+| 9 | `insulin_signalling_oxidative_stress_smith2013` | BIOMD0000000474 | 133 / 367 | 4 (t=0+, 15, 2785, 2800) | 0–2805, 1000 | `author_file`: Fig. 3A, from this events variant | paper seed |
+| 10 | `segment_polarity_network_vondassow2000` | BIOMD0000001065 | 148 / 480 | none | 0–1100, 220 | `author_file` † | paper seed |
+
+Species are counted as bngsim's `Model.from_sbml` counts them, the count the suite is
+ranked by; where the SBML's own count differs it is in parentheses. Winter 2017's
+count includes its rate-ruled compartment, and Verma 2016's the parameter its event
+sets. Each `author_file` row is a curated BioModels entry whose curators reproduced
+the named figure of the paper; the spec quotes what the curation reproduced and how it
+covers the pinned file.
+
+- † von Dassow 2000's curation reproduced the paper's Fig. 2, a radial plot over the
+  model's parameters, and its SED-ML names no figure. So its 0–1100 time course is the
+  curators' protocol rather than a published figure. The same folder holds that time
+  course from AMICI, COPASI, tellurium and VCell.
+- ‡ The curators of Verma 2016 describe their reproduction of Fig. 2 as similar in
+  pattern but not exact.
+
+### Protocol and comparison
+
+- The output window and its steps are the SED-ML's. Winter 2017 and Verma 2016 output
+  from t=100 and t=400, after integrating from t=0, so the protocol has an
+  `output_start` beside its `t_start`.
+- `rtol` is the SED-ML's: 1e-6, and 1e-8 for von Dassow 2000. The SED-MLs give no
+  absolute tolerance, only COPASI's adjustment factor, so `atol` is 1e-9, the value
+  lanl/bngsim's rr_parity job manifest uses for them. BNGsim takes it as a plain float,
+  its own per-species ceiling, as an SBML user passes it; on the `.net` path it is held
+  exactly instead, to match run_network.
+- **Nishio 2008's `atol` is 1e-15 instead.** 34 of its 59 compared species are promoter
+  binding sites, free or bound, in molar units, whose peaks lie between 1.5e-11 and
+  1e-9: wholly below 1e-9. At 1e-9, the engines that hold atol exactly do not resolve them:
+  - AMICI and run_network land 2–6% of a species' peak off the converged solution
+    (rtol 1e-10, atol 1e-18), and so does BNGsim given `bngsim.ExactAtol`;
+  - BNGsim's float atol, libRoadRunner and COPASI scale it per species, and are
+    within 1e-5.
+
+  At 1e-15, every compared species peaks at 1.5e4 atol or more, and every engine is
+  within 7.5e-4 of the converged solution: run_network is the worst, AMICI is at
+  1.1e-5. To see the disagreement, set the spec's `atol` back to 1e-9 and re-run the
+  correctness job. run_network and AMICI are then each 10.4 atol off, on species that
+  peak at 180 and 460 atol (IICB_Mlc, 6% of its peak; mRNA_ptsG, 2%). That is just
+  past the per-species check's floor of 10 atol, so a protocol this loose leaves the
+  check little to judge.
+- What is compared is each **state species**: every species the SBML neither declares
+  constant nor sets by an assignment rule. Each engine reports them as concentrations,
+  by SBML id, at exactly the protocol's output times, or it has failed.
+- A reference agrees with BNGsim only when bngsim's vendored verdict **and** a
+  per-species check pass (DESIGN §6.4). The per-species check holds each species to
+  1e-2 of its own peak, or 10 atol where that is larger. On this suite the vendored
+  verdict alone judges few species: 1 of Nishio 2008's 59, for example, and 16 of
+  Smith 2013's 105.
+- libRoadRunner, COPASI and AMICI read the pinned SBML. **run_network** reads a network
+  derived from it. `bngsim.convert.sbml_to_bngl` writes compartmental BNGL, in which a
+  fixed-time event becomes a change of state between `simulate` phases, and BNG2.pl
+  generates the `.net`. The phases then run as BNG2.pl runs them: a fresh run_network
+  per phase, from the state the last one left. The derivation is model preparation,
+  charged to no engine. It gates run_network: BNGsim on the derived network must
+  reproduce BNGsim on the SBML at a tight tolerance. Where the SBML has no faithful
+  BNGL form, or the check fails, run_network is *not applicable*. That is recorded with
+  its reason, shown in the reports, and left out of the count of references. Winter
+  2017 is the one such member: the converter refuses its amount-valued species in
+  compartments whose volume is not 1.
+- At an instant where the derived protocol changes the state (an event's time on the
+  output grid: Nishio 2008's t=500, Smith 2013's t=0), what run_network reports is the
+  conversion's convention, before or after the change. Those rows are left out of
+  run_network's verdict, and named in it.
+
+### What the suite spans (DESIGN §3.2, ODE)
+
+| axis | members |
+|---|---|
+| size | 66 to 148 species: no curated BioModel with a figure-reproducing SED-ML has more than 148, so this suite cannot reach the thousands the `.net` suite does |
+| events | 4 (one), 5 (one, before the output starts), 9 (four) |
+| output after the integration start | 1, 5 |
+| compartments that are not of volume 1 | 1, 2, 9 |
+| linear-solver policy | bngsim's automatic policy takes KLU on all ten |
+
+### Membership decisions
+
+- **Criterion:** the paper's own: the largest curated BioModels that carry a
+  figure-reproducing SED-ML horizon. That is the `figure_sedml` tier of lanl/bngsim's
+  rr_parity corpus, 424 models, ranked by bngsim's species count and then by SBML
+  reactions. This ranking reproduces the paper's six exactly, including a three-way
+  tie at 76 species that Verma 2016 wins on reactions. The six take positions 5–10, and
+  the next four by the same ranking fill positions 1–4.
+- **Pinning:** Giani 2019 is missing from lanl/bngsim's temp-biomodels manifest; its
+  sha256 was checked against the file at the pinned commit.
+- **Smith 2013** is pinned as the curators' events variant
+  (`MODEL1212210000_eventsForFigure3A.xml`), not the main model: it adds the two insulin
+  administrations Fig. 3A needs, and the curation figure comes from it.
+- **Koo 2013:** its SED-ML is named for the no-shear-stress condition, but it runs the
+  file unchanged, which by the curation notes gives the shear-stress curve of Fig. 6.

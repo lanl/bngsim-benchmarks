@@ -9,16 +9,29 @@ measure BNGsim's cost and check its results against other simulators on
 published models, so that anyone can re-run them. The comparisons are against
 BioNetGen (`run_network`, NFsim), libRoadRunner, AMICI, COPASI and PyBNF.
 
-What runs today: the job machinery, and one capability, ODE simulation of BNGL
-models. It compares BNGsim against a registry of reference engines: BioNetGen's
-`run_network`, libRoadRunner, COPASI and AMICI. The models are the first core suite,
-`ode-net`, with 10 published, verified models in
-[`problems/core/`](problems/core/) (see [docs/core_suites.md](docs/core_suites.md)),
-plus one provisional pilot model in [`problems/pilot/`](problems/pilot/).
-Each reference reads the same generated network: run_network directly, the others via
-SBML exported from it. The correctness job passes only when BNGsim agrees with every
-reference. The timing job interleaves all the engines in one run and reports each
-engine's absolute time. NFsim and PyBNF are on the roadmap as further engines.
+What runs today: the job machinery, and one capability, ODE simulation, of BNGL
+and of SBML models. It compares BNGsim against a registry of reference engines:
+BioNetGen's `run_network`, libRoadRunner, COPASI and AMICI. The models are two core
+suites of 10 published, verified models each, in [`problems/core/`](problems/core/)
+(see [docs/core_suites.md](docs/core_suites.md)), plus one provisional pilot model in
+[`problems/pilot/`](problems/pilot/):
+
+- `ode-net`, published BNGL. Each reference reads the same generated network:
+  run_network directly, the others via SBML exported from it.
+- `ode-sbml`, curated BioModels SBML. BNGsim, libRoadRunner, COPASI and AMICI read the
+  pinned SBML itself; run_network reads a network derived from it, where the SBML has
+  a faithful BNGL form.
+
+The correctness job passes only when BNGsim agrees with every reference. The timing
+job interleaves all the engines in one run and reports each engine's absolute time.
+NFsim and PyBNF are on the roadmap as further engines.
+
+A second capability, exact stochastic simulation (SSA), compares ensembles of
+BNGsim trajectories with ensembles from `run_network`, libRoadRunner and COPASI on
+the same generated network, and with exact moments where a model has them. Its
+verdict is a statistical test with a stated false-alarm rate, from fixed seeds, so
+it is reproducible (see [docs/DESIGN.md](docs/DESIGN.md) §5.3). It runs on two
+provisional pilot models for now; its core suite is still to be chosen.
 
 ## Goals
 
@@ -73,12 +86,17 @@ and any part of an id selects jobs:
 | `pixi run bench run --workers 8` | every job without a current result, correctness jobs 8 at a time |
 | `pixi run bench run --budget 9h30m` | stop starting jobs that would not finish within 9.5 hours |
 | `pixi run bench run --until slurm` | the same, up to the end of the current Slurm allocation |
+| `pixi run bench rescore` | re-score stored correctness results after the verdict changes, without re-simulating |
 | `pixi run bench gather` | collect results into `reports/`, with a readable `reports/summary.md` |
+| `pixi run bench publish SUITE` | write a complete suite's results, scrubbed of where they ran, to `published/` for committing; format in [docs/published_format.md](docs/published_format.md) |
 
-Each job writes one file under `results/`, named after its id. A result stays
+Each job writes one file under `results/`, named after its id. A correctness job also
+stores the trajectories it compared beside it, as a `.npz`. A result stays
 current until something it depends on changes: the model file, the protocol, the
 harness, the bngsim build, BioNetGen, the libRoadRunner version, or, for a timing
-result, the node type.
+result, the node type. A correctness result that is out of date only because the
+verdict changed is re-scored from its trajectories by `bench rescore`. Run it before
+`bench run` or `bench submit`, which would otherwise simulate it again.
 Running again runs only what is missing or out of date, so an interrupted run
 loses only the jobs in flight. Timing jobs run one at a time unless
 `--timing-workers` says otherwise, and only after their correctness job passed.

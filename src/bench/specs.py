@@ -33,6 +33,7 @@ PENDING = "pending"
 SUITE_SIZE = 10
 SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ode-net": ("ode", ("bngl",)),  # ODE on the .net generated from published BNGL
+    "ode-sbml": ("ode", ("sbml",)),  # ODE on published SBML, read as it is
 }
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
@@ -68,14 +69,26 @@ class Problem:
         return self.protocol[capability]
 
 
-def _validate_ode_protocol(p: Any, where: str, errs: list[str]) -> None:
+def _validate_ode_protocol(p: Any, where: str, errs: list[str],
+                           source_format: str | None = None) -> None:
+    """The ODE protocol. A BNGL model names its network generation (``netgen``)
+    and may ask for run_network's ``sparse`` solver. An SBML model has neither:
+    it is read as it is, and its protocol is its SED-ML time course, whose output
+    may start (``output_start``) after the integration does (``t_start``)."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_start", "t_end", "n_steps", "rtol", "atol", "sparse"}
+    if source_format == "sbml":
+        allowed = {"t_start", "output_start", "t_end", "n_steps", "rtol", "atol"}
+        required: tuple[str, ...] = ("t_end", "n_steps", "rtol", "atol")
+    else:
+        allowed = {"netgen", "t_start", "t_end", "n_steps", "rtol", "atol", "sparse"}
+        required = ("netgen", "t_end", "n_steps", "rtol", "atol")
     for k in sorted(set(p) - allowed):
-        errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "n_steps", "rtol", "atol"):
+        errs.append(f"{where}: unknown key {k!r}"
+                    + (" (an SBML model is read as it is)" if source_format == "sbml"
+                       and k in ("netgen", "sparse") else ""))
+    for k in required:
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
     netgen = p.get("netgen")
@@ -105,11 +118,165 @@ def _validate_ode_protocol(p: Any, where: str, errs: list[str]) -> None:
             errs.append(f"{where}.{k}: must be a positive number")
     if "sparse" in p and not isinstance(p["sparse"], bool):
         errs.append(f"{where}.sparse: must be true or false")
+    if "output_start" in p:
+        out = p["output_start"]
+        if not isinstance(out, (int, float)) or isinstance(out, bool):
+            errs.append(f"{where}.output_start: must be a number")
+        elif (isinstance(t_start, (int, float)) and not isinstance(t_start, bool)
+              and isinstance(t_end, (int, float)) and not isinstance(t_end, bool)
+              and not t_start <= out < t_end):
+            errs.append(f"{where}.output_start: must be at least t_start and less than t_end")
+
+
+def _int_in(v: Any, lo: int, hi: int) -> bool:
+    return isinstance(v, int) and not isinstance(v, bool) and lo <= v <= hi
+
+
+# DSMTS's advice for a test against exact moments, which rests on the central limit
+# theorem (bench.stochastic.analytic_verdict).
+SSA_MOMENTS_MIN_REPLICATES = 10_000
+
+
+def _validate_ssa_protocol(p: Any, where: str, errs: list[str],
+                           source_format: str | None = None) -> None:
+    """Exact SSA on the generated network: the grid ``0..t_end`` in ``n_steps``, the
+    ensemble size per engine for correctness (``replicates``) and per timed
+    repetition (``timing_replicates``), the base ``seed`` every engine's seeds derive
+    from, and optionally ``moments: linear`` -- exact moments of a first-order network
+    as a further reference (bench.capabilities.ssa)."""
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    allowed = {"netgen", "t_end", "n_steps", "replicates", "timing_replicates", "seed", "moments"}
+    for k in sorted(set(p) - allowed):
+        errs.append(f"{where}: unknown key {k!r}")
+    for k in ("netgen", "t_end", "n_steps", "replicates"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    netgen = p.get("netgen")
+    if netgen is not None and not (
+        isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
+    ):
+        errs.append(f"{where}.netgen: must be a generate_network(...) call")
+    t_end = p.get("t_end")
+    if t_end is not None and (
+        not isinstance(t_end, (int, float)) or isinstance(t_end, bool) or not t_end > 0
+    ):
+        errs.append(f"{where}.t_end: must be a positive number (SSA runs from t = 0)")
+    if "n_steps" in p and not _int_in(p["n_steps"], 1, 10**6):
+        errs.append(f"{where}.n_steps: must be a positive integer")
+    # Each engine's seeds come from a block of 10**7 (ssa.SEED_BLOCK), and COPASI's
+    # seed is a C int: these bounds keep every block disjoint and in range.
+    if "replicates" in p and not _int_in(p["replicates"], 100, 10**6):
+        errs.append(f"{where}.replicates: an integer from 100 to 1000000")
+    if "timing_replicates" in p and not _int_in(p["timing_replicates"], 1, 10**6):
+        errs.append(f"{where}.timing_replicates: an integer from 1 to 1000000")
+    if "seed" in p and not _int_in(p["seed"], 0, 2**30):
+        errs.append(f"{where}.seed: an integer from 0 to 2**30")
+    if "moments" in p:
+        if p["moments"] != "linear":
+            errs.append(f"{where}.moments: 'linear' (exact moments of a first-order network)")
+        elif _int_in(p.get("replicates"), 0, SSA_MOMENTS_MIN_REPLICATES - 1):
+            errs.append(f"{where}: a test against exact moments needs replicates >= "
+                        f"{SSA_MOMENTS_MIN_REPLICATES}")
+
+
+def _number(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+# The most points a steady-state scan may ask for: each is a solve per engine.
+STEADY_MAX_POINTS = 1000
+_PARAM_NAME_RE = re.compile(r"^[A-Za-z_]\w*$")
+
+
+def _validate_steady_protocol(p: Any, where: str, errs: list[str],
+                              source_format: str | None = None) -> None:
+    """Steady state of the generated network, from its seed species
+    (bench.capabilities.steady): the integration horizon ``t_end`` and its output
+    grid ``n_steps`` for the integration references, the integrators' ``rtol`` and
+    ``atol``, parameters set for every point (``parameters``), and optionally a
+    dose-response ``scan`` of one parameter -- explicit ``values``, or ``min``,
+    ``max`` and ``points``, spaced on a ``log`` scale or linearly."""
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "scan"}
+    for k in sorted(set(p) - allowed):
+        errs.append(f"{where}: unknown key {k!r}")
+    for k in ("netgen", "t_end", "rtol", "atol"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    netgen = p.get("netgen")
+    if netgen is not None and not (
+        isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
+    ):
+        errs.append(f"{where}.netgen: must be a generate_network(...) call")
+    if "t_end" in p and not (_number(p["t_end"]) and p["t_end"] > 0):
+        errs.append(f"{where}.t_end: must be a positive number (integration runs from t = 0)")
+    # The integration references are judged settled on the second half of their
+    # output, so the grid needs a point inside it besides the last.
+    if "n_steps" in p and not _int_in(p["n_steps"], 2, 10**5):
+        errs.append(f"{where}.n_steps: an integer from 2 to 100000")
+    for k in ("rtol", "atol"):
+        if k in p and not (_number(p[k]) and p[k] > 0):
+            errs.append(f"{where}.{k}: must be a positive number")
+    params = p.get("parameters", {})
+    if not isinstance(params, dict):
+        errs.append(f"{where}.parameters: a mapping of parameter name to value")
+        params = {}
+    for name, v in params.items():
+        if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
+            errs.append(f"{where}.parameters: {name!r} is not a parameter name")
+        if not _number(v):
+            errs.append(f"{where}.parameters.{name}: must be a number")
+    scan = p.get("scan")
+    if scan is None:
+        return
+    if not isinstance(scan, dict):
+        errs.append(f"{where}.scan: a mapping (parameter, and values or min/max/points)")
+        return
+    for k in sorted(set(scan) - {"parameter", "values", "min", "max", "points", "log"}):
+        errs.append(f"{where}.scan: unknown key {k!r}")
+    name = scan.get("parameter")
+    if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
+        errs.append(f"{where}.scan.parameter: the name of the parameter scanned")
+    elif name in params:
+        errs.append(f"{where}.scan.parameter: {name!r} is also set in parameters")
+    if "values" in scan:
+        if any(k in scan for k in ("min", "max", "points", "log")):
+            errs.append(f"{where}.scan: values, or min/max/points/log, not both")
+        vals = scan["values"]
+        if not (isinstance(vals, list) and 1 <= len(vals) <= STEADY_MAX_POINTS
+                and all(_number(v) for v in vals)):
+            errs.append(f"{where}.scan.values: a list of 1 to {STEADY_MAX_POINTS} numbers")
+        elif len(set(vals)) != len(vals):
+            errs.append(f"{where}.scan.values: each value once")
+        return
+    for k in ("min", "max", "points"):
+        if k not in scan:
+            errs.append(f"{where}.scan: missing {k!r} (or give values)")
+    lo, hi = scan.get("min"), scan.get("max")
+    if ("min" in scan and not _number(lo)) or ("max" in scan and not _number(hi)):
+        errs.append(f"{where}.scan: min and max must be numbers")
+    elif _number(lo) and _number(hi) and not hi > lo:
+        errs.append(f"{where}.scan: max must be greater than min")
+    if "points" in scan and not _int_in(scan["points"], 2, STEADY_MAX_POINTS):
+        errs.append(f"{where}.scan.points: an integer from 2 to {STEADY_MAX_POINTS}")
+    if "log" in scan and not isinstance(scan["log"], bool):
+        errs.append(f"{where}.scan.log: must be true or false")
+    elif scan.get("log") and _number(lo) and not lo > 0:
+        errs.append(f"{where}.scan: a log scale needs min > 0")
 
 
 # One validator per capability's protocol. A capability without one cannot be
-# named in a spec.
-PROTOCOL_VALIDATORS = {"ode": _validate_ode_protocol}
+# named in a spec. Each is called with the source's format (``source_format``);
+# one whose capability runs on a single input format may ignore it.
+PROTOCOL_VALIDATORS = {
+    "ode": _validate_ode_protocol,
+    "ssa": _validate_ssa_protocol,
+    "steady_state": _validate_steady_protocol,
+}
 
 
 def validate(data: Any, path: Path | str = "<spec>") -> Problem:
@@ -194,7 +361,8 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         elif cap not in protocol:
             errs.append(f"protocol: missing an entry for capability {cap!r}")
         else:
-            PROTOCOL_VALIDATORS[cap](protocol[cap], f"protocol.{cap}", errs)
+            PROTOCOL_VALIDATORS[cap](protocol[cap], f"protocol.{cap}", errs,
+                                     source_format=source.get("format"))
     for cap in sorted(set(protocol) - set(caps)):
         errs.append(f"protocol.{cap}: not a listed capability")
 

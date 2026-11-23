@@ -1,0 +1,36 @@
+# Control of MAPK signalling (BioModels BIOMD0000000667). A core problem: member 8 of the ode-sbml
+# suite (docs/DESIGN.md §3.2). The file is the curated BioModels file as sys-bio/temp-biomodels
+# holds it; the protocol is the time course of the SED-ML beside it
+# (final/BIOMD0000000667/MODEL0848279215.sedml), whose <model source> is this file. rtol is the
+# SED-ML's; the SED-ML gives no absolute tolerance (only COPASI's adjustment factor), so atol is
+# the 1e-9 lanl/bngsim's rr_parity job manifest uses for it. uses for it.
+id: mapk_signalling_control_hornberg2005
+layer: core
+title: "Control of MAPK signalling"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000667/BIOMD0000000667_url.xml
+  sha256: 28ec3a680a51e96bbe943e33271530b031b17bf372f7914c4003c87f0994d4db
+  format: sbml
+publications:
+  - citation: "Hornberg JJ, Binder B, Bruggeman FJ, Schoeberl B, Heinrich R, Westerhoff HV (2005). Control of MAPK signalling: from complexity to what really matters. Oncogene 24:5533-5542."
+    doi: 10.1038/sj.onc.1208817
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000667: its curation figure and curation notes, and final/BIOMD0000000667/MODEL0848279215.sedml at the pinned commit"
+  check: "BioModels curation: the curators reproduced Fig. 2 of the paper in COPASI; the SED-ML beside it at the pinned commit names Fig. 2 and runs exactly this file"
+  result: "curated; the curation figure reproduces Fig. 2"
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 6000
+    n_steps: 100
+    rtol: 1.0e-6
+    atol: 1.0e-9
+size:
+  species: 103
+  reactions: 148
+suites:
+  ode-sbml: 8

@@ -124,3 +124,183 @@ def test_sub_second_times_keep_their_digits():
     assert g._sec(0.001108) == "0.001108"
     assert g._sec(220.42275) == "220.4"
     assert g._sec(None) == ""
+
+
+# --------------------------------------------------------------------------- #
+# SSA: a statistical verdict per comparison, and ensembles as the timed unit
+# --------------------------------------------------------------------------- #
+SSA_ENGINES = "bngsim-vs-run_network-roadrunner-copasi"
+
+
+def _ssa_records():
+    network = {"species": 4, "reactions": 6}
+    corr = {
+        "outcome": "REFERENCE_FAILED",
+        "measurements": {"network": network, "ensembles": {"bngsim": {"replicates": 10000}}},
+        "verdicts": {
+            "run_network": {"passed": True, "p_value": 0.41, "z_max": 3.1, "alpha": 1e-3,
+                            "replicates": [10000, 10000], "test": "permutation"},
+            "copasi": {"passed": True, "p_value": 0.052, "z_max": 3.9, "alpha": 1e-3,
+                       "replicates": [10000, 10000], "test": "permutation"},
+            "analytic": {"passed": True, "p_value": 0.0031, "p_min": 2.6e-6, "z_max": 2.9,
+                         "alpha": 1e-3, "replicates": 10000, "test": "bonferroni"},
+        },
+        "roadrunner_error": "UNSUPPORTED: 1 reaction(s) consume one species twice",
+    }
+    timing = {
+        "outcome": "PASS",
+        "measurements": {
+            "network": network, "timing_replicates": 100,
+            "netgen_seconds": 0.8,
+            "bngsim": {"load_seconds": 0.0013, "codegen_seconds": 0.097,
+                       "propensity_backend": "cc"},
+            "references": {"copasi": {"load_seconds": 0.02}, "run_network": {}},
+            "engine_roles": {"bngsim": "warm, in-process (system under test)",
+                             "copasi": "warm, in-process", "run_network": "fresh subprocess"},
+            "times": {name: {"median_seconds": s, "ci_low": s * 0.99, "ci_high": s * 1.01}
+                      for name, s in (("bngsim", 0.0264), ("copasi", 0.0544),
+                                      ("run_network", 0.6879))},
+            "times_per_trajectory": {name: {"median_seconds": s}
+                                     for name, s in (("bngsim", 0.000264), ("copasi", 0.000544),
+                                                     ("run_network", 0.006879))},
+            "reproducibility": {n: {"passed": True} for n in ("bngsim", "copasi", "run_network")},
+            "repetitions": {"rounds": 20, "warmup_rounds": 1},
+        },
+        "roadrunner_error": "UNSUPPORTED: 1 reaction(s) consume one species twice",
+    }
+    return corr, timing
+
+
+@pytest.fixture
+def ssa_gathered(tmp_path):
+    results = tmp_path / "results"
+    jobs = [Job("ssa", "toy", SSA_ENGINES, "auto", kind) for kind in (CORRECTNESS, TIMING)]
+    for job, rec in zip(jobs, _ssa_records()):
+        dest = results / f"{job.id}.json"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(rec))
+    reports = tmp_path / "reports"
+    out = g.gather(jobs, results, reports, {CORRECTNESS: {}, TIMING: {}})
+    return out, (reports / "summary.md").read_text(encoding="utf-8"), reports
+
+
+def test_ssa_correctness_reads_a_p_value_per_comparison(ssa_gathered):
+    _, summary, reports = ssa_gathered
+    header = _row(summary, "problem", "species", "outcome", "references", "min p")
+    row = dict(zip(header, _row(summary, "toy", "4")))
+    assert row["outcome"] == "REFERENCE_FAILED"
+    assert row["references"] == "PARTIAL 3/4 (roadrunner: n/a)"
+    assert row["min p"] == "0.0031" and row["replicates"] == "10000"
+    assert row["vs analytic"] == "ok (p 0.0031)"
+    assert row["vs run_network"] == "ok (p 0.41)"
+    assert row["vs roadrunner"] == "n/a"
+    [jrow] = json.loads((reports / "ssa-correctness.json").read_text())
+    assert jrow["verdicts"]["copasi"]["p_value"] == 0.052 and jrow["min_p_value"] == 0.0031
+
+
+def test_ssa_timing_shows_ensemble_and_per_trajectory_times(ssa_gathered):
+    _, summary, _ = ssa_gathered
+    header = _row(summary, "problem", "species", "engine", "outcome", "pre-sim (s)")
+    cols = lambda engine: dict(zip(header, _row(summary, "toy", "4", engine)))  # noqa: E731
+    bn = cols("bngsim")
+    assert bn["ensemble median (s)"] == "0.0264" and bn["per trajectory (s)"] == "0.000264"
+    assert bn["pre-sim parts (s)"] == "netgen 0.8 + codegen [cc] 0.097 + load 0.0013"
+    assert cols("run_network")["pre-sim (s)"] == "in sim"
+    assert cols("run_network")["x run_network"] == "1.00"
+    assert cols("roadrunner")["ensemble median (s)"] == "n/a"
+    assert "ensemble* of 100 trajectories" in summary
+
+
+def test_ode_tables_keep_their_columns(gathered):
+    _, summary, _ = gathered
+    assert "| sim median (s) | sim 95% CI (s) | x run_network |" in summary
+    assert "per trajectory" not in summary and "min p" not in summary
+
+
+def test_correctness_shows_which_half_of_the_gate_failed_and_the_worst_species(tmp_path):
+    # A reference the vendored verdict passed and the per-species check failed
+    # (AMICI on Smith 2013, which never gives the first insulin dose), beside one
+    # that passed both. Each reference names the half that failed; the row names
+    # its worst species, as a fraction of its own peak.
+    job = Job(capability="ode", problem="smith", engines="bngsim-vs-a-b", setting="auto",
+              kind=CORRECTNESS)
+    check = {"passed": False, "n_fail": 10, "n_species": 105, "n_at_floor": 6, "tol": 1e-2,
+             "floor": 1e-8, "failing": ["Ins"],
+             "worst": {"species": "Ins", "err": 5e5, "peak": 5e5, "allowed": 5e3,
+                       "score": 100.0, "err_over_peak": 1.0, "t": 2.805}}
+    ok = {**check, "passed": True, "n_fail": 0, "failing": [],
+          "worst": {"species": "ROS", "err": 1.2e6, "peak": 1.1e11, "allowed": 1.1e9,
+                    "score": 1.1e-3, "err_over_peak": 1.1e-5}}
+    rec = {"outcome": "DIFF", "measurements": {"network": {"species": 133}},
+           "verdicts": {"a": {"passed": False, "vendored_passed": True, "species_check": check,
+                              "max_err_over_peak": 5.2e219},
+                        "b": {"passed": True, "vendored_passed": True, "species_check": ok,
+                              "max_err_over_peak": 1.1e-5}}}
+    path = tmp_path / "results" / f"{job.id}.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(rec))
+    out = g.gather([job], tmp_path / "results", tmp_path / "reports", {CORRECTNESS: {}, TIMING: {}})
+    [row] = out["ode-correctness"]
+    assert row["worst_species"]["species"] == "Ins" and row["worst_species"]["reference"] == "a"
+    assert row["verdicts"]["a"]["species_check"]["failing"] == ["Ins"]
+    summary = (tmp_path / "reports" / "summary.md").read_text(encoding="utf-8")
+    header = _row(summary, "problem", "species", "outcome")
+    cols = dict(zip(header, _row(summary, "smith", "133")))
+    assert cols["vs a"] == "DIFF (species)" and cols["vs b"] == "ok"
+    assert cols["worst species"] == "`Ins` (a) 1.0e+00 of peak"
+    assert cols["references"] == "DIFF 1/2 (a: diff)"
+
+
+# --------------------------------------------------------------------------- #
+# Steady state: an agreement per reference, point by point, and the engine-free
+# checks of BNGsim's own state beside them
+# --------------------------------------------------------------------------- #
+def test_steady_state_has_its_own_correctness_table(tmp_path):
+    job = Job(capability="steady_state", problem="toggle",
+              engines="bngsim-vs-run_network-roadrunner-copasi-amici", setting="newton",
+              kind=CORRECTNESS)
+    agree = {"passed": True, "max_ratio": 0.031, "worst_point": 2, "worst_species": "u",
+             "points_agreed": 3, "points": 3, "max_rel": 2e-6, "per_point": [0.01, 0.02, 0.031]}
+    rec = {
+        "outcome": "DIFF",
+        "measurements": {"network": {"species": 2, "reactions": 4},
+                         "points": [{"alpha_2": 1.0}, {"alpha_2": 50.0}, {"alpha_2": 500.0}]},
+        "verdicts": {
+            "run_network": agree,
+            "roadrunner": {**agree, "passed": False, "max_ratio": 12.0, "points_agreed": 2},
+            "engine_free": {"passed": True, "evaluated": True,
+                            "residual": {"passed": True, "max": 1e-12, "tol": 1e-6,
+                                         "per_point": [1e-12] * 3},
+                            "conservation": {"passed": True, "max": 0.0, "n_laws": 0}},
+        },
+        "copasi_error": "OTHER_STATE: at point 1 (alpha_2 = 50) it returned an unstable "
+                        "steady state",
+        "amici_error": "TIMEOUT: no result within the 600 s per-engine budget",
+    }
+    path = tmp_path / "results" / f"{job.id}.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(rec))
+    out = g.gather([job], tmp_path / "results", tmp_path / "reports", {CORRECTNESS: {}, TIMING: {}})
+    [row] = out["steady_state-correctness"]
+    assert set(row["verdicts"]) == {"run_network", "roadrunner"}
+    assert row["engine_free"]["residual"] == {"passed": True, "max": 1e-12, "tol": 1e-6}
+    assert row["max_ratio"] == 12.0 and row["points"] == 3
+    summary = (tmp_path / "reports" / "summary.md").read_text(encoding="utf-8")
+    header = _row(summary, "problem", "species", "points")
+    cols = dict(zip(header, _row(summary, "toggle", "2")))
+    assert cols["points"] == "3" and cols["worst ratio"] == "12"
+    assert cols["vs run_network"] == "ok" and cols["vs roadrunner"] == "DIFF (2/3 points)"
+    assert cols["vs copasi"] == "crash" and cols["vs amici"] == "timeout"
+    assert cols["engine-free"] == "ok"
+    assert cols["references"] == "DIFF 1/4 (amici: timeout, copasi: crash, roadrunner: diff)"
+    # Nothing of the ODE gate: no worst-species column, no vendored/per-species footnote.
+    assert "worst species" not in header and "vs engine_free" not in header
+    assert "vendored" not in summary and "per-species" not in summary
+
+
+def test_steady_state_engine_free_cell_names_the_failed_check():
+    assert g._engine_free_cell(None) == ""
+    assert g._engine_free_cell({"passed": True, "evaluated": False}) == "not evaluated"
+    assert g._engine_free_cell({"passed": False, "evaluated": True,
+                                "residual": {"passed": True},
+                                "conservation": {"passed": False}}) == "FAIL (conservation)"
