@@ -59,6 +59,25 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         row["max_ratio"] = max(ratios) if ratios else None
         row["points"] = len(m.get("points") or []) or None
         row["engine_free"] = _engine_free_summary(checks)
+    elif job.kind == CORRECTNESS and job.capability in SENSITIVITY:
+        # A sensitivity verdict is a column error (bench.sensitivity): the worst
+        # column's difference over its scale, per reference. A reference whose
+        # disagreement two other engines refute is named as such, not as a DIFF.
+        verdicts = rec.get("verdicts") or {}
+        row["verdicts"] = {name: {k: v.get(k) for k in
+                                  ("passed", "max_error", "n_judged", "n_columns", "n_failed",
+                                   "refuted_by", "params_judged", "params_failed")}
+                           for name, v in verdicts.items()}
+        errs = [v.get("max_error") for v in verdicts.values()
+                if isinstance(v.get("max_error"), (int, float)) and "refuted_by" not in v]
+        # Not "max_error": a row key ending in "_error" names a failed engine.
+        row["worst_column_err"] = max(errs) if errs else None
+        params = m.get("parameters") or {}
+        row["parameters"] = params.get("n")
+        row["parameters_excluded"] = params.get("excluded")
+        row["configurations"] = {name: {"passed": c.get("passed"), "max_error": c.get("max_error")}
+                                 for name, c in (m.get("configurations") or {}).items()}
+        row["coverage"] = m.get("coverage")
     elif job.kind == CORRECTNESS:
         # One verdict of BNGsim against each reference engine. The table shows the
         # worst agreement across references (the hardest check the row passed) and
@@ -93,6 +112,11 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
             bngsim_config={k: (m.get("bngsim") or {}).get(k)
                            for k in ("codegen_backend", "linear_solver", "jacobian")},
         )
+        if job.capability in SENSITIVITY:
+            # Every BNGsim configuration and the plain solves are engines of their
+            # own; the finite-difference baselines are derived from the plain solves.
+            row.update(presim=_sens_presim(m), fd_baselines=m.get("fd_baselines") or {},
+                       parameters=(m.get("parameters") or {}).get("n"))
         if job.capability in STOCHASTIC:
             # A timed repetition is an ensemble; the per-trajectory time is derived.
             row.update(timing_replicates=m.get("timing_replicates"),
@@ -116,6 +140,8 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
 STOCHASTIC = frozenset({"ssa"})
 # Capabilities whose correctness verdict is a steady state's agreement, point by point.
 STEADY = frozenset({"steady_state"})
+# Capabilities whose correctness verdict is a sensitivity column error.
+SENSITIVITY = frozenset({"sens"})
 
 
 def _p_value(v: dict[str, Any]) -> float | None:
@@ -230,6 +256,19 @@ def _presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return out
 
 
+def _sens_presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """``_presim`` for a sensitivity timing: each BNGsim configuration and the plain
+    BNGsim solve have their own load and compile, recorded under ``configurations``."""
+    out = _presim(m)
+    roles = m.get("engine_roles") or {}
+    for name, c in (m.get("configurations") or {}).items():
+        c = c or {}
+        out[name] = {"codegen_seconds": c.get("codegen_seconds"),
+                     "load_seconds": c.get("load_seconds"),
+                     "backend": c.get("codegen_backend"), "role": roles.get(name)}
+    return out
+
+
 # The role ``run_timing`` records for an engine run as a fresh process per solve: its
 # load is inside every timed rep, so there is no separate pre-sim number to report.
 _FRESH_SUBPROCESS = "fresh subprocess"
@@ -264,6 +303,9 @@ def _presim_cells(d: dict[str, Any] | None) -> tuple[str, str]:
 # against. run_network is the trusted dense oracle and the historical baseline, so
 # a reader sees "how much faster than run_network" without a stored ratio (6.3).
 SPEEDUP_BASELINE = "run_network"
+# For forward sensitivities the baseline is AMICI, the standard forward-sensitivity
+# tool; run_network there is a plain solve, the unit of a finite-difference gradient.
+SENS_SPEEDUP_BASELINE = "amici"
 
 
 def _engine_order(rows: list[dict[str, Any]]) -> list[str]:
@@ -288,13 +330,19 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
         capability = name.rsplit("-", 1)[0]
         stochastic = capability in STOCHASTIC
         if name.endswith(CORRECTNESS):
-            if capability in STEADY:
+            if capability in SENSITIVITY:
+                lines += _sens_correctness_table(rows)
+            elif capability in STEADY:
                 lines += _steady_correctness_table(rows)
             else:
                 lines += (_stochastic_correctness_table(rows) if stochastic
                           else _correctness_table(rows))
         elif name.endswith(TIMING):
-            lines += _timing_table(rows, per_trajectory=stochastic)
+            if capability in SENSITIVITY:
+                lines += _timing_table(rows, baseline=SENS_SPEEDUP_BASELINE)
+                lines += _fd_baseline_table(rows)
+            else:
+                lines += _timing_table(rows, per_trajectory=stochastic)
         lines.append("")
     return "\n".join(lines)
 
@@ -331,11 +379,17 @@ def reference_agreement(r: dict[str, Any]) -> str:
     if not attempted:
         return ""
     passed = sum(1 for v in verdicts.values() if v.get("passed"))
-    diffs = sorted(name for name, v in verdicts.items() if not v.get("passed"))
+    # A reference whose disagreement other references refute (a sensitivity
+    # verdict's ``refuted_by``) failed, as a crash did: it is not a DIFF of BNGsim.
+    refuted = sorted(name for name, v in verdicts.items()
+                     if not v.get("passed") and v.get("refuted_by"))
+    diffs = sorted(name for name, v in verdicts.items()
+                   if not v.get("passed") and not v.get("refuted_by"))
     misses = sorted([(name, _why(r, name)) for name in crashed]
                     + [(name, "diff") for name in diffs]
+                    + [(name, "refuted") for name in refuted]
                     + [(name, "n/a") for name in (r.get("not_applicable") or {})])
-    label = "DIFF" if diffs else ("PARTIAL" if crashed else "FULL")
+    label = "DIFF" if diffs else ("PARTIAL" if crashed or refuted else "FULL")
     named = f" ({', '.join(f'{n}: {why}' for n, why in misses)})" if misses else ""
     return f"{label} {passed}/{attempted}{named}"
 
@@ -522,7 +576,8 @@ def _worst_cell(w: dict[str, Any] | None) -> str:
     return where
 
 
-def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -> list[str]:
+def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
+                  baseline: str = SPEEDUP_BASELINE) -> list[str]:
     """One row per (problem, engine): the one-time pre-sim cost (load/compile) and its
     breakdown beside the per-solve median time with its bootstrap CI, whether the
     engine reproduced its first run, and a derived speedup versus the baseline
@@ -537,7 +592,7 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -
     header = ["problem", "species", "engine", "outcome", "pre-sim (s)",
               "pre-sim parts (s)", f"{unit} median (s)", f"{unit} 95% CI (s)",
               *(["per trajectory (s)"] if per_trajectory else []),
-              f"x {SPEEDUP_BASELINE}", "reproducible", "rounds", "current"]
+              f"x {baseline}", "reproducible", "rounds", "current"]
     lines = ["| " + " | ".join(header) + " |",
              "|---|---:|---|---|---:|---|---:|---|" + ("---:|" if per_trajectory else "")
              + "---:|---|---:|---|"]
@@ -550,7 +605,7 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -
         # A derived number is only trusted when the job passed; a NOT_REPRODUCIBLE
         # (or failed) row would otherwise publish a speedup against times it distrusts.
         trusted = r.get("outcome") == "PASS"
-        base = (times.get(SPEEDUP_BASELINE) or {}).get("median_seconds") if trusted else None
+        base = (times.get(baseline) or {}).get("median_seconds") if trusted else None
         for engine in engines:
             t = times.get(engine)
             if not t:
@@ -601,4 +656,73 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -
                   "the ensemble size. For bngsim, *codegen* is building the SSA simulator, "
                   "which compiles the propensities where it can [cc]. *n/a*: the reference "
                   "cannot simulate this model's exact SSA, so it was not run."]
+    return lines
+
+
+def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
+    """One row per problem, as ``_correctness_table`` but for a sensitivity verdict:
+    the number of parameters, the worst column error over the references that were
+    not refuted, and each reference's result with its own worst column error --
+    ``ok (3.5e-07)``, ``DIFF (0.12)``, ``refuted (1.1)`` (two other references agree
+    with BNGsim where it does not), or why it did not run; and whether every further
+    BNGsim configuration agreed with the default one."""
+    refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
+                  | {name for r in rows for name in _errored_engines(r)} - {"bngsim"})
+    header = ["problem", "species", "parameters", "outcome", "references", "max column error",
+              *(f"vs {name}" for name in refs), "configurations", "current"]
+    lines = ["| " + " | ".join(header) + " |",
+             "|---|---:|---:|---|---|---:|" + "---|" * len(refs) + "---|--|"]
+    for r in rows:
+        sp = (r.get("network") or {}).get("species")
+        verdicts = r.get("verdicts") or {}
+        errs = _errored_engines(r)
+        cells = []
+        for name in refs:
+            v = verdicts.get(name)
+            if v is not None:
+                e = v.get("max_error")
+                word = "ok" if v.get("passed") else ("refuted" if v.get("refuted_by") else "DIFF")
+                cells.append(word + (f" ({e:.2g})" if isinstance(e, (int, float)) else
+                                     f" ({e})" if e else ""))
+            elif name in errs:
+                cells.append(_why(r, name))
+            else:
+                cells.append("")
+        configs = r.get("configurations") or {}
+        bad = sorted(n for n, c in configs.items() if not c.get("passed"))
+        lines.append("| " + " | ".join([
+            r["problem"], _fmt(sp, "d"), _fmt(r.get("parameters"), "d"), r["outcome"],
+            reference_agreement(r), _fmt(r.get("worst_column_err"), ".2e"), *cells,
+            ("DIFF (" + ", ".join(bad) + ")") if bad else ("agree" if configs else ""),
+            "yes" if r["current"] else "no",
+        ]) + " |")
+    lines += ["", "A *column* is one output's sensitivity to one parameter over time; its error is "
+              "the largest difference of the semi-scaled sensitivity p dy/dp, as a fraction of "
+              "the column's peak (with absolute floors), and a comparison passes when every "
+              "column it judges is within the tolerance in the JSON row (docs/DESIGN.md §5.4). "
+              "*refuted*: the reference disagreed with BNGsim, and on every column it failed "
+              "another reference agreed with BNGsim and not with it. *configurations*: each "
+              "further BNGsim configuration against the default one."]
+    return lines
+
+
+def _fd_baseline_table(rows: list[dict[str, Any]]) -> list[str]:
+    """What a finite-difference gradient would cost, derived from the measured plain
+    solves: N + 1 of them for forward differences, 2N for central ones, beside the
+    measured forward-sensitivity solves. Only rows that passed are shown."""
+    lines = ["", "Finite-difference baselines (derived from the plain solves, not measured):", "",
+             "| problem | parameters | plain solve by | plain solve (s) | forward FD, N+1 (s) "
+             "| central FD, 2N (s) | bngsim sensitivities (s) |",
+             "|---|---:|---|---:|---:|---:|---:|"]
+    for r in rows:
+        if r.get("outcome") != "PASS":
+            continue
+        times = r.get("times") or {}
+        bn = (times.get("bngsim") or {}).get("median_seconds")
+        for engine, b in sorted((r.get("fd_baselines") or {}).items()):
+            plain = (times.get(engine) or {}).get("median_seconds")
+            lines.append("| " + " | ".join([
+                r["problem"], _fmt(b.get("parameters"), "d"), engine, _sec(plain),
+                _sec(b.get("forward_seconds")), _sec(b.get("central_seconds")), _sec(bn),
+            ]) + " |")
     return lines

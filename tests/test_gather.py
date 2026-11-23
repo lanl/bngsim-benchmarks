@@ -304,3 +304,102 @@ def test_steady_state_engine_free_cell_names_the_failed_check():
     assert g._engine_free_cell({"passed": False, "evaluated": True,
                                 "residual": {"passed": True},
                                 "conservation": {"passed": False}}) == "FAIL (conservation)"
+
+
+# Forward sensitivities: a column error per reference, a refuted reference named
+# as such, and the finite-difference baselines beside the timed solves
+# --------------------------------------------------------------------------- #
+SENS_ENGINES = "bngsim-vs-amici-run_network_fd-copasi"
+
+
+def _sens_records():
+    network = {"species": 27, "reactions": 96, "observables": 1}
+    corr = {
+        "outcome": "REFERENCE_FAILED",
+        "measurements": {
+            "network": network,
+            "parameters": {"n": 11, "excluded": {"IGF1_cold_conc": "zero value: no relative step"}},
+            "configurations": {"bngsim_simultaneous": {"passed": True, "max_error": 1.8e-7}},
+            "coverage": {"n_columns": 308, "n_significant": 120, "n_judged": 120, "unjudged": []},
+        },
+        "verdicts": {
+            "amici": {"passed": True, "max_error": 3.5e-7, "n_judged": 308, "n_columns": 308},
+            "run_network_fd": {"passed": True, "max_error": 5.1e-7, "n_judged": 300,
+                               "n_columns": 308},
+            "copasi": {"passed": False, "max_error": 1.06, "n_judged": 308, "n_columns": 308,
+                       "n_failed": 108, "refuted_by": ["amici", "run_network_fd"]},
+        },
+    }
+    names = ("bngsim", "bngsim_simultaneous", "bngsim_ode", "run_network", "amici", "copasi")
+    secs = (0.0255, 0.0253, 0.0014, 0.0097, 0.0413, 5.75)
+    timing = {
+        "outcome": "PASS",
+        "measurements": {
+            "network": network, "netgen_seconds": 0.9,
+            "parameters": {"n": 11},
+            "bngsim": {"load_seconds": 0.002, "codegen_seconds": 1.9, "codegen_backend": "cc"},
+            "configurations": {
+                "bngsim_simultaneous": {"load_seconds": 0.001, "codegen_seconds": 0.001,
+                                        "codegen_backend": "cc"},
+                "bngsim_ode": {"load_seconds": 0.001}},
+            "references": {"amici": {"codegen_seconds": 14.2, "load_seconds": 0.05},
+                           "copasi": {"load_seconds": 0.3}, "run_network": {}},
+            "engine_roles": {"bngsim": "warm, in-process (system under test, staggered corrector)",
+                             "run_network": "fresh subprocess"},
+            "times": {n: {"median_seconds": s, "ci_low": s * 0.99, "ci_high": s * 1.01}
+                      for n, s in zip(names, secs)},
+            "fd_baselines": {"bngsim_ode": {"forward_seconds": 12 * 0.0014,
+                                            "central_seconds": 22 * 0.0014, "parameters": 11},
+                             "run_network": {"forward_seconds": 12 * 0.0097,
+                                             "central_seconds": 22 * 0.0097, "parameters": 11}},
+            "reproducibility": {n: {"passed": True} for n in names},
+            "repetitions": {"rounds": 20, "warmup_rounds": 1},
+        },
+    }
+    return corr, timing
+
+
+@pytest.fixture
+def sens_gathered(tmp_path):
+    results = tmp_path / "results"
+    jobs = [Job("sens", "igf1r", SENS_ENGINES, "auto", kind) for kind in (CORRECTNESS, TIMING)]
+    for job, rec in zip(jobs, _sens_records()):
+        dest = results / f"{job.id}.json"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(rec))
+    reports = tmp_path / "reports"
+    out = g.gather(jobs, results, reports, {CORRECTNESS: {}, TIMING: {}})
+    return out, (reports / "summary.md").read_text(encoding="utf-8"), reports
+
+
+def test_sens_correctness_names_a_refuted_reference_and_the_worst_column_error(sens_gathered):
+    _, summary, reports = sens_gathered
+    header = _row(summary, "problem", "species", "parameters", "outcome")
+    row = dict(zip(header, _row(summary, "igf1r", "27")))
+    assert row["parameters"] == "11" and row["outcome"] == "REFERENCE_FAILED"
+    assert row["references"] == "PARTIAL 2/3 (copasi: refuted)"
+    # The worst error over the references that were not refuted.
+    assert row["max column error"] == "5.10e-07"
+    assert row["vs amici"] == "ok (3.5e-07)" and row["vs copasi"] == "refuted (1.1)"
+    assert row["configurations"] == "agree"
+    [jrow] = json.loads((reports / "sens-correctness.json").read_text())
+    assert jrow["verdicts"]["copasi"]["refuted_by"] == ["amici", "run_network_fd"]
+    assert jrow["parameters_excluded"] == {"IGF1_cold_conc": "zero value: no relative step"}
+
+
+def test_sens_timing_shows_every_configuration_and_the_fd_baselines(sens_gathered):
+    _, summary, _ = sens_gathered
+    header = _row(summary, "problem", "species", "engine", "outcome", "pre-sim (s)")
+    cols = lambda engine: dict(zip(header, _row(summary, "igf1r", "27", engine)))  # noqa: E731
+    amici = cols("amici")
+    assert amici["pre-sim parts (s)"] == "codegen 14.2 + load 0.05"
+    assert amici["x amici"] == "1.00" and cols("bngsim")["x amici"] == "1.62"
+    assert cols("bngsim_simultaneous")["pre-sim parts (s)"] == "codegen [cc] 0.001 + load 0.001"
+    assert cols("run_network")["pre-sim (s)"] == "in sim"
+    assert "| igf1r | 11 | run_network | 0.0097 | 0.1164 | 0.2134 | 0.0255 |" in summary
+
+
+def test_a_sensitivity_disagreement_nobody_refutes_reads_diff():
+    row = {"verdicts": {"a": {"passed": True}, "b": {"passed": False},
+                        "c": {"passed": False, "refuted_by": ["a"]}}}
+    assert g.reference_agreement(row) == "DIFF 1/3 (b: diff, c: refuted)"
