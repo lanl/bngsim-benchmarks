@@ -38,11 +38,16 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         verdicts = rec.get("verdicts") or {}
         row["verdicts"] = {name: {"max_err_over_peak": v.get("max_err_over_peak"),
                                   "max_rel": v.get("max_rel"), "n_cells": v.get("n_cells"),
-                                  "passed": v.get("passed")}
+                                  "passed": v.get("passed"),
+                                  # Both halves of the gate, where the record has them
+                                  # (one scored before the per-species check has neither).
+                                  "vendored_passed": v.get("vendored_passed"),
+                                  "species_check": _species_summary(v.get("species_check"))}
                            for name, v in verdicts.items()}
         peaks = [v.get("max_err_over_peak") for v in verdicts.values()
                  if v.get("max_err_over_peak") is not None]
         row["max_err_over_peak"] = max(peaks) if peaks else None
+        row["worst_species"] = worst_species(verdicts)
     else:
         # Absolute time per engine (bngsim + each reference), with its bootstrap CI
         # and whether that engine reproduced its first run. A speedup is derived in
@@ -71,6 +76,27 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
     if rec.get("not_applicable"):
         row["not_applicable"] = dict(rec["not_applicable"])
     return row
+
+
+def _species_summary(check: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not check:
+        return None
+    return {k: check.get(k) for k in ("passed", "n_fail", "n_species", "n_at_floor", "tol",
+                                      "floor", "failing", "worst")}
+
+
+def worst_species(verdicts: dict[str, Any]) -> dict[str, Any] | None:
+    """The species closest to (or furthest past) what the per-species check allows,
+    over every reference: its name, the reference, its error, its peak, and what it
+    was allowed (``allowed``: the larger of the check's tolerance times its peak and
+    the atol floor). None when no verdict carries a per-species check."""
+    best = None
+    for name, v in verdicts.items():
+        w = ((v or {}).get("species_check") or {}).get("worst")
+        if w and (best is None or (w.get("score") or 0) > (best.get("score") or 0)):
+            best = {**w, "reference": name,
+                    "floor": (v.get("species_check") or {}).get("floor")}
+    return best
 
 
 def gather(
@@ -251,9 +277,9 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
                   | {name for r in rows for name in _errored_engines(r)}
                   | {name for r in rows for name in (r.get("not_applicable") or {})})
     header = ["problem", "species", "outcome", "references", "max error / peak",
-              *(f"vs {name}" for name in refs), "current"]
+              "worst species", *(f"vs {name}" for name in refs), "current"]
     lines = ["| " + " | ".join(header) + " |",
-             "|---|---:|---|---|---:|" + "---|" * len(refs) + "--|"]
+             "|---|---:|---|---|---:|---|" + "---|" * len(refs) + "--|"]
     for r in rows:
         sp = (r.get("network") or {}).get("species")
         verdicts = r.get("verdicts") or {}
@@ -262,7 +288,7 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
         for name in refs:
             v = verdicts.get(name)
             if v is not None:
-                cells.append("ok" if v.get("passed") else "DIFF")
+                cells.append(_verdict_cell(v))
             elif name in errs:
                 cells.append(_why(r, name))
             elif name in (r.get("not_applicable") or {}):
@@ -271,10 +297,51 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
                 cells.append("")
         lines.append("| " + " | ".join([
             r["problem"], _fmt(sp, "d"), r["outcome"], reference_agreement(r),
-            _fmt(r.get("max_err_over_peak"), ".2e"), *cells,
-            "yes" if r["current"] else "no",
+            _fmt(r.get("max_err_over_peak"), ".2e"), _worst_cell(r.get("worst_species")),
+            *cells, "yes" if r["current"] else "no",
         ]) + " |")
+    lines += ["", "*max error / peak*: the worst disagreement over every reference, as a "
+              "fraction of the reference's own peak of that species (1.0 where one engine "
+              "holds a species at zero and the other reports round-off). *worst species*: "
+              "the species nearest to failing the per-species check, over every reference: "
+              "its worst error as a fraction of its own peak over both engines or, where "
+              "the species is so small that the check's atol floor sets what it may be "
+              "off by, as a percentage of that floor. A reference passes only "
+              "when bngsim's vendored verdict AND the per-species check both pass; *DIFF "
+              "(species)*, *DIFF (vendored)* or *DIFF (both)* says which failed."]
     return lines
+
+
+def _verdict_cell(v: dict[str, Any]) -> str:
+    """``ok``, or ``DIFF`` with which half of the gate failed, where the record
+    has both halves."""
+    if v.get("passed"):
+        return "ok"
+    vendored = v.get("vendored_passed")
+    species = (v.get("species_check") or {}).get("passed")
+    if vendored is None or species is None:
+        return "DIFF"
+    if not vendored and not species:
+        return "DIFF (both)"
+    return "DIFF (species)" if vendored else "DIFF (vendored)"
+
+
+def _short(name: str, n: int = 40) -> str:
+    return name if len(name) <= n else name[: n - 1] + "…"
+
+
+def _worst_cell(w: dict[str, Any] | None) -> str:
+    """The worst species as ``<name> (<reference>) 3.1e-02 of peak``, or, where
+    the atol floor set what it was allowed, its error as a percentage of that floor."""
+    if not w:
+        return ""
+    where = f"`{_short(str(w.get('species')))}` ({w.get('reference')})"
+    floor, peak, err = w.get("floor"), w.get("peak"), w.get("err")
+    if floor and w.get("allowed") == floor and err is not None:
+        return f"{where} {err / floor * 100:.2g}% of floor"
+    if peak and err is not None:
+        return f"{where} {err / peak:.1e} of peak"
+    return where
 
 
 def _timing_table(rows: list[dict[str, Any]]) -> list[str]:

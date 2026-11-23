@@ -27,9 +27,14 @@ Pipeline, per problem:
 3. Every engine integrates the protocol and returns a species trajectory in
    **BNGsim's column order**.
 
-The correctness job records a verdict of BNGsim against *each* reference
-(bngsim's own deterministic verdict, ``parity_core.differ``) and passes only when
-BNGsim agrees with every one -- a genuine cross-engine check. The timing job
+The correctness job records a verdict of BNGsim against *each* reference and
+passes only when BNGsim agrees with every one -- a genuine cross-engine check. A
+reference agrees only when bngsim's own deterministic verdict (``parity_core.differ``,
+vendored unmodified) passes AND a per-species check does, which judges every compared
+species against its own peak, with a floor tied to the protocol's atol (see
+``species_check`` and the constants beside ``VERDICT_VERSION``). The job stores the
+trajectories it compared, so a verdict change is re-scored (``rescore``) rather than
+re-simulated. The timing job
 interleaves all the engines round-robin in one drift-cancelling run (``bench.timing``)
 and reports each engine's absolute time with a bootstrap CI; a speedup is only a
 derived view (``gather``), never a stored headline.
@@ -148,6 +153,42 @@ REPRO_CHECK_VERSION = 1
 REPRO_TOL = 1e-6
 LINEAR_SOLVER_NAMES = {0: "dense", 1: "KLU", 2: "LAPACK-dense"}
 
+# The correctness gate: a reference agrees with BNGsim only when bngsim's vendored
+# verdict (parity_core.differ, unmodified) passes AND so does a per-species check
+# (``species_check``). The vendored verdict can hard-fail a species only when its
+# peak is past SIGNIF_FLOOR (1e-3) of the file-wide peak or its range past 1e-3 of
+# the largest range, so on a model whose species span many decades most species are
+# never judged: of the ode-sbml suite it judged 1 of Nishio 2008's 59 compared
+# species and 16 of Smith 2013's 105, and passed AMICI on Smith although AMICI never
+# gave the first of its two insulin doses. The per-species check judges every species
+# on its own scale: its worst disagreement over the run against the larger of
+# SPECIES_TOL of its own peak (over both engines) and SPECIES_ATOL_FACTOR times the
+# protocol's atol.
+#
+# Calibrated on the ode-net and ode-sbml suites (docs/DESIGN.md §6.4):
+# - SPECIES_TOL = 1e-2, the vendored movement gate's own ceiling, now on every
+#   species. Every comparison that should pass is inside it: the worst is
+#   libRoadRunner on Koo 2013 at 4.6e-3 of a species' peak (its own integration
+#   error at the SED-ML's rtol of 1e-6, 4.4e-3 from the converged solution), the
+#   next Koo 2013 at 5.8e-4 and Verma 2016 at 2.2e-4, and every ode-net comparison
+#   is under 1e-4. Every known-bad one is past it by 10x or more: AMICI on Smith
+#   2013 (the missing insulin dose, 1.0), COPASI (1.0) and libRoadRunner (0.13) on
+#   Winter 2017.
+# - SPECIES_ATOL_FACTOR = 10, the vendored MOVE_ATOL_FACTOR: two solvers holding
+#   their local error to atol differ by a few atol on a species near zero (bngsim's
+#   rr_ode census: up to 3.8 atol on comparisons that pass). Every species of a
+#   passing comparison past 1e-2 of its peak is under 2e-8 atol (one engine reports
+#   round-off where the other holds exact zero, e.g. TP53 Ser15~p on Lang 2024 at
+#   1e-26 against atol 1e-12), so the floor costs none of them.
+# Bump VERDICT_VERSION whenever the check, its constants, or how the two halves are
+# combined change. It is a correctness-only part of the job definition (as
+# timing_check is timing-only), so every ODE correctness result goes stale -- and
+# ``bench rescore`` re-scores it from its stored trajectories -- while no timing
+# job's definition, id or key changes.
+VERDICT_VERSION = 1
+SPECIES_TOL = 1e-2
+SPECIES_ATOL_FACTOR = 10.0
+
 # Actions BNG2.pl would execute; none may run before the appended netgen.
 _ACTION_LINE_RE = re.compile(
     r"^(generate_network|simulate\w*|parameter_scan|bifurcate|readFile|setOption|"
@@ -223,7 +264,10 @@ def jobs(problem: Problem) -> list[Job]:
     backstop = (len(REFERENCE_ENGINES) + 2) * engine_budget_seconds(problem)
     correctness = Job(
         CAPABILITY, problem.id, engines, "auto", CORRECTNESS,
-        definition=base,
+        # A correctness-only part of the key (as timing_check is timing-only): a
+        # verdict change restales every correctness result, which `bench rescore`
+        # re-scores from its stored trajectories, and no timing result.
+        definition={**base, "verdict": VERDICT_VERSION},
         est_seconds=est_c,
         timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c, backstop),
     )
@@ -1408,10 +1452,15 @@ def derive_network(sbml: Path, species_ids: list[str], proto: dict[str, Any], wo
     except Exception as exc:  # noqa: BLE001
         return not_applicable(f"the faithfulness check could not run: {type(exc).__name__}: {exc}")
     keep = np.array([not any(_close(g, b, scale) for b in boundary) for g in grid])
-    verdict = _verdict(derived[:, columns][keep], source[keep], FAITHFULNESS_ATOL)
+    # The vendored verdict alone decides (the timing job derives the network too,
+    # and decides the same way); the per-species check is recorded beside it.
+    verdict = _vendored_verdict(derived[:, columns][keep], source[keep], FAITHFULNESS_ATOL)
+    check = species_check(derived[:, columns][keep], source[keep], FAITHFULNESS_ATOL,
+                          species=species_ids, times=grid[keep])
     info["faithfulness"] = {
         "passed": bool(verdict.get("passed")),
         "max_err_over_peak": verdict.get("max_err_over_peak"),
+        "species_check": _check_summary(check),
         "rtol": FAITHFULNESS_RTOL, "atol": FAITHFULNESS_ATOL,
         "rows_not_compared": boundary,
     }
@@ -1687,7 +1736,9 @@ def _prepare_sbml(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
             "info": info}
 
 
-def _verdict(bn: np.ndarray, ref: np.ndarray, atol: float) -> dict[str, Any]:
+def _vendored_verdict(bn: np.ndarray, ref: np.ndarray, atol: float) -> dict[str, Any]:
+    """bngsim's own deterministic verdict (``parity_core.differ``), unmodified,
+    on the rows and columns the two trajectories share."""
     from .._vendor.parity_core import differ
 
     n_t = min(bn.shape[0], ref.shape[0])
@@ -1703,6 +1754,100 @@ def _verdict(bn: np.ndarray, ref: np.ndarray, atol: float) -> dict[str, Any]:
     out["max_err_over_peak"] = max_err_over_peak(bn[:n_t, :n_sp], ref[:n_t, :n_sp])
     out["shapes"] = {"bngsim": list(bn.shape), "reference": list(ref.shape)}
     return out
+
+
+def _verdict(bn: np.ndarray, ref: np.ndarray, atol: float, *,
+             species: list[str] | None = None, times: np.ndarray | None = None
+             ) -> dict[str, Any]:
+    """BNGsim against one reference: the vendored verdict AND the per-species
+    check, both recorded, ``passed`` only when both pass.
+
+    The vendored verdict's own result keeps its flat keys (``max_rel``,
+    ``n_hard_fail``, ...) with its pass as ``vendored_passed``; the per-species
+    check is ``species_check``."""
+    out = _vendored_verdict(bn, ref, atol)
+    if "reason" in out:
+        return out
+    n_t = min(bn.shape[0], ref.shape[0])
+    n_sp = min(bn.shape[1], ref.shape[1])
+    check = species_check(bn[:n_t, :n_sp], ref[:n_t, :n_sp], atol,
+                          species=None if species is None else list(species)[:n_sp],
+                          times=None if times is None else np.asarray(times)[:n_t])
+    out["vendored_passed"] = bool(out["passed"])
+    out["species_check"] = check
+    out["passed"] = bool(out["vendored_passed"] and check["passed"])
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# The per-species check, beside the vendored verdict (constants at the top)
+# --------------------------------------------------------------------------- #
+def _finite_abs_diff(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """|a - b| cell by cell, where two equal values (two NaNs, or the same
+    infinity) differ by 0 and a finite value against a non-finite one, or two
+    different non-finite values, by infinity."""
+    with np.errstate(invalid="ignore", over="ignore"):
+        d = np.abs(a - b)
+    fa, fb = np.isfinite(a), np.isfinite(b)
+    same = (np.isnan(a) & np.isnan(b)) | (~fa & ~fb & (a == b))
+    d = np.where(fa & fb, d, np.inf)
+    return np.where(same, 0.0, d)
+
+
+def species_check(a: np.ndarray, b: np.ndarray, atol: float, *,
+                  species: list[str] | None = None, times: np.ndarray | None = None,
+                  tol: float | None = None, atol_factor: float | None = None
+                  ) -> dict[str, Any]:
+    """Each species' worst disagreement, judged against that species' own scale.
+
+    ``a`` (BNGsim) and ``b`` (the reference) are aligned ``(n_time, n_species)``
+    arrays. A species fails when ``max_t |a - b|`` is past ``allowed = max(tol *
+    peak, floor)``, where ``peak`` is its largest magnitude over time on either
+    side (so an engine that moves a species the other holds at zero is judged
+    against what it moved it to) and ``floor = atol_factor * atol``. A
+    non-finite value against a finite one always fails. Reports the worst species
+    by ``err / allowed`` (its name, error, peak, the floor, and the time of its
+    worst cell), how many species fail and which, and how many sit at the floor
+    (their peak is so small that the floor, not their peak, sets what they may
+    be off by)."""
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    if a.shape != b.shape:
+        raise ValueError(f"shape mismatch: {a.shape} vs {b.shape}")
+    tol = SPECIES_TOL if tol is None else float(tol)
+    factor = SPECIES_ATOL_FACTOR if atol_factor is None else float(atol_factor)
+    floor = factor * float(atol)
+    out: dict[str, Any] = {"tol": tol, "atol": float(atol), "atol_factor": factor,
+                           "floor": floor, "n_species": int(a.shape[1])}
+    if a.size == 0:
+        return {**out, "passed": False, "reason": "nothing to compare"}
+    diff = _finite_abs_diff(a, b)
+    err = diff.max(axis=0)
+    mag = np.maximum(np.where(np.isfinite(a), np.abs(a), 0.0),
+                     np.where(np.isfinite(b), np.abs(b), 0.0))
+    peak = mag.max(axis=0)
+    allowed = np.maximum(tol * peak, floor)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        score = np.where(err > 0, err / np.where(allowed > 0, allowed, np.inf), 0.0)
+    score = np.where(np.isnan(score), np.inf, score)
+    fails = score > 1.0
+    j = int(np.argmax(score))
+    names = list(species) if species is not None else [f"#{k}" for k in range(a.shape[1])]
+
+    def name(k: int) -> str:
+        return str(names[k]) if k < len(names) else f"#{k}"
+
+    worst: dict[str, Any] = {
+        "species": name(j), "index": j, "err": float(err[j]), "peak": float(peak[j]),
+        "err_over_peak": float(err[j] / peak[j]) if peak[j] > 0 else None,
+        "allowed": float(allowed[j]), "score": float(score[j]),
+    }
+    if times is not None and len(times) == a.shape[0]:
+        worst["t"] = float(np.asarray(times)[int(np.argmax(diff[:, j]))])
+    failing = [name(int(k)) for k in np.argsort(-score) if fails[k]]
+    return {**out, "passed": not bool(fails.any()), "n_fail": int(fails.sum()),
+            "failing": failing[:10], "n_at_floor": int(np.sum(tol * peak < floor)),
+            "worst": worst}
 
 
 def max_err_over_peak(a: np.ndarray, b: np.ndarray) -> float | None:
@@ -1767,7 +1912,10 @@ def sparse_check(net: Path, proto: dict[str, Any], workdir: Path, dense: np.ndar
         return {"agrees_with_dense": False, "error": f"{type(exc).__name__}: {exc}"[:400]}
     if keep is not None:
         keep["run_network_sparse"] = np.asarray(values, dtype=np.float64)
-    v = _verdict(values, dense, float(proto["atol"]))
+    # The vendored verdict alone decides whether the timing job may time the
+    # authors' sparse setting; the correctness job records the per-species check
+    # of the same two runs beside it (``_score``).
+    v = _vendored_verdict(values, dense, float(proto["atol"]))
     return {"agrees_with_dense": bool(v.get("passed")), "max_rel": v.get("max_rel"),
             "n_hard_fail": v.get("n_hard_fail"), "seconds": seconds}
 
@@ -1847,8 +1995,13 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         if check is not None:
             info["sparse_reference"] = check
 
-    verdicts, outcome = _score(bn, ref_trajectories, references, proto, bn_error=bn_error,
-                               ref_errors=ref_errors, not_applicable=not_applicable)
+    species = prep.get("species_ids") if prep.get("format") == "sbml" else prep.get("species_names")
+    verdicts, outcome = _score(bn, ref_trajectories, references, proto, species=species,
+                               bn_error=bn_error, ref_errors=ref_errors,
+                               not_applicable=not_applicable)
+    if "run_network_sparse" in sparse_traj and "sparse_reference" in info:
+        info["sparse_reference"]["species_check"] = _sparse_species_check(
+            sparse_traj["run_network_sparse"], ref_trajectories["run_network"], proto, species)
     rec: dict[str, Any] = {"outcome": outcome, "measurements": info}
     if verdicts:
         rec["verdicts"] = verdicts
@@ -1904,26 +2057,28 @@ def _not_applicable(prep: dict[str, Any], workdir: Path, budget: float,
 
 
 def _reference_verdict(bn: np.ndarray, ref: np.ndarray, atol: float, config: dict[str, Any],
-                       proto: dict[str, Any]) -> dict[str, Any]:
+                       proto: dict[str, Any], species: list[str] | None = None) -> dict[str, Any]:
     """BNGsim against one reference. Rows at the instants a derived network's
     protocol changes the state (``boundary_times``: an SBML event, translated to
     an action between run_network phases) are left out, and named: what is
     reported at that instant is the conversion's convention, not run_network's."""
+    grid = output_times(proto)
     boundary = config.get("boundary_times") or []
     if not boundary:
-        return _verdict(bn, ref, atol)
+        return _verdict(bn, ref, atol, species=species, times=grid)
     scale = _time_scale(proto)
-    keep = np.array([not any(_close(g, b, scale) for b in boundary)
-                     for g in output_times(proto)])
+    keep = np.array([not any(_close(g, b, scale) for b in boundary) for g in grid])
     n = min(bn.shape[0], ref.shape[0], keep.size)
-    v = _verdict(bn[:n][keep[:n]], ref[:n][keep[:n]], atol)
+    v = _verdict(bn[:n][keep[:n]], ref[:n][keep[:n]], atol, species=species,
+                 times=grid[:n][keep[:n]])
     v["rows_not_compared"] = list(boundary)
     return v
 
 
 def _score(bn: np.ndarray | None, refs: dict[str, np.ndarray], configs: dict[str, Any],
-           proto: dict[str, Any], *, bn_error: str | None, ref_errors: dict[str, str],
-           not_applicable: dict[str, str]) -> tuple[dict[str, Any], str]:
+           proto: dict[str, Any], *, species: list[str] | None, bn_error: str | None,
+           ref_errors: dict[str, str], not_applicable: dict[str, str]
+           ) -> tuple[dict[str, Any], str]:
     """The verdict of BNGsim against each reference that ran, and the job's
     outcome. The one place both are computed, from a run (``run_correctness``)
     or from its stored trajectories (``rescore``), so the two cannot drift."""
@@ -1931,7 +2086,8 @@ def _score(bn: np.ndarray | None, refs: dict[str, np.ndarray], configs: dict[str
     verdicts: dict[str, Any] = {}
     if bn is not None:
         for name, traj in refs.items():
-            verdicts[name] = _reference_verdict(bn, traj, atol, configs.get(name) or {}, proto)
+            verdicts[name] = _reference_verdict(bn, traj, atol, configs.get(name) or {}, proto,
+                                                species)
     passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
     outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES) - len(not_applicable),
                        passed)
@@ -1940,21 +2096,46 @@ def _score(bn: np.ndarray | None, refs: dict[str, np.ndarray], configs: dict[str
     return verdicts, outcome
 
 
+def _check_summary(check: dict[str, Any]) -> dict[str, Any]:
+    """A per-species check as an informational field beside a decision it does
+    not take part in (the faithfulness and sparse checks)."""
+    return {k: check.get(k) for k in ("passed", "n_fail", "floor", "tol", "worst")}
+
+
+def _sparse_species_check(sparse: np.ndarray, dense: np.ndarray, proto: dict[str, Any],
+                          species: list[str] | None) -> dict[str, Any]:
+    n_t = min(sparse.shape[0], dense.shape[0])
+    n_sp = min(sparse.shape[1], dense.shape[1])
+    return _check_summary(species_check(
+        sparse[:n_t, :n_sp], dense[:n_t, :n_sp], float(proto["atol"]),
+        species=None if species is None else list(species)[:n_sp],
+        times=output_times(proto)[:n_t]))
+
+
 def rescore(job: Job, record: dict[str, Any], arrays: dict[str, np.ndarray]) -> dict[str, Any]:
     """A correctness record re-scored from its stored trajectories with the
-    current verdict: the record's new ``verdicts`` and ``outcome``. Engine
-    failures, configurations and not-applicable references are the record's own."""
+    current verdict: the record's new ``verdicts`` and ``outcome`` (and, where it
+    stored a sparse run, its sparse check's per-species result). Engine failures,
+    configurations and not-applicable references are the record's own."""
     proto = job.definition["protocol"]
+    species = [str(s) for s in arrays["species"]] if "species" in arrays else None
     refs = {name: arrays[name] for name in REFERENCE_ENGINES if name in arrays}
     ref_errors = {name: str(record[f"{name}_error"]) for name in REFERENCE_ENGINES
                   if record.get(f"{name}_error")}
     m = record.get("measurements") or {}
     verdicts, outcome = _score(arrays.get("bngsim"), refs, m.get("references") or {}, proto,
-                               bn_error=record.get("bngsim_error"), ref_errors=ref_errors,
+                               species=species, bn_error=record.get("bngsim_error"),
+                               ref_errors=ref_errors,
                                not_applicable=record.get("not_applicable") or {})
     update: dict[str, Any] = {"outcome": outcome}
     if verdicts:
         update["verdicts"] = verdicts
+    sparse = m.get("sparse_reference")
+    if sparse is not None and "run_network_sparse" in arrays and "run_network" in arrays:
+        sparse = dict(sparse)
+        sparse["species_check"] = _sparse_species_check(
+            arrays["run_network_sparse"], arrays["run_network"], proto, species)
+        update["measurements"] = {**m, "sparse_reference": sparse}
     return update
 
 

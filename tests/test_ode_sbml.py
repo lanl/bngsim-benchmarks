@@ -79,10 +79,14 @@ def test_an_sbml_problem_gets_correctness_and_timing_jobs(sbml_spec, write_spec)
 
 def test_a_bngl_job_definition_is_unchanged_by_the_sbml_path(spec_data, write_spec):
     # The ode-net results stay current only if a .net job's definition is exactly
-    # what it was: the same keys, and a protocol with no SBML key in it.
+    # what it was: the same keys, and a protocol with no SBML key in it. (Only the
+    # correctness job adds the verdict version, its own correctness-only part.)
     correctness, timing = ode.jobs(specs.load(write_spec(spec_data)))
     assert set(correctness.definition) == {
-        "harness", "source_sha256", "protocol", "setting", "reference_versions"}
+        "harness", "source_sha256", "protocol", "setting", "reference_versions", "verdict"}
+    assert set(timing.definition) == {
+        "harness", "source_sha256", "protocol", "setting", "reference_versions", "timing",
+        "timing_check"}
     assert set(correctness.definition["protocol"]) == {
         "netgen", "t_start", "t_end", "n_steps", "rtol", "atol", "sparse"}
     assert correctness.definition["harness"] == f"ode/{ode.engines_id()}/{ode.HARNESS_VERSION}"

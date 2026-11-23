@@ -124,6 +124,11 @@ covers the pinned file.
 - What is compared is each **state species**: every species the SBML neither declares
   constant nor sets by an assignment rule. Each engine reports them as concentrations,
   by SBML id, at exactly the protocol's output times, or it has failed.
+- A reference agrees with BNGsim only when bngsim's vendored verdict **and** a
+  per-species check pass (DESIGN §6.4). The per-species check holds each species to
+  1e-2 of its own peak, or 10 atol where that is larger. On this suite the vendored
+  verdict alone judges few species: 1 of Nishio 2008's 59, for example, and 16 of
+  Smith 2013's 105.
 - libRoadRunner, COPASI and AMICI read the pinned SBML. **run_network** reads a network
   derived from it. `bngsim.convert.sbml_to_bngl` writes compartmental BNGL, in which a
   fixed-time event becomes a change of state between `simulate` phases, and BNG2.pl

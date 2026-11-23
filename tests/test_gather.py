@@ -124,3 +124,37 @@ def test_sub_second_times_keep_their_digits():
     assert g._sec(0.001108) == "0.001108"
     assert g._sec(220.42275) == "220.4"
     assert g._sec(None) == ""
+
+
+def test_correctness_shows_which_half_of_the_gate_failed_and_the_worst_species(tmp_path):
+    # A reference the vendored verdict passed and the per-species check failed
+    # (AMICI on Smith 2013, which never gives the first insulin dose), beside one
+    # that passed both. Each reference names the half that failed; the row names
+    # its worst species, as a fraction of its own peak.
+    job = Job(capability="ode", problem="smith", engines="bngsim-vs-a-b", setting="auto",
+              kind=CORRECTNESS)
+    check = {"passed": False, "n_fail": 10, "n_species": 105, "n_at_floor": 6, "tol": 1e-2,
+             "floor": 1e-8, "failing": ["Ins"],
+             "worst": {"species": "Ins", "err": 5e5, "peak": 5e5, "allowed": 5e3,
+                       "score": 100.0, "err_over_peak": 1.0, "t": 2.805}}
+    ok = {**check, "passed": True, "n_fail": 0, "failing": [],
+          "worst": {"species": "ROS", "err": 1.2e6, "peak": 1.1e11, "allowed": 1.1e9,
+                    "score": 1.1e-3, "err_over_peak": 1.1e-5}}
+    rec = {"outcome": "DIFF", "measurements": {"network": {"species": 133}},
+           "verdicts": {"a": {"passed": False, "vendored_passed": True, "species_check": check,
+                              "max_err_over_peak": 5.2e219},
+                        "b": {"passed": True, "vendored_passed": True, "species_check": ok,
+                              "max_err_over_peak": 1.1e-5}}}
+    path = tmp_path / "results" / f"{job.id}.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(rec))
+    out = g.gather([job], tmp_path / "results", tmp_path / "reports", {CORRECTNESS: {}, TIMING: {}})
+    [row] = out["ode-correctness"]
+    assert row["worst_species"]["species"] == "Ins" and row["worst_species"]["reference"] == "a"
+    assert row["verdicts"]["a"]["species_check"]["failing"] == ["Ins"]
+    summary = (tmp_path / "reports" / "summary.md").read_text(encoding="utf-8")
+    header = _row(summary, "problem", "species", "outcome")
+    cols = dict(zip(header, _row(summary, "smith", "133")))
+    assert cols["vs a"] == "DIFF (species)" and cols["vs b"] == "ok"
+    assert cols["worst species"] == "`Ins` (a) 1.0e+00 of peak"
+    assert cols["references"] == "DIFF 1/2 (a: diff)"
