@@ -206,6 +206,12 @@ def _errored_engines(r: dict[str, Any]) -> set[str]:
             if k.endswith("_error") and k != "error" and r.get(k)}
 
 
+def _why(r: dict[str, Any], name: str) -> str:
+    """How a reference failed to run: ``timeout`` (its per-engine budget ran out)
+    or ``crash`` (anything else)."""
+    return "timeout" if str(r.get(f"{name}_error") or "").startswith("TIMEOUT") else "crash"
+
+
 def reference_agreement(r: dict[str, Any]) -> str:
     """BNGsim's agreement with its references as one derived label, beside (never
     instead of) the outcome enum: ``FULL 4/4`` when every reference ran and agreed;
@@ -220,7 +226,7 @@ def reference_agreement(r: dict[str, Any]) -> str:
         return ""
     passed = sum(1 for v in verdicts.values() if v.get("passed"))
     diffs = sorted(name for name, v in verdicts.items() if not v.get("passed"))
-    misses = sorted([(name, "crash") for name in crashed]
+    misses = sorted([(name, _why(r, name)) for name in crashed]
                     + [(name, "diff") for name in diffs])
     label = "DIFF" if diffs else ("PARTIAL" if crashed else "FULL")
     named = f" ({', '.join(f'{n}: {why}' for n, why in misses)})" if misses else ""
@@ -249,7 +255,7 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
             if v is not None:
                 cells.append("ok" if v.get("passed") else "DIFF")
             elif name in errs:
-                cells.append("crash")
+                cells.append(_why(r, name))
             else:
                 cells.append("")
         lines.append("| " + " | ".join([
@@ -301,7 +307,7 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
             ]) + " |")
         for engine in sorted(_errored_engines(r) - set(times)):
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", "crash",
+                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
                 "", "", "", "", "yes" if r["current"] else "no",
             ]) + " |")
     lines += ["", "Times in seconds. *pre-sim* is the one-time load/build before the "
@@ -310,5 +316,7 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
               "the engine runs as a fresh subprocess per solve, so its load is inside "
               "every sim rep. *sim* is the warm-solve median over the rounds, with a "
               "bootstrap 95% CI; *crash*: the reference failed to run and was dropped "
-              "from the timed set (its error is in the JSON row)."]
+              "from the timed set (its error is in the JSON row); *timeout*: it ran "
+              "past its per-engine wall budget in the correctness job, so it was not "
+              "timed."]
     return lines
