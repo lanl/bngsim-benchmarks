@@ -425,3 +425,27 @@ def test_a_sens_setting_and_a_reference_that_does_not_apply_are_named(tmp_path):
     row = dict(zip(header, _row(summary, "atf2 [fitted]", "48")))
     assert row["parameters"] == "4 fitted" and row["vs copasi"] == "n/a"
     assert row["references"] == "FULL 2/2 (copasi: n/a)"
+
+
+def test_the_adjoint_gradient_is_timed_beside_bngsims_and_shares_amicis_build(tmp_path):
+    """D7: AMICI's adjoint gradient of a log-likelihood beside BNGsim's forward one,
+    timing only; each gradient engine's pre-sim cost is the build it runs on."""
+    job = Job("sens", "igf1r", SENS_ENGINES, "auto", TIMING)
+    _, timing = _sens_records()
+    m = timing["measurements"]
+    m["times"]["bngsim_gradient"] = {"median_seconds": 0.0261, "ci_low": 0.026, "ci_high": 0.027}
+    m["times"]["amici_adjoint"] = {"median_seconds": 0.0302, "ci_low": 0.030, "ci_high": 0.031}
+    m["engine_roles"].update(amici_adjoint="warm, in-process (adjoint gradient; timing only)",
+                             bngsim_gradient="warm, in-process (forward-sensitivity gradient)")
+    m["references"]["amici_adjoint"] = {"shared_build": "amici"}
+    m["adjoint"] = {"agreement": {"max_rel_difference": 2.5e-7, "n_parameters": 11}}
+    m["reproducibility"].update(bngsim_gradient={"passed": True}, amici_adjoint={"passed": True})
+    dest = tmp_path / "results" / f"{job.id}.json"
+    dest.parent.mkdir(parents=True)
+    dest.write_text(json.dumps(timing))
+    g.gather([job], tmp_path / "results", tmp_path / "reports", {CORRECTNESS: {}, TIMING: {}})
+    summary = (tmp_path / "reports" / "summary.md").read_text(encoding="utf-8")
+    assert "| igf1r | 11 | 0.0261 | 0.0302 | 0.0413 | 2.5e-07 |" in summary
+    header = _row(summary, "problem", "species", "engine", "outcome", "pre-sim (s)")
+    adj = dict(zip(header, _row(summary, "igf1r", "27", "amici_adjoint")))
+    assert adj["pre-sim parts (s)"] == "codegen 14.2 + load 0.05"

@@ -627,7 +627,8 @@ class AmiciSens:
 
     def __init__(self, sbml: Path, species_names: list[str], name_to_id: dict[str, str],
                  proto: dict[str, Any], params: list[str], *,
-                 two_phase: dict[str, Any] | None = None):
+                 two_phase: dict[str, Any] | None = None,
+                 observables: tuple[list[str], np.ndarray] | None = None):
         import amici
         from amici.sim import sundials as ss
 
@@ -635,11 +636,23 @@ class AmiciSens:
         want_ids = _align(species_names, name_to_id)
         self.proto, self.params, self.two_phase = proto, list(params), two_phase
         fixed = sorted(two_phase["phase1"]) if two_phase else []
+        # The observables, as the .net's weighted sums of species (no more: AMICI's
+        # default observes every species, which only lengthens its build), with a
+        # Gaussian noise model whose scale each ExpData sets: what the adjoint
+        # gradient of a log-likelihood needs.
+        names, weights = observables if observables is not None else ([], np.zeros((0, 0)))
+        channels = []
+        for o, (name, row) in enumerate(zip(names, weights)):
+            terms = [f"{float(w)!r}*{sid}" for sid, w in zip(want_ids, row) if w != 0]
+            channels.append(amici.MeasurementChannel(
+                f"bench_obs{o}", name=name, formula=" + ".join(terms) or "0",
+                noise_distribution="normal", sigma=1.0))
+        self.n_observables = len(channels)
         outdir = sbml.parent / "amici_sens_model"
         t0 = time.perf_counter()
         amici.SbmlImporter(str(sbml)).sbml2amici(
             "bench_sens_model", str(outdir), generate_sensitivity_code=True, verbose=False,
-            fixed_parameters=fixed or None)
+            fixed_parameters=fixed or None, observation_model=channels)
         self.codegen_seconds = time.perf_counter() - t0
 
         t1 = time.perf_counter()
@@ -664,14 +677,18 @@ class AmiciSens:
         self.idx = [pos[i] for i in want_ids]
         self.uncovered = _not_covered(self.params, self.covered,
                                       "not a free parameter of the AMICI model")
-        self.edata = self._phases(fixed) if two_phase else None
+        self._fixed = fixed
+        self.edata = self._new_edata() if two_phase else None
 
-    def _phases(self, fixed: list[str]):
-        """The ``ExpData`` of a two-phase protocol: AMICI's pre-simulation."""
+    def _new_edata(self):
+        """A fresh ``ExpData``: for a two-phase protocol, AMICI's pre-simulation."""
         ss, tp = self._ss, self.two_phase
+        edata = ss.ExpData(self.model)
+        if not tp:
+            return edata
         ids = list(self.model.get_fixed_parameter_ids())
         name = {}
-        for p in fixed:
+        for p in self._fixed:
             aid = p if p in ids else (f"amici_{p}" if f"amici_{p}" in ids else None)
             if aid is None:
                 raise RuntimeError(f"AMICI has no fixed parameter for {p}, which the protocol sets")
@@ -679,11 +696,35 @@ class AmiciSens:
         missing = [i for i in ids if i not in name]
         if missing:
             raise RuntimeError(f"AMICI has fixed parameters the protocol does not set: {missing}")
-        edata = ss.ExpData(self.model)
         edata.t_presim = float(tp["duration"])
         edata.fixed_parameters_presimulation = [tp["phase1"][name[i]] for i in ids]
         edata.fixed_parameters = [tp["phase2"][name[i]] for i in ids]
         return edata
+
+    def adjoint_problem(self, data: np.ndarray, sigma: np.ndarray):
+        """The ``ExpData`` of a Gaussian log-likelihood: ``data`` ``(n_t, n_obs)``
+        measured with noise scales ``sigma`` (the same shape)."""
+        edata = self._new_edata()
+        edata.set_measurements(np.asarray(data, float).ravel().tolist())
+        edata.set_noise_scales(np.asarray(sigma, float).ravel().tolist())
+        return edata
+
+    def adjoint_gradient(self, edata) -> np.ndarray:
+        """The gradient of the negative log-likelihood ``edata`` defines, by AMICI's
+        adjoint sensitivities (one backward solve, whatever the number of
+        parameters): ``(n_p,)``, NaN for a parameter AMICI does not differentiate."""
+        ss = self._ss
+        solver = self.model.create_solver()
+        solver.set_relative_tolerance(float(self.proto["rtol"]))
+        solver.set_absolute_tolerance(float(self.proto["atol"]))
+        solver.set_sensitivity_order(ss.SensitivityOrder.first)
+        solver.set_sensitivity_method(ss.SensitivityMethod.adjoint)
+        rdata = ss.run_simulation(self.model, solver, edata)
+        if rdata.status != 0:
+            raise RuntimeError(f"AMICI adjoint simulation failed with status {rdata.status}")
+        grad = np.full(len(self.params), np.nan)
+        grad[self.covered] = -np.asarray(rdata.sllh, dtype=float)
+        return grad
 
     def run(self):
         ss = self._ss
@@ -1032,8 +1073,11 @@ def _build_reference(name: str, prep: dict[str, Any], workdir: Path, timeout: fl
     if cls.INPUT == "net":
         return cls(prep["net"], prep["proto"], prep["params"], prep["values"], prep["scales"],
                    workdir, timeout=timeout, two_phase=prep.get("two_phase"))
+    # AMICI observes the .net's observables (for the adjoint gradient, D7).
+    extra = ({"observables": (prep["observables"], prep["weights"])}
+             if name == AmiciSens.NAME else {})
     return cls(prep["sbml"], prep["species_names"], prep["name_to_id"], prep["proto"],
-               prep["params"], two_phase=prep.get("two_phase"))
+               prep["params"], two_phase=prep.get("two_phase"), **extra)
 
 
 def not_applicable(prep: dict[str, Any]) -> dict[str, str]:
@@ -1363,11 +1407,78 @@ def _role(name: str) -> str:
                 f"{CONFIGURATIONS[name]['sensitivity_method']} corrector)")
     if name == "bngsim_ode":
         return "warm, in-process (plain solve: the unit of a finite-difference gradient)"
+    if name == "bngsim_gradient":
+        return ("warm, in-process (forward-sensitivity gradient of a synthetic "
+                "log-likelihood)")
+    if name == "amici_adjoint":
+        return "warm, in-process (adjoint gradient of the same log-likelihood; timing only)"
     return engine_role(name)
 
 
 # The plain solves timed beside the sensitivity solves: the unit of an FD gradient.
 PLAIN = ("bngsim_ode", "run_network")
+
+# --------------------------------------------------------------------------- #
+# The gradient of a log-likelihood: AMICI's adjoint beside BNGsim's forward
+# sensitivities (decision D7: timing only)
+# --------------------------------------------------------------------------- #
+# bngsim has no adjoint. What a modeller fitting N_p ~ 100 parameters would otherwise
+# pay is AMICI's adjoint gradient: one forward and one backward solve, whatever N_p.
+# The objective is a synthetic Gaussian negative log-likelihood of the .net's
+# observables -- the cost of a gradient does not depend on what the data are, only on
+# the residuals not being zero: data at GRADIENT_DATA_FACTOR times BNGsim's nominal
+# observables, each observable's noise scale GRADIENT_SIGMA_FRACTION of its peak.
+GRADIENT = ("bngsim_gradient", "amici_adjoint")
+GRADIENT_DATA_FACTOR = 0.9
+GRADIENT_SIGMA_FRACTION = 0.1
+
+
+def synthetic_likelihood(y: np.ndarray, atol: float) -> tuple[np.ndarray, np.ndarray]:
+    """The data and noise scales ``(n_t, n_obs)`` of the synthetic log-likelihood, from
+    the nominal observables ``y``: a constant scale per observable, floored at 100
+    atols so an observable that never moves still has one."""
+    y = np.asarray(y, dtype=float)
+    sigma = np.maximum(GRADIENT_SIGMA_FRACTION * np.max(np.abs(y), axis=0), 100.0 * atol)
+    return GRADIENT_DATA_FACTOR * y, np.broadcast_to(sigma, y.shape).copy()
+
+
+class BngsimGradient:
+    """BNGsim's gradient of the synthetic negative log-likelihood: a forward-sensitivity
+    solve of the protocol, then ``Result.neg_log_likelihood_gradient`` on the
+    observables (both inside the timed call, as a fit pays both)."""
+
+    def __init__(self, engine: BngsimSens, data: np.ndarray, sigma: np.ndarray):
+        self.engine, self.data, self.sigma = engine, data, sigma
+
+    def run(self) -> np.ndarray:
+        _, grad = self.engine.run().neg_log_likelihood_gradient(self.data, self.sigma,
+                                                                target="observables")
+        return np.asarray(grad, dtype=float)[None, :]
+
+
+class AmiciAdjoint:
+    """AMICI's adjoint gradient of the same negative log-likelihood, on the model AMICI
+    built for its forward sensitivities (one build, so no pre-sim cost of its own)."""
+
+    def __init__(self, engine: AmiciSens, data: np.ndarray, sigma: np.ndarray):
+        self.engine = engine
+        self.edata = engine.adjoint_problem(data, sigma)
+
+    def run(self) -> np.ndarray:
+        return self.engine.adjoint_gradient(self.edata)[None, :]
+
+
+def gradient_agreement(bn: np.ndarray, amici: np.ndarray, scales: np.ndarray) -> dict[str, Any]:
+    """How far apart the two gradients are, recorded beside their times (not a verdict):
+    the largest difference of the semi-scaled gradient ``scale * dL/dp`` over the
+    parameters AMICI differentiates, as a fraction of the largest BNGsim component."""
+    a, b = np.asarray(amici, float).ravel() * scales, np.asarray(bn, float).ravel() * scales
+    ok = np.isfinite(a)
+    peak = float(np.max(np.abs(b[ok]))) if ok.any() else 0.0
+    err = float(np.max(np.abs(a[ok] - b[ok]))) / peak if peak > 0 else None
+    return {"max_rel_difference": err, "n_parameters": int(ok.sum()),
+            "note": "timing only: the gradients are compared to show the two engines "
+                    "differentiate the same objective, not judged"}
 
 
 def _capture(engine, scales: np.ndarray):
@@ -1449,11 +1560,35 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
             references[name] = engine.config()
         except Exception as exc:  # noqa: BLE001
             ref_errors[name] = f"{type(exc).__name__}: {exc}"[:400]
+    # D7: the gradient of a log-likelihood, AMICI's adjoint beside BNGsim's forward
+    # sensitivities, when the network has observables and AMICI survived its trial.
+    adjoint: dict[str, Any] = {}
+    if prep["observables"] and "amici" in engines:
+        _progress("amici_adjoint: trial run")
+        try:
+            y = np.asarray(first.observables, dtype=float)
+            data, sigma = synthetic_likelihood(y, float(proto["atol"]))
+            grad_bn = BngsimGradient(bngsim_engine, data, sigma)
+            grad_am = AmiciAdjoint(engines["amici"], data, sigma)
+            g_bn, g_am = grad_bn.run(), grad_am.run()
+            engines["bngsim_gradient"], engines["amici_adjoint"] = grad_bn, grad_am
+            references["amici_adjoint"] = {"shared_build": "amici"}
+            adjoint = {"objective": "Gaussian negative log-likelihood of the observables",
+                       "data_factor": GRADIENT_DATA_FACTOR,
+                       "sigma_fraction_of_peak": GRADIENT_SIGMA_FRACTION,
+                       "observables": len(prep["observables"]),
+                       "agreement": gradient_agreement(g_bn, g_am, prep["scales"])}
+        except Exception as exc:  # noqa: BLE001 - a reference failure, recorded
+            ref_errors["amici_adjoint"] = f"{type(exc).__name__}: {exc}"[:400]
+    elif "amici" in engines:
+        adjoint = {"skipped": "the network has no observables, so no likelihood"}
     info["references"] = references
 
     _progress(f"interleaved timing of {', '.join(engines)}")
     runs = {name: eng.run for name, eng in engines.items()}
-    captures = {name: (type(eng).trajectory if name in PLAIN else _capture(eng, prep["scales"]))
+    captures = {name: (type(eng).trajectory if name in PLAIN
+                       else (lambda g: g) if name in GRADIENT
+                       else _capture(eng, prep["scales"]))
                 for name, eng in engines.items()}
     reps = round_robin_interleaved(runs, captures=captures, **job.definition["timing"])
 
@@ -1482,6 +1617,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
             "reproducibility": repro,
             "times": times_,
             "fd_baselines": baselines,
+            **({"adjoint": adjoint} if adjoint else {}),
         },
     }
     for name, err in ref_errors.items():

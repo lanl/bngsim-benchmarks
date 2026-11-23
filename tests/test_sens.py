@@ -319,6 +319,25 @@ def _prep():
             "observables": ["total"], "weights": np.array([[1.0, 1.0]])}
 
 
+class _FakeResult(tuple):
+    """What a fake engine's run returns: ``(S, X)``, with what a bngsim Result also
+    has -- the observables (here one, the total) and the likelihood gradient."""
+
+    @property
+    def observables(self):
+        return self[1].sum(axis=1, keepdims=True)
+
+    def neg_log_likelihood_gradient(self, data, sigma, *, target):
+        assert target == "observables"
+        return 0.0, _nllh_gradient(*self, data, sigma)
+
+
+def _nllh_gradient(S, X, data, sigma):
+    """The gradient of a Gaussian negative log-likelihood of the total, A + B."""
+    y, Sy = X.sum(axis=1, keepdims=True), S.sum(axis=1, keepdims=True)
+    return np.einsum("to,top->p", (y - data) / sigma**2, Sy)
+
+
 def _fake_bngsim(shift=None, boom=None, simultaneous_shift=None, own_obs_off=False):
     class FakeBngsim:
         def __init__(self, net, proto, params, *, sensitivity_method="staggered",
@@ -330,7 +349,7 @@ def _fake_bngsim(shift=None, boom=None, simultaneous_shift=None, own_obs_off=Fal
 
         def run(self):
             s = simultaneous_shift if self.method == "simultaneous" else shift
-            return _exact(self.t, s)
+            return _FakeResult(_exact(self.t, s))
 
         def tensors(self, raw):
             return raw
@@ -368,6 +387,12 @@ def _fake_reference(shift=None, boom=None, sleep=0.0, covered=(True, True), name
             S = S.copy()
             S[:, :, ~self.covered] = np.nan
             return S, X
+
+        def adjoint_problem(self, data, sigma):
+            return data, sigma
+
+        def adjoint_gradient(self, problem):
+            return _nllh_gradient(*_exact(self.t, shift), *problem)
 
         def config(self):
             return {"load_seconds": 0.02, "codegen_seconds": 1.0}
@@ -595,7 +620,7 @@ def test_timing_interleaves_every_engine_and_derives_the_fd_baselines(monkeypatc
     assert rec["outcome"] == "PASS"
     # The FD reference is not timed; its cost is derived from the plain solves.
     assert set(m["times"]) == {"bngsim", "bngsim_simultaneous", "bngsim_ode", "run_network",
-                               "amici", "copasi"}
+                               "amici", "copasi", "bngsim_gradient", "amici_adjoint"}
     for name in ("bngsim_ode", "run_network"):
         b, t = m["fd_baselines"][name], m["times"][name]["median_seconds"]
         assert b["forward_seconds"] == pytest.approx(3 * t)
@@ -778,3 +803,49 @@ def test_copasi_does_not_apply_to_a_two_phase_protocol_and_the_rest_still_judge(
     timing = sens.run_timing(_timing_job(), None, _ctx(tmp_path))
     assert "copasi" not in timing["measurements"]["times"]
     assert timing["not_applicable"] == rec["not_applicable"]
+
+
+# --------------------------------------------------------------------------- #
+# The adjoint gradient of a log-likelihood, timed beside BNGsim's (D7)
+# --------------------------------------------------------------------------- #
+def test_the_synthetic_likelihood_has_nonzero_residuals_and_a_noise_scale_everywhere():
+    y = np.array([[0.0, 0.0], [2.0, 0.0], [4.0, 0.0]])
+    data, sigma = sens.synthetic_likelihood(y, atol=1e-8)
+    np.testing.assert_allclose(data, 0.9 * y)
+    np.testing.assert_allclose(sigma[:, 0], 0.4)
+    np.testing.assert_allclose(sigma[:, 1], 1e-6)  # never moves: 100 atols
+
+
+def test_gradient_agreement_is_semi_scaled_over_what_amici_differentiates():
+    out = sens.gradient_agreement(np.array([1.0, 2.0, 5.0]), np.array([1.0, 2.1, np.nan]),
+                                  np.array([1.0, 1.0, 1.0]))
+    assert out["n_parameters"] == 2 and out["max_rel_difference"] == pytest.approx(0.1 / 2.0)
+
+
+def test_timing_times_amicis_adjoint_beside_bngsims_forward_gradient(monkeypatch, tmp_path):
+    _install(monkeypatch, _refs())
+    monkeypatch.setattr(sens, "BngsimPlain", _Plain)
+    monkeypatch.setattr(sens, "RunNetworkPlain", _Plain)
+    rec = sens.run_timing(_timing_job(), None, _ctx(tmp_path))
+    m = rec["measurements"]
+    assert rec["outcome"] == "PASS"
+    assert {"bngsim_gradient", "amici_adjoint"} <= set(m["times"])
+    assert m["reproducibility"]["amici_adjoint"]["passed"]
+    assert m["adjoint"]["agreement"]["max_rel_difference"] == pytest.approx(0.0, abs=1e-12)
+    assert m["adjoint"]["observables"] == 1
+    assert "timing only" in m["engine_roles"]["amici_adjoint"]
+    assert m["references"]["amici_adjoint"] == {"shared_build": "amici"}
+
+
+def test_a_failing_adjoint_is_recorded_and_the_rest_still_timed(monkeypatch, tmp_path):
+    class NoAdjoint(_fake_reference(name="amici")):
+        def adjoint_gradient(self, problem):
+            raise RuntimeError("AMICI adjoint simulation failed with status -1")
+
+    _install(monkeypatch, _refs(amici=NoAdjoint))
+    monkeypatch.setattr(sens, "BngsimPlain", _Plain)
+    monkeypatch.setattr(sens, "RunNetworkPlain", _Plain)
+    rec = sens.run_timing(_timing_job(), None, _ctx(tmp_path))
+    assert rec["outcome"] == "PASS" and "amici" in rec["measurements"]["times"]
+    assert "amici_adjoint" not in rec["measurements"]["times"]
+    assert rec["amici_adjoint_error"].startswith("RuntimeError: AMICI adjoint")

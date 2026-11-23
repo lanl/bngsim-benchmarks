@@ -118,7 +118,8 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
             # own; the finite-difference baselines are derived from the plain solves.
             row.update(presim=_sens_presim(m), fd_baselines=m.get("fd_baselines") or {},
                        parameters=(m.get("parameters") or {}).get("n"),
-                       convention=(m.get("parameters") or {}).get("convention"))
+                       convention=(m.get("parameters") or {}).get("convention"),
+                       adjoint=m.get("adjoint"))
         if job.capability in STOCHASTIC:
             # A timed repetition is an ensemble; the per-trajectory time is derived.
             row.update(timing_replicates=m.get("timing_replicates"),
@@ -268,6 +269,11 @@ def _sens_presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
         out[name] = {"codegen_seconds": c.get("codegen_seconds"),
                      "load_seconds": c.get("load_seconds"),
                      "backend": c.get("codegen_backend"), "role": roles.get(name)}
+    # A gradient engine runs on the build of the engine it is a view of (BNGsim's
+    # sensitivity build, AMICI's model): its pre-sim cost is that build's.
+    for name, built_by in (("bngsim_gradient", "bngsim"), ("amici_adjoint", "amici")):
+        if name in roles and built_by in out:
+            out[name] = {**out[built_by], "role": roles.get(name)}
     return out
 
 
@@ -347,6 +353,7 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
             if capability in SENSITIVITY:
                 lines += _timing_table(rows, baseline=SENS_SPEEDUP_BASELINE)
                 lines += _fd_baseline_table(rows)
+                lines += _gradient_table(rows)
             else:
                 lines += _timing_table(rows, per_trajectory=stochastic)
         lines.append("")
@@ -745,3 +752,31 @@ def _fd_baseline_table(rows: list[dict[str, Any]]) -> list[str]:
                 _sec(b.get("forward_seconds")), _sec(b.get("central_seconds")), _sec(bn),
             ]) + " |")
     return lines
+
+
+def _gradient_table(rows: list[dict[str, Any]]) -> list[str]:
+    """The gradient of a synthetic log-likelihood, timing only (decision D7): BNGsim's
+    from its forward sensitivities beside AMICI's adjoint (BNGsim has none), with how
+    far apart the two gradients are. Only rows that passed and timed both."""
+    shown = [r for r in rows if r.get("outcome") == "PASS"
+             and {"bngsim_gradient", "amici_adjoint"} <= set(r.get("times") or {})]
+    if not shown:
+        return []
+    lines = ["", "Gradient of a log-likelihood (timing only; data 0.9 x the nominal "
+             "observables, noise 10% of each one's peak):", "",
+             "| problem | parameters | bngsim forward-sensitivity gradient (s) "
+             "| AMICI adjoint gradient (s) | AMICI forward sensitivities (s) "
+             "| gradients differ by |",
+             "|---|---:|---:|---:|---:|---:|"]
+    for r in shown:
+        times = r.get("times") or {}
+        agree = ((r.get("adjoint") or {}).get("agreement") or {}).get("max_rel_difference")
+        lines.append("| " + " | ".join([
+            r["problem"], _fmt(r.get("parameters"), "d"),
+            _sec((times.get("bngsim_gradient") or {}).get("median_seconds")),
+            _sec((times.get("amici_adjoint") or {}).get("median_seconds")),
+            _sec((times.get("amici") or {}).get("median_seconds")),
+            _fmt(agree, ".1e"),
+        ]) + " |")
+    return lines
+
