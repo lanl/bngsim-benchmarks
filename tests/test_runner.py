@@ -37,7 +37,7 @@ class FakeLauncher:
             self.calls.append((job.id, timeout))
         what = self.outcomes.get(job.id, "PASS")
         if what == "timeout":
-            return Launch(None, True, timeout)
+            return Launch(None, True, timeout, "[ode] bngsim: done\n[ode] amici: start")
         if what == "crash":
             return Launch(1, False, self.seconds, "Traceback ... boom")
         f = FPS[job.kind]
@@ -136,6 +136,9 @@ def test_job_over_its_own_timeout_records_timeout(tmp_path, two_problems):
     # A timeout is a result: it is current, and the job does not run again.
     st = results.status(first, cfg.results_dir, FPS, {first.id: first})
     assert st.state == "fresh" and st.outcome == "TIMEOUT"
+    # The record keeps where the job was when it was stopped.
+    rec = results.read_result(cfg.results_dir, first)
+    assert rec["output_tail"][-1] == "[ode] amici: start"
 
 
 def test_worker_crash_is_reported_without_a_result(tmp_path, two_problems):

@@ -67,6 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     fp = env.fingerprint(timing=job.kind == jobs.TIMING)
     ctx = {
         "cache_dir": args.cache,
+        "results_dir": args.results,
         "workdir": str(scratch),
         "subprocess_timeout": args.subprocess_timeout,
     }

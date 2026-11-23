@@ -110,6 +110,9 @@ def test_report_json_carries_the_presim_breakdown(gathered):
     ({"verdicts": {"a": {"passed": True}, "b": {"passed": False}}, "c_error": "boom"},
      "DIFF 1/3 (b: diff, c: crash)"),
     ({"verdicts": {"a": {"passed": True}}, "c_error": "boom"}, "PARTIAL 1/2 (c: crash)"),
+    # A reference that ran out of its per-engine budget is named as a timeout.
+    ({"verdicts": {"a": {"passed": True}}, "c_error": "TIMEOUT: no result within 3600 s"},
+     "PARTIAL 1/2 (c: timeout)"),
     # The job-level "error" is not a reference crash; nothing attempted reads blank.
     ({"verdicts": {}, "error": "netgen failed"}, ""),
 ])

@@ -73,6 +73,9 @@ def test_registry_emits_one_correctness_and_one_timing_job(spec_data, write_spec
     correctness, timing = emitted
     assert timing.requires == correctness.id
     assert all(ode.engines_id() in j.id for j in emitted)
+    # The job timeout is a backstop behind the per-engine budgets, never tighter.
+    budget = ode.engine_budget_seconds(problem)
+    assert correctness.timeout_seconds >= (len(ode.REFERENCE_ENGINES) + 2) * budget
 
 
 def test_reference_versions_are_part_of_the_ode_freshness_key(spec_data, write_spec, monkeypatch):
@@ -795,3 +798,161 @@ def test_reproducibility_forgives_a_species_that_never_moves_off_zero():
     anchor = np.hstack([_decay(), np.zeros((101, 1))])
     r = ode._reproducibility(anchor, [anchor.copy()], ode.REPRO_TOL)
     assert r["passed"] is True and r["per_rep"] == [0.0]
+
+
+# --------------------------------------------------------------------------- #
+# Per-engine isolation and wall budget (correctness job)
+# --------------------------------------------------------------------------- #
+needs_proc = pytest.mark.skipif(not Path("/proc/self/stat").exists(), reason="needs /proc")
+
+
+def test_run_isolated_returns_the_childs_trajectory_and_config(tmp_path):
+    def fn(stage):
+        stage("solve")
+        return _decay(), {"engine": "x", "cold_seconds": 0.1}
+
+    out = ode.run_isolated(fn, 30, tmp_path / "x", poll=0.01)
+    assert "error" not in out
+    np.testing.assert_array_equal(out["trajectory"], _decay())
+    assert out["config"] == {"engine": "x", "cold_seconds": 0.1}
+
+
+def test_run_isolated_reports_the_childs_exception(tmp_path):
+    def fn(stage):
+        raise KeyError("['I'] not in index")
+
+    out = ode.run_isolated(fn, 30, tmp_path / "x", poll=0.01)
+    assert out["error"].startswith("KeyError") and "['I']" in out["error"]
+
+
+def test_run_isolated_attributes_a_hard_crash(tmp_path):
+    import os
+    import signal
+
+    def fn(stage):
+        import faulthandler
+        faulthandler.disable()  # pytest's handler would dump a traceback first
+        os.kill(os.getpid(), signal.SIGSEGV)  # a segfault in a C++ engine
+
+    out = ode.run_isolated(fn, 30, tmp_path / "x", poll=0.01)
+    assert out["error"] == f"crashed: killed by signal {int(signal.SIGSEGV)}"
+
+
+@needs_proc
+def test_run_isolated_times_out_naming_the_stage_and_kills_the_whole_tree(tmp_path):
+    import os
+    import subprocess
+    import time
+
+    pidfile = tmp_path / "grandchild.pid"
+
+    def fn(stage):
+        stage("SBML import + C++ compile")
+        # A compiler the engine started, like AMICI's build.
+        proc = subprocess.Popen(["sleep", "300"])
+        pidfile.write_text(str(proc.pid))
+        time.sleep(300)
+
+    out = ode.run_isolated(fn, 1.0, tmp_path / "x", poll=0.05)
+    assert out["error"].startswith("TIMEOUT")
+    assert "1 s per-engine budget" in out["error"]
+    assert "SBML import + C++ compile" in out["error"]
+    assert out["seconds"] < 30
+    grandchild = int(pidfile.read_text())
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        try:
+            state = Path(f"/proc/{grandchild}/stat").read_text().rsplit(")", 1)[1].split()[0]
+        except OSError:
+            break  # gone
+        if state == "Z":
+            break  # killed, awaiting its reaper
+        time.sleep(0.05)
+    else:
+        os.kill(grandchild, 9)
+        pytest.fail("the engine's subprocess outlived the budget")
+
+
+def _correctness_prep():
+    proto = {"t_start": 0, "t_end": 10, "n_steps": 100, "rtol": 1e-8, "atol": 1e-6,
+             "sparse": False}
+    return {"net": Path("m.net"), "sbml": Path("m.xml"), "proto": proto, "info": {},
+            "species_names": ["A()", "B()"], "name_to_id": {"A()": "idA", "B()": "idB"}}
+
+
+def _slow_reference(seconds=300):
+    base = _fake_reference()
+
+    class SlowRef(base):
+        def run(self):
+            import time
+            time.sleep(seconds)
+            return _decay()
+
+        warm = run
+
+    return SlowRef
+
+
+def test_correctness_records_a_reference_timeout_and_scores_the_rest(monkeypatch, tmp_path):
+    monkeypatch.setattr(ode, "_prepare", lambda problem, ctx: _correctness_prep())
+    monkeypatch.setattr(ode, "BngsimODE", _fake_bngsim())
+    monkeypatch.setattr(ode, "REFERENCE_ENGINES", {
+        "good": _fake_reference(), "slow": _slow_reference()})
+    rec = ode.run_correctness(job=None, problem=None, ctx={
+        "workdir": str(tmp_path), "subprocess_timeout": 60, "engine_budget_seconds": 1.0})
+    # A reference out of time is a reference failure, never a BNGsim one ...
+    assert rec["outcome"] == "REFERENCE_FAILED"
+    assert rec["slow_error"].startswith("TIMEOUT") and "first solve" in rec["slow_error"]
+    # ... and costs nothing else: BNGsim is still scored against the survivor.
+    assert rec["verdicts"]["good"]["passed"] is True
+    assert "slow" not in rec["verdicts"]
+    assert rec["measurements"]["engine_budget_seconds"] == 1.0
+    assert "cold_seconds" in rec["measurements"]["references"]["good"]
+
+
+def test_correctness_bngsim_out_of_time_is_a_timeout(monkeypatch, tmp_path):
+    fake = _fake_bngsim()
+
+    class SlowBngsim(fake):
+        def run(self):
+            import time
+            time.sleep(300)
+
+    monkeypatch.setattr(ode, "_prepare", lambda problem, ctx: _correctness_prep())
+    monkeypatch.setattr(ode, "BngsimODE", SlowBngsim)
+    monkeypatch.setattr(ode, "REFERENCE_ENGINES", {"good": _fake_reference()})
+    rec = ode.run_correctness(job=None, problem=None, ctx={
+        "workdir": str(tmp_path), "subprocess_timeout": 60, "engine_budget_seconds": 1.0})
+    assert rec["outcome"] == "TIMEOUT"
+    assert rec["bngsim_error"].startswith("TIMEOUT")
+
+
+def test_timing_does_not_retry_a_reference_that_timed_out_in_correctness(monkeypatch, tmp_path):
+    import json
+
+    from bench.results import result_path
+
+    corr_id = "ode/m/bngsim-vs-good-slow/auto/correctness"
+    path = result_path(tmp_path, corr_id)
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps({"outcome": "REFERENCE_FAILED",
+                                "slow_error": "TIMEOUT: no result within the 3600 s budget"}))
+    monkeypatch.setattr(ode, "_prepare", lambda problem, ctx: _correctness_prep())
+    monkeypatch.setattr(ode, "BngsimODE", _fake_bngsim())
+    monkeypatch.setattr(ode, "REFERENCE_ENGINES", {
+        "good": _fake_reference(), "slow": _slow_reference()})
+    job = _timing_job()
+    job.requires = corr_id
+    rec = ode.run_timing(job=job, problem=None, ctx={
+        "workdir": str(tmp_path), "subprocess_timeout": 60, "results_dir": str(tmp_path)})
+    assert set(rec["measurements"]["times"]) == {"bngsim", "good"}
+    assert rec["slow_error"].startswith("TIMEOUT in the correctness job")
+    assert rec["outcome"] == "PASS"
+
+
+def test_engine_budget_is_capped_and_the_job_timeout_leaves_room_for_every_engine():
+    huge = types.SimpleNamespace(size={"reactions": 27457})
+    small = types.SimpleNamespace(size={"reactions": 50})
+    assert ode.engine_budget_seconds(huge) == ode.ENGINE_BUDGET_CAP_SECONDS
+    assert ode.engine_budget_seconds(small) == ode.MIN_TIMEOUT_SECONDS

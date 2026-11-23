@@ -118,7 +118,13 @@ def _timeout_record(job: Job, fp: dict[str, Any], launch: Launch) -> dict[str, A
         "key_parts": key_parts(job, fp),
         "environment": env.environment(),
         "wall_seconds": launch.seconds,
+        # Where the job was when it was stopped: the worker's last progress lines.
+        "output_tail": _tail(launch.output),
     }
+
+
+def _tail(output: str, n: int = 20) -> list[str]:
+    return [ln[:400] for ln in (output or "").strip().splitlines()[-n:]]
 
 
 def _run_phase(
@@ -175,14 +181,18 @@ def _run_phase(
                 if launch.timed_out:
                     if timeout < job.timeout_seconds:
                         summary.cut.append(job.id)
-                        log(f"[{n}/{total}] CUT (deadline) {job.id}")
+                        last = _tail(launch.output, 1)
+                        log(f"[{n}/{total}] CUT (deadline) {job.id}"
+                            + (f" -- last: {last[0]}" if last else ""))
                     else:
                         write_result(
                             cfg.results_dir, job,
                             _timeout_record(job, fingerprints[job.kind], launch),
                         )
                         summary.outcomes[job.id] = "TIMEOUT"
-                        log(f"[{n}/{total}] TIMEOUT {job.id} ({launch.seconds:.1f}s)")
+                        last = _tail(launch.output, 1)
+                        log(f"[{n}/{total}] TIMEOUT {job.id} ({launch.seconds:.1f}s)"
+                            + (f" -- last: {last[0]}" if last else ""))
                     continue
                 from .results import read_result
 

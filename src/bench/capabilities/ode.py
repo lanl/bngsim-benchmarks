@@ -40,6 +40,19 @@ still scores BNGsim against the references that ran, and the timing job gives ea
 reference a trial run, records any crash the same way, and drops it from the timed
 set -- BNGsim and the surviving references are still timed.
 
+**Per-engine wall budget.** In the correctness job every engine (BNGsim and each
+reference) builds and solves cold in its own forked child process, with its own
+wall budget (``engine_budget_seconds``, at most ``ENGINE_BUDGET_CAP_SECONDS``). An
+engine that does not finish is killed with its whole process tree (AMICI's
+compiler included) and recorded as ``<name>_error = "TIMEOUT: ..."``, naming the
+stage it was in; a reference timeout is ``REFERENCE_FAILED``, a BNGsim timeout
+``TIMEOUT`` -- the paper's per-engine attribution. So one slow reference (AMICI's
+C++ compile, libRoadRunner's LLVM build on a 10^4-reaction network) costs at most
+its budget and never the other engines' results. A reference that crashes the
+process outright (a segfault) is attributed the same way. The timing job does
+not re-try a reference that timed out in the correctness job: it records it and
+times the rest.
+
 **Column alignment** is the one real correctness risk, and it is self-checking:
 run_network reads the same ``.net`` as BNGsim, so its columns share that order by
 construction; an SBML engine's columns are aligned to BNGsim's ``species_names``
@@ -61,8 +74,12 @@ otherwise it times the dense run.
 
 from __future__ import annotations
 
+import json
+import os
 import re
+import signal
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -153,11 +170,15 @@ def jobs(problem: Problem) -> list[Job]:
         },
     }
     est_c, est_t = planning_seconds(problem)
+    # The per-engine budgets bound the engines; the job timeout is the backstop for
+    # what they do not cover (netgen, export, the sparse check), so it leaves room
+    # for every engine to use its whole budget.
+    backstop = (len(REFERENCE_ENGINES) + 2) * engine_budget_seconds(problem)
     correctness = Job(
         CAPABILITY, problem.id, engines, "auto", CORRECTNESS,
         definition=base,
         est_seconds=est_c,
-        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c),
+        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c, backstop),
     )
     timing = Job(
         CAPABILITY, problem.id, engines, "auto", TIMING,
@@ -178,6 +199,20 @@ def jobs(problem: Problem) -> list[Job]:
 # slower node; a deadline still stops a job that would not finish in its allocation.
 MIN_TIMEOUT_SECONDS = 1800.0
 TIMEOUT_FACTOR = 4.0
+# The most wall time any one engine gets to build and solve cold in the correctness
+# job. The bngsim paper uses a 20-min per-engine wall limit; this is looser so a
+# reference that is merely slow (run_network on a 2.7e4-reaction network, ~20 min)
+# still yields a verdict, and tight enough that netgen + BNGsim + four references
+# fit a 10 h allocation. Like a job timeout it is planning, not part of the
+# freshness key: an engine that finishes inside it gives the same result either
+# way; a result records the budget it ran under.
+ENGINE_BUDGET_CAP_SECONDS = 3600.0
+
+
+def engine_budget_seconds(problem: Problem) -> float:
+    """Wall budget for one engine's cold build + solve in the correctness job."""
+    est_c, _ = planning_seconds(problem)
+    return min(ENGINE_BUDGET_CAP_SECONDS, max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c))
 
 
 def planning_seconds(problem: Problem) -> tuple[float, float]:
@@ -689,6 +724,158 @@ def _engine_role(name: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Per-engine isolation (correctness job)
+# --------------------------------------------------------------------------- #
+# What each engine is doing while it builds, for a timeout's error message.
+BUILD_STAGE = {
+    "bngsim": "load + codegen",
+    "run_network": "solve (subprocess)",
+    "roadrunner": "SBML load (LLVM JIT)",
+    "copasi": "SBML load",
+    "amici": "SBML import + C++ compile",
+}
+
+
+def _progress(msg: str) -> None:
+    """One flushed line on stderr: the runner keeps the tail of a job's output in
+    a TIMEOUT record, so this says where a stopped job was."""
+    print(f"[ode {time.strftime('%H:%M:%S')}] {msg}", file=sys.stderr, flush=True)
+
+
+def _threads() -> int | str:
+    """OS threads in this process (fork is only safe from a single-threaded one)."""
+    try:
+        return len(os.listdir("/proc/self/task"))
+    except OSError:
+        return "?"
+
+
+def _descendants(pid: int) -> list[int]:
+    """Every live descendant of ``pid``, from ``/proc``; empty where there is none."""
+    children: dict[int, list[int]] = {}
+    try:
+        entries = [d for d in os.listdir("/proc") if d.isdigit()]
+    except OSError:
+        return []
+    for d in entries:
+        try:
+            with open(f"/proc/{d}/stat", encoding="utf-8", errors="replace") as fh:
+                ppid = int(fh.read().rsplit(")", 1)[1].split()[1])
+        except (OSError, IndexError, ValueError):
+            continue
+        children.setdefault(ppid, []).append(int(d))
+    out: list[int] = []
+    stack = [pid]
+    while stack:
+        for child in children.get(stack.pop(), []):
+            out.append(child)
+            stack.append(child)
+    return out
+
+
+def _kill_tree(pid: int) -> None:
+    """SIGKILL ``pid`` and everything under it (an AMICI build's compilers too).
+    Stop the tree first, so nothing forks between collecting and killing it."""
+    tree = [pid, *_descendants(pid)]
+    for sig in (signal.SIGSTOP, signal.SIGKILL):
+        if sig == signal.SIGKILL:
+            tree = list(dict.fromkeys([*tree, *_descendants(pid)]))
+        for p in tree:
+            try:
+                os.kill(p, sig)
+            except OSError:
+                pass
+
+
+def run_isolated(fn, budget: float, workdir: Path, *, poll: float = 0.2) -> dict[str, Any]:
+    """Run ``fn(stage)`` in a forked child under a wall budget.
+
+    ``fn`` returns ``(trajectory, config)`` and calls ``stage(text)`` as it moves
+    through its work. Returns ``{"trajectory", "config"}`` on success, or
+    ``{"error"}`` -- ``"TIMEOUT: ..."`` naming the stage when the budget ran out
+    (the child's whole process tree is killed), the child's exception when it
+    raised, or the signal when it died outright. The child shares nothing back but
+    files in ``workdir``, so a crash or a leak in it cannot touch the caller.
+    """
+    workdir.mkdir(parents=True, exist_ok=True)
+    stage_file, traj_file, rec_file = (workdir / "stage", workdir / "trajectory.npy",
+                                       workdir / "result.json")
+    for f in (stage_file, traj_file, rec_file):
+        f.unlink(missing_ok=True)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    pid = os.fork()
+    if pid == 0:  # child: never return into the caller's stack
+        code = 0
+        try:
+            def stage(text: str) -> None:
+                stage_file.write_text(text, encoding="utf-8")
+
+            trajectory, config = fn(stage)
+            np.save(traj_file, np.asarray(trajectory))
+            rec_file.write_text(json.dumps({"config": config}, default=str), encoding="utf-8")
+        except BaseException as exc:  # noqa: BLE001 - every failure is reported
+            try:
+                rec_file.write_text(json.dumps({"error": f"{type(exc).__name__}: {exc}"[:400]}),
+                                    encoding="utf-8")
+            except BaseException:  # noqa: BLE001
+                code = 1
+        finally:
+            os._exit(code)
+
+    deadline = time.monotonic() + budget
+    t0 = time.perf_counter()
+    status = None
+    while status is None:
+        done, st = os.waitpid(pid, os.WNOHANG)
+        if done:
+            status = st
+            break
+        if time.monotonic() >= deadline:
+            where = stage_file.read_text(encoding="utf-8") if stage_file.exists() else "start"
+            _kill_tree(pid)
+            os.waitpid(pid, 0)
+            return {"error": f"TIMEOUT: no result within the {budget:g} s per-engine budget "
+                             f"(stopped in: {where})",
+                    "seconds": time.perf_counter() - t0}
+        time.sleep(poll)
+    seconds = time.perf_counter() - t0
+    if os.WIFSIGNALED(status):
+        return {"error": f"crashed: killed by signal {os.WTERMSIG(status)}", "seconds": seconds}
+    if not rec_file.exists():
+        return {"error": f"crashed: exit status {os.WEXITSTATUS(status)}, no result",
+                "seconds": seconds}
+    rec = json.loads(rec_file.read_text(encoding="utf-8"))
+    if "error" in rec:
+        return {"error": rec["error"], "seconds": seconds}
+    return {"trajectory": np.load(traj_file), "config": rec["config"], "seconds": seconds}
+
+
+def _cold_bngsim(prep: dict[str, Any]):
+    def fn(stage):
+        t0 = time.perf_counter()
+        stage(BUILD_STAGE["bngsim"])
+        engine = BngsimODE(prep["net"], prep["proto"])
+        stage("first solve")
+        result = engine.run()
+        return (BngsimODE.trajectory(result),
+                {**engine.config(result), "cold_seconds": time.perf_counter() - t0})
+    return fn
+
+
+def _cold_reference(name: str, prep: dict[str, Any], out_prefix: Path, timeout: float):
+    def fn(stage):
+        cls = REFERENCE_ENGINES[name]
+        t0 = time.perf_counter()
+        stage(BUILD_STAGE.get(name, "build"))
+        ref = _build_reference(name, prep, sparse=False, out_prefix=out_prefix, timeout=timeout)
+        stage("first solve")
+        values = ref.run()
+        return cls.trajectory(values), {**ref.config(), "cold_seconds": time.perf_counter() - t0}
+    return fn
+
+
+# --------------------------------------------------------------------------- #
 # Verdict and reproducibility
 # --------------------------------------------------------------------------- #
 def _prepare(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
@@ -818,32 +1005,36 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     proto, info = prep["proto"], prep["info"]
     atol = float(proto["atol"])
     workdir = Path(ctx["workdir"])
-    timeout = ctx["subprocess_timeout"]
+    budget = float(ctx.get("engine_budget_seconds") or engine_budget_seconds(problem))
+    info["engine_budget_seconds"] = budget
+    # A subprocess an engine starts (run_network) never outlives the engine's budget.
+    timeout = min(float(ctx["subprocess_timeout"]), budget)
+
+    def isolated(name: str, fn) -> dict[str, Any]:
+        _progress(f"{name}: start (budget {budget:g} s; {_threads()} threads in the worker)")
+        out = run_isolated(fn, budget, workdir / "isolated" / name)
+        _progress(f"{name}: {out.get('error') or 'done'} after {out['seconds']:.1f} s")
+        return out
 
     bn = None
     bn_error = None
-    try:
-        t0 = time.perf_counter()
-        engine = BngsimODE(prep["net"], proto)
-        result = engine.run()
-        info["bngsim"] = {**engine.config(result), "cold_seconds": time.perf_counter() - t0}
-        bn = BngsimODE.trajectory(result)
-    except Exception as exc:  # noqa: BLE001
-        bn_error = f"{type(exc).__name__}: {exc}"[:400]
+    out = isolated("bngsim", _cold_bngsim(prep))
+    if "error" in out:
+        bn_error = out["error"]
+    else:
+        info["bngsim"] = out["config"]
+        bn = out["trajectory"]
 
     references: dict[str, Any] = {}
     ref_trajectories: dict[str, np.ndarray] = {}
     ref_errors: dict[str, str] = {}
-    for name, cls in REFERENCE_ENGINES.items():
-        try:
-            t0 = time.perf_counter()
-            ref = _build_reference(name, prep, sparse=False, out_prefix=workdir / name,
-                                   timeout=timeout)
-            values = ref.run()
-            ref_trajectories[name] = cls.trajectory(values)
-            references[name] = {**ref.config(), "cold_seconds": time.perf_counter() - t0}
-        except Exception as exc:  # noqa: BLE001
-            ref_errors[name] = f"{type(exc).__name__}: {exc}"[:400]
+    for name in REFERENCE_ENGINES:
+        out = isolated(name, _cold_reference(name, prep, workdir / name, timeout))
+        if "error" in out:
+            ref_errors[name] = out["error"]
+        else:
+            ref_trajectories[name] = out["trajectory"]
+            references[name] = out["config"]
     info["references"] = references
 
     # run_network's authors' sparse setting, judged against its own dense run.
@@ -858,10 +1049,10 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
             verdicts[name] = _verdict(bn, traj, atol)
     passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
 
-    rec: dict[str, Any] = {
-        "outcome": _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES), passed),
-        "measurements": info,
-    }
+    outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES), passed)
+    if bn_error and bn_error.startswith("TIMEOUT") and outcome == "EXCEPTION":
+        outcome = "TIMEOUT"  # BNGsim, not a reference, ran out of time
+    rec: dict[str, Any] = {"outcome": outcome, "measurements": info}
     if verdicts:
         rec["verdicts"] = verdicts
     if bn_error:
@@ -869,6 +1060,21 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     for name, err in ref_errors.items():
         rec[f"{name}_error"] = err
     return rec
+
+
+def _correctness_timeouts(job: Job, ctx: dict[str, Any]) -> dict[str, str]:
+    """References recorded as timed out by this timing job's correctness job."""
+    from ..results import result_path
+
+    requires, results_dir = getattr(job, "requires", None), ctx.get("results_dir")
+    if not requires or not results_dir:
+        return {}
+    try:
+        rec = json.loads(result_path(results_dir, requires).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {name: str(rec[f"{name}_error"]) for name in REFERENCE_ENGINES
+            if str(rec.get(f"{name}_error") or "").startswith("TIMEOUT")}
 
 
 def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
@@ -911,7 +1117,15 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     references: dict[str, Any] = {}
     engines: dict[str, Any] = {"bngsim": bngsim_engine}
     ref_errors: dict[str, str] = {}
+    # A reference that ran out of its budget in the correctness job would only do
+    # so again here, in-process and unbounded: record it and time the rest.
+    timed_out = _correctness_timeouts(job, ctx)
     for name in REFERENCE_ENGINES:
+        if name in timed_out:
+            ref_errors[name] = f"TIMEOUT in the correctness job, so not timed ({timed_out[name]})"
+            _progress(f"{name}: skipped, {ref_errors[name]}")
+            continue
+        _progress(f"{name}: build + trial run")
         try:
             if name == "run_network":
                 dense_engine = RunNetworkODE(prep["net"], proto, workdir / "rn_dense",
@@ -936,6 +1150,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     # Interleave every engine round-robin in one drift-cancelling run. The timed
     # callable returns each engine's raw result; the trajectory is extracted
     # outside the timed region (the capture), so it does not bias the measurement.
+    _progress(f"interleaved timing of {', '.join(engines)}")
     runs = {name: eng.warm for name, eng in engines.items()}
     captures = {name: type(eng).trajectory for name, eng in engines.items()}
     reps = round_robin_interleaved(runs, captures=captures, **job.definition["timing"])
