@@ -43,6 +43,22 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         ps = [_p_value(v) for v in verdicts.values() if _p_value(v) is not None]
         row["min_p_value"] = min(ps) if ps else None
         row["replicates"] = (m.get("ensembles") or {}).get("bngsim", {}).get("replicates")
+    elif job.kind == CORRECTNESS and job.capability in STEADY:
+        # One agreement per reference, at every point of the protocol: the worst
+        # species' distance from the reference's state over what the verdict allows
+        # (at most 1 agrees). BNGsim's own state against the harness's engine-free
+        # checks is kept apart from them: it is not a reference.
+        verdicts = dict(rec.get("verdicts") or {})
+        checks = verdicts.pop("engine_free", None)
+        row["verdicts"] = {name: {k: v.get(k) for k in ("passed", "max_ratio", "worst_point",
+                                                       "worst_species", "points_agreed",
+                                                       "points", "max_rel")}
+                           for name, v in verdicts.items()}
+        ratios = [v.get("max_ratio") for v in verdicts.values()
+                  if isinstance(v.get("max_ratio"), (int, float))]
+        row["max_ratio"] = max(ratios) if ratios else None
+        row["points"] = len(m.get("points") or []) or None
+        row["engine_free"] = _engine_free_summary(checks)
     elif job.kind == CORRECTNESS:
         # One verdict of BNGsim against each reference engine. The table shows the
         # worst agreement across references (the hardest check the row passed) and
@@ -98,6 +114,8 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
 
 # Capabilities whose correctness verdict is a statistical test on ensembles.
 STOCHASTIC = frozenset({"ssa"})
+# Capabilities whose correctness verdict is a steady state's agreement, point by point.
+STEADY = frozenset({"steady_state"})
 
 
 def _p_value(v: dict[str, Any]) -> float | None:
@@ -113,6 +131,22 @@ def _species_summary(check: dict[str, Any] | None) -> dict[str, Any] | None:
         return None
     return {k: check.get(k) for k in ("passed", "n_fail", "n_species", "n_at_floor", "tol",
                                       "floor", "failing", "worst")}
+
+
+def _engine_free_summary(check: dict[str, Any] | None) -> dict[str, Any] | None:
+    """A steady state's engine-free checks (residual, conservation) without their
+    per-point lists."""
+    if not check:
+        return None
+    out: dict[str, Any] = {"passed": check.get("passed"), "evaluated": check.get("evaluated")}
+    for part in ("residual", "conservation"):
+        c = check.get(part)
+        if isinstance(c, dict):
+            out[part] = {k: c[k] for k in ("passed", "max", "tol", "worst_point",
+                                           "worst_species", "n_laws", "reason") if k in c}
+    if check.get("reason"):
+        out["reason"] = check["reason"]
+    return out
 
 
 def worst_species(verdicts: dict[str, Any]) -> dict[str, Any] | None:
@@ -251,9 +285,14 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
         stale = sum(1 for r in rows if not r["current"])
         tally = ", ".join(f"{k} {v}" for k, v in sorted(counts.items()))
         lines += [f"## {name}", "", tally + (f" ({stale} not current)" if stale else ""), ""]
-        stochastic = name.rsplit("-", 1)[0] in STOCHASTIC
+        capability = name.rsplit("-", 1)[0]
+        stochastic = capability in STOCHASTIC
         if name.endswith(CORRECTNESS):
-            lines += _stochastic_correctness_table(rows) if stochastic else _correctness_table(rows)
+            if capability in STEADY:
+                lines += _steady_correctness_table(rows)
+            else:
+                lines += (_stochastic_correctness_table(rows) if stochastic
+                          else _correctness_table(rows))
         elif name.endswith(TIMING):
             lines += _timing_table(rows, per_trajectory=stochastic)
         lines.append("")
@@ -380,6 +419,65 @@ def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
             "yes" if r["current"] else "no",
         ]) + " |")
     return lines
+
+
+def _steady_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
+    """One row per problem, as ``_correctness_table`` but for a steady state: the
+    number of points, the worst agreement over the references, each reference's
+    result -- ``ok``, ``DIFF (k/n points)``, or why it was not scored -- and BNGsim's
+    own state against the engine-free checks."""
+    refs = sorted(({name for r in rows for name in (r.get("verdicts") or {})}
+                   | {name for r in rows for name in _errored_engines(r)}) - {"bngsim"})
+    header = ["problem", "species", "points", "outcome", "references", "worst ratio",
+              *(f"vs {name}" for name in refs), "engine-free", "current"]
+    lines = ["| " + " | ".join(header) + " |",
+             "|---|---:|---:|---|---|---:|" + "---|" * len(refs) + "---|--|"]
+    for r in rows:
+        sp = (r.get("network") or {}).get("species")
+        verdicts = r.get("verdicts") or {}
+        errs = _errored_engines(r)
+        cells = []
+        for name in refs:
+            v = verdicts.get(name)
+            if v is not None:
+                agreed, n = v.get("points_agreed"), v.get("points")
+                cells.append("ok" if v.get("passed") else
+                             f"DIFF ({agreed}/{n} points)" if isinstance(agreed, int)
+                             and isinstance(n, int) else "DIFF")
+            elif name in errs:
+                cells.append(_why(r, name))
+            else:
+                cells.append("")
+        lines.append("| " + " | ".join([
+            r["problem"], _fmt(sp, "d"), _fmt(r.get("points"), "d"), r["outcome"],
+            reference_agreement(r), _fmt(r.get("max_ratio"), ".3g"), *cells,
+            _engine_free_cell(r.get("engine_free")), "yes" if r["current"] else "no",
+        ]) + " |")
+    lines += ["", "*worst ratio*: over every reference and every point, the worst species' "
+              "distance from the reference's state as a fraction of what the verdict allows "
+              "it (bench.capabilities.steady); a reference agrees when it is at most 1 at "
+              "every point, and *DIFF (k/n points)* says at how many it was. *engine-free*: "
+              "BNGsim's state against the harness's own checks of the .net, which involve no "
+              "engine: each species' net rate a vanishing part of its gross flux "
+              "(*residual*), and every conservation law's initial total kept "
+              "(*conservation*). *crash*: the reference failed, or did not answer the "
+              "question -- it did not settle, its state fails an engine-free check, or it "
+              "returned a root the integration from the initial state does not reach -- so "
+              "it was not scored (its reason is in the JSON row); *timeout*: it ran past its "
+              "per-engine wall budget."]
+    return lines
+
+
+def _engine_free_cell(c: dict[str, Any] | None) -> str:
+    if not c:
+        return ""
+    if c.get("evaluated") is False:
+        return "not evaluated"
+    if c.get("passed"):
+        return "ok"
+    failed = [part for part in ("residual", "conservation")
+              if (c.get(part) or {}).get("passed") is False]
+    return f"FAIL ({', '.join(failed)})" if failed else "FAIL"
 
 
 def _verdict_cell(v: dict[str, Any]) -> str:

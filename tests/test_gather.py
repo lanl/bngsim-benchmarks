@@ -249,3 +249,58 @@ def test_correctness_shows_which_half_of_the_gate_failed_and_the_worst_species(t
     assert cols["vs a"] == "DIFF (species)" and cols["vs b"] == "ok"
     assert cols["worst species"] == "`Ins` (a) 1.0e+00 of peak"
     assert cols["references"] == "DIFF 1/2 (a: diff)"
+
+
+# --------------------------------------------------------------------------- #
+# Steady state: an agreement per reference, point by point, and the engine-free
+# checks of BNGsim's own state beside them
+# --------------------------------------------------------------------------- #
+def test_steady_state_has_its_own_correctness_table(tmp_path):
+    job = Job(capability="steady_state", problem="toggle",
+              engines="bngsim-vs-run_network-roadrunner-copasi-amici", setting="newton",
+              kind=CORRECTNESS)
+    agree = {"passed": True, "max_ratio": 0.031, "worst_point": 2, "worst_species": "u",
+             "points_agreed": 3, "points": 3, "max_rel": 2e-6, "per_point": [0.01, 0.02, 0.031]}
+    rec = {
+        "outcome": "DIFF",
+        "measurements": {"network": {"species": 2, "reactions": 4},
+                         "points": [{"alpha_2": 1.0}, {"alpha_2": 50.0}, {"alpha_2": 500.0}]},
+        "verdicts": {
+            "run_network": agree,
+            "roadrunner": {**agree, "passed": False, "max_ratio": 12.0, "points_agreed": 2},
+            "engine_free": {"passed": True, "evaluated": True,
+                            "residual": {"passed": True, "max": 1e-12, "tol": 1e-6,
+                                         "per_point": [1e-12] * 3},
+                            "conservation": {"passed": True, "max": 0.0, "n_laws": 0}},
+        },
+        "copasi_error": "OTHER_STATE: at point 1 (alpha_2 = 50) it returned an unstable "
+                        "steady state",
+        "amici_error": "TIMEOUT: no result within the 600 s per-engine budget",
+    }
+    path = tmp_path / "results" / f"{job.id}.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(rec))
+    out = g.gather([job], tmp_path / "results", tmp_path / "reports", {CORRECTNESS: {}, TIMING: {}})
+    [row] = out["steady_state-correctness"]
+    assert set(row["verdicts"]) == {"run_network", "roadrunner"}
+    assert row["engine_free"]["residual"] == {"passed": True, "max": 1e-12, "tol": 1e-6}
+    assert row["max_ratio"] == 12.0 and row["points"] == 3
+    summary = (tmp_path / "reports" / "summary.md").read_text(encoding="utf-8")
+    header = _row(summary, "problem", "species", "points")
+    cols = dict(zip(header, _row(summary, "toggle", "2")))
+    assert cols["points"] == "3" and cols["worst ratio"] == "12"
+    assert cols["vs run_network"] == "ok" and cols["vs roadrunner"] == "DIFF (2/3 points)"
+    assert cols["vs copasi"] == "crash" and cols["vs amici"] == "timeout"
+    assert cols["engine-free"] == "ok"
+    assert cols["references"] == "DIFF 1/4 (amici: timeout, copasi: crash, roadrunner: diff)"
+    # Nothing of the ODE gate: no worst-species column, no vendored/per-species footnote.
+    assert "worst species" not in header and "vs engine_free" not in header
+    assert "vendored" not in summary and "per-species" not in summary
+
+
+def test_steady_state_engine_free_cell_names_the_failed_check():
+    assert g._engine_free_cell(None) == ""
+    assert g._engine_free_cell({"passed": True, "evaluated": False}) == "not evaluated"
+    assert g._engine_free_cell({"passed": False, "evaluated": True,
+                                "residual": {"passed": True},
+                                "conservation": {"passed": False}}) == "FAIL (conservation)"
