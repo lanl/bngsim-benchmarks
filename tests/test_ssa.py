@@ -113,6 +113,17 @@ def test_planning_grows_with_replicates_and_events(ssa_spec, write_spec):
     assert ssa.engine_budget_seconds(huge) == ssa.ENGINE_BUDGET_CAP_SECONDS
 
 
+def test_the_pilot_specs_load_and_declare_what_they_test():
+    from conftest import REPO
+
+    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
+    shz = problems["three_stage_stochastic_gene_expression_shahrezaei2008"]
+    lin = problems["bursty_autoregulated_gene_expression_lin2016"]
+    assert shz.layer == lin.layer == "pilot" and not shz.suites and not lin.suites
+    assert shz.protocol_for("ssa")["moments"] == "linear"
+    assert "moments" not in lin.protocol_for("ssa")
+
+
 # --------------------------------------------------------------------------- #
 # Seeds and the run_network command
 # --------------------------------------------------------------------------- #
