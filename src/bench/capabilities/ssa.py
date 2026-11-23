@@ -259,10 +259,15 @@ class BngsimSSA:
         self.model = bngsim.Model.from_net(str(net))
         self.load_seconds = time.perf_counter() - t0
         t1 = time.perf_counter()
-        self.sim = bngsim.Simulator(self.model, method="ssa")
+        self.sim = self._simulator(bngsim)
         self.codegen_seconds = time.perf_counter() - t1
         self.details: dict[str, Any] = {}
         self.backend: str | None = None
+        self.last_result = None
+
+    def _simulator(self, bngsim):
+        """The simulator an ensemble samples (a subclass may choose another method)."""
+        return bngsim.Simulator(self.model, method="ssa")
 
     def _span(self) -> dict[str, Any]:
         t_end, n_steps = _grid(self.proto)
@@ -273,6 +278,7 @@ class BngsimSSA:
         self.model.reset()
         result = self.sim.run_replicates(int(n), seed=int(seed), squeeze=True, **self._span())
         self.backend = (getattr(result, "ssa_diagnostics", None) or {}).get("propensity_backend")
+        self.last_result = result  # read outside the timed region, if at all
         return np.array(result.species, dtype=float)
 
     def ensemble_detailed(self, n: int, seed: int) -> np.ndarray:
@@ -283,6 +289,12 @@ class BngsimSSA:
         stack = np.stack([np.array(r.species, dtype=float) for r in results])
         self.backend = (getattr(results[0], "ssa_diagnostics", None) or {}).get(
             "propensity_backend")
+        self.details = self._details(results)
+        return stack
+
+    def _details(self, results: list) -> dict[str, Any]:
+        """What the record keeps of an ensemble's per-replicate Results: the event
+        counts per trajectory and the SSA diagnostics, summed over replicates."""
         events = np.array([float((r.solver_stats or {}).get("n_steps", 0)) for r in results])
         diag: dict[str, Any] = {}
         for r in results:
@@ -291,12 +303,11 @@ class BngsimSSA:
                     diag[k] = diag.get(k, 0) + v
                 elif v and k not in diag:
                     diag[k] = v
-        self.details = {
+        return {
             "events_per_trajectory": {"mean": float(events.mean()), "median": float(np.median(events)),
                                       "max": float(events.max())},
             "diagnostics": diag,
         }
-        return stack
 
     def config(self) -> dict[str, Any]:
         return {
@@ -308,12 +319,16 @@ class BngsimSSA:
         }
 
 
-def run_network_command(net: Path, proto: dict[str, Any], out_prefix: Path, seed: int) -> list[str]:
-    """The run_network call BNG2.pl makes for ``simulate({method=>"ssa"})``."""
+def run_network_command(net: Path, proto: dict[str, Any], out_prefix: Path, seed: int,
+                        method: tuple[str, ...] = ("-p", "ssa")) -> list[str]:
+    """The run_network call BNG2.pl makes for ``simulate({method=>"ssa"})``; another
+    stochastic method passes its own flags, which BNG2.pl puts in the same place
+    (``("-p", "psa", "--poplevel", "100")`` for ``simulate({method=>"psa",
+    poplevel=>100})``)."""
     t_end, n_steps = _grid(proto)
     return [
         *env.run_network_launch(),
-        str(env.run_network_bin()), "-o", str(out_prefix), "-p", "ssa", "-h", str(int(seed)),
+        str(env.run_network_bin()), "-o", str(out_prefix), *method, "-h", str(int(seed)),
         "--cdat", "1", "--fdat", "0", "-g", str(net), str(net),
         repr(t_end / n_steps), str(n_steps),
     ]
@@ -330,17 +345,26 @@ class RunNetworkSSA:
 
     NAME = "run_network"
     INPUT = "net"
+    # The method flags of every trajectory (run_network_command).
+    METHOD_ARGS: tuple[str, ...] = ("-p", "ssa")
 
     def __init__(self, net: Path, proto: dict[str, Any], out_prefix: Path, *, timeout: float):
-        self.net, self.proto, self.out_prefix, self.timeout = net, proto, out_prefix, timeout
-        out_prefix.parent.mkdir(parents=True, exist_ok=True)
+        # Absolute, since every trajectory runs in the output directory.
+        self.net, self.out_prefix = Path(net).absolute(), Path(out_prefix).absolute()
+        self.proto, self.timeout = proto, timeout
+        self.out_prefix.parent.mkdir(parents=True, exist_ok=True)
 
     def trajectory(self, seed: int) -> np.ndarray:
-        cmd = run_network_command(self.net, self.proto, self.out_prefix, seed)
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout, check=False)
+        cmd = run_network_command(self.net, self.proto, self.out_prefix, seed, self.METHOD_ARGS)
+        # Run in the job's scratch directory, so a crash's core file stays there.
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout,
+                              check=False, cwd=self.out_prefix.parent)
         if proc.returncode != 0:
             tail = (proc.stderr.strip() or proc.stdout.strip()).splitlines()
-            raise RuntimeError(f"run_network failed: {(tail[-1] if tail else '')[:300]}")
+            how = (f"killed by signal {-proc.returncode}" if proc.returncode < 0
+                   else f"exit {proc.returncode}")
+            raise RuntimeError(f"run_network failed at seed {int(seed)} ({how}): "
+                               f"{(tail[-1] if tail else '')[:300]}")
         cdat = Path(f"{self.out_prefix}.cdat")
         if not cdat.exists():
             raise RuntimeError("run_network produced no .cdat")
@@ -357,7 +381,8 @@ class RunNetworkSSA:
     def config(self) -> dict[str, Any]:
         # The flags, with the job's scratch paths and the per-trajectory seed as
         # placeholders: they differ every run and say nothing about the experiment.
-        cmd = recorded_command(run_network_command(self.net, self.proto, self.out_prefix, 0))
+        cmd = recorded_command(run_network_command(self.net, self.proto, self.out_prefix, 0,
+                                                   self.METHOD_ARGS))
         names = {str(self.net): "model.net", str(self.out_prefix): "<out>"}
         cmd = [names.get(c, c) for c in cmd]
         cmd[cmd.index("-h") + 1] = "<seed>"

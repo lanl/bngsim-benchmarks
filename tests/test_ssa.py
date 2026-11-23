@@ -154,6 +154,28 @@ def test_run_network_config_records_no_scratch_paths(monkeypatch, tmp_path):
     assert cmd[:6] == ["-o", "<out>", "-p", "ssa", "-h", "<seed>"]
 
 
+@pytest.mark.parametrize("body, how", [
+    ("echo 'edgepop: X'\nkill -SEGV $$", r"killed by signal 11\): edgepop: X"),
+    ("echo 'ERROR: scaling factor of 0 th reaction < 1' >&2\nexit 1",
+     r"exit 1\): ERROR: scaling factor"),
+])
+def test_run_network_runs_in_its_output_directory_and_says_how_it_failed(
+        monkeypatch, tmp_path, body, how):
+    script = tmp_path / "bin" / "run_network"
+    script.parent.mkdir()
+    # A stand-in binary: where it ran, then a crash or an error exit (no core file).
+    script.write_text(f"#!/bin/sh\nulimit -c 0\npwd > ran_in.txt\n{body}\n")
+    script.chmod(0o755)
+    monkeypatch.setattr(ssa.env, "run_network_bin", lambda: script)
+    monkeypatch.setattr(ssa.env, "run_network_launch", lambda: [])
+    eng = ssa.RunNetworkSSA(tmp_path / "m.net", {"t_end": 10, "n_steps": 5},
+                            tmp_path / "out" / "rn", timeout=10)
+    with pytest.raises(RuntimeError, match=r"run_network failed at seed 7 \(" + how):
+        eng.trajectory(7)
+    ran_in = Path((tmp_path / "out" / "ran_in.txt").read_text().strip())
+    assert ran_in.resolve() == (tmp_path / "out").resolve()
+
+
 # --------------------------------------------------------------------------- #
 # The repeated-reactant screen
 # --------------------------------------------------------------------------- #
