@@ -365,7 +365,7 @@ def test_nf_rows_carry_the_cross_setting_check_and_divide_by_nfsim(tmp_path):
     assert corr["cross_setting"] == {"setting": "nf_reject", "passed": True, "p_value": 0.09}
     assert corr["same_seed"]["identical"] == 5
     header = _row(summary, "problem", "species", "engine", "outcome", "pre-sim (s)")
-    cols = lambda engine: dict(zip(header, _row(summary, "toy", "", engine)))  # noqa: E731
+    cols = lambda engine: dict(zip(header, _row(summary, "toy [nf_exact]", "", engine)))  # noqa: E501,E731
     bn = cols("bngsim")
     assert bn["pre-sim parts (s)"] == "xml 0.69 + load 0.012"
     assert bn["solve per trajectory (s)"] == "0.1" and bn["x nfsim"] == "4.69"

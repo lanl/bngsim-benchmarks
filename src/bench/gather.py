@@ -404,6 +404,13 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def _problem_cell(r: dict[str, Any]) -> str:
+    """The problem, with its setting where a capability runs more than one (the
+    network-free ``nf_reject`` and ``nf_exact``); ``auto`` is left unsaid."""
+    setting = r.get("setting")
+    return r["problem"] + (f" [{setting}]" if setting not in (None, "", "auto") else "")
+
+
 def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     """One row per problem, as ``_correctness_table`` but for a statistical verdict:
     the smallest p-value over the comparisons beside the outcome and the agreement
@@ -432,7 +439,7 @@ def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
             else:
                 cells.append("")
         lines.append("| " + " | ".join([
-            r["problem"], _fmt(sp, "d"), r["outcome"], reference_agreement(r),
+            _problem_cell(r), _fmt(sp, "d"), r["outcome"], reference_agreement(r),
             _fmt(r.get("min_p_value"), ".2g"), _fmt(r.get("replicates"), "d"), *cells,
             "yes" if r["current"] else "no",
         ]) + " |")
@@ -587,7 +594,7 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
             rep = repro.get(engine)
             total, parts = _presim_cells(presim.get(engine))
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"],
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"],
                 total, parts, _sec(median), ci,
                 *([_sec((per_traj.get(engine) or {}).get("median_seconds"))]
                   if per_trajectory else []),
@@ -600,13 +607,13 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
             ]) + " |")
         for engine in sorted(_errored_engines(r) - set(times)):
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
                 "", *([""] if per_trajectory else []), *([""] if solve else []), "", "", "",
                 "yes" if r["current"] else "no",
             ]) + " |")
         for engine in sorted(set(r.get("not_applicable") or {}) - set(times)):
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", "n/a",
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"], "", "", "n/a",
                 "", *([""] if per_trajectory else []), *([""] if solve else []), "", "", "",
                 "yes" if r["current"] else "no",
             ]) + " |")
