@@ -66,6 +66,10 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         if k == "error" or k.endswith("_error"):
             if val:
                 row[k] = val
+    # A reference that does not apply to the model, with its reason: shown, never
+    # counted as attempted.
+    if rec.get("not_applicable"):
+        row["not_applicable"] = dict(rec["not_applicable"])
     return row
 
 
@@ -217,8 +221,10 @@ def reference_agreement(r: dict[str, Any]) -> str:
     instead of) the outcome enum: ``FULL 4/4`` when every reference ran and agreed;
     ``PARTIAL 3/4 (copasi: crash)`` when the only shortfall is a reference that failed
     to run; ``DIFF 3/4 (roadrunner: diff)`` when a reference ran and disagreed. ``n/m``
-    is agreed / attempted, where a crashed reference counts as attempted. Blank when no
-    reference was attempted (e.g. the job failed before any engine ran)."""
+    is agreed / attempted, where a crashed reference counts as attempted. A reference
+    that does not apply to the model is named (``run_network: n/a``) but not counted.
+    Blank when no reference was attempted (e.g. the job failed before any engine
+    ran)."""
     verdicts = r.get("verdicts") or {}
     crashed = _errored_engines(r) - set(verdicts)
     attempted = len(verdicts) + len(crashed)
@@ -227,7 +233,8 @@ def reference_agreement(r: dict[str, Any]) -> str:
     passed = sum(1 for v in verdicts.values() if v.get("passed"))
     diffs = sorted(name for name, v in verdicts.items() if not v.get("passed"))
     misses = sorted([(name, _why(r, name)) for name in crashed]
-                    + [(name, "diff") for name in diffs])
+                    + [(name, "diff") for name in diffs]
+                    + [(name, "n/a") for name in (r.get("not_applicable") or {})])
     label = "DIFF" if diffs else ("PARTIAL" if crashed else "FULL")
     named = f" ({', '.join(f'{n}: {why}' for n, why in misses)})" if misses else ""
     return f"{label} {passed}/{attempted}{named}"
@@ -237,10 +244,12 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     """One row per problem: the outcome enum, BNGsim's agreement with its references
     (``FULL 4/4`` / ``PARTIAL 3/4 (copasi: crash)``, see ``reference_agreement``), the
     worst agreement, and each reference individually -- ``ok``, ``DIFF`` (ran but
-    disagreed) or ``crash`` (failed to run). A single broken reference no longer hides
-    the others behind one ``REFERENCE_FAILED``."""
+    disagreed), ``crash`` (failed to run) or ``n/a`` (does not apply to the model). A
+    single broken reference no longer hides the others behind one
+    ``REFERENCE_FAILED``."""
     refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
-                  | {name for r in rows for name in _errored_engines(r)})
+                  | {name for r in rows for name in _errored_engines(r)}
+                  | {name for r in rows for name in (r.get("not_applicable") or {})})
     header = ["problem", "species", "outcome", "references", "max error / peak",
               *(f"vs {name}" for name in refs), "current"]
     lines = ["| " + " | ".join(header) + " |",
@@ -256,6 +265,8 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
                 cells.append("ok" if v.get("passed") else "DIFF")
             elif name in errs:
                 cells.append(_why(r, name))
+            elif name in (r.get("not_applicable") or {}):
+                cells.append("n/a")
             else:
                 cells.append("")
         lines.append("| " + " | ".join([
@@ -310,6 +321,11 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
                 r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
                 "", "", "", "", "yes" if r["current"] else "no",
             ]) + " |")
+        for engine in sorted(set(r.get("not_applicable") or {}) - set(times)):
+            lines.append("| " + " | ".join([
+                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", "n/a",
+                "", "", "", "", "yes" if r["current"] else "no",
+            ]) + " |")
     lines += ["", "Times in seconds. *pre-sim* is the one-time load/build before the "
               "timed solve, measured once (cold), so it has no CI: bngsim = netgen + "
               "codegen [backend] + load; a reference = its own codegen + load. *in sim*: "
@@ -318,5 +334,6 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
               "bootstrap 95% CI; *crash*: the reference failed to run and was dropped "
               "from the timed set (its error is in the JSON row); *timeout*: it ran "
               "past its per-engine wall budget in the correctness job, so it was not "
-              "timed."]
+              "timed; *n/a*: the engine does not apply to the model (its reason is in "
+              "the JSON row)."]
     return lines

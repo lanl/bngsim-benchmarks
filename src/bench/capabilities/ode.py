@@ -1,4 +1,4 @@
-"""ODE simulation of BNGL models: BNGsim against a registry of reference engines.
+"""ODE simulation of BNGL and SBML models: BNGsim against a registry of reference engines.
 
 BNGsim is the system under test; it is compared, on one problem, against every
 reference ODE engine in ``REFERENCE_ENGINES``:
@@ -62,6 +62,31 @@ If an alignment were wrong, the verdict would fail.
 Setting ``auto`` leaves every BNGsim choice (linear solver, compiled or
 interpreted right-hand side) to bngsim, as a user gets it.
 
+**SBML models** (the ode-sbml suite) take a second path through the same
+registry, with no network generation and no export: BNGsim reads the pinned
+SBML with ``Model.from_sbml``, and roadrunner, COPASI and AMICI read the same
+file. Their protocol is the model's SED-ML time course, which may start its
+output (``output_start``) after the integration starts (``t_start``). What is
+compared is each **state species** of the SBML, by its SBML id: every species
+the SBML neither declares ``constant`` nor sets by an assignment rule (those are
+functions of the parameters and the state, and not every engine reports them).
+Every engine must report every state species, at the protocol's output times,
+or it has failed; nothing is aligned by position. BNGsim takes ``atol`` as a
+plain float, its own reading of an absolute tolerance, as an SBML user gets it
+(the ``.net`` path holds it exactly instead, to match run_network).
+
+run_network reads only ``.net``, so for an SBML model it runs on a network
+derived from the SBML (``derive_network``): ``bngsim.convert.sbml_to_bngl``
+writes compartmental BNGL, whose fixed-time events become phases of the
+protocol; BNG2.pl generates the ``.net``; and the phases run as BNG2.pl runs
+them, a fresh run_network per phase from the state the last one left. The
+derivation is model preparation, charged to no engine, and it gates
+run_network: if the SBML has no faithful BNGL form, or BNGsim on the derived
+network does not reproduce BNGsim on the SBML, run_network is *not applicable*
+to the model. That is recorded with its reason, and it is left out of the count
+of references, not counted as a failure. A run_network failure after a faithful
+derivation is a reference failure like any other.
+
 The reference for correctness is run_network with its default (dense) linear
 solver, as in bngsim's own parity checks. A model's ``sparse`` option (BNG2.pl's
 ``sparse=>1``, run_network ``-b``, an iterative Krylov solver) is not trusted as
@@ -77,10 +102,12 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import signal
 import subprocess
 import sys
 import time
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -103,6 +130,9 @@ CAPABILITY = "ode"
 #    reference a trial run and drops any that crash (recording a <name>_error),
 #    so one crashing reference no longer loses BNGsim and the survivors' timings.
 HARNESS_VERSION = "5"
+# The SBML path's own version, a key only SBML jobs carry, so it moves without
+# restaling a .net result (and HARNESS_VERSION moves both).
+SBML_HARNESS_VERSION = "1"
 
 TIMING_PROTOCOL = {"warmup_rounds": 1, "min_rounds": 5, "max_rounds": 20, "budget_seconds": 120.0}
 
@@ -133,11 +163,24 @@ _END_MODEL_RE = re.compile(r"^\s*end\s+model\b.*$", re.MULTILINE | re.IGNORECASE
 
 
 def protocol(problem: Problem) -> dict[str, Any]:
-    """The ODE protocol with defaults filled in, as it enters a job definition."""
+    """The ODE protocol with defaults filled in, as it enters a job definition.
+
+    An SBML protocol's output starts where its integration does unless it says
+    otherwise; a BNGL protocol has run_network's ``sparse`` option instead."""
     p = dict(problem.protocol_for(CAPABILITY))
     p.setdefault("t_start", 0)
-    p.setdefault("sparse", False)
+    if problem.source.get("format") == "sbml":
+        p.setdefault("output_start", p["t_start"])
+    else:
+        p.setdefault("sparse", False)
     return p
+
+
+def output_times(proto: dict[str, Any]) -> np.ndarray:
+    """The protocol's output times: ``n_steps`` equal steps from the output start
+    (the integration start unless the protocol names another) to ``t_end``."""
+    start = float(proto.get("output_start", proto["t_start"]))
+    return np.linspace(start, float(proto["t_end"]), int(proto["n_steps"]) + 1)
 
 
 def engines_id() -> str:
@@ -150,7 +193,8 @@ def engines_id() -> str:
 
 
 def jobs(problem: Problem) -> list[Job]:
-    if problem.source.get("format") != "bngl":
+    fmt = problem.source.get("format")
+    if fmt not in ("bngl", "sbml"):
         return []
     proto = protocol(problem)
     engines = engines_id()
@@ -169,6 +213,9 @@ def jobs(problem: Problem) -> list[Job]:
             "amici": env.amici_identity().get("version"),
         },
     }
+    if fmt == "sbml":
+        # Only an SBML job carries this, so a .net job's definition is unchanged.
+        base["input"] = {"format": "sbml", "harness": SBML_HARNESS_VERSION}
     est_c, est_t = planning_seconds(problem)
     # The per-engine budgets bound the engines; the job timeout is the backstop for
     # what they do not cover (netgen, export, the sparse check), so it leaves room
@@ -650,7 +697,8 @@ class AmiciODE:
                 f"(e.g. {unmapped[:3]}); the SBML export and AMICI disagree")
         self.idx = [pos[i] for i in want_ids]
 
-    def run(self):
+    def _simulate(self):
+        """One forward run from the initial state: the run data and its state."""
         from amici.sim.sundials import (
             LinearMultistepMethod, SensitivityOrder, run_simulation)
 
@@ -670,6 +718,10 @@ class AmiciODE:
         # verdict's nan-skipping error metric, so reject it here.
         if not np.all(np.isfinite(x)):
             raise RuntimeError("AMICI returned non-finite values with a success status")
+        return rdata, x
+
+    def run(self):
+        _, x = self._simulate()
         return x[:, self.idx]
 
     # A fresh solver each run already integrates from the initial state, so warm
@@ -702,9 +754,692 @@ REFERENCE_ENGINES: dict[str, type] = {
 }
 
 
+# --------------------------------------------------------------------------- #
+# SBML models: the same engines, reading the pinned SBML
+# --------------------------------------------------------------------------- #
+def _time_scale(proto: dict[str, Any]) -> float:
+    """The size of the protocol's times, for telling two of them apart."""
+    return max(1.0, abs(float(proto["t_start"])), abs(float(proto["t_end"])))
+
+
+def _close(a: float, b: float, scale: float) -> bool:
+    return abs(float(a) - float(b)) <= 1e-9 * scale
+
+
+def check_times(times, proto: dict[str, Any]) -> None:
+    """Refuse an engine's output unless it is at exactly the protocol's output
+    times. The verdict compares rows, never times, so an engine that ran another
+    horizon or grid would otherwise be scored row by row against BNGsim."""
+    grid = output_times(proto)
+    t = np.asarray(times, dtype=float).ravel()
+    if t.shape != grid.shape or not np.all(np.abs(t - grid) <= 1e-9 * _time_scale(proto)):
+        got = f"{t.size} times from {t[0]:g} to {t[-1]:g}" if t.size else "no times"
+        raise RuntimeError(
+            f"output is not at the protocol's times: {got}, where the protocol has "
+            f"{grid.size} from {grid[0]:g} to {grid[-1]:g}")
+
+
+def sbml_species(sbml: Path) -> tuple[list[str], dict[str, Any]]:
+    """The SBML's state species, in document order, and a census of the file.
+
+    A state species is one the SBML neither declares ``constant`` nor sets by an
+    assignment rule: what an ODE solver integrates, and what every engine
+    compares. The census records the others by id, so a reader sees what is left
+    out and why.
+    """
+    import libsbml
+
+    doc = libsbml.readSBMLFromFile(str(sbml))
+    model = doc.getModel()
+    if model is None:
+        errors = [doc.getError(i).getMessage().strip() for i in range(doc.getNumErrors())]
+        raise RuntimeError(f"libsbml cannot read {sbml.name}: {'; '.join(errors)[:300]}")
+    rule_set = {model.getRule(i).getVariable() for i in range(model.getNumRules())
+                if model.getRule(i).isAssignment()}
+    state, constant, assigned = [], [], []
+    for i in range(model.getNumSpecies()):
+        sp = model.getSpecies(i)
+        sid = sp.getId()
+        if sp.getConstant():
+            constant.append(sid)
+        elif sid in rule_set:
+            assigned.append(sid)
+        else:
+            state.append(sid)
+    if not state:
+        raise RuntimeError(f"{sbml.name} has no state species to compare")
+    census = {
+        "species": model.getNumSpecies(),
+        "reactions": model.getNumReactions(),
+        "events": model.getNumEvents(),
+        "compared_species": len(state),
+        "not_compared": {"constant": constant, "assignment_rule": assigned},
+    }
+    return state, census
+
+
+def _bngsim_sbml_run(sim, proto: dict[str, Any], *, rtol: float, atol):
+    """One BNGsim solve of an SBML protocol. An output start after the integration
+    start is a first sample time at the integration start, dropped afterwards."""
+    t0, t1 = float(proto["t_start"]), float(proto["t_end"])
+    grid = output_times(proto)
+    if _close(grid[0], t0, _time_scale(proto)):
+        return sim.run(t_span=(t0, t1), n_points=grid.size, rtol=rtol, atol=atol)
+    return sim.run(sample_times=[t0, *grid.tolist()], rtol=rtol, atol=atol)
+
+
+def _leading_rows(proto: dict[str, Any]) -> int:
+    """Rows a solve reports before the output starts: the integration start, when
+    the output starts later."""
+    grid = output_times(proto)
+    return 0 if _close(grid[0], float(proto["t_start"]), _time_scale(proto)) else 1
+
+
+def _bngsim_columns(result, species_ids: list[str]) -> list[int]:
+    """BNGsim's column of each compared SBML species, by SBML id (never by
+    position). A result's names, not the model's: an SBML event that assigns a
+    parameter makes it a model state entry that the reported species omit."""
+    pos = {name: i for i, name in enumerate(result.species_names)}
+    missing = [sid for sid in species_ids if sid not in pos]
+    if missing:
+        raise RuntimeError(
+            f"BNGsim reports no column for {len(missing)} compared SBML species "
+            f"(e.g. {missing[:3]})")
+    return [pos[sid] for sid in species_ids]
+
+
+class BngsimSBML(BngsimODE):
+    """BNGsim reading the pinned SBML itself (``Model.from_sbml``).
+
+    It reports concentrations, as every SBML engine here is asked to. ``atol`` is
+    the plain float an SBML user passes, which BNGsim reads as a per-species
+    ceiling; the ``.net`` path holds it exactly, to match run_network's reading,
+    but no SBML reference reads it that way (libRoadRunner scales it per species),
+    and on a model whose species are nanomolar an exact 1e-9 is no tolerance.
+    """
+
+    def __init__(self, sbml: Path, species_ids: list[str], proto: dict[str, Any]):
+        import bngsim
+
+        self.proto = proto
+        self.species_ids = list(species_ids)
+        self.lead = _leading_rows(proto)
+        self.columns: list[int] | None = None
+        t0 = time.perf_counter()
+        self.model = bngsim.Model.from_sbml(str(sbml))
+        self.load_seconds = time.perf_counter() - t0
+        self.sim = bngsim.Simulator(self.model, method="ode")
+        self.atol = float(proto["atol"])
+
+    def run(self):
+        return _bngsim_sbml_run(self.sim, self.proto, rtol=float(self.proto["rtol"]),
+                                atol=self.atol)
+
+    def trajectory(self, result) -> np.ndarray:
+        if self.columns is None:
+            self.columns = _bngsim_columns(result, self.species_ids)
+        return np.array(result.species)[self.lead:, self.columns]
+
+    def times(self, result) -> np.ndarray:
+        return np.asarray(result.time)[self.lead:]
+
+    def config(self, result) -> dict[str, Any]:
+        return {**super().config(result), "input": "sbml (Model.from_sbml)",
+                "atol": "float (per-species ceiling)"}
+
+
+class RoadRunnerSBML(RoadRunnerODE):
+    """libRoadRunner reading the pinned SBML.
+
+    Each compared species is selected as a **concentration** (``[id]``), which is
+    what BNGsim reports for an SBML model in any compartment. A warm run follows
+    ``resetAll()``, not ``reset()``: an SBML event may assign a global parameter,
+    which ``reset()`` would leave at its assigned value (issue #8).
+    """
+
+    def __init__(self, sbml: Path, species_ids: list[str], proto: dict[str, Any]):
+        roadrunner = env.import_roadrunner()
+
+        self.proto = proto
+        self.lead = _leading_rows(proto)
+        t0 = time.perf_counter()
+        self.rr = roadrunner.RoadRunner(str(sbml))
+        self.load_seconds = time.perf_counter() - t0
+        self.rr.setIntegrator("cvode")
+        integrator = self.rr.getIntegrator()
+        integrator.setValue("relative_tolerance", float(proto["rtol"]))
+        integrator.setValue("absolute_tolerance", float(proto["atol"]))
+        self.rr.timeCourseSelections = ["time"] + [f"[{sid}]" for sid in species_ids]
+
+    def run(self):
+        p = self.proto
+        grid = output_times(p)
+        if self.lead:
+            return self.rr.simulate(times=[float(p["t_start"]), *grid.tolist()])
+        return self.rr.simulate(float(p["t_start"]), float(p["t_end"]), grid.size)
+
+    def warm(self):
+        self.rr.resetAll()
+        return self.run()
+
+    def trajectory(self, result) -> np.ndarray:
+        return np.asarray(result)[self.lead:, 1:]
+
+    def times(self, result) -> np.ndarray:
+        return np.asarray(result)[self.lead:, 0]
+
+    def config(self) -> dict[str, Any]:
+        return {**super().config(), "output": "concentration", "reset": "resetAll"}
+
+
+class CopasiSBML(CopasiODE):
+    """COPASI reading the pinned SBML: columns by SBML id, as concentrations.
+
+    An output start after the integration start is asked for as explicit output
+    times (BASICO ``values``) over the whole duration; otherwise the call is the
+    ``.net`` path's. A compared species COPASI leaves out of its output is a
+    COPASI failure, as on the ``.net`` path (never filled in here).
+    """
+
+    def __init__(self, sbml: Path, species_ids: list[str], proto: dict[str, Any]):
+        import basico
+
+        self.selections = list(species_ids)
+        self.proto = proto
+        t0 = time.perf_counter()
+        self.dm = basico.load_model(str(sbml))
+        self.load_seconds = time.perf_counter() - t0
+
+    def run(self):
+        import basico
+
+        p = self.proto
+        t_start, t_end, n_steps = float(p["t_start"]), float(p["t_end"]), int(p["n_steps"])
+        kw = dict(method="deterministic", r_tol=float(p["rtol"]), a_tol=float(p["atol"]),
+                  automatic=False, use_concentrations=True, use_sbml_id=True, model=self.dm)
+        if _leading_rows(p):
+            return basico.run_time_course(duration=t_end - t_start,
+                                          values=output_times(p).tolist(), **kw)
+        return basico.run_time_course(t_start, t_end - t_start, n_steps, **kw)
+
+    warm = run
+
+    def trajectory(self, df) -> np.ndarray:
+        return df[self.selections].to_numpy()
+
+    @staticmethod
+    def times(df) -> np.ndarray:
+        return np.asarray(df.index, dtype=float)
+
+
+class AmiciSBML(AmiciODE):
+    """AMICI reading the pinned SBML, from the protocol's start time. A compared
+    species must be an AMICI state, read by SBML id."""
+
+    def __init__(self, sbml: Path, species_ids: list[str], proto: dict[str, Any]):
+        import amici
+
+        self.proto = proto
+        outdir = sbml.parent / "amici_model"
+        t0 = time.perf_counter()
+        amici.SbmlImporter(str(sbml)).sbml2amici(
+            "bench_model", str(outdir), generate_sensitivity_code=False, verbose=False)
+        self.codegen_seconds = time.perf_counter() - t0
+        t1 = time.perf_counter()
+        self.model = amici.import_model_module("bench_model", str(outdir)).get_model()
+        self.model.set_t0(float(proto["t_start"]))
+        self.model.set_timepoints(output_times(proto))
+        self.load_seconds = time.perf_counter() - t1
+        pos = {sid: i for i, sid in enumerate(self.model.get_state_ids())}
+        unmapped = [sid for sid in species_ids if sid not in pos]
+        if unmapped:
+            raise RuntimeError(
+                f"AMICI has no state for {len(unmapped)} compared SBML species "
+                f"(e.g. {unmapped[:3]})")
+        self.idx = [pos[sid] for sid in species_ids]
+
+    def run(self):
+        rdata, x = self._simulate()
+        return np.asarray(rdata.ts, dtype=float), x[:, self.idx]
+
+    warm = run
+
+    @staticmethod
+    def trajectory(values) -> np.ndarray:
+        return np.asarray(values[1])
+
+    @staticmethod
+    def times(values) -> np.ndarray:
+        return np.asarray(values[0])
+
+
+# -- run_network on a network derived from the SBML --------------------------
+# The derived network is checked with BNGsim on both sides at this tolerance
+# (float atol on both), tight enough that what remains is the model, not the
+# integration.
+FAITHFULNESS_RTOL = 1e-10
+FAITHFULNESS_ATOL = 1e-18
+_NET_SPECIES_RE = re.compile(r"^(\s*\d+\s+)(\S+)(\s+)(\S+)(.*)$", re.DOTALL)
+
+
+def net_species(lines: list[str]) -> list[tuple[int, str]]:
+    """``(line index, name)`` of each species of a ``.net``, in order."""
+    out: list[tuple[int, str]] = []
+    inside = False
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if s.startswith("begin species"):
+            inside = True
+        elif s.startswith("end species"):
+            break
+        elif inside and s and not s.startswith("#"):
+            m = _NET_SPECIES_RE.match(line)
+            if m:
+                out.append((i, m.group(2)))
+    return out
+
+
+def net_groups(lines: list[str]) -> dict[str, list[tuple[int, float]]]:
+    """Each group (observable) of a ``.net``: its name and its ``(species index,
+    weight)`` members, the index 0-based, as BNG2.pl resolved the pattern."""
+    out: dict[str, list[tuple[int, float]]] = {}
+    inside = False
+    for line in lines:
+        s = line.strip()
+        if s.startswith("begin groups"):
+            inside = True
+        elif s.startswith("end groups"):
+            break
+        elif inside and s and not s.startswith("#"):
+            fields = s.split()
+            if len(fields) < 2:
+                continue
+            members = []
+            for item in (fields[2].split(",") if len(fields) > 2 else []):
+                weight, _, index = item.rpartition("*")
+                members.append((int(index) - 1, float(weight) if weight else 1.0))
+            out[fields[1]] = members
+    return out
+
+
+def species_key(name: str) -> tuple[str | None, str]:
+    """``(compartment, molecule)`` of a one-molecule BNG species name, in either
+    form BNG writes it (``@c::$M()`` in a ``.net``, ``@c:M()`` in an action);
+    a fixed species' ``$`` is left out, as BNG2.pl leaves it out."""
+    s = name.lstrip("$")
+    comp = None
+    if s.startswith("@"):
+        comp, _, s = s[1:].partition(":")
+        s = s.lstrip(":")
+    s = s.lstrip("$")
+    return comp, s[:-2] if s.endswith("()") else s
+
+
+def align_derived(species_ids: list[str], lines: list[str]) -> tuple[list[int], list[str]]:
+    """The derived network's species index of each compared SBML species, and the
+    ids it cannot place. The converter writes an observable named after each SBML
+    species, which BNG2.pl resolves to that species' index; failing that, the
+    molecule is named after the id. Never by position."""
+    rows = net_species(lines)
+    groups = net_groups(lines)
+    by_molecule: dict[str, list[int]] = {}
+    for k, (_, name) in enumerate(rows):
+        by_molecule.setdefault(species_key(name)[1], []).append(k)
+    columns, missing = [], []
+    for sid in species_ids:
+        members = groups.get(sid)
+        if members is not None and len(members) == 1 and members[0][1] == 1.0:
+            columns.append(members[0][0])
+        elif members is None and len(by_molecule.get(sid, [])) == 1:
+            columns.append(by_molecule[sid][0])
+        else:
+            missing.append(sid)
+    return columns, missing
+
+
+def sample_phase(t0: float, t1: float, grid: np.ndarray, scale: float) -> dict[str, Any]:
+    """How run_network samples one phase ``[t0, t1]``: the protocol's output times
+    inside it and its end. ``{"dt", "n"}`` (run_network's ``sample_time n``) when
+    those are equal steps from ``t0``, as for a single phase on the protocol's own
+    grid; else ``{"times"}``, which run_network needs three of, so a phase with
+    fewer gets midpoints (rows no output time reads)."""
+    pts = [float(g) for g in grid if g > t0 + 1e-9 * scale and g <= t1 + 1e-9 * scale]
+    if not pts or not _close(pts[-1], t1, scale):
+        pts.append(float(t1))
+    h = (t1 - t0) / len(pts)
+    if all(_close(p, t0 + (k + 1) * h, scale) for k, p in enumerate(pts)):
+        return {"dt": h, "n": len(pts)}
+    while len(pts) < 3:
+        knots = [t0, *pts]
+        k = max(range(len(pts)), key=lambda i: knots[i + 1] - knots[i])
+        pts.insert(k, (knots[k] + knots[k + 1]) / 2)
+    return {"times": pts}
+
+
+def stitch(outputs: list[tuple[np.ndarray, np.ndarray]], phases: list[dict[str, Any]],
+           grid: np.ndarray, scale: float) -> tuple[np.ndarray, np.ndarray]:
+    """The protocol's output rows from the phases' outputs. Each phase's rows are
+    its start and its samples; an output time at a boundary between phases is the
+    earlier phase's last row, the state before the next phase's changes."""
+    times, rows = [], []
+    for g in grid:
+        if _close(g, phases[0]["t_start"], scale):
+            j = 0
+        else:
+            j = next((j for j, ph in enumerate(phases)
+                      if g > ph["t_start"] + 1e-9 * scale and g <= ph["t_end"] + 1e-9 * scale),
+                     None)
+            if j is None:
+                raise RuntimeError(f"no phase of the derived protocol covers t={g:g}")
+        t, v = outputs[j]
+        k = int(np.argmin(np.abs(np.asarray(t) - g)))
+        if not _close(t[k], g, scale):
+            raise RuntimeError(f"phase {j} has no output row at t={g:g}")
+        times.append(float(t[k]))
+        rows.append(np.asarray(v)[k])
+    return np.asarray(times), np.vstack(rows)
+
+
+def boundary_times(phases: list[dict[str, Any]], grid: np.ndarray, scale: float) -> list[float]:
+    """Output times at which the derived protocol changes the state between
+    phases, where an SBML event fired. What is reported at that instant, before
+    or after the change, is the conversion's convention, not the network's."""
+    marks = [ph["t_start"] for ph in phases if ph["changes"]]
+    return [float(g) for g in grid if any(_close(g, m, scale) for m in marks)]
+
+
+def _set_net_values(lines: list[str], rows: list[tuple[int, str]],
+                    values: dict[int, float]) -> list[str]:
+    """A copy of a ``.net``'s lines with the given species' values replaced."""
+    out = list(lines)
+    for k, value in values.items():
+        i = rows[k][0]
+        m = _NET_SPECIES_RE.match(out[i])
+        out[i] = f"{m.group(1)}{m.group(2)}{m.group(3)}{value!r}{m.group(5)}"
+    return out
+
+
+def _summarized_command(cmd: list[str], phase: dict[str, Any]) -> list[str]:
+    """A phase's recorded command, with a list of sample times summarized."""
+    if "times" not in phase:
+        return cmd
+    n = len(phase["times"])
+    return [*cmd[:-n], f"<{n} sample times, {phase['times'][0]:g} to {phase['times'][-1]:g}>"]
+
+
+def _phase_command(net: Path, phase: dict[str, Any], rtol: float, atol: float,
+                   out_prefix: Path) -> list[str]:
+    """The run_network call for one phase, as BNG2.pl makes it."""
+    cmd = [
+        *env.run_network_launch(),
+        str(env.run_network_bin()), "-o", str(out_prefix), "-p", "cvode",
+        "-a", repr(float(atol)), "-r", repr(float(rtol)),
+    ]
+    if float(phase["t_start"]) != 0.0:
+        cmd += ["-i", repr(float(phase["t_start"]))]
+    cmd += ["--cdat", "1", "--fdat", "0", "-g", str(net), str(net)]
+    if "dt" in phase:
+        cmd += [repr(float(phase["dt"])), str(int(phase["n"]))]
+    else:
+        cmd += [repr(float(t)) for t in phase["times"]]
+    return cmd
+
+
+class RunNetworkSBML:
+    """run_network on the network derived from the SBML (``derive_network``).
+
+    The protocol runs as BNG2.pl runs a sequence of ``simulate`` actions: a fresh
+    run_network per phase, each from the ``.net`` with the species set to the last
+    row the phase before wrote, and to any value the protocol sets in between (an
+    SBML event's assignment). An event-free model on its own output grid is one
+    run_network call, exactly as on the ``.net`` path. Columns are the compared
+    species, found in the derived network by name.
+    """
+
+    NAME = "run_network"
+    INPUT = "derived"
+
+    def __init__(self, derived: dict[str, Any], proto: dict[str, Any], out_prefix: Path, *,
+                 timeout: float):
+        self.net = Path(derived["net"])
+        self.phases = derived["phases"]
+        self.columns = derived["columns"]
+        self.boundary = derived.get("boundary_times", [])
+        self.proto = proto
+        self.out_prefix = Path(out_prefix)
+        self.out_prefix.parent.mkdir(parents=True, exist_ok=True)
+        self.timeout = timeout
+        self.lines = self.net.read_text(encoding="utf-8").splitlines(keepends=True)
+        self.rows = net_species(self.lines)
+        self.commands: list[list[str]] = []
+
+    def _phase_net(self, j: int, state: np.ndarray | None, changes) -> Path:
+        if j == 0 and not changes:
+            return self.net
+        values: dict[int, float] = {}
+        if state is not None:
+            values.update({k: float(v) for k, v in enumerate(state)})
+        values.update({int(k): float(v) for k, v in changes})
+        path = self.out_prefix.parent / f"{self.out_prefix.name}_phase{j}.net"
+        path.write_text("".join(_set_net_values(self.lines, self.rows, values)), encoding="utf-8")
+        return path
+
+    def run(self):
+        p = self.proto
+        outputs = []
+        state = None
+        commands = []
+        for j, phase in enumerate(self.phases):
+            net = self._phase_net(j, state, phase["changes"])
+            prefix = Path(f"{self.out_prefix}_p{j}")
+            cmd = _phase_command(net, phase, float(p["rtol"]), float(p["atol"]), prefix)
+            t, values, _ = _run_network(cmd, prefix, timeout=self.timeout)
+            if values.shape[1] != len(self.rows):
+                raise RuntimeError(f"run_network wrote {values.shape[1]} species columns, "
+                                   f"the derived network has {len(self.rows)}")
+            outputs.append((t, values))
+            state = values[-1]
+            commands.append(_summarized_command(recorded_command(cmd), phase))
+        self.commands = commands
+        times, rows = stitch(outputs, self.phases, output_times(p), _time_scale(p))
+        return times, rows[:, self.columns]
+
+    warm = run
+
+    @staticmethod
+    def trajectory(values) -> np.ndarray:
+        return np.asarray(values[1])
+
+    @staticmethod
+    def times(values) -> np.ndarray:
+        return np.asarray(values[0])
+
+    def config(self) -> dict[str, Any]:
+        return {"solver": "dense", "input": "network derived from the SBML",
+                "phases": len(self.phases), "commands": self.commands,
+                "boundary_times": self.boundary}
+
+
+def _bngsim_net_phases(net: Path, phases: list[dict[str, Any]], proto: dict[str, Any],
+                       rtol: float, atol: float) -> tuple[np.ndarray, np.ndarray]:
+    """BNGsim on the derived network, through the same phases run_network runs:
+    the faithfulness check of the derivation and of the phase driver at once."""
+    import bngsim
+
+    model = bngsim.Model.from_net(str(net))
+    sim = bngsim.Simulator(model, method="ode")
+    outputs = []
+    state = None
+    for j, phase in enumerate(phases):
+        if state is None:
+            model.reset()
+            values = np.asarray(model.get_state(), dtype=float)
+        else:
+            values = np.array(state, dtype=float)
+        for k, v in phase["changes"]:
+            values[int(k)] = float(v)
+        model.set_state(values)
+        t0, t1 = float(phase["t_start"]), float(phase["t_end"])
+        if "dt" in phase:
+            r = sim.run(t_span=(t0, t1), n_points=int(phase["n"]) + 1, rtol=rtol, atol=atol)
+        else:
+            r = sim.run(sample_times=[t0, *phase["times"]], rtol=rtol, atol=atol)
+        out = np.array(r.species)
+        outputs.append((np.asarray(r.time), out))
+        state = out[-1]
+    return stitch(outputs, phases, output_times(proto), _time_scale(proto))
+
+
+def derive_network(sbml: Path, species_ids: list[str], proto: dict[str, Any], workdir: Path, *,
+                   timeout: float, stage=lambda text: None) -> dict[str, Any]:
+    """The network run_network reads for an SBML model, or why there is none.
+
+    1. ``bngsim.convert.sbml_to_bngl`` (strict) writes compartmental BNGL; a
+       fixed-time SBML event becomes a ``setConcentration`` between ``simulate``
+       phases. A model it refuses has no faithful BNGL form.
+    2. BNG2.pl generates the ``.net`` from it.
+    3. Each compared species is found in the network by name, and each phase is
+       sampled at the protocol's output times.
+    4. BNGsim on the derived network, run through those phases, must reproduce
+       BNGsim on the SBML at a tight tolerance, away from the instants the state
+       is changed (``boundary_times``). A converter that dropped an event, say,
+       fails here.
+
+    Returns ``{"applicable": True, "net", "columns", "phases", "boundary_times",
+    "info"}``, or ``{"applicable": False, "reason", "info"}``. Model preparation:
+    charged to no engine.
+    """
+    import bngsim
+    from bngsim.convert import parse_bngl_protocol, sbml_to_bngl
+
+    workdir = Path(workdir)
+    workdir.mkdir(parents=True, exist_ok=True)
+    info: dict[str, Any] = {}
+
+    def not_applicable(reason: str) -> dict[str, Any]:
+        return {"applicable": False, "reason": reason[:400], "info": info}
+
+    t_start, t_end = float(proto["t_start"]), float(proto["t_end"])
+    grid = output_times(proto)
+    scale = _time_scale(proto)
+
+    stage("sbml_to_bngl")
+    t0 = time.perf_counter()
+    try:
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            report = sbml_to_bngl(str(sbml), str(workdir / f"{sbml.stem}.bngl"), strict=True,
+                                  t_span=(t_start, t_end), n_points=grid.size)
+    except bngsim.ConversionError as exc:
+        return not_applicable(f"no faithful BNGL form: bngsim.convert.sbml_to_bngl refuses it "
+                              f"({exc})")
+    except Exception as exc:  # noqa: BLE001 - the converter's failure, not run_network's
+        return not_applicable(f"bngsim.convert.sbml_to_bngl failed: {type(exc).__name__}: {exc}")
+    info["conversion_seconds"] = time.perf_counter() - t0
+    info["converter_notes"] = sorted({str(w.message)[:300] for w in caught})
+    info["bngsim_only"] = [str(x)[:300] for x in (report.bngsim_only or [])]
+    text = report.output_text
+
+    # The phases: the converter's simulate steps and the state changes between them.
+    phases: list[dict[str, Any]] = []
+    pending: list[tuple[str, float]] = []
+    steps = parse_bngl_protocol(text).steps if "begin actions" in text else ()
+    for step in steps:
+        kind = getattr(step, "kind", None)
+        if type(step).__name__ == "StateChange":
+            if kind != "set_concentration" or step.value is None or step.value_expr:
+                return not_applicable(f"the derived protocol has a {kind} step ({step.target}), "
+                                      f"which this run_network driver does not run")
+            pending.append((step.target, float(step.value)))
+        elif kind == "simulate" and getattr(step, "method", "ode") == "ode":
+            a, b = (float(x) for x in step.t_span)
+            phases.append({"t_start": a, "t_end": b, "changes": pending})
+            pending = []
+        else:
+            return not_applicable(f"the derived protocol has a {kind} step, which this "
+                                  f"run_network driver does not run")
+    if not phases:
+        phases = [{"t_start": t_start, "t_end": t_end, "changes": pending}]
+        pending = []
+    if pending:
+        return not_applicable("the derived protocol changes the state after its last phase")
+    ends = [(ph["t_start"], ph["t_end"]) for ph in phases]
+    if (not _close(ends[0][0], t_start, scale) or not _close(ends[-1][1], t_end, scale)
+            or any(not _close(ends[j][0], ends[j - 1][1], scale) for j in range(1, len(ends)))):
+        return not_applicable(f"the derived protocol's phases {ends} do not run "
+                              f"[{t_start:g}, {t_end:g}] in order")
+
+    stage("BNG2.pl network generation")
+    try:
+        net, info["netgen_seconds"] = generate_network(
+            text, "generate_network({overwrite=>1})", workdir / "netgen", timeout=timeout)
+    except Exception as exc:  # noqa: BLE001
+        return not_applicable(f"BNG2.pl cannot build the derived model: {exc}")
+    info["network"] = network_size(net)
+
+    net_lines = net.read_text(encoding="utf-8").splitlines(keepends=True)
+    rows = net_species(net_lines)
+    columns, unaligned = align_derived(species_ids, net_lines)
+    if unaligned:
+        return not_applicable(f"cannot find {len(unaligned)} compared species in the derived "
+                              f"network by name (e.g. {unaligned[:3]})")
+    keys = {species_key(name): k for k, (_, name) in enumerate(rows)}
+    for ph in phases:
+        changes = []
+        for target, value in ph["changes"]:
+            k = keys.get(species_key(target))
+            if k is None:
+                return not_applicable(f"the derived protocol sets {target}, which is not a "
+                                      f"species of the derived network")
+            changes.append([k, value])
+        ph["change_targets"] = [target for target, _ in ph["changes"]]
+        ph["changes"] = changes
+        ph.update(sample_phase(ph["t_start"], ph["t_end"], grid, scale))
+    boundary = boundary_times(phases, grid, scale)
+
+    stage("faithfulness check (BNGsim on the derived network vs on the SBML)")
+    try:
+        _, derived = _bngsim_net_phases(net, phases, proto, FAITHFULNESS_RTOL, FAITHFULNESS_ATOL)
+        model = bngsim.Model.from_sbml(str(sbml))
+        result = _bngsim_sbml_run(bngsim.Simulator(model, method="ode"), proto,
+                                  rtol=FAITHFULNESS_RTOL, atol=FAITHFULNESS_ATOL)
+        source = np.array(result.species)[_leading_rows(proto):,
+                                          _bngsim_columns(result, species_ids)]
+    except Exception as exc:  # noqa: BLE001
+        return not_applicable(f"the faithfulness check could not run: {type(exc).__name__}: {exc}")
+    keep = np.array([not any(_close(g, b, scale) for b in boundary) for g in grid])
+    verdict = _verdict(derived[:, columns][keep], source[keep], FAITHFULNESS_ATOL)
+    info["faithfulness"] = {
+        "passed": bool(verdict.get("passed")),
+        "max_err_over_peak": verdict.get("max_err_over_peak"),
+        "rtol": FAITHFULNESS_RTOL, "atol": FAITHFULNESS_ATOL,
+        "rows_not_compared": boundary,
+    }
+    if not verdict.get("passed"):
+        return not_applicable(
+            f"the derived network is not faithful: BNGsim on it misses BNGsim on the SBML "
+            f"by {verdict.get('max_err_over_peak'):.3g} of a species' peak")
+    info["phases"] = len(phases)
+    return {"applicable": True, "net": str(net), "columns": columns, "phases": phases,
+            "boundary_times": boundary, "info": info}
+
+
+SBML_REFERENCE_ENGINES: dict[str, type] = {
+    RunNetworkSBML.NAME: RunNetworkSBML,
+    RoadRunnerSBML.NAME: RoadRunnerSBML,
+    CopasiSBML.NAME: CopasiSBML,
+    AmiciSBML.NAME: AmiciSBML,
+}
+
+
 def _build_reference(name: str, prep: dict[str, Any], *, sparse: bool,
                      out_prefix: Path, timeout: float):
     """Construct one reference engine from the prepared artifacts."""
+    if prep.get("format") == "sbml":
+        cls = SBML_REFERENCE_ENGINES[name]
+        if cls.INPUT == "derived":
+            return cls(prep["derived"], prep["proto"], out_prefix, timeout=timeout)
+        return cls(prep["sbml"], prep["species_ids"], prep["proto"])
     cls = REFERENCE_ENGINES[name]
     if cls.INPUT == "net":
         return cls(prep["net"], prep["proto"], out_prefix, sparse=sparse, timeout=timeout)
@@ -851,34 +1586,73 @@ def run_isolated(fn, budget: float, workdir: Path, *, poll: float = 0.2) -> dict
     return {"trajectory": np.load(traj_file), "config": rec["config"], "seconds": seconds}
 
 
+def _build_bngsim(prep: dict[str, Any]):
+    """The system under test, from the ``.net`` or, for an SBML model, the SBML."""
+    if prep.get("format") == "sbml":
+        return BngsimSBML(prep["sbml"], prep["species_ids"], prep["proto"])
+    return BngsimODE(prep["net"], prep["proto"])
+
+
+def _checked_trajectory(engine, result, prep: dict[str, Any]) -> np.ndarray:
+    """An engine's trajectory; for an SBML model, only once its output is at the
+    protocol's times (a ``.net`` engine's grid is the one it was asked for)."""
+    if prep.get("format") == "sbml":
+        check_times(engine.times(result), prep["proto"])
+    return engine.trajectory(result)
+
+
 def _cold_bngsim(prep: dict[str, Any]):
     def fn(stage):
         t0 = time.perf_counter()
         stage(BUILD_STAGE["bngsim"])
-        engine = BngsimODE(prep["net"], prep["proto"])
+        engine = _build_bngsim(prep)
         stage("first solve")
         result = engine.run()
-        return (BngsimODE.trajectory(result),
+        return (_checked_trajectory(engine, result, prep),
                 {**engine.config(result), "cold_seconds": time.perf_counter() - t0})
     return fn
 
 
 def _cold_reference(name: str, prep: dict[str, Any], out_prefix: Path, timeout: float):
     def fn(stage):
-        cls = REFERENCE_ENGINES[name]
         t0 = time.perf_counter()
         stage(BUILD_STAGE.get(name, "build"))
         ref = _build_reference(name, prep, sparse=False, out_prefix=out_prefix, timeout=timeout)
         stage("first solve")
         values = ref.run()
-        return cls.trajectory(values), {**ref.config(), "cold_seconds": time.perf_counter() - t0}
+        return (_checked_trajectory(ref, values, prep),
+                {**ref.config(), "cold_seconds": time.perf_counter() - t0})
     return fn
+
+
+def _derive_isolated(prep: dict[str, Any], workdir: Path, budget: float, timeout: float):
+    """``derive_network`` in a forked child under ``budget``: what it returns, or
+    run_network not applicable, with the reason, when the derivation itself
+    failed or ran out of time (it is preparation, never run_network's failure)."""
+    def fn(stage):
+        derived = derive_network(prep["sbml"], prep["species_ids"], prep["proto"],
+                                 workdir / "derived", timeout=timeout, stage=stage)
+        return np.zeros(0), derived
+
+    _progress(f"run_network: deriving a network from the SBML (budget {budget:g} s)")
+    out = run_isolated(fn, budget, workdir / "isolated" / "derive")
+    if "error" in out:
+        derived = {"applicable": False, "info": {},
+                   "reason": f"the network derivation failed: {out['error']}"[:400]}
+    else:
+        derived = out["config"]
+    derived.setdefault("info", {})["seconds"] = out["seconds"]
+    _progress("run_network: " + ("derived network ready" if derived.get("applicable")
+                                 else f"not applicable ({derived.get('reason')})"))
+    return derived
 
 
 # --------------------------------------------------------------------------- #
 # Verdict and reproducibility
 # --------------------------------------------------------------------------- #
 def _prepare(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
+    if problem.source.get("format") == "sbml":
+        return _prepare_sbml(problem, ctx)
     proto = protocol(problem)
     model = fetch.model_file(problem.source, ctx["cache_dir"])
     workdir = Path(ctx["workdir"])
@@ -893,6 +1667,24 @@ def _prepare(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
         info["size_mismatch"] = {"spec": problem.size, "generated": size}
     return {"net": net, "sbml": sbml, "species_names": species_names,
             "name_to_id": name_to_id, "proto": proto, "info": info}
+
+
+def _prepare_sbml(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
+    """An SBML model needs no network: the pinned file, copied to the job's own
+    scratch (AMICI compiles beside it), and its state species."""
+    proto = protocol(problem)
+    pinned = fetch.model_file(problem.source, ctx["cache_dir"])
+    workdir = Path(ctx["workdir"])
+    (workdir / "sbml").mkdir(parents=True, exist_ok=True)
+    sbml = workdir / "sbml" / pinned.name
+    shutil.copyfile(pinned, sbml)
+    species_ids, census = sbml_species(sbml)
+    size = {"species": census["species"], "reactions": census["reactions"]}
+    info: dict[str, Any] = {"network": size, "sbml": census}
+    if problem.size.get("reactions") not in (None, size["reactions"]):
+        info["size_mismatch"] = {"spec": problem.size, "sbml": size}
+    return {"format": "sbml", "sbml": sbml, "species_ids": species_ids, "proto": proto,
+            "info": info}
 
 
 def _verdict(bn: np.ndarray, ref: np.ndarray, atol: float) -> dict[str, Any]:
@@ -983,7 +1775,9 @@ def _outcome(bn_error: str | None, ref_errors: dict[str, str], n_refs: int,
     BAD_TEST when BNGsim failed and so did every reference (the model, not an
     engine, is the problem); EXCEPTION when only BNGsim failed; REFERENCE_FAILED
     when BNGsim ran but some reference failed; otherwise PASS when BNGsim agrees
-    with every reference, else DIFF.
+    with every reference, else DIFF. ``n_refs`` counts the references that apply
+    to the model: one that does not (run_network on an SBML model with no
+    faithful network) is neither a failure nor an agreement.
     """
     if bn_error and len(ref_errors) == n_refs:
         return "BAD_TEST"
@@ -1016,6 +1810,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         _progress(f"{name}: {out.get('error') or 'done'} after {out['seconds']:.1f} s")
         return out
 
+    not_applicable = _not_applicable(prep, workdir, budget, timeout)
+
     bn = None
     bn_error = None
     out = isolated("bngsim", _cold_bngsim(prep))
@@ -1029,6 +1825,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     ref_trajectories: dict[str, np.ndarray] = {}
     ref_errors: dict[str, str] = {}
     for name in REFERENCE_ENGINES:
+        if name in not_applicable:
+            continue
         out = isolated(name, _cold_reference(name, prep, workdir / name, timeout))
         if "error" in out:
             ref_errors[name] = out["error"]
@@ -1038,7 +1836,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     info["references"] = references
 
     # run_network's authors' sparse setting, judged against its own dense run.
-    if "run_network" in ref_trajectories:
+    if "run_network" in ref_trajectories and prep.get("format") != "sbml":
         check = sparse_check(prep["net"], proto, workdir, ref_trajectories["run_network"], timeout)
         if check is not None:
             info["sparse_reference"] = check
@@ -1046,10 +1844,11 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     verdicts: dict[str, Any] = {}
     if bn is not None:
         for name, traj in ref_trajectories.items():
-            verdicts[name] = _verdict(bn, traj, atol)
+            verdicts[name] = _reference_verdict(bn, traj, atol, references[name], proto)
     passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
 
-    outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES), passed)
+    outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES) - len(not_applicable),
+                       passed)
     if bn_error and bn_error.startswith("TIMEOUT") and outcome == "EXCEPTION":
         outcome = "TIMEOUT"  # BNGsim, not a reference, ran out of time
     rec: dict[str, Any] = {"outcome": outcome, "measurements": info}
@@ -1059,7 +1858,43 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         rec["bngsim_error"] = bn_error
     for name, err in ref_errors.items():
         rec[f"{name}_error"] = err
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
     return rec
+
+
+def _not_applicable(prep: dict[str, Any], workdir: Path, budget: float,
+                    timeout: float) -> dict[str, str]:
+    """References that do not apply to this model, each with its reason; for an
+    SBML model, run_network when no faithful network can be derived. Records the
+    derivation in the measurements either way, and on success leaves the derived
+    network in ``prep`` for run_network to read."""
+    if prep.get("format") != "sbml":
+        return {}
+    derived = _derive_isolated(prep, workdir, budget, timeout)
+    prep["info"]["derived_network"] = derived.get("info", {})
+    if derived.get("applicable"):
+        prep["derived"] = derived
+        return {}
+    return {"run_network": str(derived.get("reason"))}
+
+
+def _reference_verdict(bn: np.ndarray, ref: np.ndarray, atol: float, config: dict[str, Any],
+                       proto: dict[str, Any]) -> dict[str, Any]:
+    """BNGsim against one reference. Rows at the instants a derived network's
+    protocol changes the state (``boundary_times``: an SBML event, translated to
+    an action between run_network phases) are left out, and named: what is
+    reported at that instant is the conversion's convention, not run_network's."""
+    boundary = config.get("boundary_times") or []
+    if not boundary:
+        return _verdict(bn, ref, atol)
+    scale = _time_scale(proto)
+    keep = np.array([not any(_close(g, b, scale) for b in boundary)
+                     for g in output_times(proto)])
+    n = min(bn.shape[0], ref.shape[0], keep.size)
+    v = _verdict(bn[:n][keep[:n]], ref[:n][keep[:n]], atol)
+    v["rows_not_compared"] = list(boundary)
+    return v
 
 
 def _correctness_timeouts(job: Job, ctx: dict[str, Any]) -> dict[str, str]:
@@ -1088,16 +1923,21 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     proto, info = prep["proto"], prep["info"]
     workdir = Path(ctx["workdir"])
     timeout = ctx["subprocess_timeout"]
+    # Derived before any engine loads, so the derivation's fork is from a process
+    # that has started no engine threads.
+    not_applicable = (_not_applicable(prep, workdir, engine_budget_seconds(problem),
+                                      float(timeout))
+                      if prep.get("format") == "sbml" else {})
 
     # BNGsim cold: load and first integration, with the empty compile cache the
     # worker gave this job. Its trajectory anchors the warm runs' reproducibility
     # (a reset bug shows on the first warm run, which warm-vs-warm would miss).
     t0 = time.perf_counter()
-    bngsim_engine = BngsimODE(prep["net"], proto)
+    bngsim_engine = _build_bngsim(prep)
     first = bngsim_engine.run()
     info["bngsim_cold_seconds"] = time.perf_counter() - t0
     info["bngsim"] = bngsim_engine.config(first)
-    bngsim_cold = BngsimODE.trajectory(first)
+    bngsim_cold = _checked_trajectory(bngsim_engine, first, prep)
 
     # Build each reference and give it one trial run, isolating any that fail. A
     # reference can crash inside run() rather than __init__ (COPASI drops a constant
@@ -1121,13 +1961,15 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     # so again here, in-process and unbounded: record it and time the rest.
     timed_out = _correctness_timeouts(job, ctx)
     for name in REFERENCE_ENGINES:
+        if name in not_applicable:
+            continue
         if name in timed_out:
             ref_errors[name] = f"TIMEOUT in the correctness job, so not timed ({timed_out[name]})"
             _progress(f"{name}: skipped, {ref_errors[name]}")
             continue
         _progress(f"{name}: build + trial run")
         try:
-            if name == "run_network":
+            if name == "run_network" and prep.get("format") != "sbml":
                 dense_engine = RunNetworkODE(prep["net"], proto, workdir / "rn_dense",
                                              sparse=False, timeout=timeout)
                 dense = RunNetworkODE.trajectory(dense_engine.run())
@@ -1140,7 +1982,10 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
             else:
                 engine = _build_reference(name, prep, sparse=False, out_prefix=workdir / name,
                                           timeout=timeout)
-                engine.warm()  # trial run: COPASI/AMICI surface failures here, not in __init__
+                # Trial run: COPASI/AMICI surface failures here, not in __init__ --
+                # and the trajectory too, since an SBML engine selects its columns
+                # there, outside the timed region.
+                _checked_trajectory(engine, engine.warm(), prep)
             engines[name] = engine
             references[name] = engine.config()
         except Exception as exc:  # noqa: BLE001
@@ -1152,7 +1997,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     # outside the timed region (the capture), so it does not bias the measurement.
     _progress(f"interleaved timing of {', '.join(engines)}")
     runs = {name: eng.warm for name, eng in engines.items()}
-    captures = {name: type(eng).trajectory for name, eng in engines.items()}
+    captures = {name: eng.trajectory for name, eng in engines.items()}
     reps = round_robin_interleaved(runs, captures=captures, **job.definition["timing"])
 
     # Every kept repetition must reproduce the first run (issue #8). BNGsim's warm
@@ -1187,6 +2032,8 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     }
     for name, err in ref_errors.items():
         rec[f"{name}_error"] = err
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
     return rec
 
 

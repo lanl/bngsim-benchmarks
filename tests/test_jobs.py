@@ -68,6 +68,7 @@ def test_selecting_a_timing_job_brings_its_requirement(problem):
     assert jobs.select(all_jobs, ["no-such-problem"]) == []
 
 
-def test_non_bngl_source_gets_no_bngl_ode_jobs(spec_data, write_spec):
-    spec_data["source"]["format"] = "sbml"
+def test_a_source_the_ode_capability_does_not_read_gets_no_ode_jobs(spec_data, write_spec):
+    # A bare .net is a valid source format, but no ODE path reads it yet.
+    spec_data["source"]["format"] = "net"
     assert jobs.jobs_for([specs.load(write_spec(spec_data))]) == []

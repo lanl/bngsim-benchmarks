@@ -94,8 +94,8 @@ def test_reference_versions_are_part_of_the_ode_freshness_key(spec_data, write_s
     assert "reference_versions" in correctness.canonical()
 
 
-def test_non_bngl_source_gets_no_jobs(spec_data, write_spec):
-    spec_data["source"]["format"] = "sbml"
+def test_a_net_source_gets_no_jobs(spec_data, write_spec):
+    spec_data["source"]["format"] = "net"
     assert ode.jobs(specs.load(write_spec(spec_data))) == []
 
 

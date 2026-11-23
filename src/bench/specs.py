@@ -68,14 +68,26 @@ class Problem:
         return self.protocol[capability]
 
 
-def _validate_ode_protocol(p: Any, where: str, errs: list[str]) -> None:
+def _validate_ode_protocol(p: Any, where: str, errs: list[str],
+                           source_format: str | None = None) -> None:
+    """The ODE protocol. A BNGL model names its network generation (``netgen``)
+    and may ask for run_network's ``sparse`` solver. An SBML model has neither:
+    it is read as it is, and its protocol is its SED-ML time course, whose output
+    may start (``output_start``) after the integration does (``t_start``)."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_start", "t_end", "n_steps", "rtol", "atol", "sparse"}
+    if source_format == "sbml":
+        allowed = {"t_start", "output_start", "t_end", "n_steps", "rtol", "atol"}
+        required: tuple[str, ...] = ("t_end", "n_steps", "rtol", "atol")
+    else:
+        allowed = {"netgen", "t_start", "t_end", "n_steps", "rtol", "atol", "sparse"}
+        required = ("netgen", "t_end", "n_steps", "rtol", "atol")
     for k in sorted(set(p) - allowed):
-        errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "n_steps", "rtol", "atol"):
+        errs.append(f"{where}: unknown key {k!r}"
+                    + (" (an SBML model is read as it is)" if source_format == "sbml"
+                       and k in ("netgen", "sparse") else ""))
+    for k in required:
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
     netgen = p.get("netgen")
@@ -105,6 +117,14 @@ def _validate_ode_protocol(p: Any, where: str, errs: list[str]) -> None:
             errs.append(f"{where}.{k}: must be a positive number")
     if "sparse" in p and not isinstance(p["sparse"], bool):
         errs.append(f"{where}.sparse: must be true or false")
+    if "output_start" in p:
+        out = p["output_start"]
+        if not isinstance(out, (int, float)) or isinstance(out, bool):
+            errs.append(f"{where}.output_start: must be a number")
+        elif (isinstance(t_start, (int, float)) and not isinstance(t_start, bool)
+              and isinstance(t_end, (int, float)) and not isinstance(t_end, bool)
+              and not t_start <= out < t_end):
+            errs.append(f"{where}.output_start: must be at least t_start and less than t_end")
 
 
 # One validator per capability's protocol. A capability without one cannot be
@@ -194,7 +214,8 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         elif cap not in protocol:
             errs.append(f"protocol: missing an entry for capability {cap!r}")
         else:
-            PROTOCOL_VALIDATORS[cap](protocol[cap], f"protocol.{cap}", errs)
+            PROTOCOL_VALIDATORS[cap](protocol[cap], f"protocol.{cap}", errs,
+                                     source_format=source.get("format"))
     for cap in sorted(set(protocol) - set(caps)):
         errs.append(f"protocol.{cap}: not a listed capability")
 
