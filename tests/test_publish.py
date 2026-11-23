@@ -163,3 +163,34 @@ def test_scrub_rewrites_local_paths_and_leaks_finds_whole_words_only(tmp_path):
     assert out["note"] == "read ./problems/x.yaml" and out["home"] == "~/wt/scratch"
     assert leaks({"a": "ran on cn123."}, ["cn123"]) == [".a: 'cn123'"]
     assert leaks({"a": "cn1234 and xcn123"}, ["cn123"]) == []
+
+
+def _edit(results, job, **fields):
+    path = results / f"{job.id}.json"
+    rec = json.loads(path.read_text())
+    rec.update(fields)
+    path.write_text(json.dumps(rec))
+
+
+def test_a_reference_that_does_not_apply_gets_a_row_saying_why(suite, tmp_path):
+    problems, jobs = suite
+    results = tmp_path / "results"
+    _write_all(jobs, results)
+    why = "no faithful BNGL form: bngsim.convert.sbml_to_bngl refuses it (an assignment rule)"
+    for job in jobs:
+        if job.problem == "model_01":
+            _edit(results, job, not_applicable={"run_network": why})
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    for name in ("correctness.csv", "timing.csv"):
+        with open(dest / name, encoding="utf-8") as fh:
+            rows = [r for r in csv.DictReader(fh) if r["problem"] == "model_01"]
+        [rn] = [r for r in rows if r["engine"] == "run_network"]
+        assert rn["status"] == "not_applicable" and rn["error"] == why
+        assert all(r["engine"] != "run_network" for r in rows if r is not rn)
+    with open(dest / "correctness.csv", encoding="utf-8") as fh:
+        corr = [r for r in csv.DictReader(fh) if r["problem"] == "model_01"]
+    assert {r["engine"]: r["status"] for r in corr} == {
+        "roadrunner": "ok", "copasi": "timeout", "run_network": "not_applicable"}
+    assert corr[0]["agreement"] == "PARTIAL 1/2 (copasi: timeout, run_network: n/a)"
+    assert corr[2]["passed"] == ""

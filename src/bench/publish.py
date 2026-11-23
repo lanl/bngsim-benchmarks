@@ -58,6 +58,11 @@ TIMING_COLUMNS = [
 ]
 
 
+# The status of a reference that does not apply to the model: it was not run, and
+# its row says why (the record's ``not_applicable``).
+NOT_APPLICABLE = "not_applicable"
+
+
 class PublishError(RuntimeError):
     """The suite cannot be published as asked; the message says why."""
 
@@ -148,8 +153,16 @@ def _size(rec: dict[str, Any], problem: specs.Problem) -> tuple[Any, Any]:
     return net.get("species"), net.get("reactions")
 
 
+def _not_applicable(rec: dict[str, Any], *, besides: set[str]) -> dict[str, str]:
+    """References that do not apply to the model (run_network on an SBML model with
+    no faithful network), with the reason, that have no other row."""
+    return {name: str(reason) for name, reason in sorted((rec.get("not_applicable") or {}).items())
+            if name not in besides}
+
+
 def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list[dict]:
-    """One row per reference engine: its verdict, or why it has none."""
+    """One row per reference engine: its verdict, or why it has none -- including a
+    reference that does not apply to the model, so no engine is left out."""
     verdicts = rec.get("verdicts") or {}
     refs = (rec.get("measurements") or {}).get("references") or {}
     species, reactions = _size(rec, problem)
@@ -170,6 +183,8 @@ def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) ->
                      "n_cells": (v or {}).get("n_cells"),
                      "cold_seconds": (refs.get(engine) or {}).get("cold_seconds"),
                      "error": rec.get(f"{engine}_error")})
+    for engine, reason in _not_applicable(rec, besides={r["engine"] for r in rows}).items():
+        rows.append({**base, "engine": engine, "status": NOT_APPLICABLE, "error": reason})
     if not rows:  # the job failed before any engine ran
         rows.append({**base, "engine": None, "status": rec.get("outcome"),
                      "error": rec.get("error") or rec.get("bngsim_error")})
@@ -203,6 +218,8 @@ def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list
     for engine in sorted(_errored_engines(rec) - set(times)):
         rows.append({**base, "engine": engine, "status": _why(rec, engine),
                      "error": rec.get(f"{engine}_error")})
+    for engine, reason in _not_applicable(rec, besides={r["engine"] for r in rows}).items():
+        rows.append({**base, "engine": engine, "status": NOT_APPLICABLE, "error": reason})
     if not rows:
         rows.append({**base, "engine": None, "status": rec.get("outcome"),
                      "error": rec.get("error") or rec.get("bngsim_error")})
