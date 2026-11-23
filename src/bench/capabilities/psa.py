@@ -404,32 +404,57 @@ def _cold(engine: str, nc: float | None, prep: dict[str, Any], n: int, seed: int
 
 def effect_sizes(a: np.ndarray, b: np.ndarray, *, times: np.ndarray | None = None,
                  species: list[str] | None = None) -> dict[str, Any]:
-    """How far ensemble ``a`` (PSA) is from ``b`` (exact SSA), per cell, in units that do
-    not shrink with the ensemble size: the largest ``|mean_a - mean_b| / sd_b`` and the
-    range of ``var_a / var_b``, over the cells where ``b`` varies, with where each
-    extreme sits. Sampling noise sets their floor (about ``sqrt(2 / n)`` per cell)."""
+    """How far ensemble ``a`` (PSA) is from ``b`` (exact SSA), in units that do not shrink
+    with the ensemble size, each at its worst cell with that cell's standard error in
+    the same units (``se``, the noise the value carries):
+
+    - ``mean_error_over_peak``: ``|mean_a - mean_b|`` over the peak of the species'
+      exact mean, over the species that are ever nonzero -- the robust summary, as the
+      ODE verdict measures error;
+    - ``mean_shift_sd``: ``|mean_a - mean_b|`` over the exact standard deviation, over
+      the cells where ``b`` varies. Where PSA has inflated a cell's variance, its own
+      sampling noise is large in these units (``se`` says how large);
+    - ``variance_ratio``: ``var_a / var_b`` over the cells where ``b`` varies -- its
+      median, and its extremes with where they sit.
+    """
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
     grid = b.shape[1:]
-    xa, xb = a.reshape(a.shape[0], -1), b.reshape(b.shape[0], -1)
-    vb = xb.var(axis=0, ddof=1)
+    if a.shape[1:] != grid:
+        return {"mean_error_over_peak": None, "mean_shift_sd": None, "variance_ratio": None}
+    na, nb = a.shape[0], b.shape[0]
+    xa, xb = a.reshape(na, -1), b.reshape(nb, -1)
+    ma, mb = xa.mean(axis=0), xb.mean(axis=0)
+    va, vb = xa.var(axis=0, ddof=1), xb.var(axis=0, ddof=1)
+    diff = np.abs(ma - mb)
+    se = np.sqrt(va / na + vb / nb)
+
+    def at(cell: int) -> dict[str, Any]:
+        return stochastic._locate(cell, grid, times, species)
+
+    out: dict[str, Any] = {"mean_error_over_peak": None, "mean_shift_sd": None,
+                           "variance_ratio": None}
+    peak = np.repeat(np.abs(mb.reshape(grid)).max(axis=0)[None, :], grid[0], axis=0).ravel()
+    moving = peak > 0
+    if moving.any():
+        rel = np.where(moving, diff / np.where(moving, peak, 1.0), -1.0)
+        c = int(np.argmax(rel))
+        out["mean_error_over_peak"] = {"max": float(rel[c]), "se": float(se[c] / peak[c]),
+                                       "at": at(c)}
     live = vb > 0
-    if not live.any() or a.shape[1:] != grid:
-        return {"mean_shift_sd": None, "variance_ratio": None}
-    cells = np.flatnonzero(live)
-    shift = np.abs(xa.mean(axis=0) - xb.mean(axis=0))[live] / np.sqrt(vb[live])
-    ratio = xa.var(axis=0, ddof=1)[live] / vb[live]
-    i, hi, lo = int(np.argmax(shift)), int(np.argmax(ratio)), int(np.argmin(ratio))
-
-    def at(j: int) -> dict[str, Any]:
-        return stochastic._locate(cells[j], grid, times, species)
-
-    return {
-        "mean_shift_sd": {"max": float(shift[i]), "at": at(i)},
-        "variance_ratio": {"max": float(ratio[hi]), "at_max": at(hi), "min": float(ratio[lo]),
-                           "at_min": at(lo), "median": float(np.median(ratio))},
-        "n_cells": int(cells.size),
-    }
+    if live.any():
+        sd = np.sqrt(np.where(live, vb, 1.0))
+        shift = np.where(live, diff / sd, -1.0)
+        c = int(np.argmax(shift))
+        out["mean_shift_sd"] = {"max": float(shift[c]), "se": float(se[c] / sd[c]), "at": at(c)}
+        cells = np.flatnonzero(live)
+        ratio = va[live] / vb[live]
+        hi, lo = int(np.argmax(ratio)), int(np.argmin(ratio))
+        out["variance_ratio"] = {"median": float(np.median(ratio)),
+                                 "max": float(ratio[hi]), "at_max": at(cells[hi]),
+                                 "min": float(ratio[lo]), "at_min": at(cells[lo]),
+                                 "n_cells": int(cells.size)}
+    return out
 
 
 _MEANS_KEEP = ("passed", "p_value", "alpha", "permutations", "stopped_early", "z_max",
@@ -464,7 +489,8 @@ def _flags(proto: dict[str, Any], accuracy: dict[str, Any]) -> list[dict[str, An
             "flag": "bngsim's PSA means differ from exact SSA",
             "p_value": means.get("p_value"),
             "worst": means.get("worst"),
-            "mean_shift_sd": ((acc["bngsim"].get("mean_shift_sd") or {}).get("max")),
+            "mean_error_over_peak": (acc["bngsim"].get("mean_error_over_peak") or {}).get("max"),
+            "mean_shift_sd": (acc["bngsim"].get("mean_shift_sd") or {}).get("max"),
             # True: run_network's PSA differs too, so it is the method's error on this
             # model; False: only bngsim's does; None: run_network's could not be judged.
             "run_network_differs_too": None if not rn else (rn.get("passed") is False),
@@ -688,7 +714,13 @@ def report_fields(kind: str, m: dict[str, Any]) -> dict[str, Any]:
                 means = e.get("means") or {}
                 row[engine] = {"means_passed": means.get("passed"),
                                "means_p_value": means.get("p_value"),
+                               "mean_error_over_peak":
+                                   (e.get("mean_error_over_peak") or {}).get("max"),
+                               "mean_error_over_peak_se":
+                                   (e.get("mean_error_over_peak") or {}).get("se"),
                                "mean_shift_sd": (e.get("mean_shift_sd") or {}).get("max"),
+                               "variance_ratio_median":
+                                   (e.get("variance_ratio") or {}).get("median"),
                                "variance_ratio_max": (e.get("variance_ratio") or {}).get("max")}
             acc[name] = row
         return {"psa": {"poplevels": psa.get("poplevels"), "accuracy": acc,
@@ -721,8 +753,8 @@ def report_lines(kind: str, rows: list[dict[str, Any]]) -> list[str]:
 def _accuracy_table(rows: list[dict[str, Any]]) -> list[str]:
     lines = ["", "### PSA against exact SSA, per N_c", "",
              "| problem | N_c | bngsim regime | scaled | events ratio | vs run_network PSA "
-             "| means vs exact: bngsim | means vs exact: run_network | mean shift (SD) "
-             "| variance ratio | flag |",
+             "| means vs exact: bngsim | means vs exact: run_network | mean error / peak "
+             "| variance ratio (median, max) | flag |",
              "|---|---:|---|---:|---:|---|---|---|---:|---:|---|"]
     for r in rows:
         psa = r.get("psa") or {}
@@ -751,8 +783,14 @@ def _accuracy_table(rows: list[dict[str, Any]]) -> list[str]:
             lines.append("| " + " | ".join([
                 r["problem"], nc_text(nc), regime,
                 "" if frac is None else f"{frac:.0%}", _g(a.get("speedup_events")), like,
-                means("bngsim"), means(REFERENCE), _g(bn.get("mean_shift_sd"), ".2g"),
-                _g(bn.get("variance_ratio_max"), ".3g"), "FLAG" if nc in flagged else "",
+                means("bngsim"), means(REFERENCE),
+                (f"{_g(bn.get('mean_error_over_peak'), '.2g')} ± "
+                 f"{_g(bn.get('mean_error_over_peak_se'), '.1g')}"
+                 if bn.get("mean_error_over_peak") is not None else ""),
+                (f"{_g(bn.get('variance_ratio_median'), '.3g')}, "
+                 f"{_g(bn.get('variance_ratio_max'), '.3g')}"
+                 if bn.get("variance_ratio_max") is not None else ""),
+                "FLAG" if nc in flagged else "",
             ]) + " |")
     lines += ["", "*regime*: *scaled* when some bngsim trajectory fired a channel with "
               "multiplier m > 1, *exact* when none did -- PSA is then exact SSA, and "
@@ -762,11 +800,13 @@ def _accuracy_table(rows: list[dict[str, Any]]) -> list[str]:
               "*vs run_network PSA* is gated (permutation max-T on means and variances). "
               "The rest is measured and never fails a job: *means vs exact* is a "
               "means-only permutation max-T test of each engine's PSA against its own "
-              "exact SSA; *mean shift* is bngsim's largest |mean difference| in exact-SSA "
-              "standard deviations, *variance ratio* its largest PSA/exact variance "
-              "ratio. *FLAG*: at an N_c in PSA's working range bngsim's PSA scaled and "
-              "its means differ from exact SSA's (the JSON row says whether "
-              "run_network's PSA differs too)."]
+              "exact SSA; *mean error / peak* is bngsim's largest |mean difference| as a "
+              "fraction of the species' exact peak mean, ± its standard error at that cell "
+              "(an error of two or three of them is noise), *variance ratio* the median and "
+              "largest PSA/exact variance ratio over cells (each with its cell and standard "
+              "error, and the shift in exact-SSA SDs, in the JSON row). *FLAG*: at an N_c "
+              "in PSA's working range bngsim's PSA scaled and its means differ from exact "
+              "SSA's (the JSON row says whether run_network's PSA differs too)."]
     return lines
 
 

@@ -213,14 +213,22 @@ def _stack(n, seed, shift=0.0, inflate=1.0):
     return x
 
 
-def test_effect_sizes_measure_a_shift_in_sds_and_a_variance_ratio():
+def test_effect_sizes_measure_the_error_and_the_noise_it_carries():
     exact = _stack(4000, 1)
     out = psa.effect_sizes(_stack(4000, 2, inflate=2.0), exact, species=["A()", "B()"])
-    assert 3.0 < out["variance_ratio"]["median"] < 5.0
-    assert out["mean_shift_sd"]["max"] < 0.15
-    assert out["n_cells"] == (N_T - 1) * N_SP  # the initial condition does not vary
+    vr = out["variance_ratio"]
+    assert 3.0 < vr["median"] < 5.0 and vr["min"] <= vr["median"] <= vr["max"]
+    assert vr["n_cells"] == (N_T - 1) * N_SP  # the initial condition does not vary
+    # A wider law at the same mean: errors within a few of their own standard errors.
+    for key in ("mean_error_over_peak", "mean_shift_sd"):
+        assert out[key]["max"] < 4 * out[key]["se"]
+    assert out["mean_error_over_peak"]["max"] < 0.06
+    assert out["mean_error_over_peak"]["at"]["species"] in ("A()", "B()")
+    # A shifted law: far past its noise, in both units.
     shifted = psa.effect_sizes(_stack(4000, 3, shift=2.0), exact)
     assert shifted["mean_shift_sd"]["max"] > 0.5
+    assert shifted["mean_error_over_peak"]["max"] == pytest.approx(2.0 / 5.0, abs=0.03)
+    assert shifted["mean_error_over_peak"]["max"] > 10 * shifted["mean_error_over_peak"]["se"]
 
 
 # --------------------------------------------------------------------------- #
@@ -364,6 +372,7 @@ def test_a_mean_shift_at_large_nc_is_flagged_not_failed(monkeypatch, tmp_path):
     assert [f["poplevel"] for f in flags] == [100, 300]
     assert all(f["run_network_differs_too"] for f in flags)
     assert all(f["mean_shift_sd"] > 0.3 and f["p_value"] <= 1e-3 for f in flags)
+    assert all(f["mean_error_over_peak"] > 0.15 for f in flags)  # 1.5 of a peak of 5
     assert rec["psa_flags"][0].startswith("nc=100: ")
     # Below N_c = 100 the same error is reported only.
     assert not rec["measurements"]["psa"]["accuracy"]["nc=10"]["bngsim"]["means"]["passed"]
@@ -467,7 +476,7 @@ def test_the_gathered_report_has_a_row_per_nc(monkeypatch, tmp_path, psa_spec, w
     assert "### PSA speed-up over exact SSA of the same engine, per N_c" in text
     lines = [ln for ln in text.splitlines() if ln.startswith("| toy_model | 100 |")]
     assert len(lines) == 2  # one in each PSA table
-    assert "FLAG" in lines[0] and "ok (p" in lines[0]
+    assert "FLAG" in lines[0] and "ok (p" in lines[0] and " ± " in lines[0]
     nc10 = [ln for ln in text.splitlines() if ln.startswith("| toy_model | 10 |")]
     assert "crash" in nc10[0] and "FLAG" not in nc10[0]
     assert rows["psa-timing"][0]["psa_speedup_events"]["bngsim@nc=10"] == 3.0

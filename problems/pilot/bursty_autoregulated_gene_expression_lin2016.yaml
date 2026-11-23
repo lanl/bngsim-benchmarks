@@ -47,4 +47,4 @@ size:
   species: 2
   reactions: 4
   ssa_events: 100
-  psa_events: 6000
+  psa_events: 4100
