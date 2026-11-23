@@ -55,7 +55,8 @@ def main(argv: list[str] | None = None) -> int:
 
     from . import env, jobs, specs
     from .capabilities import CAPABILITIES
-    from .results import freshness_key, key_parts, write_result
+    from .results import (drop_trajectories, freshness_key, key_parts, write_result,
+                          write_trajectories)
 
     problems = specs.load_all(args.problems)
     all_jobs = {j.id: j for j in jobs.jobs_for(problems)}
@@ -83,6 +84,18 @@ def main(argv: list[str] | None = None) -> int:
         }
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+    # Arrays a capability hands back to be stored beside the record (the
+    # trajectories a correctness verdict was computed from, so it can be
+    # re-scored without re-simulating); the record keeps only a pointer.
+    arrays = body.pop("_trajectories", None)
+    if arrays:
+        try:
+            body["trajectories"] = write_trajectories(args.results, job, arrays)
+        except Exception as exc:  # noqa: BLE001 - the verdict still stands without them
+            drop_trajectories(args.results, job)
+            body["trajectories"] = {"stored": False, "reason": f"{type(exc).__name__}: {exc}"[:400]}
+    else:
+        drop_trajectories(args.results, job)
     record = {
         "schema": 1,
         "job_id": job.id,

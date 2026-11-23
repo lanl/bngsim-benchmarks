@@ -8,6 +8,7 @@ Implemented so far:
 
 - the problem specs (section 5.1) and the job list (5.2);
 - one result file per job, with freshness (6.1, 6.2), and `gather` (6.3);
+- stored correctness trajectories, and re-scoring them with `rescore` (6.1, 6.2);
 - the serial and local-pool runners with deadlines (8);
 - Slurm submission as job arrays, `bench submit` (8);
 - the interleaved timing protocol (7);
@@ -363,6 +364,12 @@ file holds:
   - start and end time;
   - exit status.
 
+A correctness job also stores the trajectories its verdict was computed from, beside
+its JSON file as `<job id>.npz` (compressed float64): every engine's compared
+trajectory, the output times and the compared species. The JSON file names it, with
+its size and sha256, so an `.npz` left by another run of the job is never read as
+this one's. On the core suites each is a few MB, and none is above about 10 MB.
+
 ### 6.2 Freshness
 
 A result is current when its key matches what would run now. The key combines:
@@ -374,6 +381,12 @@ A result is current when its key matches what would run now. The key combines:
 - for timing jobs, the node type.
 
 Only stale or missing jobs run. An interrupted run loses at most the jobs in flight.
+
+A correctness result can be stale only in how it is scored, when the vendored
+comparison core has changed. Such a result does not need to re-run. `bench rescore`
+recomputes its verdicts and outcome from its stored trajectories and rewrites it with
+the current key, keeping a history of the outcomes it replaced. A result that is
+stale for any other reason, or that stored no trajectories, is left to re-run.
 
 ### 6.3 Gathering and publishing
 
@@ -470,6 +483,7 @@ Other commands:
 - `bench plan`: what is current, stale, missing, waiting or blocked, and what it
   would cost;
 - `bench gather`: per-capability reports and a readable summary;
+- `bench rescore`: re-score stored correctness results after a verdict change (§6.2);
 - `bench fetch-bionetgen`, `bench fetch-models`, `bench doctor`: set up and check the
   environment;
 - `bench submit`: the Slurm mode below;

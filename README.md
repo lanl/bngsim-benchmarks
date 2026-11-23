@@ -79,12 +79,16 @@ and any part of an id selects jobs:
 | `pixi run bench run --workers 8` | every job without a current result, correctness jobs 8 at a time |
 | `pixi run bench run --budget 9h30m` | stop starting jobs that would not finish within 9.5 hours |
 | `pixi run bench run --until slurm` | the same, up to the end of the current Slurm allocation |
+| `pixi run bench rescore` | re-score stored correctness results after the verdict changes, without re-simulating |
 | `pixi run bench gather` | collect results into `reports/`, with a readable `reports/summary.md` |
 
-Each job writes one file under `results/`, named after its id. A result stays
+Each job writes one file under `results/`, named after its id. A correctness job also
+stores the trajectories it compared beside it, as a `.npz`. A result stays
 current until something it depends on changes: the model file, the protocol, the
 harness, the bngsim build, BioNetGen, the libRoadRunner version, or, for a timing
-result, the node type.
+result, the node type. A correctness result that is out of date only because the
+verdict changed is re-scored from its trajectories by `bench rescore`. Run it before
+`bench run` or `bench submit`, which would otherwise simulate it again.
 Running again runs only what is missing or out of date, so an interrupted run
 loses only the jobs in flight. Timing jobs run one at a time unless
 `--timing-workers` says otherwise, and only after their correctness job passed.

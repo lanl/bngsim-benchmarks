@@ -1751,9 +1751,11 @@ def _reproducibility(anchor: np.ndarray, others: list[np.ndarray], tol: float) -
 
 
 def sparse_check(net: Path, proto: dict[str, Any], workdir: Path, dense: np.ndarray,
-                 timeout: float) -> dict[str, Any] | None:
+                 timeout: float, *, keep: dict[str, np.ndarray] | None = None
+                 ) -> dict[str, Any] | None:
     """Whether run_network with the authors' ``sparse`` option agrees with the
-    dense reference; None when the protocol does not ask for sparse."""
+    dense reference; None when the protocol does not ask for sparse. ``keep``,
+    when given, receives the sparse trajectory as ``run_network_sparse``."""
     if not proto.get("sparse"):
         return None
     try:
@@ -1763,6 +1765,8 @@ def sparse_check(net: Path, proto: dict[str, Any], workdir: Path, dense: np.ndar
         seconds = time.perf_counter() - t0
     except Exception as exc:  # noqa: BLE001
         return {"agrees_with_dense": False, "error": f"{type(exc).__name__}: {exc}"[:400]}
+    if keep is not None:
+        keep["run_network_sparse"] = np.asarray(values, dtype=np.float64)
     v = _verdict(values, dense, float(proto["atol"]))
     return {"agrees_with_dense": bool(v.get("passed")), "max_rel": v.get("max_rel"),
             "n_hard_fail": v.get("n_hard_fail"), "seconds": seconds}
@@ -1836,21 +1840,15 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     info["references"] = references
 
     # run_network's authors' sparse setting, judged against its own dense run.
+    sparse_traj: dict[str, np.ndarray] = {}
     if "run_network" in ref_trajectories and prep.get("format") != "sbml":
-        check = sparse_check(prep["net"], proto, workdir, ref_trajectories["run_network"], timeout)
+        check = sparse_check(prep["net"], proto, workdir, ref_trajectories["run_network"], timeout,
+                             keep=sparse_traj)
         if check is not None:
             info["sparse_reference"] = check
 
-    verdicts: dict[str, Any] = {}
-    if bn is not None:
-        for name, traj in ref_trajectories.items():
-            verdicts[name] = _reference_verdict(bn, traj, atol, references[name], proto)
-    passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
-
-    outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES) - len(not_applicable),
-                       passed)
-    if bn_error and bn_error.startswith("TIMEOUT") and outcome == "EXCEPTION":
-        outcome = "TIMEOUT"  # BNGsim, not a reference, ran out of time
+    verdicts, outcome = _score(bn, ref_trajectories, references, proto, bn_error=bn_error,
+                               ref_errors=ref_errors, not_applicable=not_applicable)
     rec: dict[str, Any] = {"outcome": outcome, "measurements": info}
     if verdicts:
         rec["verdicts"] = verdicts
@@ -1860,7 +1858,33 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         rec[f"{name}_error"] = err
     if not_applicable:
         rec["not_applicable"] = not_applicable
+    stored = stored_trajectories(prep, bn, ref_trajectories, sparse_traj)
+    if stored:
+        rec["_trajectories"] = stored
     return rec
+
+
+def stored_trajectories(prep: dict[str, Any], bn: np.ndarray | None,
+                        refs: dict[str, np.ndarray],
+                        sparse: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    """What a correctness job stores beside its record (the worker writes it as
+    ``<job id>.npz``): every engine's compared trajectory as it was scored, each
+    under its engine's name and in the same columns, with the output times
+    (``time``) and the compared species (``species``: BNGsim's species names on
+    the ``.net`` path, SBML ids on the SBML path). run_network's sparse run, when
+    the model asks for one, is ``run_network_sparse``. Enough to re-score every
+    verdict (``bench rescore``) without re-simulating; empty when no engine ran."""
+    engines = {**({"bngsim": bn} if bn is not None else {}), **refs, **sparse}
+    if not engines:
+        return {}
+    species = prep.get("species_ids") if prep.get("format") == "sbml" else prep.get("species_names")
+    out: dict[str, np.ndarray] = {
+        "time": output_times(prep["proto"]),
+        "species": np.asarray([str(s) for s in species or []], dtype=str),
+    }
+    for name, traj in engines.items():
+        out[name] = np.asarray(traj, dtype=np.float64)
+    return out
 
 
 def _not_applicable(prep: dict[str, Any], workdir: Path, budget: float,
@@ -1895,6 +1919,43 @@ def _reference_verdict(bn: np.ndarray, ref: np.ndarray, atol: float, config: dic
     v = _verdict(bn[:n][keep[:n]], ref[:n][keep[:n]], atol)
     v["rows_not_compared"] = list(boundary)
     return v
+
+
+def _score(bn: np.ndarray | None, refs: dict[str, np.ndarray], configs: dict[str, Any],
+           proto: dict[str, Any], *, bn_error: str | None, ref_errors: dict[str, str],
+           not_applicable: dict[str, str]) -> tuple[dict[str, Any], str]:
+    """The verdict of BNGsim against each reference that ran, and the job's
+    outcome. The one place both are computed, from a run (``run_correctness``)
+    or from its stored trajectories (``rescore``), so the two cannot drift."""
+    atol = float(proto["atol"])
+    verdicts: dict[str, Any] = {}
+    if bn is not None:
+        for name, traj in refs.items():
+            verdicts[name] = _reference_verdict(bn, traj, atol, configs.get(name) or {}, proto)
+    passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
+    outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES) - len(not_applicable),
+                       passed)
+    if bn_error and bn_error.startswith("TIMEOUT") and outcome == "EXCEPTION":
+        outcome = "TIMEOUT"  # BNGsim, not a reference, ran out of time
+    return verdicts, outcome
+
+
+def rescore(job: Job, record: dict[str, Any], arrays: dict[str, np.ndarray]) -> dict[str, Any]:
+    """A correctness record re-scored from its stored trajectories with the
+    current verdict: the record's new ``verdicts`` and ``outcome``. Engine
+    failures, configurations and not-applicable references are the record's own."""
+    proto = job.definition["protocol"]
+    refs = {name: arrays[name] for name in REFERENCE_ENGINES if name in arrays}
+    ref_errors = {name: str(record[f"{name}_error"]) for name in REFERENCE_ENGINES
+                  if record.get(f"{name}_error")}
+    m = record.get("measurements") or {}
+    verdicts, outcome = _score(arrays.get("bngsim"), refs, m.get("references") or {}, proto,
+                               bn_error=record.get("bngsim_error"), ref_errors=ref_errors,
+                               not_applicable=record.get("not_applicable") or {})
+    update: dict[str, Any] = {"outcome": outcome}
+    if verdicts:
+        update["verdicts"] = verdicts
+    return update
 
 
 def _correctness_timeouts(job: Job, ctx: dict[str, Any]) -> dict[str, str]:
