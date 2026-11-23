@@ -489,6 +489,13 @@ ode-sbml correctness jobs.
 **The floor ties the check to the protocol.** A species whose peak sits below the
 protocol's atol is judged only by the floor. The protocol must then resolve the
 model's species, or a disagreement measures the tolerance rather than the engines.
+Nishio 2008 is the one member where it did not:
+- 34 of its 59 compared species peak between 1.5e-11 and 1e-9, under an atol of 1e-9;
+- the engines that hold atol exactly (AMICI and run_network) were 2–6% of a species'
+  peak off the converged solution, so it failed the check;
+- at atol 1e-15 every engine is within 7.5e-4.
+
+Its spec records the change ([core_suites.md](core_suites.md)).
 
 **What does not change.** Two other comparisons decide something in both kinds of job:
 - the faithfulness check of a network derived from SBML;

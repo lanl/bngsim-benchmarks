@@ -121,6 +121,21 @@ covers the pinned file.
   lanl/bngsim's rr_parity job manifest uses for them. BNGsim takes it as a plain float,
   its own per-species ceiling, as an SBML user passes it; on the `.net` path it is held
   exactly instead, to match run_network.
+- **Nishio 2008's `atol` is 1e-15 instead.** 34 of its 59 compared species are promoter
+  binding sites, free or bound, in molar units, whose peaks lie between 1.5e-11 and
+  1e-9: wholly below 1e-9. At 1e-9, the engines that hold atol exactly do not resolve them:
+  - AMICI and run_network land 2–6% of a species' peak off the converged solution
+    (rtol 1e-10, atol 1e-18), and so does BNGsim given `bngsim.ExactAtol`;
+  - BNGsim's float atol, libRoadRunner and COPASI scale it per species, and are
+    within 1e-5.
+
+  At 1e-15, every compared species peaks at 1.5e4 atol or more, and every engine is
+  within 7.5e-4 of the converged solution: run_network is the worst, AMICI is at
+  1.1e-5. To see the disagreement, set the spec's `atol` back to 1e-9 and re-run the
+  correctness job. run_network and AMICI are then each 10.4 atol off, on species that
+  peak at 180 and 460 atol (IICB_Mlc, 6% of its peak; mRNA_ptsG, 2%). That is just
+  past the per-species check's floor of 10 atol, so a protocol this loose leaves the
+  check little to judge.
 - What is compared is each **state species**: every species the SBML neither declares
   constant nor sets by an assignment rule. Each engine reports them as concentrations,
   by SBML id, at exactly the protocol's output times, or it has failed.
