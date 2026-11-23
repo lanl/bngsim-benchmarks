@@ -107,9 +107,61 @@ def _validate_ode_protocol(p: Any, where: str, errs: list[str]) -> None:
         errs.append(f"{where}.sparse: must be true or false")
 
 
+def _int_in(v: Any, lo: int, hi: int) -> bool:
+    return isinstance(v, int) and not isinstance(v, bool) and lo <= v <= hi
+
+
+# DSMTS's advice for a test against exact moments, which rests on the central limit
+# theorem (bench.stochastic.analytic_verdict).
+SSA_MOMENTS_MIN_REPLICATES = 10_000
+
+
+def _validate_ssa_protocol(p: Any, where: str, errs: list[str]) -> None:
+    """Exact SSA on the generated network: the grid ``0..t_end`` in ``n_steps``, the
+    ensemble size per engine for correctness (``replicates``) and per timed
+    repetition (``timing_replicates``), the base ``seed`` every engine's seeds derive
+    from, and optionally ``moments: linear`` -- exact moments of a first-order network
+    as a further reference (bench.capabilities.ssa)."""
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    allowed = {"netgen", "t_end", "n_steps", "replicates", "timing_replicates", "seed", "moments"}
+    for k in sorted(set(p) - allowed):
+        errs.append(f"{where}: unknown key {k!r}")
+    for k in ("netgen", "t_end", "n_steps", "replicates"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    netgen = p.get("netgen")
+    if netgen is not None and not (
+        isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
+    ):
+        errs.append(f"{where}.netgen: must be a generate_network(...) call")
+    t_end = p.get("t_end")
+    if t_end is not None and (
+        not isinstance(t_end, (int, float)) or isinstance(t_end, bool) or not t_end > 0
+    ):
+        errs.append(f"{where}.t_end: must be a positive number (SSA runs from t = 0)")
+    if "n_steps" in p and not _int_in(p["n_steps"], 1, 10**6):
+        errs.append(f"{where}.n_steps: must be a positive integer")
+    # Each engine's seeds come from a block of 10**7 (ssa.SEED_BLOCK), and COPASI's
+    # seed is a C int: these bounds keep every block disjoint and in range.
+    if "replicates" in p and not _int_in(p["replicates"], 100, 10**6):
+        errs.append(f"{where}.replicates: an integer from 100 to 1000000")
+    if "timing_replicates" in p and not _int_in(p["timing_replicates"], 1, 10**6):
+        errs.append(f"{where}.timing_replicates: an integer from 1 to 1000000")
+    if "seed" in p and not _int_in(p["seed"], 0, 2**30):
+        errs.append(f"{where}.seed: an integer from 0 to 2**30")
+    if "moments" in p:
+        if p["moments"] != "linear":
+            errs.append(f"{where}.moments: 'linear' (exact moments of a first-order network)")
+        elif _int_in(p.get("replicates"), 0, SSA_MOMENTS_MIN_REPLICATES - 1):
+            errs.append(f"{where}: a test against exact moments needs replicates >= "
+                        f"{SSA_MOMENTS_MIN_REPLICATES}")
+
+
 # One validator per capability's protocol. A capability without one cannot be
 # named in a spec.
-PROTOCOL_VALIDATORS = {"ode": _validate_ode_protocol}
+PROTOCOL_VALIDATORS = {"ode": _validate_ode_protocol, "ssa": _validate_ssa_protocol}
 
 
 def validate(data: Any, path: Path | str = "<spec>") -> Problem:

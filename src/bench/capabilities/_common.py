@@ -179,6 +179,18 @@ def read_dat(path: Path) -> tuple[np.ndarray, np.ndarray, list[str]]:
     return data[:, 0].copy(), data[:, 1:], names
 
 
+def engine_role(name: str) -> str:
+    """How an engine is timed, for the human-readable timing record (``gather``
+    reads it). Derived from the engine name so it never drifts from a registry:
+    run_network is a fresh subprocess per run; every other reference (and BNGsim)
+    is an in-process library timed warm."""
+    if name == "bngsim":
+        return "warm, in-process (system under test)"
+    if name == "run_network":
+        return "fresh subprocess"
+    return "warm, in-process"
+
+
 # --------------------------------------------------------------------------- #
 # Per-engine isolation
 # --------------------------------------------------------------------------- #

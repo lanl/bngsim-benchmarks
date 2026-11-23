@@ -100,6 +100,7 @@ from ._common import (  # noqa: F401 - re-exported under their ode names
     recorded_command,
     run_isolated,
 )
+from ._common import engine_role as _engine_role
 from ._common import outcome as _outcome
 from ._common import reproducibility as _reproducibility
 from ._common import threads as _threads
@@ -604,18 +605,6 @@ def _build_reference(name: str, prep: dict[str, Any], *, sparse: bool,
     if cls.INPUT == "net":
         return cls(prep["net"], prep["proto"], out_prefix, sparse=sparse, timeout=timeout)
     return cls(prep["sbml"], prep["species_names"], prep["name_to_id"], prep["proto"])
-
-
-def _engine_role(name: str) -> str:
-    """How an engine is timed, for the human-readable timing record. Derived from
-    the engine name so it never drifts from the registry: run_network is a fresh
-    subprocess per run; every other reference (and BNGsim) is an in-process library
-    timed warm."""
-    if name == "bngsim":
-        return "warm, in-process (system under test)"
-    if name == "run_network":
-        return "fresh subprocess"
-    return "warm, in-process"
 
 
 # --------------------------------------------------------------------------- #
