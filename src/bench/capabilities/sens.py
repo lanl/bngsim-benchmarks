@@ -108,7 +108,6 @@ from ..timing import absolute_time_stats, round_robin_interleaved
 from ._common import (
     correctness_timeouts,
     engine_role,
-    max_err_over_peak,
     prepare_network,
     progress,
     read_dat,
@@ -1228,11 +1227,25 @@ def _output_names(prep: dict[str, Any]) -> list[str]:
     return [*prep["species_names"], *(f"observable:{n}" for n in prep["observables"])]
 
 
+def trajectory_error(a: np.ndarray, b: np.ndarray, atol: float) -> float | None:
+    """The two engines' species trajectories' worst disagreement, as a fraction of
+    each species' peak in either, floored at 100 state atols: a species one engine
+    holds at 0 and the other at rounding noise (1e-21) is not a disagreement of
+    order one. A diagnostic beside the verdict, not part of it."""
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    if not a.size:
+        return None
+    scale = np.maximum(np.maximum(np.nanmax(np.abs(a), axis=0), np.nanmax(np.abs(b), axis=0)),
+                       100.0 * atol)
+    return float(np.nanmax(np.nanmax(np.abs(a - b), axis=0) / scale))
+
+
 def _summary(c: sv.Comparison, prep: dict[str, Any], a: _Run, b: _Run) -> dict[str, Any]:
     out = c.summary(_output_names(prep), prep["params"], times(prep["proto"]),
                     n_species=len(prep["species_names"]))
     n_sp = len(prep["species_names"])
-    out["trajectory_max_err_over_peak"] = max_err_over_peak(a.y[:, :n_sp], b.y[:, :n_sp])
+    out["trajectory_max_err_over_peak"] = trajectory_error(
+        a.y[:, :n_sp], b.y[:, :n_sp], float(prep["proto"]["atol"]))
     return out
 
 

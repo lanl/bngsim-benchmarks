@@ -868,3 +868,9 @@ def test_a_failing_adjoint_is_recorded_and_the_rest_still_timed(monkeypatch, tmp
     assert rec["outcome"] == "PASS" and "amici" in rec["measurements"]["times"]
     assert "amici_adjoint" not in rec["measurements"]["times"]
     assert rec["amici_adjoint_error"].startswith("RuntimeError: AMICI adjoint")
+
+
+def test_the_trajectory_diagnostic_does_not_read_rounding_noise_as_a_disagreement():
+    a = np.array([[0.0, 1.0], [0.0, 2.0]])
+    b = np.array([[3e-21, 1.0], [-2e-21, 2.002]])
+    assert sens.trajectory_error(a, b, atol=1e-8) == pytest.approx(0.002 / 2.002, rel=1e-9)
