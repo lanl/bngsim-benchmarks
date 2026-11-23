@@ -114,6 +114,8 @@ SEED_BLOCK = 10_000_000
 # takes the next free block here.
 ENGINE_SEED_BLOCKS = {"bngsim": 0, "run_network": 1, "roadrunner": 2, "copasi": 3}
 ANALYTIC = "analytic"
+# The kinds of exact moments a spec may declare (specs.py validates the same set).
+# A pinned table of means and SDs, as DSMTS publishes them, would be the next.
 MOMENT_KINDS = ("linear",)
 
 
@@ -630,7 +632,7 @@ def _analytic(stack: np.ndarray, moments: tuple[np.ndarray, np.ndarray],
 def exact_moments(prep: dict[str, Any]) -> tuple[np.ndarray, np.ndarray]:
     """The spec's exact moments on the protocol grid (``moments: linear``)."""
     kind = prep["proto"].get("moments")
-    if kind != "linear":
+    if kind not in MOMENT_KINDS:
         raise ValueError(f"unknown moments kind {kind!r}")
     if prep.get("network") is None:
         raise RuntimeError("the .net could not be read: "
