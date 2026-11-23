@@ -9,16 +9,22 @@ measure BNGsim's cost and check its results against other simulators on
 published models, so that anyone can re-run them. The comparisons are against
 BioNetGen (`run_network`, NFsim), libRoadRunner, AMICI, COPASI and PyBNF.
 
-What runs today: the job machinery, and one capability, ODE simulation of BNGL
-models. It compares BNGsim against a registry of reference engines: BioNetGen's
-`run_network`, libRoadRunner, COPASI and AMICI. The models are the first core suite,
-`ode-net`, with 10 published, verified models in
-[`problems/core/`](problems/core/) (see [docs/core_suites.md](docs/core_suites.md)),
-plus one provisional pilot model in [`problems/pilot/`](problems/pilot/).
-Each reference reads the same generated network: run_network directly, the others via
-SBML exported from it. The correctness job passes only when BNGsim agrees with every
-reference. The timing job interleaves all the engines in one run and reports each
-engine's absolute time. NFsim and PyBNF are on the roadmap as further engines.
+What runs today: the job machinery, and one capability, ODE simulation, of BNGL
+and of SBML models. It compares BNGsim against a registry of reference engines:
+BioNetGen's `run_network`, libRoadRunner, COPASI and AMICI. The models are two core
+suites of 10 published, verified models each, in [`problems/core/`](problems/core/)
+(see [docs/core_suites.md](docs/core_suites.md)), plus one provisional pilot model in
+[`problems/pilot/`](problems/pilot/):
+
+- `ode-net`, published BNGL. Each reference reads the same generated network:
+  run_network directly, the others via SBML exported from it.
+- `ode-sbml`, curated BioModels SBML. BNGsim, libRoadRunner, COPASI and AMICI read the
+  pinned SBML itself; run_network reads a network derived from it, where the SBML has
+  a faithful BNGL form.
+
+The correctness job passes only when BNGsim agrees with every reference. The timing
+job interleaves all the engines in one run and reports each engine's absolute time.
+NFsim and PyBNF are on the roadmap as further engines.
 
 ## Goals
 

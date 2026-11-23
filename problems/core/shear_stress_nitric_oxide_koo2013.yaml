@@ -1,0 +1,37 @@
+# Shear-stress-induced nitric oxide production in endothelial cells (BioModels BIOMD0000000468). A
+# core problem: member 6 of the ode-sbml suite (docs/DESIGN.md §3.2). The file is the curated
+# BioModels file as sys-bio/temp-biomodels holds it; the protocol is the time course of the SED-ML
+# beside it (final/BIOMD0000000468/Integratedmodel_noshearstress.sedml), whose <model source> is
+# this file. rtol is the SED-ML's; the SED-ML gives no absolute tolerance (only COPASI's
+# adjustment factor), so atol is the 1e-9 lanl/bngsim's rr_parity job manifest uses for it. uses
+# for it.
+id: shear_stress_nitric_oxide_koo2013
+layer: core
+title: "Shear-stress-induced nitric oxide production in endothelial cells"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000468/BIOMD0000000468_url.xml
+  sha256: e1d8e43b2cd8f373ff3646acf852c0cb59adbdf75c6bbe705ff3eac4734d0028
+  format: sbml
+publications:
+  - citation: "Koo A, Nordsletten D, Umeton R, Yankama B, Ayyadurai S, García-Cardeña G, Dewey CF Jr (2013). In silico modeling of shear-stress-induced nitric oxide production in endothelial cells through systems biology. Biophys J 104:2295-2306."
+    doi: 10.1016/j.bpj.2013.03.052
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000468: its curation figure and curation notes, and final/BIOMD0000000468/Integratedmodel_noshearstress.sedml at the pinned commit"
+  check: "BioModels curation: the curators reproduced Fig. 6 of the paper; by their note this file as it is gives the shear-stress curve (the no-shear curve needs four reactions removed). The SED-ML beside it at the pinned commit names Fig. 6 and, despite its file name, runs exactly this file, unchanged"
+  result: "curated; the curation figure reproduces the shear-stress curve of Fig. 6"
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 12000
+    n_steps: 1000
+    rtol: 1.0e-6
+    atol: 1.0e-9
+size:
+  species: 79
+  reactions: 74
+suites:
+  ode-sbml: 6

@@ -11,9 +11,9 @@ Implemented so far:
 - the serial and local-pool runners with deadlines (8);
 - Slurm submission as job arrays, `bench submit` (8);
 - the interleaved timing protocol (7);
-- one capability: ODE simulation of BNGL models, comparing BNGsim against a
-  registry of reference engines (`run_network` and libRoadRunner), on five
-  provisional pilot models.
+- one capability: ODE simulation of BNGL and SBML models, comparing BNGsim against
+  a registry of reference engines (`run_network`, libRoadRunner, COPASI and AMICI),
+  on two core suites, `ode-net` and `ode-sbml` (section 3.2).
 
 Not yet: bundles, the container, the validation of section 9, and every other
 capability.

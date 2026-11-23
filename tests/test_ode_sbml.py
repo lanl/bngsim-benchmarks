@@ -62,6 +62,10 @@ def test_a_bngl_protocol_still_needs_netgen_and_has_no_output_start(spec_data, w
         specs.load(write_spec(spec_data))
 
 
+def test_ode_sbml_is_a_registered_suite_of_sbml_models():
+    assert specs.SUITES["ode-sbml"] == ("ode", ("sbml",))
+
+
 def test_an_sbml_problem_gets_correctness_and_timing_jobs(sbml_spec, write_spec):
     problem = specs.load(write_spec(sbml_spec))
     correctness, timing = ode.jobs(problem)
@@ -684,3 +688,16 @@ def test_tables_show_a_reference_that_does_not_apply_as_n_a():
               "not_applicable": {"run_network": "refused"}}
     assert any("| run_network | PASS |  |  | n/a |" in ln
                for ln in gather._timing_table([timing]))
+
+
+def test_jobs_for_the_committed_ode_sbml_suite_are_all_sbml():
+    from conftest import REPO
+
+    problems = specs.load_all(REPO / "problems")
+    members = specs.suite_members(problems)["ode-sbml"]
+    assert [m.suites["ode-sbml"] for m in members] == list(range(1, 11))
+    for m in members:
+        assert m.source["repo"] == "sys-bio/temp-biomodels"
+        assert m.verification["kind"] == "author_file"
+        for job in jobs.jobs_for([m]):
+            assert job.definition["input"]["format"] == "sbml"

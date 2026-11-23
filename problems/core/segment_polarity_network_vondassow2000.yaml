@@ -1,0 +1,39 @@
+# The Drosophila segment polarity network on a 1x4 grid of cells (BioModels BIOMD0000001065). A
+# core problem: member 10 of the ode-sbml suite (docs/DESIGN.md §3.2). The file is the curated
+# BioModels file as sys-bio/temp-biomodels holds it; the protocol is the time course of the SED-ML
+# beside it (final/BIOMD0000001065/vonDassow2000_1x4.timecourse1.sedml), whose <model source> is
+# this file. rtol is the SED-ML's; the SED-ML gives no absolute tolerance (only COPASI's
+# adjustment factor), so atol is the 1e-9 lanl/bngsim's rr_parity job manifest uses for it.
+# Its SED-ML names no figure: the curation reproduced the paper's Fig. 2, a radial plot over
+# parameters, so the 0-1100 time course is a curator's protocol rather than a published figure.
+id: segment_polarity_network_vondassow2000
+layer: core
+title: "Segment polarity network on a 1x4 grid of cells"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000001065/vonDassow2000_1x4.timecourse1.xml
+  sha256: 2b0a292e348f5ce6af21e812e0228b97e447fc29161b0441af78715b7d430023
+  format: sbml
+publications:
+  - citation: "von Dassow G, Meir E, Munro EM, Odell GM (2000). The segment polarity network is a robust developmental module. Nature 406:188-192."
+    doi: 10.1038/35018085
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000001065: its curation figure, and final/BIOMD0000001065/vonDassow2000_1x4.timecourse1.sedml at the pinned commit"
+  check: "BioModels curation (curated): the curators reproduced the paper's Fig. 2, a radial plot over the model's parameters (Fig2.png and param_radial.plt beside this file at the pinned commit). The SED-ML beside it, which runs exactly this file, is the curators' time course; it names no figure, so the horizon here is theirs, not the paper's"
+  result: "curated; the curation figure reproduces Fig. 2 (a parameter plot, not this time course)"
+  supporting: "the same folder holds this SED-ML's time course from four other engines (timecourse1.{amici,copasi,tellurium,vcell}.tsv)"
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 1100
+    n_steps: 220
+    rtol: 1.0e-8
+    atol: 1.0e-9
+size:
+  species: 148
+  reactions: 480
+suites:
+  ode-sbml: 10
