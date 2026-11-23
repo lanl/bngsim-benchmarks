@@ -495,9 +495,10 @@ distribution whose `NFsim` launches the unchanged binary under the loader swap.
 name: a permutation max-T test on per-cell means and variances, false-alarm rate at
 most `alpha` = 10^-3 per comparison, with parity_core's ensemble verdict recorded
 beside it. Each engine draws from a seed block of its own (`nf_reject` 0, `nf_exact`
-1, NFsim 2, RuleMonkey 3, run_network 4, BNGsim SSA 5, times 10^7; a later step that
-restarts from the seed species is 10^6 further on). The job passes only when BNGsim
-agrees with every reference that applies. Recorded beside the verdicts, never scored:
+1, NFsim 2, RuleMonkey 3, run_network 4, BNGsim SSA 5, times 10^7). A later
+network-free step's seed is 10^6 further on: BNG2.pl starts NFsim afresh for every step,
+while BNGsim's session carries its random stream on unless the step restarts from the
+seed species. The job passes only when BNGsim agrees with every reference that applies. Recorded beside the verdicts, never scored:
 
 - **the other setting**: BNGsim's other network-free engine, from its own seeds,
   compared the same way, so the two embedded engines are checked against each other
