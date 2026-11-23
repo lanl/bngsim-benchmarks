@@ -269,6 +269,57 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
         errs.append(f"{where}.scan: a log scale needs min > 0")
 
 
+# Network-free ensembles: the most replicates (each engine's seeds come from a block
+# of 10**7, with 10**6 per later network-free step; bench.capabilities.nf).
+NF_MAX_REPLICATES = 10**6
+
+
+def _validate_nf_protocol(p: Any, where: str, errs: list[str],
+                          source_format: str | None = None) -> None:
+    """Network-free simulation (bench.capabilities.nf): the protocol BNG2.pl runs
+    for the NFsim reference and every other engine replays -- ``actions``, the
+    file's own action block (``own``) or a list of BNGL actions, holding
+    network-free ``simulate`` steps and ``setParameter`` (bench.nfactions); the
+    ensemble size per engine for correctness (``replicates``) and per timed
+    repetition (``timing_replicates``); the base ``seed``; and, for a model whose
+    network is finite, the ``netgen`` call that makes exact SSA on it a further
+    reference. The model must be BNGL: BNG2.pl writes the BNG-XML every engine reads."""
+    from . import nfactions
+
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    if source_format not in (None, "bngl"):
+        errs.append(f"{where}: network-free simulation needs a BNGL source "
+                    "(BNG2.pl writes the BNG-XML every engine reads)")
+    allowed = {"actions", "replicates", "timing_replicates", "seed", "netgen"}
+    for k in sorted(set(p) - allowed):
+        errs.append(f"{where}: unknown key {k!r}")
+    for k in ("actions", "replicates"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    actions = p.get("actions")
+    if actions is not None and actions != "own":
+        if not (isinstance(actions, str) and actions.strip()):
+            errs.append(f"{where}.actions: 'own' (the file's action block) or BNGL actions")
+        else:
+            try:
+                nfactions.protocol(actions)
+            except nfactions.ActionError as exc:
+                errs.append(f"{where}.actions: {exc}")
+    netgen = p.get("netgen")
+    if netgen is not None and not (
+        isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
+    ):
+        errs.append(f"{where}.netgen: must be a generate_network(...) call")
+    if "replicates" in p and not _int_in(p["replicates"], 100, NF_MAX_REPLICATES):
+        errs.append(f"{where}.replicates: an integer from 100 to {NF_MAX_REPLICATES}")
+    if "timing_replicates" in p and not _int_in(p["timing_replicates"], 1, NF_MAX_REPLICATES):
+        errs.append(f"{where}.timing_replicates: an integer from 1 to {NF_MAX_REPLICATES}")
+    if "seed" in p and not _int_in(p["seed"], 0, 2**30):
+        errs.append(f"{where}.seed: an integer from 0 to 2**30")
+
+
 # One validator per capability's protocol. A capability without one cannot be
 # named in a spec. Each is called with the source's format (``source_format``);
 # one whose capability runs on a single input format may ignore it.
@@ -276,6 +327,7 @@ PROTOCOL_VALIDATORS = {
     "ode": _validate_ode_protocol,
     "ssa": _validate_ssa_protocol,
     "steady_state": _validate_steady_protocol,
+    "nf": _validate_nf_protocol,
 }
 
 
