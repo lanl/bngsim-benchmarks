@@ -10,6 +10,8 @@ results were measured on (``bngsim-<version>-<build commit>``):
     correctness.csv      one row per (problem, reference engine)
     timing.csv           one row per (problem, engine)
     jobs/<job id>.json   every job's full result record
+    jobs/<job id>.npz    the trajectories a correctness job stored, when the suite's
+                         total is at most TRAJECTORIES_LIMIT_BYTES
 
 A snapshot is all or nothing. Every job of the suite must have a current result
 (a timing judged on the node type it was measured on), so a published set never
@@ -34,7 +36,7 @@ from typing import Any
 from . import specs
 from .gather import _errored_engines, _presim, _presim_total, _why, reference_agreement
 from .jobs import CORRECTNESS, TIMING, Job
-from .results import freshness_key, read_result, result_path
+from .results import _sha256, freshness_key, read_result, result_path, trajectories_path
 
 SCHEMA = 1
 
@@ -57,6 +59,11 @@ TIMING_COLUMNS = [
     "rounds", "reproducible", "error",
 ]
 
+
+# A suite's stored correctness trajectories go into its snapshot when they total at
+# most this; otherwise each record says which file it stored, its size and sha256,
+# and that the file is not in the snapshot (docs/published_format.md).
+TRAJECTORIES_LIMIT_BYTES = 5_000_000
 
 # The status of a reference that does not apply to the model: it was not run, and
 # its row says why (the record's ``not_applicable``).
@@ -293,6 +300,29 @@ def publish(
         raise PublishError(f"suite {suite!r} is not complete and current:\n  "
                            + "\n  ".join(missing))
 
+    # Stored trajectories: in the snapshot when the suite's total is small enough,
+    # each checked against the sha256 its record names; otherwise named, not shipped.
+    stored = {j.id: raw[j.id]["trajectories"] for j in suite_jobs
+              if isinstance(raw[j.id].get("trajectories"), dict)
+              and raw[j.id]["trajectories"].get("file")}
+    total = sum(int(meta.get("bytes") or 0) for meta in stored.values())
+    ship = bool(stored) and total <= TRAJECTORIES_LIMIT_BYTES
+    sources: dict[str, Path] = {}
+    if ship:
+        bad = []
+        for job in suite_jobs:
+            if job.id not in stored:
+                continue
+            src = trajectories_path(results_dir, job)
+            if not src.exists():
+                bad.append(f"{job.id}: {src.name} is missing")
+            elif _sha256(src) != stored[job.id].get("sha256"):
+                bad.append(f"{job.id}: {src.name} is not the file its record names")
+            sources[job.id] = src
+        if bad:
+            raise PublishError("stored trajectories do not match their records:\n  "
+                               + "\n  ".join(bad))
+
     records = list(raw.values())
     builds = _distinct(records, "environment", "bngsim")
     bngsim = {"version": builds[0].get("version"), "build_commit": builds[0].get("build_commit")}
@@ -301,6 +331,13 @@ def publish(
 
     tokens = forbidden_tokens(records, slurm_config)
     scrubbed = {jid: scrub(rec, root) for jid, rec in raw.items()}
+    for jid in stored:
+        meta = scrubbed[jid]["trajectories"]
+        meta["in_snapshot"] = ship
+        if not ship:
+            meta["note"] = (f"not in this snapshot: the suite's stored trajectories total "
+                            f"{total} bytes, over the {TRAJECTORIES_LIMIT_BYTES}-byte limit; "
+                            "bytes and sha256 identify the file")
     found: list[str] = []
     for jid, rec in scrubbed.items():
         found += leaks(rec, tokens, jid)
@@ -315,8 +352,13 @@ def publish(
             corr_rows += correctness_rows(suite, p, rec)
         else:
             time_rows += timing_rows(suite, p, rec)
-        job_entries.append({"job_id": job.id, "problem": job.problem, "kind": job.kind,
-                            "outcome": rec.get("outcome"), "file": f"jobs/{job.id}.json"})
+        entry = {"job_id": job.id, "problem": job.problem, "kind": job.kind,
+                 "outcome": rec.get("outcome"), "file": f"jobs/{job.id}.json"}
+        if job.id in stored:
+            entry["trajectories"] = {"file": f"jobs/{job.id}.npz", "in_snapshot": ship,
+                                     "bytes": stored[job.id].get("bytes"),
+                                     "sha256": stored[job.id].get("sha256")}
+        job_entries.append(entry)
 
     def engine_versions() -> dict[str, list[Any]]:
         return {name: _distinct(records, "environment", name, "version")
@@ -341,6 +383,8 @@ def publish(
             "verification": p.verification, "size": p.size,
         } for p in members],
         "jobs": job_entries,
+        "trajectories": {"in_snapshot": ship, "files": len(stored), "total_bytes": total,
+                         "limit_bytes": TRAJECTORIES_LIMIT_BYTES},
         "files": {"correctness": "correctness.csv", "timing": "timing.csv",
                   "columns": "docs/published_format.md"},
     }
@@ -357,6 +401,8 @@ def publish(
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(scrubbed[job.id], indent=1, sort_keys=True) + "\n",
                         encoding="utf-8")
+        if job.id in sources:
+            shutil.copyfile(sources[job.id], trajectories_path(dest / "jobs", job))
     _write_csv(dest / "correctness.csv", CORRECTNESS_COLUMNS, corr_rows)
     _write_csv(dest / "timing.csv", TIMING_COLUMNS, time_rows)
     (dest / "manifest.json").write_text(

@@ -11,6 +11,8 @@ published/<suite>/bngsim-<version>-<build commit>/
     correctness.csv      one row per (problem, reference engine)
     timing.csv           one row per (problem, engine)
     jobs/<job id>.json   every job's full result record
+    jobs/<job id>.npz    a correctness job's stored trajectories, when the suite's
+                         total is at most 5 MB (see Trajectories below)
 ```
 
 A snapshot is complete: every job of the suite has a current result, all from one
@@ -31,7 +33,8 @@ scratch directory), and `bench publish` refuses if anything of that kind survive
 | `node_type` | the CPU model, architecture and OS of the timing node |
 | `harness` | the harness version, the vendored verdict code, and the git commits of the harness that ran the jobs |
 | `members` | the suite's models in position order: source pin (repo, commit, path, sha256), publications, verification evidence, size |
-| `jobs` | every job: id, problem, kind, outcome, and the path of its record |
+| `jobs` | every job: id, problem, kind, outcome, and the path of its record; for a correctness job that stored trajectories, `trajectories` (the `.npz` path, `in_snapshot`, `bytes`, `sha256`) |
+| `trajectories` | the suite's stored trajectories: `in_snapshot`, the number of `files`, their `total_bytes`, and the `limit_bytes` that decides (5,000,000) |
 
 ## correctness.csv
 
@@ -73,3 +76,33 @@ is a ratio of two rows, not stored.
 
 The full record of each job, under `jobs/`, carries everything the CSVs summarize, plus
 the per-repetition times, the per-engine configuration and the environment.
+
+## Trajectories
+
+A correctness job stores the trajectories its verdict was computed from beside its
+record, as `<job id>.npz` (compressed float64, readable without pickle): every engine's
+compared trajectory under the engine's name, all in the same columns, with the output
+times (`time`) and the compared species (`species`: BNGsim's species names on the `.net`
+path, SBML ids on the SBML path), and `run_network_sparse` where the model asks for a
+sparse run. They are what `bench rescore` re-scores a verdict from.
+
+A suite's trajectories go into its snapshot, beside each record, when they total at most
+5 MB (5,000,000 bytes); otherwise none of them do. Either way a record's `trajectories`
+says what the job stored and whether it is here:
+
+| key | meaning |
+|---|---|
+| `file` | the `.npz`'s name, relative to the record |
+| `bytes`, `sha256` | its size and SHA-256, which identify the file in or out of the snapshot |
+| `arrays` | the arrays it holds |
+| `in_snapshot` | `true` when the file is beside the record in this snapshot, `false` when it is not |
+| `note` | when it is not: why (the suite's total against the limit) |
+
+A record whose job stored nothing (`stored: false`, with a `reason`) names no file.
+`bench publish` checks every file it ships against the size and SHA-256 its record
+names, and refuses to publish if one is missing or differs.
+
+Measured on the core suites' correctness results of November 2026, neither fits: the
+ten ode-sbml files total 13.3 MB (0.1 to 3.4 MB each), and ode-net's eight total 32.7 MB
+(9.2 to 9.5 MB for each of its three largest networks), before its two largest models,
+which had no current result to measure.

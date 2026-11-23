@@ -194,3 +194,84 @@ def test_a_reference_that_does_not_apply_gets_a_row_saying_why(suite, tmp_path):
         "roadrunner": "ok", "copasi": "timeout", "run_network": "not_applicable"}
     assert corr[0]["agreement"] == "PARTIAL 1/2 (copasi: timeout, run_network: n/a)"
     assert corr[2]["passed"] == ""
+
+
+def _store_trajectories(jobs, results):
+    """Give every correctness job stored trajectories, as the worker does."""
+    import numpy as np
+
+    from bench.results import write_trajectories
+
+    for job in jobs:
+        if job.kind == CORRECTNESS:
+            t = np.linspace(0.0, 1.0, 11)
+            meta = write_trajectories(results, job, {
+                "time": t, "species": np.array(["A", "B"]),
+                "bngsim": np.column_stack([np.exp(-t), 1 - np.exp(-t)]),
+                "roadrunner": np.column_stack([np.exp(-t), 1 - np.exp(-t)]) * (1 + 1e-9)})
+            _edit(results, job, trajectories=meta)
+
+
+def test_small_trajectories_are_in_the_snapshot_beside_their_records(suite, tmp_path):
+    from bench.results import _sha256
+
+    problems, jobs = suite
+    results = tmp_path / "results"
+    _write_all(jobs, results)
+    _store_trajectories(jobs, results)
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    manifest = json.loads((dest / "manifest.json").read_text())
+    assert manifest["trajectories"]["in_snapshot"] is True
+    assert manifest["trajectories"]["files"] == 10
+    corr = [j for j in jobs if j.kind == CORRECTNESS]
+    for job in corr:
+        rec = json.loads((dest / "jobs" / f"{job.id}.json").read_text())
+        meta = rec["trajectories"]
+        assert meta["in_snapshot"] is True and "note" not in meta
+        npz = (dest / "jobs" / f"{job.id}.json").with_name(meta["file"])
+        assert npz.exists() and _sha256(npz) == meta["sha256"]
+    entry = next(e for e in manifest["jobs"] if e["job_id"] == corr[0].id)
+    assert entry["trajectories"]["file"] == f"jobs/{corr[0].id}.npz"
+    assert manifest["trajectories"]["total_bytes"] == sum(
+        json.loads((dest / "jobs" / f"{j.id}.json").read_text())["trajectories"]["bytes"]
+        for j in corr)
+
+
+def test_trajectories_over_the_limit_are_named_and_marked_not_in_the_snapshot(
+        suite, tmp_path, monkeypatch):
+    from bench import publish as pub
+
+    problems, jobs = suite
+    results = tmp_path / "results"
+    _write_all(jobs, results)
+    _store_trajectories(jobs, results)
+    monkeypatch.setattr(pub, "TRAJECTORIES_LIMIT_BYTES", 1000)
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    assert not list(dest.rglob("*.npz"))
+    manifest = json.loads((dest / "manifest.json").read_text())
+    assert manifest["trajectories"]["in_snapshot"] is False
+    assert manifest["trajectories"]["limit_bytes"] == 1000
+    job = next(j for j in jobs if j.kind == CORRECTNESS)
+    meta = json.loads((dest / "jobs" / f"{job.id}.json").read_text())["trajectories"]
+    assert meta["in_snapshot"] is False and meta["note"].startswith("not in this snapshot")
+    assert len(meta["sha256"]) == 64 and meta["bytes"] > 0
+    entry = next(e for e in manifest["jobs"] if e["job_id"] == job.id)
+    assert entry["trajectories"]["in_snapshot"] is False
+    assert entry["trajectories"]["sha256"] == meta["sha256"]
+
+
+def test_trajectories_that_do_not_match_their_record_refuse_publishing(suite, tmp_path):
+    from bench.results import trajectories_path
+
+    problems, jobs = suite
+    results = tmp_path / "results"
+    _write_all(jobs, results)
+    _store_trajectories(jobs, results)
+    job = next(j for j in jobs if j.kind == CORRECTNESS)
+    trajectories_path(results, job).write_bytes(b"not the stored file")
+    with pytest.raises(PublishError, match="not the file its record names") as err:
+        publish("ode-net", problems, jobs, results, tmp_path / "published", FPS, root=tmp_path)
+    assert job.id in str(err.value)
+    assert not (tmp_path / "published").exists()
