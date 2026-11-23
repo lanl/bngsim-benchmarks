@@ -88,6 +88,7 @@ and any part of an id selects jobs:
 | `pixi run bench run --until slurm` | the same, up to the end of the current Slurm allocation |
 | `pixi run bench rescore` | re-score stored correctness results after the verdict changes, without re-simulating |
 | `pixi run bench gather` | collect results into `reports/`, with a readable `reports/summary.md` |
+| `pixi run bench publish SUITE` | write a complete suite's results, scrubbed of where they ran, to `published/` for committing; format in [docs/published_format.md](docs/published_format.md) |
 
 Each job writes one file under `results/`, named after its id. A correctness job also
 stores the trajectories it compared beside it, as a `.npz`. A result stays
