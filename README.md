@@ -74,6 +74,7 @@ and any part of an id selects jobs:
 | `pixi run bench run --budget 9h30m` | stop starting jobs that would not finish within 9.5 hours |
 | `pixi run bench run --until slurm` | the same, up to the end of the current Slurm allocation |
 | `pixi run bench gather` | collect results into `reports/`, with a readable `reports/summary.md` |
+| `pixi run bench publish SUITE` | write a complete suite's results, scrubbed of where they ran, to `published/` for committing; format in [docs/published_format.md](docs/published_format.md) |
 
 Each job writes one file under `results/`, named after its id. A result stays
 current until something it depends on changes: the model file, the protocol, the

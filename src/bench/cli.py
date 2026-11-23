@@ -5,6 +5,7 @@
     bench run  [PATTERN...]          run every job without a current result
     bench submit [PATTERN...]        the same, as a Slurm job array (see slurm.example.yaml)
     bench gather                     assemble results into reports/
+    bench publish SUITE              a suite's results, scrubbed, into published/ (to commit)
     bench fetch-bionetgen            download and check BioNetGen
     bench fetch-models [PATTERN...]  download and check the pinned model files
     bench fetch-glibc                install a newer glibc loader (old-glibc Linux)
@@ -243,6 +244,22 @@ def cmd_gather(args) -> int:
     for name, rows in sorted(reports.items()):
         print(f"{name}: {len(rows)} rows -> {args.reports / (name + '.json')}")
     print(f"summary -> {args.reports / 'summary.md'}")
+    return 0
+
+
+def cmd_publish(args) -> int:
+    from .publish import PublishError, default_slurm_config, publish
+    from .results import fingerprints_now
+
+    problems = specs.load_all(args.problems)
+    try:
+        dest = publish(args.suite, problems, jobs_mod.jobs_for(problems), args.results,
+                       args.out, fingerprints_now(), root=ROOT,
+                       slurm_config=default_slurm_config(ROOT))
+    except PublishError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    print(f"published {args.suite} -> {dest}")
     return 0
 
 
@@ -702,6 +719,13 @@ def main(argv: list[str] | None = None) -> int:
     _common(p)
     p.add_argument("--reports", type=Path, default=ROOT / "reports")
     p.set_defaults(fn=cmd_gather, patterns=None)
+
+    p = sub.add_parser("publish",
+                       help="write a suite's results, scrubbed, to published/ for committing")
+    _common(p)
+    p.add_argument("suite", help="a suite name, e.g. ode-net")
+    p.add_argument("--out", type=Path, default=ROOT / "published")
+    p.set_defaults(fn=cmd_publish, patterns=None)
 
     p = sub.add_parser("fetch-bionetgen", help="download and check BioNetGen")
     _common(p)
