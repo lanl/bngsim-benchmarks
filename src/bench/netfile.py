@@ -5,13 +5,25 @@ going through any simulator: the parameters (with their expressions evaluated),
 the species and their initial counts, the reactions with their reactants,
 products and rate expressions, and the names of any functions.
 
-Two uses so far, both in the SSA capability:
+Its uses:
 
 - the exact first and second moments of a first-order network
   (``bench.stochastic.linear_moments``), a reference that must not share code with
   any engine it judges;
 - spotting a reaction with a repeated reactant (``A + A -> ...``), whose exact SSA
-  propensity an engine that fires the SBML rate law gets wrong.
+  propensity an engine that fires the SBML rate law gets wrong;
+- the steady-state capability's engine-free checks: the network's right-hand side
+  ``f(x)`` at a state an engine returned (``Network.rhs``), its conservation laws
+  (``Network.conservation_laws``), and the network read again with some parameters
+  set, as a dose-response point sets them (``parse(..., overrides=...)``).
+
+The right-hand side follows BioNetGen's ODE semantics: a reaction's rate is its
+rate expression -- a parameter, an expression, or a global function of the
+observables -- times the amount of each reactant (a repeated reactant twice); a
+``$``-fixed species never changes. Rate laws the reader does not evaluate
+(``Sat``, ``MM``, ``Hill``, ``Arrhenius``, ``FunctionProduct``, local functions)
+raise ``NetFileError`` when the right-hand side is asked for, never when the file
+is read, so reading a network never fails on what only the right-hand side needs.
 
 Expressions are evaluated by walking a parsed Python AST that admits only numbers,
 names already defined, arithmetic and a few BNGL math functions, so a model file
@@ -23,8 +35,11 @@ from __future__ import annotations
 import ast
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
+
+import numpy as np
 
 
 class NetFileError(ValueError):
@@ -48,6 +63,27 @@ class Network:
     fixed: list[bool] = field(default_factory=list)  # ``$``-prefixed: held constant
     reactions: list[Reaction] = field(default_factory=list)
     functions: set[str] = field(default_factory=set)
+    # Each parameter's expression as written, and each global function's body
+    # (None for a local function, one with arguments). Kept as text: only the
+    # right-hand side evaluates them.
+    parameter_exprs: dict[str, str] = field(default_factory=dict)
+    function_bodies: dict[str, str | None] = field(default_factory=dict)
+    # Each observable (``begin groups``): (0-based species index, weight) pairs, or
+    # the reason the line could not be read.
+    groups: dict[str, list[tuple[int, float]]] = field(default_factory=dict)
+    groups_error: str | None = None
+
+    def is_primary(self, name: str) -> bool:
+        """Whether parameter ``name`` is a number in the file, not an expression of
+        other parameters (only a primary parameter can be set from outside)."""
+        expr = self.parameter_exprs.get(name)
+        if expr is None:
+            return False
+        try:
+            float(expr)
+        except ValueError:
+            return False
+        return True
 
     def repeated_reactants(self) -> list[Reaction]:
         """Reactions that consume one (unfixed) species more than once, ``A + A -> ...``."""
@@ -57,6 +93,148 @@ class Network:
             if len(live) != len(set(live)):
                 out.append(r)
         return out
+
+    # ------------------------------------------------------------------ #
+    # The right-hand side, for the steady-state checks
+    # ------------------------------------------------------------------ #
+    def stoichiometry(self) -> np.ndarray:
+        """The net stoichiometry ``S``, shape ``(n_species, n_reactions)``; a
+        ``$``-fixed species' row is zero, since it never changes."""
+        s = np.zeros((len(self.species), len(self.reactions)))
+        for j, r in enumerate(self.reactions):
+            for i in r.reactants:
+                s[i, j] -= 1.0
+            for i in r.products:
+                s[i, j] += 1.0
+        s[np.asarray(self.fixed, dtype=bool), :] = 0.0
+        return s
+
+    def observables(self, x) -> dict[str, float]:
+        """Every observable's value at state ``x``."""
+        if self.groups_error:
+            raise NetFileError(self.groups_error)
+        x = np.asarray(x, dtype=float)
+        return {name: float(sum(w * x[i] for i, w in members))
+                for name, members in self.groups.items()}
+
+    def function_values(self, x) -> dict[str, float]:
+        """Every global function's value at state ``x``; raises NetFileError for a
+        function the reader cannot evaluate, when (and only when) it is reached."""
+        names: dict[str, float] = {**self.parameters, **self.observables(x)}
+        done: dict[str, float] = {}
+        calls = re.compile(r"\b(" + "|".join(map(re.escape, self.function_bodies)) + r")\(\s*\)") \
+            if self.function_bodies else None
+
+        def value(fname: str, stack: tuple[str, ...]) -> float:
+            if fname in done:
+                return done[fname]
+            if fname in stack:
+                raise NetFileError(f"function {fname} reads itself")
+            body = self.function_bodies[fname]
+            if body is None:
+                raise NetFileError(f"local function {fname} (one with arguments) is not evaluated")
+            text = calls.sub(r"\1", body) if calls else body
+            env = dict(names)
+            for other in self.function_bodies:
+                if other != fname and re.search(r"\b" + re.escape(other) + r"\b", text):
+                    env[other] = value(other, (*stack, fname))
+            done[fname] = evaluate(text, env)
+            return done[fname]
+
+        for fname in self.function_bodies:
+            value(fname, ())
+        return done
+
+    def rate_constants(self, x) -> np.ndarray:
+        """Each reaction's rate expression at state ``x``: its rate per unit of
+        each reactant (a function of the observables makes it depend on ``x``)."""
+        for r in self.reactions:
+            m = _UNEVALUATED_RATE_RE.match(r.rate)
+            if m:
+                raise NetFileError(f"reaction {r.index} has a {m.group(1)} rate law, which "
+                                   "this reader does not evaluate")
+        names = dict(self.parameters)
+        if any(_names_in(r.rate) & set(self.function_bodies) for r in self.reactions):
+            names.update(self.function_values(x))
+        cache: dict[str, float] = {}
+        out = np.empty(len(self.reactions))
+        for j, r in enumerate(self.reactions):
+            if r.rate not in cache:
+                cache[r.rate] = evaluate(r.rate, names)
+            out[j] = cache[r.rate]
+        return out
+
+    def rates(self, x) -> np.ndarray:
+        """Each reaction's ODE rate at ``x``: its rate expression times the amount of
+        each reactant (BioNetGen's mass action, a repeated reactant counted twice)."""
+        x = np.asarray(x, dtype=float)
+        v = self.rate_constants(x)
+        for j, r in enumerate(self.reactions):
+            for i in r.reactants:
+                v[j] *= x[i]
+        return v
+
+    def rhs(self, x) -> np.ndarray:
+        """``f(x) = S v(x)``: each species' net rate of change at ``x``."""
+        return self.stoichiometry() @ self.rates(x)
+
+    def flux(self, x) -> tuple[np.ndarray, np.ndarray]:
+        """``(f(x), g(x))``: each species' net rate of change and its gross flux,
+        ``g_i = sum_r |S_ir| |v_r|`` -- what flows in plus what flows out. At a
+        steady state ``|f_i|`` is a vanishing part of ``g_i``, in any units."""
+        s = self.stoichiometry()
+        v = self.rates(x)
+        return s @ v, np.abs(s) @ np.abs(v)
+
+    def subspaces(self, rank_tol: float = 1e-10) -> tuple[np.ndarray, np.ndarray]:
+        """``(L, Q)``, from an SVD of the stoichiometry, no engine involved: ``L`` an
+        orthonormal basis (one row per law) of the vectors with ``L @ S == 0``, every
+        linear combination of the amounts that no reaction changes (a fixed species,
+        or one no reaction touches, is a law of its own); ``Q`` an orthonormal basis
+        (one column per direction) of the directions the reactions move the state in,
+        the range of ``S``. Together they span the state space."""
+        s = self.stoichiometry()
+        n_sp, n_rx = s.shape
+        if n_sp == 0:
+            return np.zeros((0, 0)), np.zeros((0, 0))
+        if n_rx == 0:
+            return np.eye(n_sp), np.zeros((n_sp, 0))
+        if n_rx >= n_sp:
+            _, sv, vh = np.linalg.svd(s.T, full_matrices=False)
+            basis = vh
+        else:
+            u, sv, _ = np.linalg.svd(s, full_matrices=True)
+            basis = u.T
+        sv = np.concatenate([sv, np.zeros(n_sp - len(sv))])
+        rank = int(np.sum(sv > rank_tol * max(float(sv.max(initial=0.0)), 1.0)))
+        return basis[rank:].copy(), basis[:rank].T.copy()
+
+    def conservation_laws(self, rank_tol: float = 1e-10) -> np.ndarray:
+        """The rows of ``L`` (``subspaces``): the network's conservation laws."""
+        return self.subspaces(rank_tol)[0]
+
+    def jacobian(self, x, rel_step: float = 1e-7) -> np.ndarray:
+        """``df/dx`` at ``x`` by forward differences of the right-hand side, each
+        step ``rel_step`` of the species' amount (or of the state's largest, for a
+        species at zero), so no step leaves the non-negative orthant."""
+        x = np.asarray(x, dtype=float)
+        f0 = self.rhs(x)
+        peak = float(np.max(np.abs(x))) if x.size else 0.0
+        jac = np.empty((x.size, x.size))
+        for i in range(x.size):
+            h = rel_step * max(abs(x[i]), 1e-3 * peak, 1e-12)
+            y = x.copy()
+            y[i] += h
+            jac[:, i] = (self.rhs(y) - f0) / h
+        return jac
+
+    def pure_sinks(self) -> list[int]:
+        """Species some reaction produces and none consumes (and not fixed): a
+        write-only accumulator, whose amount grows forever wherever its production
+        does not stop, so it has no steady value of its own."""
+        consumed = {i for r in self.reactions for i in r.reactants}
+        produced = {i for r in self.reactions for i in r.products}
+        return sorted(i for i in produced - consumed if not self.fixed[i])
 
 
 # BNGL math the .net may use in a parameter or rate expression.
@@ -111,6 +289,15 @@ def evaluate(expr: str, names: dict[str, float]) -> float:
     return ev(tree)
 
 
+# Rate laws written in a ``.net`` that the right-hand side does not evaluate.
+_UNEVALUATED_RATE_RE = re.compile(r"^\s*(?:[-+.\deE]+\*)?(Sat|MM|Hill|Arrhenius|FunctionProduct)\b")
+_NAME_RE = re.compile(r"[A-Za-z_]\w*")
+
+
+def _names_in(expr: str) -> set[str]:
+    return set(_NAME_RE.findall(expr))
+
+
 _BLOCK_RE = re.compile(r"^\s*begin\s+(\w+)\s*$", re.IGNORECASE)
 _END_RE = re.compile(r"^\s*end\s+(\w+)\s*$", re.IGNORECASE)
 
@@ -151,20 +338,38 @@ def _indices(field_text: str) -> tuple[int, ...]:
     return tuple(out)
 
 
-def parse(text: str) -> Network:
-    """Read a ``.net`` file's parameters, species, reactions and function names."""
+def parse(text: str, overrides: Mapping[str, float] | None = None) -> Network:
+    """Read a ``.net`` file's parameters, species, reactions, functions and
+    observables.
+
+    ``overrides`` sets parameters to values of its own, as BioNetGen's
+    ``setParameter`` does before a run: each named parameter takes its value in
+    place of its expression, and every later parameter and initial amount is
+    evaluated with it, so an initial amount that reads a total moves with it.
+    Naming a parameter the file does not have raises NetFileError.
+    """
     blocks = _blocks(text)
     net = Network()
+    overrides = dict(overrides or {})
     for line in blocks.get("parameters", []):
         parts = line.split(None, 2)
         if len(parts) < 3:
             raise NetFileError(f"bad parameter line {line!r}")
         _, name, expr = parts
-        net.parameters[name] = evaluate(expr, net.parameters)
+        net.parameter_exprs[name] = expr.strip()
+        net.parameters[name] = (float(overrides[name]) if name in overrides
+                                else evaluate(expr, net.parameters))
+    unknown = sorted(set(overrides) - set(net.parameters))
+    if unknown:
+        raise NetFileError(f"no parameter named {', '.join(map(repr, unknown))}")
     for line in blocks.get("functions", []):
         parts = line.split(None, 2)
         if len(parts) >= 2:
-            net.functions.add(parts[1].split("(", 1)[0])
+            fname = parts[1].split("(", 1)[0]
+            net.functions.add(fname)
+            # A global function is written ``name()``; one with arguments is local.
+            body = parts[2].strip() if len(parts) == 3 else ""
+            net.function_bodies[fname] = body if parts[1].endswith("()") and body else None
     for line in blocks.get("species", []):
         parts = line.split(None, 2)
         if len(parts) < 3:
@@ -191,8 +396,55 @@ def parse(text: str) -> Network:
             if i >= len(net.species):
                 raise NetFileError(f"reaction {idx} names species {i + 1}, which is not defined")
         net.reactions.append(r)
+    for line in blocks.get("groups", []):
+        parts = line.split(None, 2)
+        try:
+            members = []
+            for tok in (parts[2].split(",") if len(parts) == 3 else []):
+                w, _, i = tok.strip().rpartition("*")
+                idx = int(i) - 1
+                if not 0 <= idx < len(net.species):
+                    raise ValueError(f"species {idx + 1} is not defined")
+                members.append((idx, float(w) if w else 1.0))
+            net.groups[parts[1]] = members
+        except (ValueError, IndexError) as exc:
+            # Kept, not raised: only the right-hand side reads the observables.
+            net.groups_error = f"bad group line {line!r}: {exc}"
     return net
 
 
-def read(path: str | Path) -> Network:
-    return parse(Path(path).read_text(encoding="utf-8"))
+_PARAM_LINE_RE = re.compile(r"^(\s*\d+\s+)([A-Za-z_]\w*)(\s+)(\S+)(.*)$")
+
+
+def with_parameters(text: str, overrides: Mapping[str, float]) -> str:
+    """The ``.net`` text with each parameter in ``overrides`` set to its value, its
+    number replaced in the parameters block, as a dose is given to an engine that
+    reads the file (run_network). Only a parameter written as a number can be set
+    this way; raises NetFileError for any other, or one the file does not have."""
+    left = dict(overrides)
+    out, block = [], None
+    for line in text.splitlines(keepends=True):
+        s = line.strip()
+        if _BLOCK_RE.match(line):
+            block = s.split()[1].lower()
+        elif _END_RE.match(line):
+            block = None
+        elif block == "parameters":
+            m = _PARAM_LINE_RE.match(line.rstrip("\n"))
+            if m and m.group(2) in left:
+                try:
+                    float(m.group(4))
+                except ValueError:
+                    raise NetFileError(f"parameter {m.group(2)!r} is an expression, "
+                                       f"{m.group(4)!r}, not a number") from None
+                nl = "\n" if line.endswith("\n") else ""
+                line = (f"{m.group(1)}{m.group(2)}{m.group(3)}"
+                        f"{float(left.pop(m.group(2)))!r}{m.group(5)}{nl}")
+        out.append(line)
+    if left:
+        raise NetFileError(f"no parameter named {', '.join(map(repr, sorted(left)))}")
+    return "".join(out)
+
+
+def read(path: str | Path, overrides: Mapping[str, float] | None = None) -> Network:
+    return parse(Path(path).read_text(encoding="utf-8"), overrides)
