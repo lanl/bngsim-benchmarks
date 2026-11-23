@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from bench import specs
+from bench import gather, specs
 from bench.capabilities import psa, ssa
 
 PROTOCOL = {"netgen": "generate_network({overwrite=>1})", "t_end": 100, "n_steps": 10,
@@ -427,3 +427,22 @@ def test_timing_skips_what_failed_in_correctness_and_drops_a_failing_trial(
     assert rec["run_network@nc=100_error"].startswith("RuntimeError: crash")
     assert set(rec["measurements"]["times"]) == {"bngsim", "run_network", "bngsim@nc=10",
                                                  "bngsim@nc=100"}
+def test_the_gathered_report_has_a_row_per_nc(monkeypatch, tmp_path, psa_spec, write_spec):
+    psa_spec["protocol"]["psa"]["poplevels"] = [10, 100]
+    correctness, timing = psa.jobs(specs.load(write_spec(psa_spec)))
+    laws = {psa.variant(e, nc): (1.5, 2.0) for e in psa.ENGINES for nc in (10, 100)}
+    _install(monkeypatch, grid=[10, 100], laws=laws,
+             boom={"run_network@nc=10": "run_network failed: aborted"})
+    c_rec = psa.run_correctness(correctness, None, _ctx(tmp_path))
+    t_rec = psa.run_timing(_timing_job(), None, _ctx(tmp_path))
+    rows = {"psa-correctness": [gather._row(correctness, c_rec, True)],
+            "psa-timing": [gather._row(timing, t_rec, True)]}
+    text = gather.render(rows)
+    assert "### PSA against exact SSA, per N_c" in text
+    assert "### PSA speed-up over exact SSA of the same engine, per N_c" in text
+    lines = [ln for ln in text.splitlines() if ln.startswith("| toy_model | 100 |")]
+    assert len(lines) == 2  # one in each PSA table
+    assert "FLAG" in lines[0] and "ok (p" in lines[0]
+    nc10 = [ln for ln in text.splitlines() if ln.startswith("| toy_model | 10 |")]
+    assert "crash" in nc10[0] and "FLAG" not in nc10[0]
+    assert rows["psa-timing"][0]["psa_speedup_events"]["bngsim@nc=10"] == 3.0
