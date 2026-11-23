@@ -49,9 +49,10 @@ BNGsim's agreement with one reference.
 | `agreement` | references agreed / attempted, e.g. `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`; a reference that does not apply is named (`run_network: n/a`) but not counted |
 | `engine` | the reference engine |
 | `status` | `ok` (agrees), `DIFF` (ran, disagrees), `crash` (failed to run), `timeout` (ran past its per-engine wall budget), `n/a` (it cannot simulate this model faithfully, an `UNSUPPORTED` error; counted as attempted), `not_applicable` (the comparison does not exist for this model, so the reference was not run and is not counted: run_network on an SBML model with no faithful BNGL form) |
-| `passed` | the verdict, empty when the reference did not run |
+| `passed` | the verdict, empty when the reference did not run; on ODE, true only when both halves of the gate pass (docs/DESIGN.md §6.4) |
+| `failed_check` | for an ODE `DIFF`, which half of the gate failed: `vendored` (bngsim's deterministic verdict, `parity_core.differ`), `species` (the per-species check) or `both`; empty when the reference agreed or did not run, or its verdict has no two halves |
 | `max_err_over_peak` | worst disagreement as a fraction of each species' peak |
-| `max_rel` | the verdict's worst relative error over failing cells (0 on a pass) |
+| `max_rel` | bngsim's deterministic verdict's worst relative error over its failing cells (0 when it passes) |
 | `n_cells` | trajectory cells compared |
 | `cold_seconds` | the reference's cold build + first solve, in seconds |
 | `error` | why the reference has no verdict; for `not_applicable`, why it does not apply |

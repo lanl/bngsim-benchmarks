@@ -275,3 +275,29 @@ def test_trajectories_that_do_not_match_their_record_refuse_publishing(suite, tm
         publish("ode-net", problems, jobs, results, tmp_path / "published", FPS, root=tmp_path)
     assert job.id in str(err.value)
     assert not (tmp_path / "published").exists()
+
+
+@pytest.mark.parametrize("vendored, species, half", [
+    (True, False, "species"), (False, True, "vendored"), (False, False, "both"),
+    (True, True, ""), (None, None, ""),
+])
+def test_a_diff_names_the_half_of_the_ode_gate_that_failed(suite, tmp_path,
+                                                           vendored, species, half):
+    problems, jobs = suite
+    results = tmp_path / "results"
+    _write_all(jobs, results)
+    verdict = {"passed": bool(vendored and species), "max_err_over_peak": 0.3,
+               "max_rel": 0.0, "n_cells": 10}
+    if vendored is not None:
+        verdict.update(vendored_passed=vendored, species_check={"passed": species})
+    job = next(j for j in jobs if j.kind == CORRECTNESS and j.problem == "model_01")
+    _edit(results, job, outcome="PASS" if verdict["passed"] else "DIFF",
+          verdicts={"roadrunner": verdict})
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    with open(dest / "correctness.csv", encoding="utf-8") as fh:
+        rows = {(r["problem"], r["engine"]): r for r in csv.DictReader(fh)}
+    row = rows[("model_01", "roadrunner")]
+    assert row["status"] == ("ok" if verdict["passed"] else "DIFF")
+    assert row["failed_check"] == half
+    assert rows[("model_01", "copasi")]["failed_check"] == ""  # timed out: no verdict

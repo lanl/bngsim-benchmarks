@@ -480,18 +480,28 @@ def _engine_free_cell(c: dict[str, Any] | None) -> str:
     return f"FAIL ({', '.join(failed)})" if failed else "FAIL"
 
 
+def failed_check(v: dict[str, Any]) -> str | None:
+    """Which half of the ODE correctness gate a failed verdict failed: ``vendored``
+    (bngsim's deterministic verdict), ``species`` (the per-species check) or
+    ``both``. None when it passed, or when its record does not carry both halves."""
+    if v.get("passed"):
+        return None
+    vendored = v.get("vendored_passed")
+    species = (v.get("species_check") or {}).get("passed")
+    if vendored is None or species is None:
+        return None
+    if not vendored and not species:
+        return "both"
+    return "species" if vendored else "vendored"
+
+
 def _verdict_cell(v: dict[str, Any]) -> str:
     """``ok``, or ``DIFF`` with which half of the gate failed, where the record
     has both halves."""
     if v.get("passed"):
         return "ok"
-    vendored = v.get("vendored_passed")
-    species = (v.get("species_check") or {}).get("passed")
-    if vendored is None or species is None:
-        return "DIFF"
-    if not vendored and not species:
-        return "DIFF (both)"
-    return "DIFF (species)" if vendored else "DIFF (vendored)"
+    half = failed_check(v)
+    return f"DIFF ({half})" if half else "DIFF"
 
 
 def _short(name: str, n: int = 40) -> str:

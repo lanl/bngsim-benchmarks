@@ -34,7 +34,8 @@ from pathlib import Path
 from typing import Any
 
 from . import specs
-from .gather import _errored_engines, _presim, _presim_total, _why, reference_agreement
+from .gather import (_errored_engines, _presim, _presim_total, _why, failed_check,
+                     reference_agreement)
 from .jobs import CORRECTNESS, TIMING, Job
 from .results import _sha256, freshness_key, read_result, result_path, trajectories_path
 
@@ -49,7 +50,7 @@ _DROP = (
 
 CORRECTNESS_COLUMNS = [
     "suite", "position", "problem", "species", "reactions", "outcome", "agreement",
-    "engine", "status", "passed", "max_err_over_peak", "max_rel", "n_cells",
+    "engine", "status", "passed", "failed_check", "max_err_over_peak", "max_rel", "n_cells",
     "cold_seconds", "error",
 ]
 TIMING_COLUMNS = [
@@ -185,6 +186,8 @@ def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) ->
             status = _why(rec, engine)
         rows.append({**base, "engine": engine, "status": status,
                      "passed": None if v is None else bool(v.get("passed")),
+                     # Which half of the ODE gate a DIFF failed (vendored, species, both).
+                     "failed_check": None if v is None else failed_check(v),
                      "max_err_over_peak": (v or {}).get("max_err_over_peak"),
                      "max_rel": (v or {}).get("max_rel"),
                      "n_cells": (v or {}).get("n_cells"),
