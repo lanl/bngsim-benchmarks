@@ -304,3 +304,71 @@ def test_steady_state_engine_free_cell_names_the_failed_check():
     assert g._engine_free_cell({"passed": False, "evaluated": True,
                                 "residual": {"passed": True},
                                 "conservation": {"passed": False}}) == "FAIL (conservation)"
+
+
+# --------------------------------------------------------------------------- #
+# Network-free: the other setting and the same-seed check beside the verdicts,
+# NFsim as the speedup baseline, and each engine's own solve time
+# --------------------------------------------------------------------------- #
+NF_ENGINES = "bngsim-vs-nfsim-rulemonkey"
+
+
+def _nf_records():
+    corr = {
+        "outcome": "PASS",
+        "measurements": {
+            "ensembles": {"bngsim": {"replicates": 1000}},
+            "cross_setting": {"setting": "nf_reject",
+                              "verdict": {"passed": True, "p_value": 0.09}},
+            "same_seed": {"engine": "rulemonkey", "trajectories": 5, "identical": 5},
+        },
+        "verdicts": {name: {"passed": True, "p_value": p, "z_max": 2.5, "alpha": 1e-3,
+                            "replicates": [1000, 1000], "test": "permutation"}
+                     for name, p in (("nfsim", 0.77), ("rulemonkey", 0.61))},
+    }
+    timing = {
+        "outcome": "PASS",
+        "measurements": {
+            "timing_replicates": 20, "xml_seconds": 0.69,
+            "bngsim": {"load_seconds": 0.012, "initialize_seconds": 1.0,
+                       "simulate_seconds": 2.0},
+            "references": {"nfsim": {}, "rulemonkey": {}},
+            "engine_roles": {"bngsim": "warm, in-process (system under test)",
+                             "nfsim": "fresh subprocess", "rulemonkey": "fresh subprocess"},
+            "times": {name: {"median_seconds": s, "ci_low": s * 0.99, "ci_high": s * 1.01}
+                      for name, s in (("bngsim", 3.2), ("nfsim", 15.0), ("rulemonkey", 5.6))},
+            "times_per_trajectory": {name: {"median_seconds": s / 20}
+                                     for name, s in (("bngsim", 3.2), ("nfsim", 15.0),
+                                                     ("rulemonkey", 5.6))},
+            "solve_split": {"bngsim": {"solve_seconds": 2.0},
+                            "nfsim": {"solve_seconds": 1.6},
+                            "rulemonkey": {"solve_seconds": 5.4}},
+            "reproducibility": {n: {"passed": True} for n in ("bngsim", "nfsim", "rulemonkey")},
+            "repetitions": {"rounds": 5, "warmup_rounds": 1},
+        },
+    }
+    return corr, timing
+
+
+def test_nf_rows_carry_the_cross_setting_check_and_divide_by_nfsim(tmp_path):
+    results = tmp_path / "results"
+    jobs = [Job("nf", "toy", NF_ENGINES, "nf_exact", kind) for kind in (CORRECTNESS, TIMING)]
+    for job, rec in zip(jobs, _nf_records()):
+        dest = results / f"{job.id}.json"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(rec))
+    reports = tmp_path / "reports"
+    g.gather(jobs, results, reports, {CORRECTNESS: {}, TIMING: {}})
+    summary = (reports / "summary.md").read_text(encoding="utf-8")
+    [corr] = json.loads((reports / "nf-correctness.json").read_text())
+    assert corr["min_p_value"] == 0.61 and corr["setting"] == "nf_exact"
+    assert corr["cross_setting"] == {"setting": "nf_reject", "passed": True, "p_value": 0.09}
+    assert corr["same_seed"]["identical"] == 5
+    header = _row(summary, "problem", "species", "engine", "outcome", "pre-sim (s)")
+    cols = lambda engine: dict(zip(header, _row(summary, "toy", "", engine)))  # noqa: E731
+    bn = cols("bngsim")
+    assert bn["pre-sim parts (s)"] == "xml 0.69 + load 0.012"
+    assert bn["solve per trajectory (s)"] == "0.1" and bn["x nfsim"] == "4.69"
+    assert cols("nfsim")["pre-sim (s)"] == "in sim"
+    assert cols("rulemonkey")["solve per trajectory (s)"] == "0.27"
+    assert "x run_network" not in summary
