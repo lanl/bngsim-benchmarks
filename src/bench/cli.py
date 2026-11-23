@@ -10,6 +10,7 @@
     bench fetch-bionetgen            download and check BioNetGen
     bench fetch-models [PATTERN...]  download and check the pinned model files
     bench fetch-glibc                install a newer glibc loader (old-glibc Linux)
+    bench fetch-rulemonkey           download RuleMonkey and build its rm_driver
     bench doctor                     the environment a job would record
 
 PATTERN selects jobs whose id contains it (a problem id, a capability, "timing"),
@@ -298,6 +299,13 @@ def cmd_fetch_glibc(args) -> int:
     from .fetch import fetch_glibc
 
     print(fetch_glibc(args.cache))
+    return 0
+
+
+def cmd_fetch_rulemonkey(args) -> int:
+    from .fetch import fetch_rulemonkey
+
+    print(fetch_rulemonkey(args.cache, download_only=args.download_only, jobs=args.jobs))
     return 0
 
 
@@ -776,6 +784,14 @@ def main(argv: list[str] | None = None) -> int:
                        help="install a newer glibc loader (old-glibc Linux hosts only)")
     _common(p)
     p.set_defaults(fn=cmd_fetch_glibc)
+
+    p = sub.add_parser("fetch-rulemonkey",
+                       help="download RuleMonkey's pinned release and build rm_driver")
+    _common(p)
+    p.add_argument("--download-only", action="store_true",
+                   help="only download and check the source (on a node with the network)")
+    p.add_argument("--jobs", type=int, help="parallel compile jobs (default: every CPU)")
+    p.set_defaults(fn=cmd_fetch_rulemonkey)
 
     p = sub.add_parser("doctor", help="the environment a job would record")
     _common(p)

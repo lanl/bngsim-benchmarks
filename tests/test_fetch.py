@@ -192,3 +192,76 @@ def test_run_network_launch_prefixes_the_loader_when_present(tmp_path, monkeypat
     assert ident["swapped"] and ident["glibc_version"] == "2.34"
     env.glibc_identity.cache_clear()
     env.run_network_launch.cache_clear()
+
+
+# --------------------------------------------------------------------------- #
+# RuleMonkey: the pinned source, built with the env's compiler
+# --------------------------------------------------------------------------- #
+def _fake_rm_install(tmp_path, **marker):
+    dest = fetch.rulemonkey_dir(tmp_path)
+    (dest / "bin").mkdir(parents=True)
+    exe = dest / "bin" / "rm_driver"
+    exe.write_bytes(b"\x7fELF rm_driver")
+    m = {"source_sha256": fetch.RULEMONKEY_SHA256, "recipe": fetch.RULEMONKEY_RECIPE,
+         "binary_sha256": fetch.sha256_file(exe), "version": fetch.RULEMONKEY_VERSION,
+         "commit": fetch.RULEMONKEY_COMMIT, **marker}
+    (dest / fetch.RULEMONKEY_MARKER).write_text(json.dumps(m))
+    return dest
+
+
+def test_rulemonkey_is_pinned_to_a_release_tag_commit_and_tarball():
+    assert fetch.RULEMONKEY_TAG == "v3.13.0"
+    assert len(fetch.RULEMONKEY_COMMIT) == 40 and len(fetch.RULEMONKEY_SHA256) == 64
+    assert fetch.RULEMONKEY_URL.endswith("/archive/refs/tags/v3.13.0.tar.gz")
+
+
+def test_a_current_rulemonkey_build_is_reused_without_building(tmp_path, monkeypatch):
+    dest = _fake_rm_install(tmp_path)
+    monkeypatch.setattr(fetch, "rulemonkey_tarball", lambda cache: tmp_path / "t.tar.gz")
+
+    def no_build(*a, **k):
+        raise AssertionError("rebuilt although the build was current")
+
+    monkeypatch.setattr(fetch, "_conda_cxx", no_build)
+    assert fetch.fetch_rulemonkey(tmp_path) == dest
+
+
+@pytest.mark.parametrize("marker", [{"recipe": 0}, {"source_sha256": "0" * 64},
+                                    {"binary_sha256": "0" * 64}])
+def test_a_build_from_another_recipe_source_or_binary_is_not_current(tmp_path, marker):
+    dest = _fake_rm_install(tmp_path, **marker)
+    assert not fetch.rulemonkey_build_current(dest)
+
+
+def test_the_rulemonkey_tarball_with_wrong_bytes_is_refused(tmp_path, monkeypatch):
+    def bad_download(url, dest, timeout=120):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(b"not the release")
+
+    monkeypatch.setattr(fetch, "_download", bad_download)
+    with pytest.raises(SystemExit, match="sha256 mismatch"):
+        fetch.rulemonkey_tarball(tmp_path)
+    assert not list((tmp_path / "rulemonkey" / "downloads").glob("*.tar.gz"))
+
+
+def test_a_compiler_outside_the_environment_is_refused(tmp_path, monkeypatch):
+    system_cxx = tmp_path / "usr" / "bin" / "g++"
+    system_cxx.parent.mkdir(parents=True)
+    system_cxx.write_text("#!/bin/sh\n")
+    system_cxx.chmod(0o755)
+    monkeypatch.setenv("CXX", str(system_cxx))
+    with pytest.raises(SystemExit, match="not this environment's conda-forge compiler"):
+        fetch._conda_cxx()
+
+
+def test_the_environments_own_compiler_is_accepted(tmp_path, monkeypatch):
+    import sys
+
+    prefix = tmp_path / "env"
+    cxx = prefix / "bin" / "x86_64-conda-linux-gnu-g++"
+    cxx.parent.mkdir(parents=True)
+    cxx.write_text("#!/bin/sh\n")
+    cxx.chmod(0o755)
+    monkeypatch.setattr(sys, "prefix", str(prefix))
+    monkeypatch.delenv("CXX", raising=False)
+    assert fetch._conda_cxx() == cxx.resolve()

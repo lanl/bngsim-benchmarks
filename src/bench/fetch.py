@@ -275,3 +275,206 @@ def model_file(source: dict, cache_dir: str | Path) -> Path:
         dest.unlink(missing_ok=True)
         raise RuntimeError(f"sha256 mismatch for {url}: expected {want}, got {got}")
     return dest
+
+
+# --------------------------------------------------------------------------- #
+# RuleMonkey, a standalone network-free reference engine, built from source
+# --------------------------------------------------------------------------- #
+# The network-free capability runs RuleMonkey's own command-line driver,
+# ``rm_driver``, beside the copy bngsim embeds. It has no binary release, so the
+# pinned source release is downloaded (sha256-checked, like BioNetGen) and built
+# with this environment's conda-forge C++ compiler -- never the host's system
+# compiler, whose libstdc++ ABI may not match (the std::filesystem break that
+# segfaulted the bngsim core on ARM; docs/BUILD_NOTES.md). libstdc++ and libgcc
+# are linked statically, so the built driver depends on nothing of the
+# environment it was built in but the host's libc.
+RULEMONKEY_VERSION = "3.13.0"
+RULEMONKEY_TAG = f"v{RULEMONKEY_VERSION}"
+# The commit the tag names (the tag object itself is 7c3e1abf...).
+RULEMONKEY_COMMIT = "ad3bd755cce7839e09061b747facd7025cacb861"
+RULEMONKEY_URL = (
+    f"https://github.com/richardposner/RuleMonkey/archive/refs/tags/{RULEMONKEY_TAG}.tar.gz"
+)
+RULEMONKEY_SHA256 = "5f5a7c599177aaf92561d3fbed339fc93fc1b3224ef07025d337f6dd2f89d160"
+RULEMONKEY_MARKER = ".bench-build.json"
+# The build recipe's version: bump it when the flags or what is installed change,
+# and a driver an older recipe built is rebuilt.
+RULEMONKEY_RECIPE = 1
+# Release build of the driver only. Upstream turns -Werror on for a top-level
+# build; a newer compiler than its CI's may warn where it did not, and a warning
+# is not a reason to refuse a build whose sources are pinned.
+RULEMONKEY_CMAKE_ARGS = [
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DRULEMONKEY_BUILD_CLI=ON",
+    "-DRULEMONKEY_BUILD_TESTS=OFF",
+    "-DRULEMONKEY_BUILD_EXAMPLES=OFF",
+    "-DRULEMONKEY_WARNINGS_AS_ERRORS=OFF",
+    "-DRULEMONKEY_INSTALL=OFF",
+]
+_STATIC_RUNTIME = "-static-libstdc++ -static-libgcc"
+
+
+def rulemonkey_dir(cache_dir: str | Path) -> Path:
+    """Where ``fetch_rulemonkey`` installs: ``<cache>/rulemonkey/RuleMonkey-<v>``,
+    holding ``bin/rm_driver`` and the build marker."""
+    return Path(cache_dir) / "rulemonkey" / f"RuleMonkey-{RULEMONKEY_VERSION}"
+
+
+def _conda_cxx() -> Path:
+    """This environment's conda-forge C++ compiler.
+
+    ``$CXX`` when it is set (pixi's activation sets it on linux-64), otherwise
+    the compiler the env's ``cxx-compiler`` package installs beside its Python.
+    A compiler outside the environment (``/usr/bin/g++``) is refused: its
+    libstdc++ is not the one the env's other native engines were built against.
+    """
+    import sys
+
+    prefix = Path(sys.prefix).resolve()
+    value = os.environ.get("CXX")
+    if value:
+        cxx = Path(shutil.which(value) or value).resolve()
+    else:
+        found = sorted((prefix / "bin").glob("*-conda-linux-gnu-g++")) + sorted(
+            (prefix / "bin").glob("*-apple-darwin*-clang++"))
+        if not found:
+            raise SystemExit(
+                "no conda-forge C++ compiler in this environment (the cxx-compiler "
+                "package); run inside `pixi run`, or set CXX to one")
+        cxx = found[0].resolve()
+    if prefix not in cxx.parents:
+        raise SystemExit(
+            f"refusing to build RuleMonkey with {cxx}: it is not this environment's "
+            f"conda-forge compiler (under {prefix}). A system compiler's libstdc++ "
+            "ABI need not match the env's (docs/BUILD_NOTES.md)")
+    return cxx
+
+
+def _tool(name: str) -> str:
+    import sys
+
+    found = shutil.which(name) or shutil.which(str(Path(sys.prefix) / "bin" / name))
+    if not found:
+        raise SystemExit(f"{name} is needed to build RuleMonkey but was not found "
+                         "(it is in the bench environment: run inside `pixi run`)")
+    return found
+
+
+def _first_line(cmd: list[str]) -> str | None:
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    lines = (out.stdout or out.stderr).strip().splitlines()
+    return lines[0].strip() if lines else None
+
+
+def rulemonkey_tarball(cache_dir: str | Path) -> Path:
+    """The pinned RuleMonkey source release, downloaded once into a directory of
+    its own and sha256-checked. A cached copy with other bytes is fetched again."""
+    dest = Path(cache_dir) / "rulemonkey" / "downloads" / f"RuleMonkey-{RULEMONKEY_TAG}.tar.gz"
+    if dest.exists() and sha256_file(dest) == RULEMONKEY_SHA256:
+        return dest
+    _download(RULEMONKEY_URL, dest, timeout=600)
+    got = sha256_file(dest)
+    if got != RULEMONKEY_SHA256:
+        dest.unlink(missing_ok=True)
+        raise SystemExit(f"sha256 mismatch for {RULEMONKEY_URL}\n"
+                         f"  expected {RULEMONKEY_SHA256}\n  got      {got}")
+    return dest
+
+
+def rulemonkey_build_current(dest: Path) -> bool:
+    """Whether ``dest`` holds a driver built by this recipe from the pinned source."""
+    marker, exe = dest / RULEMONKEY_MARKER, dest / "bin" / "rm_driver"
+    try:
+        m = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return (exe.is_file() and m.get("source_sha256") == RULEMONKEY_SHA256
+            and m.get("recipe") == RULEMONKEY_RECIPE
+            and m.get("binary_sha256") == sha256_file(exe))
+
+
+def fetch_rulemonkey(cache_dir: str | Path, *, download_only: bool = False,
+                     jobs: int | None = None) -> Path:
+    """Download the pinned RuleMonkey release and build its ``rm_driver``.
+
+    Returns the install directory (``rulemonkey_dir``), or with ``download_only``
+    the checked tarball (the download needs the network, the build a compute
+    node: they can run apart). A build already current is reused. The source is
+    unpacked into a new, empty directory of its own and built out of tree with
+    this environment's CMake, Ninja and conda-forge compiler; only the driver is
+    installed, with a marker recording the source, the toolchain and the
+    binary's sha256.
+    """
+    dest = rulemonkey_dir(cache_dir)
+    tarball = rulemonkey_tarball(cache_dir)
+    if download_only:
+        return tarball
+    if rulemonkey_build_current(dest):
+        return dest
+    cxx = _conda_cxx()
+    cmake, ninja = _tool("cmake"), _tool("ninja")
+    work = Path(tempfile.mkdtemp(dir=dest.parent, prefix=".build-"))
+    try:
+        src_root = work / "src"
+        src_root.mkdir()
+        with tarfile.open(tarball) as tf:
+            tf.extractall(src_root, filter="data")
+        src = src_root / f"RuleMonkey-{RULEMONKEY_VERSION}"
+        if not (src / "CMakeLists.txt").is_file():
+            raise SystemExit(f"{tarball} does not unpack to RuleMonkey-{RULEMONKEY_VERSION}/")
+        build = work / "build"
+        args = [*RULEMONKEY_CMAKE_ARGS, f"-DCMAKE_CXX_COMPILER={cxx}",
+                f"-DCMAKE_MAKE_PROGRAM={ninja}"]
+        if platform.system() == "Linux":
+            args.append(f"-DCMAKE_EXE_LINKER_FLAGS={_STATIC_RUNTIME}")
+        steps = [
+            [cmake, "-S", str(src), "-B", str(build), "-G", "Ninja", *args],
+            [cmake, "--build", str(build), "--target", "rm_driver",
+             "--parallel", str(jobs or os.cpu_count() or 1)],
+        ]
+        log = work / "build.log"
+        with open(log, "w", encoding="utf-8") as fh:
+            for step in steps:
+                fh.write("$ " + " ".join(step) + "\n")
+                fh.flush()
+                proc = subprocess.run(step, stdout=fh, stderr=subprocess.STDOUT, cwd=work,
+                                      check=False)
+                if proc.returncode != 0:
+                    tail = log.read_text(encoding="utf-8", errors="replace").splitlines()[-15:]
+                    raise SystemExit("RuleMonkey build failed:\n  " + "\n  ".join(tail))
+        built = build / "rm_driver"
+        if not built.is_file():
+            raise SystemExit(f"the build produced no rm_driver under {build}")
+        usage = subprocess.run([str(built)], capture_output=True, text=True, timeout=60,
+                               check=False)
+        if "Usage: rm_driver" not in usage.stdout + usage.stderr:
+            raise SystemExit("the built rm_driver does not run: "
+                             + (usage.stderr or usage.stdout).strip()[:300])
+        stage = work / "install"
+        (stage / "bin").mkdir(parents=True)
+        shutil.copy2(built, stage / "bin" / "rm_driver")
+        shutil.copy2(log, stage / "build.log")
+        (stage / RULEMONKEY_MARKER).write_text(json.dumps({
+            "version": RULEMONKEY_VERSION,
+            "tag": RULEMONKEY_TAG,
+            "commit": RULEMONKEY_COMMIT,
+            "url": RULEMONKEY_URL,
+            "source_sha256": RULEMONKEY_SHA256,
+            "recipe": RULEMONKEY_RECIPE,
+            "compiler": {"path": str(cxx), "version": _first_line([str(cxx), "--version"])},
+            "cmake": _first_line([cmake, "--version"]),
+            "ninja": _first_line([ninja, "--version"]),
+            "cmake_args": args,
+            "binary_sha256": sha256_file(stage / "bin" / "rm_driver"),
+            "built_on": platform.node(),
+            "machine": platform.machine(),
+        }, indent=2) + "\n", encoding="utf-8")
+        if dest.exists():
+            shutil.rmtree(dest)
+        os.replace(stage, dest)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return dest
