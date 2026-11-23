@@ -1,0 +1,38 @@
+# CaMKII dodecamer holoenzyme activation, network free. A provisional pilot problem for the
+# network-free capability, until its core suites are chosen and audited (docs/DESIGN.md §3.2); in
+# the approved proposal it is nf-xml-signaling member 7. It is the one record whose asserted
+# network-free check runs the exact file without BNGsim (BNG2.pl's NFsim, verification notebook
+# cell [17]). The protocol is the file's own action block -- one network-free run of 6 s in 60
+# steps from the fully autoinhibited dodecamer, with print_functions and get_final_state=>0 -- its
+# seed replaced per trajectory. Its network (44,368 dodecamer configurations) cannot be generated,
+# so there is no exact-SSA reference. Every rule is first order in the holoenzyme species, so at
+# N_sub = 6 the enumerated ODE is the exact mean (FP = 0.13436, FC = 0.25945 at 6 s); this file is
+# N_sub = 12, where FP is size independent only to within 1-2% (the record's data check).
+id: camkii_holoenzyme_activation_michalski2012_nfsim
+layer: pilot
+title: "CaMKII dodecamer holoenzyme activation, network free"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 676dd61f11a868f9354609ec3c8d079c77e0361a
+  path: models/camkii_holoenzyme_activation_michalski2012/camkii_holoenzyme_activation_michalski2012_nfsim.bngl
+  sha256: 285584a6f99b90419f3bfd68b74778252427013f8aee7b9b0ef59800f5a734dc
+  format: bngl
+publications:
+  - citation: "Michalski PJ, Loew LM (2012). CaMKII activation and dynamics are independent of the holoenzyme structure: an infinite subunit holoenzyme approximation. Phys Biol 9:036010."
+    doi: 10.1088/1478-3975/9/3/036010
+verification:
+  kind: theory
+  evidence: >-
+    models/camkii_holoenzyme_activation_michalski2012/verify_michalski2012.ipynb cell [17]:
+    standalone BNG2.pl NFsim, 5 runs per N_sub from 2 to 100; at N_sub = 6 FP against the exact
+    hexamer ODE within 3 SEM + 1e-3 (2.44 SEM), asserted; size independence of FP within 0.02
+    absolute (0.00115), asserted
+capabilities: [nf]
+protocol:
+  nf:
+    actions: own
+    replicates: 1000
+    timing_replicates: 20
+    seed: 1
+size:
+  nf_events: 20000

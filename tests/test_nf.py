@@ -100,6 +100,21 @@ def test_planning_grows_with_replicates_and_events_and_the_budget_is_bounded(nf_
     assert nf.engine_budget_seconds(big) == nf.ENGINE_BUDGET_CAP_SECONDS
 
 
+def test_the_pilot_specs_load_and_declare_what_they_test():
+    from conftest import REPO
+
+    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
+    camkii = problems["camkii_holoenzyme_activation_michalski2012_nfsim"]
+    tnf = problems["tnf_tnfr1_sequential_binding_mcmillan2021"]
+    assert camkii.layer == tnf.layer == "pilot" and not camkii.suites and not tnf.suites
+    assert camkii.protocol_for("nf")["actions"] == "own"
+    assert "netgen" not in camkii.protocol_for("nf")
+    # The finite anchor: exact SSA on its generated network is a reference.
+    assert tnf.protocol_for("nf")["netgen"].startswith("generate_network(")
+    proto = nfactions.protocol(tnf.protocol_for("nf")["actions"])
+    assert proto.single and proto.gml == 2147483647 and proto.phases[0].n_steps == 100
+
+
 def test_every_engine_draws_from_its_own_seed_block_and_steps_never_meet():
     firsts = [nf.seed_for(name, 1) for name in nf.ENGINE_SEED_BLOCKS]
     assert len(set(firsts)) == len(firsts)

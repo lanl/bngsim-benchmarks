@@ -1,0 +1,41 @@
+# Sequential binding of trivalent TNF to monovalent TNFR1. A provisional pilot problem for the
+# network-free capability, until its core suites are chosen and audited (docs/DESIGN.md §3.2); in
+# the approved proposal it is nf-xml-aggregation member 3, the strict finite anchor: its network is
+# finite (9 species, 24 reactions) and generated whole, so network-free simulation must sample the
+# law of exact SSA on it, and both run_network's SSA and BNGsim's are references. The protocol is
+# the record's own network-free benchmark mode at the default dose (5 uM TNF, 1 uM TNFR1), which
+# its action block carries commented out beside its SSA and PSA modes: one run from free TNF and
+# receptor to 10,000 s in 100 steps, with NFsim's molecule cap lifted (gml). About 3,000 TNF
+# trimers and 600 receptors; receptors bind within milliseconds, and the slower rearrangement among
+# one-, two- and three-receptor complexes (koff = 0.01 /s) is what the grid follows.
+id: tnf_tnfr1_sequential_binding_mcmillan2021
+layer: pilot
+title: "Sequential binding of trivalent TNF to monovalent TNFR1"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 676dd61f11a868f9354609ec3c8d079c77e0361a
+  path: models/tnf_tnfr1_sequential_binding_mcmillan2021/tnf_tnfr1_sequential_binding_mcmillan2021.bngl
+  sha256: f7dde8619150ce100ffd73b099a0e93eb0d2c07cf3e0c40c3cdbacaedcf1ddb2
+  format: bngl
+publications:
+  - citation: "McMillan D, Martinez-Fleites C, Porter J, Fox D 3rd, Davis R, Mori P, et al. (2021). Structural insights into the disruption of TNF-TNFR1 signalling by small molecules stabilising a distorted TNF. Nat Commun 12:582."
+    doi: 10.1038/s41467-020-20828-3
+verification:
+  kind: data
+  evidence: >-
+    models/tnf_tnfr1_sequential_binding_mcmillan2021/verify_mcmillan2021.ipynb: the publisher's
+    Source Data for Fig. 1b (seven doses, no digitizing) against the ODE of this file, asserted;
+    the file rebuilt from the authors' Supplementary Software 1
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nfr",t_start=>0,t_end=>10000,n_steps=>100,gml=>2147483647})
+    netgen: "generate_network({overwrite=>1})"
+    replicates: 1000
+    timing_replicates: 20
+    seed: 1
+size:
+  species: 9
+  reactions: 24
+  nf_events: 120000
