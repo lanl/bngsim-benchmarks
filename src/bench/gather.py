@@ -31,7 +31,19 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         "node_type": env.get("node_type"),
         "network": m.get("network"),
     }
-    if job.kind == CORRECTNESS:
+    if job.kind == CORRECTNESS and job.capability in STOCHASTIC:
+        # A stochastic verdict is a test: one p-value per comparison (BNGsim against
+        # each reference ensemble, and against exact moments where there are any).
+        # The table shows the smallest -- the comparison closest to failing.
+        verdicts = rec.get("verdicts") or {}
+        row["verdicts"] = {name: {"passed": v.get("passed"), "p_value": _p_value(v),
+                                  "z_max": v.get("z_max"), "alpha": v.get("alpha"),
+                                  "replicates": v.get("replicates"), "test": v.get("test")}
+                           for name, v in verdicts.items()}
+        ps = [_p_value(v) for v in verdicts.values() if _p_value(v) is not None]
+        row["min_p_value"] = min(ps) if ps else None
+        row["replicates"] = (m.get("ensembles") or {}).get("bngsim", {}).get("replicates")
+    elif job.kind == CORRECTNESS:
         # One verdict of BNGsim against each reference engine. The table shows the
         # worst agreement across references (the hardest check the row passed) and
         # keeps the per-engine numbers for the JSON.
@@ -60,6 +72,12 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
             bngsim_config={k: (m.get("bngsim") or {}).get(k)
                            for k in ("codegen_backend", "linear_solver", "jacobian")},
         )
+        if job.capability in STOCHASTIC:
+            # A timed repetition is an ensemble; the per-trajectory time is derived.
+            row.update(timing_replicates=m.get("timing_replicates"),
+                       times_per_trajectory=m.get("times_per_trajectory") or {},
+                       bngsim_config={"propensity_backend":
+                                      (m.get("bngsim") or {}).get("propensity_backend")})
     # Any engine's failure is recorded under "<name>_error"; pass every one through,
     # plus the generic "error" of a job that failed before any engine ran.
     for k, val in rec.items():
@@ -67,6 +85,17 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
             if val:
                 row[k] = val
     return row
+
+
+# Capabilities whose correctness verdict is a statistical test on ensembles.
+STOCHASTIC = frozenset({"ssa"})
+
+
+def _p_value(v: dict[str, Any]) -> float | None:
+    """A stochastic verdict's p-value: the permutation p-value of a two-ensemble
+    comparison, or the smallest per-cell p-value against exact moments."""
+    p = v.get("p_value", v.get("p_min"))
+    return p if isinstance(p, (int, float)) else None
 
 
 def gather(
@@ -122,7 +151,7 @@ def _presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
             "netgen_seconds": m.get("netgen_seconds"),
             "codegen_seconds": bng.get("codegen_seconds"),
             "load_seconds": bng.get("load_seconds"),
-            "backend": bng.get("codegen_backend"),
+            "backend": bng.get("codegen_backend") or bng.get("propensity_backend"),
             "role": roles.get("bngsim"),
         }
     }
@@ -191,10 +220,11 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
         stale = sum(1 for r in rows if not r["current"])
         tally = ", ".join(f"{k} {v}" for k, v in sorted(counts.items()))
         lines += [f"## {name}", "", tally + (f" ({stale} not current)" if stale else ""), ""]
+        stochastic = name.rsplit("-", 1)[0] in STOCHASTIC
         if name.endswith(CORRECTNESS):
-            lines += _correctness_table(rows)
+            lines += _stochastic_correctness_table(rows) if stochastic else _correctness_table(rows)
         elif name.endswith(TIMING):
-            lines += _timing_table(rows)
+            lines += _timing_table(rows, per_trajectory=stochastic)
         lines.append("")
     return "\n".join(lines)
 
@@ -207,9 +237,13 @@ def _errored_engines(r: dict[str, Any]) -> set[str]:
 
 
 def _why(r: dict[str, Any], name: str) -> str:
-    """How a reference failed to run: ``timeout`` (its per-engine budget ran out)
-    or ``crash`` (anything else)."""
-    return "timeout" if str(r.get(f"{name}_error") or "").startswith("TIMEOUT") else "crash"
+    """How a reference failed to run: ``timeout`` (its per-engine budget ran out),
+    ``n/a`` (it cannot simulate this model faithfully, so it was not run) or
+    ``crash`` (anything else)."""
+    err = str(r.get(f"{name}_error") or "")
+    if err.startswith("TIMEOUT"):
+        return "timeout"
+    return "n/a" if err.startswith("UNSUPPORTED") else "crash"
 
 
 def reference_agreement(r: dict[str, Any]) -> str:
@@ -266,7 +300,42 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
-def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
+def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
+    """One row per problem, as ``_correctness_table`` but for a statistical verdict:
+    the smallest p-value over the comparisons beside the outcome and the agreement
+    label, the ensemble size, and each comparison's result with its p-value --
+    ``ok (p 0.41)``, ``DIFF (p 0.0005)``, or why a reference did not run. A
+    comparison fails when its p-value is at most alpha (in the JSON row)."""
+    refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
+                  | {name for r in rows for name in _errored_engines(r)})
+    header = ["problem", "species", "outcome", "references", "min p", "replicates",
+              *(f"vs {name}" for name in refs), "current"]
+    lines = ["| " + " | ".join(header) + " |",
+             "|---|---:|---|---|---:|---:|" + "---|" * len(refs) + "--|"]
+    for r in rows:
+        sp = (r.get("network") or {}).get("species")
+        verdicts = r.get("verdicts") or {}
+        errs = _errored_engines(r)
+        cells = []
+        for name in refs:
+            v = verdicts.get(name)
+            if v is not None:
+                p = v.get("p_value")
+                cells.append(("ok" if v.get("passed") else "DIFF")
+                             + (f" (p {p:.2g})" if p is not None else ""))
+            elif name in errs:
+                cells.append(_why(r, name))
+            else:
+                cells.append("")
+        lines.append("| " + " | ".join([
+            r["problem"], _fmt(sp, "d"), r["outcome"], reference_agreement(r),
+            _fmt(r.get("min_p_value"), ".2g"), _fmt(r.get("replicates"), "d"), *cells,
+            "yes" if r["current"] else "no",
+        ]) + " |")
+    return lines
+
+
+def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -> list[str]:
     """One row per (problem, engine): the one-time pre-sim cost (load/compile) and its
     breakdown beside the per-solve median time with its bootstrap CI, whether the
     engine reproduced its first run, and a derived speedup versus the baseline
@@ -275,14 +344,20 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
     reference that crashed during timing gets a row saying so rather than vanishing.
     Absolute times are the artifact; the speedup is a view (docs/DESIGN.md 6.3, 7.3)."""
     engines = _engine_order(rows)
+    # A stochastic timing's repetition is an ensemble: label it so, and add the
+    # derived time per trajectory beside it.
+    unit = "ensemble" if per_trajectory else "sim"
     header = ["problem", "species", "engine", "outcome", "pre-sim (s)",
-              "pre-sim parts (s)", "sim median (s)", "sim 95% CI (s)",
+              "pre-sim parts (s)", f"{unit} median (s)", f"{unit} 95% CI (s)",
+              *(["per trajectory (s)"] if per_trajectory else []),
               f"x {SPEEDUP_BASELINE}", "reproducible", "rounds", "current"]
     lines = ["| " + " | ".join(header) + " |",
-             "|---|---:|---|---|---:|---|---:|---|---:|---|---:|---|"]
+             "|---|---:|---|---|---:|---|---:|---|" + ("---:|" if per_trajectory else "")
+             + "---:|---|---:|---|"]
     for r in rows:
         sp = (r.get("network") or {}).get("species")
         times = r.get("times") or {}
+        per_traj = r.get("times_per_trajectory") or {}
         presim = r.get("presim") or {}
         repro = r.get("reproducible") or {}
         # A derived number is only trusted when the job passed; a NOT_REPRODUCIBLE
@@ -301,14 +376,18 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
             total, parts = _presim_cells(presim.get(engine))
             lines.append("| " + " | ".join([
                 r["problem"], _fmt(sp, "d"), engine, r["outcome"],
-                total, parts, _sec(median), ci, _fmt(speed, ".2f"),
+                total, parts, _sec(median), ci,
+                *([_sec((per_traj.get(engine) or {}).get("median_seconds"))]
+                  if per_trajectory else []),
+                _fmt(speed, ".2f"),
                 "" if rep is None else ("yes" if rep else "NO"),
                 _fmt(r.get("rounds"), "d"), "yes" if r["current"] else "no",
             ]) + " |")
         for engine in sorted(_errored_engines(r) - set(times)):
             lines.append("| " + " | ".join([
                 r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
-                "", "", "", "", "yes" if r["current"] else "no",
+                "", *([""] if per_trajectory else []), "", "", "",
+                "yes" if r["current"] else "no",
             ]) + " |")
     lines += ["", "Times in seconds. *pre-sim* is the one-time load/build before the "
               "timed solve, measured once (cold), so it has no CI: bngsim = netgen + "
@@ -319,4 +398,13 @@ def _timing_table(rows: list[dict[str, Any]]) -> list[str]:
               "from the timed set (its error is in the JSON row); *timeout*: it ran "
               "past its per-engine wall budget in the correctness job, so it was not "
               "timed."]
+    if per_trajectory:
+        n = sorted({r.get("timing_replicates") for r in rows if r.get("timing_replicates")})
+        lines += ["", "A timed repetition is an *ensemble* of "
+                  + (" / ".join(map(str, n)) if n else "N")
+                  + " trajectories, from the same seeds every round, so every round must "
+                  "reproduce the first; *per trajectory* is the ensemble median divided by "
+                  "the ensemble size. For bngsim, *codegen* is building the SSA simulator, "
+                  "which compiles the propensities where it can [cc]. *n/a*: the reference "
+                  "cannot simulate this model's exact SSA, so it was not run."]
     return lines

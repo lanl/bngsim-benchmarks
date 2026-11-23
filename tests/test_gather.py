@@ -124,3 +124,94 @@ def test_sub_second_times_keep_their_digits():
     assert g._sec(0.001108) == "0.001108"
     assert g._sec(220.42275) == "220.4"
     assert g._sec(None) == ""
+
+
+# --------------------------------------------------------------------------- #
+# SSA: a statistical verdict per comparison, and ensembles as the timed unit
+# --------------------------------------------------------------------------- #
+SSA_ENGINES = "bngsim-vs-run_network-roadrunner-copasi"
+
+
+def _ssa_records():
+    network = {"species": 4, "reactions": 6}
+    corr = {
+        "outcome": "REFERENCE_FAILED",
+        "measurements": {"network": network, "ensembles": {"bngsim": {"replicates": 10000}}},
+        "verdicts": {
+            "run_network": {"passed": True, "p_value": 0.41, "z_max": 3.1, "alpha": 1e-3,
+                            "replicates": [10000, 10000], "test": "permutation"},
+            "copasi": {"passed": True, "p_value": 0.052, "z_max": 3.9, "alpha": 1e-3,
+                       "replicates": [10000, 10000], "test": "permutation"},
+            "analytic": {"passed": True, "p_min": 0.0031, "z_max": 2.9, "alpha": 1e-3,
+                         "replicates": 10000, "test": "bonferroni"},
+        },
+        "roadrunner_error": "UNSUPPORTED: 1 reaction(s) consume one species twice",
+    }
+    timing = {
+        "outcome": "PASS",
+        "measurements": {
+            "network": network, "timing_replicates": 100,
+            "netgen_seconds": 0.8,
+            "bngsim": {"load_seconds": 0.0013, "codegen_seconds": 0.097,
+                       "propensity_backend": "cc"},
+            "references": {"copasi": {"load_seconds": 0.02}, "run_network": {}},
+            "engine_roles": {"bngsim": "warm, in-process (system under test)",
+                             "copasi": "warm, in-process", "run_network": "fresh subprocess"},
+            "times": {name: {"median_seconds": s, "ci_low": s * 0.99, "ci_high": s * 1.01}
+                      for name, s in (("bngsim", 0.0264), ("copasi", 0.0544),
+                                      ("run_network", 0.6879))},
+            "times_per_trajectory": {name: {"median_seconds": s}
+                                     for name, s in (("bngsim", 0.000264), ("copasi", 0.000544),
+                                                     ("run_network", 0.006879))},
+            "reproducibility": {n: {"passed": True} for n in ("bngsim", "copasi", "run_network")},
+            "repetitions": {"rounds": 20, "warmup_rounds": 1},
+        },
+        "roadrunner_error": "UNSUPPORTED: 1 reaction(s) consume one species twice",
+    }
+    return corr, timing
+
+
+@pytest.fixture
+def ssa_gathered(tmp_path):
+    results = tmp_path / "results"
+    jobs = [Job("ssa", "toy", SSA_ENGINES, "auto", kind) for kind in (CORRECTNESS, TIMING)]
+    for job, rec in zip(jobs, _ssa_records()):
+        dest = results / f"{job.id}.json"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(rec))
+    reports = tmp_path / "reports"
+    out = g.gather(jobs, results, reports, {CORRECTNESS: {}, TIMING: {}})
+    return out, (reports / "summary.md").read_text(encoding="utf-8"), reports
+
+
+def test_ssa_correctness_reads_a_p_value_per_comparison(ssa_gathered):
+    _, summary, reports = ssa_gathered
+    header = _row(summary, "problem", "species", "outcome", "references", "min p")
+    row = dict(zip(header, _row(summary, "toy", "4")))
+    assert row["outcome"] == "REFERENCE_FAILED"
+    assert row["references"] == "PARTIAL 3/4 (roadrunner: n/a)"
+    assert row["min p"] == "0.0031" and row["replicates"] == "10000"
+    assert row["vs analytic"] == "ok (p 0.0031)"
+    assert row["vs run_network"] == "ok (p 0.41)"
+    assert row["vs roadrunner"] == "n/a"
+    [jrow] = json.loads((reports / "ssa-correctness.json").read_text())
+    assert jrow["verdicts"]["copasi"]["p_value"] == 0.052 and jrow["min_p_value"] == 0.0031
+
+
+def test_ssa_timing_shows_ensemble_and_per_trajectory_times(ssa_gathered):
+    _, summary, _ = ssa_gathered
+    header = _row(summary, "problem", "species", "engine", "outcome", "pre-sim (s)")
+    cols = lambda engine: dict(zip(header, _row(summary, "toy", "4", engine)))  # noqa: E731
+    bn = cols("bngsim")
+    assert bn["ensemble median (s)"] == "0.0264" and bn["per trajectory (s)"] == "0.000264"
+    assert bn["pre-sim parts (s)"] == "netgen 0.8 + codegen [cc] 0.097 + load 0.0013"
+    assert cols("run_network")["pre-sim (s)"] == "in sim"
+    assert cols("run_network")["x run_network"] == "1.00"
+    assert cols("roadrunner")["ensemble median (s)"] == "n/a"
+    assert "ensemble* of 100 trajectories" in summary
+
+
+def test_ode_tables_keep_their_columns(gathered):
+    _, summary, _ = gathered
+    assert "| sim median (s) | sim 95% CI (s) | x run_network |" in summary
+    assert "per trajectory" not in summary and "min p" not in summary
