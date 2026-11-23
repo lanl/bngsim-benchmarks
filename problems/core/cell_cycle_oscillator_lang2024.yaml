@@ -1,0 +1,37 @@
+# RPE-1 cell-cycle oscillator, fitted. A core problem: member 3 of the ode-net suite (docs/DESIGN.md §3.2).
+# The file is the fused v3.2.0 network at the authors' fitted parameters and their PEtab wt
+# condition, written mechanically from their release; the BNGsim paper's table used the
+# `_fused` file, which carries the pre-fit nominal values (docs/core_suites.md).
+# The protocol is the model's own ODE simulate action, at the same commit (time in seconds).
+id: cell_cycle_oscillator_lang2024
+layer: core
+title: "RPE-1 cell-cycle oscillator (fitted)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: c2a33687e580c574ddeb299b9f119bb444a7e607
+  path: models/cell_cycle_oscillator_lang2024/cell_cycle_oscillator_lang2024_fitted.bngl
+  sha256: 64020c9b7f7cc6c0ff584b45fedaf34777fe2ff4062ed12545d381264afa6072
+  format: bngl
+publications:
+  - citation: "Lang PF, Penas DR, Banga JR, Weindl D, Novak B (2024). Reusable rule-based cell cycle model explains compartment-resolved dynamics of 16 observables in RPE-1 cells. PLoS Comput Biol 20(1):e1011151."
+    doi: 10.1371/journal.pcbi.1011151
+verification:
+  kind: author_file
+  evidence: models/cell_cycle_oscillator_lang2024/verify_lang2024_fitted.ipynb
+  check: "network and all 205 values mechanically identical to the authors' v3.2.0 release (paulflang/cell_cycle_petab @ 362b666: optimized table, PEtab wt condition); the 8 observables integrated from the generated .net vs the authors' AMICI output results_20220421/optimisation.tsv (8 x 600 points), tolerance 5e-5"
+  result: "max relative error 5.4e-6"
+  supporting: "equations: an ODE built only from the authors' SBML and PEtab tables agrees with the generated network to 8e-12"
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 136471.6126
+    n_steps: 1200
+    rtol: 1.0e-10
+    atol: 1.0e-12
+size:
+  species: 73
+  reactions: 332
+suites:
+  ode-net: 3

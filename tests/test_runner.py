@@ -96,8 +96,9 @@ def test_second_run_finds_everything_fresh(tmp_path, two_problems):
 def test_job_that_would_overrun_the_deadline_is_not_started(tmp_path, two_problems):
     t = [1_000_000.0]
     est = two_problems[0].est_seconds
-    # Room for exactly one estimated job after the margin: (100 + est) - 100 = est.
-    cfg = cfg_for(tmp_path, until=t[0] + 100 + est, margin_seconds=100)
+    # Room for exactly one estimated job after the margin: (100 + est) - 100 = est,
+    # plus a millisecond so float rounding at t = 1e6 cannot leave a hair less than est.
+    cfg = cfg_for(tmp_path, until=t[0] + 100 + est + 1e-3, margin_seconds=100)
     inner = FakeLauncher()
 
     def takes_its_estimate(job, timeout, cpu, c):
@@ -113,7 +114,7 @@ def test_job_that_would_overrun_the_deadline_is_not_started(tmp_path, two_proble
     # ...and the deferred correctness job's timing job waits for it.
     assert s.skipped[f"{second.id.rsplit('/', 1)[0]}/timing"] == "waiting"
     # The started job may use only the time left before the margin.
-    assert inner.calls[0][1] == pytest.approx(min(two_problems[0].timeout_seconds, est))
+    assert inner.calls[0][1] == pytest.approx(min(two_problems[0].timeout_seconds, est), abs=1e-2)
 
 
 def test_job_cut_at_the_deadline_leaves_no_result(tmp_path, two_problems):

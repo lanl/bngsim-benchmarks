@@ -10,7 +10,8 @@
     bench fetch-glibc                install a newer glibc loader (old-glibc Linux)
     bench doctor                     the environment a job would record
 
-PATTERN selects jobs whose id contains it (a problem id, a capability, "timing").
+PATTERN selects jobs whose id contains it (a problem id, a capability, "timing"),
+or names a core suite ("ode-net"), selecting every job of its members.
 """
 
 from __future__ import annotations
@@ -41,6 +42,18 @@ def _common(ap: argparse.ArgumentParser) -> None:
                     help="downloads: models, BioNetGen (default: ./.cache)")
 
 
+def _expand_suites(patterns: list[str] | None, problems: list[specs.Problem]) -> list[str]:
+    """Patterns with each suite name (``ode-net``) replaced by its members' problems."""
+    members = specs.suite_members(problems)
+    out: list[str] = []
+    for pat in patterns or []:
+        if pat in members:
+            out.extend(f"/{p.id}/" for p in members[pat])
+        else:
+            out.append(pat)
+    return out
+
+
 def _load_jobs(args) -> list[jobs_mod.Job]:
     problems = specs.load_all(args.problems)
     all_jobs = jobs_mod.jobs_for(problems)
@@ -54,7 +67,7 @@ def _load_jobs(args) -> list[jobs_mod.Job]:
             return jobs_mod.select_exact(all_jobs, ids)
         except ValueError as exc:
             raise SystemExit(f"{jobs_from}: {exc}") from exc
-    return jobs_mod.select(all_jobs, getattr(args, "patterns", None))
+    return jobs_mod.select(all_jobs, _expand_suites(getattr(args, "patterns", None), problems))
 
 
 _DURATION_RE = re.compile(r"^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$")
@@ -113,6 +126,11 @@ def cmd_list(args) -> int:
     for p in problems:
         size = ", ".join(f"{k} {v}" for k, v in p.size.items())
         print(f"{p.id}  [{p.layer}]  {', '.join(p.capabilities)}" + (f"  ({size})" if size else ""))
+    for name, members in specs.suite_members(problems).items():
+        cap, formats = specs.SUITES[name]
+        print(f"\nsuite {name} ({cap} on {'/'.join(formats)}):")
+        for m in members:
+            print(f"  {m.suites[name]:>2}  {m.id}")
     jobs = _load_jobs(args)
     print(f"\n{len(jobs)} jobs:")
     for j in jobs:

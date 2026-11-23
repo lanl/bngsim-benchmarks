@@ -152,19 +152,41 @@ def jobs(problem: Problem) -> list[Job]:
             "amici": env.amici_identity().get("version"),
         },
     }
-    species = problem.size.get("species", 100)
+    est_c, est_t = planning_seconds(problem)
     correctness = Job(
         CAPABILITY, problem.id, engines, "auto", CORRECTNESS,
         definition=base,
-        est_seconds=20.0 + 0.1 * species,
+        est_seconds=est_c,
+        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c),
     )
     timing = Job(
         CAPABILITY, problem.id, engines, "auto", TIMING,
         definition={**base, "timing": TIMING_PROTOCOL, "timing_check": REPRO_CHECK_VERSION},
-        est_seconds=60.0 + 0.5 * species,
+        est_seconds=est_t,
+        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_t),
         requires=correctness.id,
     )
     return [correctness, timing]
+
+
+# Planning only: never part of a freshness key. A job's cost is dominated by work
+# that grows faster than the network -- AMICI's SBML-to-C++ compile, libRoadRunner's
+# SBML read, run_network's solve -- so the estimate grows as reactions**1.5. The
+# constant is calibrated on beta_catenin_destruction_complex_barua2013 (2737
+# reactions, about 5 min for correctness on x86, AMICI's compile 220 s of it) and is
+# provisional until the larger core models have run. The timeout leaves room for a
+# slower node; a deadline still stops a job that would not finish in its allocation.
+MIN_TIMEOUT_SECONDS = 1800.0
+TIMEOUT_FACTOR = 4.0
+
+
+def planning_seconds(problem: Problem) -> tuple[float, float]:
+    """Rough wall-clock estimates (correctness, timing) for one problem."""
+    reactions = problem.size.get("reactions") or 10 * problem.size.get("species", 100)
+    correctness = 30.0 + 0.0021 * reactions ** 1.5
+    # Timing repeats every engine's solve over at least min_rounds plus warmup.
+    timing = 60.0 + 1.5 * correctness
+    return correctness, timing
 
 
 # --------------------------------------------------------------------------- #

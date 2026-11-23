@@ -1,0 +1,36 @@
+# KSR1-RAF-MEK inhibitor response. A core problem: member 10 of the ode-net suite (docs/DESIGN.md §3.2).
+# The protocol is the model's own ODE simulate action, at the same commit: the drug-free
+# relaxation to steady state (time in seconds). Expensive: the file records a 22 min
+# BioNetGen ODE solve, set by stiffness rather than size.
+id: ksr1_raf_mek_inhibitor_response_imoto2026
+layer: core
+title: "KSR1-RAF-MEK inhibitor response"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/ksr1_raf_mek_inhibitor_response_imoto2026/ksr1_raf_mek_inhibitor_response_imoto2026.bngl
+  sha256: 9b0822b831f3082b4a7196a4a24481191b56b5cc8ca00e5b50fd2f23b2602f7f
+  format: bngl
+publications:
+  - citation: "Imoto H, Rauch N, Nagasato AI, Okada M, Kolch W, Rukhlenko OS, Kholodenko BN (2026). Dual RAF inhibition outperforms RAF-MEK combinations for suppressing ERK signaling in KRAS mutant cells. npj Systems Biology and Applications."
+    doi: 10.1038/s41540-026-00710-6
+verification:
+  kind: data
+  evidence: models/ksr1_raf_mek_inhibitor_response_imoto2026/verify_imoto2026.ipynb
+  check: "digitized Fig. 3A-F model panels vs 725 steady states of the committed network (independent SciPy integrator), median residual per panel < 0.05 asserted"
+  result: "panel medians 0.003-0.028"
+  supporting: "network identity with the authors' SBML (27457/27457 reactions, max rel. error 3.6e-15); not re-runnable from the commit, since the authors' SBML is git-ignored there"
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 20000
+    n_steps: 200
+    rtol: 1.0e-8
+    atol: 1.0e-8
+size:
+  species: 2709
+  reactions: 27457
+suites:
+  ode-net: 10

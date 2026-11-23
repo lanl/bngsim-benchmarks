@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -231,8 +232,13 @@ def fetch_glibc(cache_dir: str | Path) -> Path:
 
 
 def model_url(source: dict) -> str:
-    """Where a spec's ``source`` is downloaded from: the file at its pinned commit."""
-    return f"https://raw.githubusercontent.com/{source['repo']}/{source['commit']}/{source['path']}"
+    """Where a spec's ``source`` is downloaded from: the file at its pinned commit.
+
+    The path is percent-encoded (``/`` kept), since some pinned files have spaces
+    or other URL-reserved characters in their names (e.g. in sys-bio/temp-biomodels).
+    """
+    path = urllib.parse.quote(source["path"])
+    return f"https://raw.githubusercontent.com/{source['repo']}/{source['commit']}/{path}"
 
 
 def model_cache_path(source: dict, cache_dir: str | Path) -> Path:
