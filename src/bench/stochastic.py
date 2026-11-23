@@ -71,6 +71,7 @@ from . import netfile
 # Two ensembles: permutation max-T on means and variances
 # --------------------------------------------------------------------------- #
 TWO_SAMPLE_TEST = "permutation max-T on per-cell means and variances (Westfall-Young)"
+MEANS_TEST = "permutation max-T on per-cell means (Westfall-Young)"
 ANALYTIC_TEST = "per-cell z on means and variances, Bonferroni (DSMTS-style)"
 _BATCH = 64  # relabellings per matrix product
 
@@ -110,6 +111,7 @@ def two_sample_verdict(
     stop_exceedances: int = 20,
     times: np.ndarray | None = None,
     species: list[str] | None = None,
+    variance: bool = True,
 ) -> dict[str, Any]:
     """Do ensembles ``a`` and ``b`` sample the same law? A permutation max-T test.
 
@@ -118,6 +120,10 @@ def two_sample_verdict(
     relabellings were drawn and whether that stopped early, the observed maximum
     ``z_max`` split into its mean and variance parts, the worst cell, and, when every
     relabelling ran, the critical value and how many cells exceed it.
+
+    ``variance=False`` tests the means alone: do the two laws have the same mean at
+    every cell? The same relabelling argument makes its false-alarm rate exact, and
+    a law that differs from the other only in its spread passes it.
     """
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
@@ -135,9 +141,9 @@ def two_sample_verdict(
     s2 = m2 * n / (n - 1)
     tau2 = np.mean(xc**4, axis=0) - m2**2
     live = s2 > 0
-    live_var = live & ~_two_valued(x) & (tau2 > 0)
+    live_var = live & ~_two_valued(x) & (tau2 > 0) & bool(variance)
     out: dict[str, Any] = {
-        "test": TWO_SAMPLE_TEST,
+        "test": TWO_SAMPLE_TEST if variance else MEANS_TEST,
         "alpha": alpha,
         "replicates": [na, nb],
         "n_cells": int(x.shape[1]),
