@@ -112,6 +112,19 @@ def test_planning_grows_with_replicates_events_and_the_grid(psa_spec, write_spec
         psa.trajectory_seconds(big)
 
 
+def test_the_pilot_specs_load_and_declare_what_they_test():
+    from conftest import REPO
+
+    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
+    lin = problems["bursty_autoregulated_gene_expression_lin2016"]
+    rohrs = problems["car_cd3zeta_phosphorylation_rohrs2018"]
+    assert lin.layer == rohrs.layer == "pilot" and not lin.suites and not rohrs.suites
+    assert set(lin.capabilities) == {"ssa", "psa"} and rohrs.capabilities == ("psa",)
+    for p in (lin, rohrs):
+        assert psa.protocol(p)["poplevels"] == [10, 30, 100, 300, 1000]
+        assert len(psa.jobs(p)) == 2
+
+
 # --------------------------------------------------------------------------- #
 # Names, seeds and the run_network command
 # --------------------------------------------------------------------------- #
