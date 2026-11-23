@@ -158,6 +158,7 @@ def test_run_network_config_records_no_scratch_paths(monkeypatch, tmp_path):
     ("echo 'edgepop: X'\nkill -SEGV $$", r"killed by signal 11\): edgepop: X"),
     ("echo 'ERROR: scaling factor of 0 th reaction < 1' >&2\nexit 1",
      r"exit 1\): ERROR: scaling factor"),
+    ("echo 'edgepop: X'\nexec sleep 30", r"no result within 1 s, so stopped\): edgepop: X"),
 ])
 def test_run_network_runs_in_its_output_directory_and_says_how_it_failed(
         monkeypatch, tmp_path, body, how):
@@ -169,7 +170,7 @@ def test_run_network_runs_in_its_output_directory_and_says_how_it_failed(
     monkeypatch.setattr(ssa.env, "run_network_bin", lambda: script)
     monkeypatch.setattr(ssa.env, "run_network_launch", lambda: [])
     eng = ssa.RunNetworkSSA(tmp_path / "m.net", {"t_end": 10, "n_steps": 5},
-                            tmp_path / "out" / "rn", timeout=10)
+                            tmp_path / "out" / "rn", timeout=1)
     with pytest.raises(RuntimeError, match=r"run_network failed at seed 7 \(" + how):
         eng.trajectory(7)
     ran_in = Path((tmp_path / "out" / "ran_in.txt").read_text().strip())

@@ -357,8 +357,16 @@ class RunNetworkSSA:
     def trajectory(self, seed: int) -> np.ndarray:
         cmd = run_network_command(self.net, self.proto, self.out_prefix, seed, self.METHOD_ARGS)
         # Run in the job's scratch directory, so a crash's core file stays there.
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout,
-                              check=False, cwd=self.out_prefix.parent)
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout,
+                                  check=False, cwd=self.out_prefix.parent)
+        except subprocess.TimeoutExpired as exc:
+            out = exc.stdout.decode(errors="replace") if isinstance(exc.stdout, bytes) \
+                else (exc.stdout or "")
+            tail = out.strip().splitlines()
+            raise RuntimeError(f"run_network failed at seed {int(seed)} (no result within "
+                               f"{self.timeout:g} s, so stopped): "
+                               f"{(tail[-1] if tail else '')[:300]}") from None
         if proc.returncode != 0:
             tail = (proc.stderr.strip() or proc.stdout.strip()).splitlines()
             how = (f"killed by signal {-proc.returncode}" if proc.returncode < 0

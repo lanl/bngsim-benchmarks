@@ -112,6 +112,17 @@ def test_planning_grows_with_replicates_events_and_the_grid(psa_spec, write_spec
         psa.trajectory_seconds(big)
 
 
+def test_a_run_network_trajectory_is_stopped_long_before_its_ensembles_budget(
+        psa_spec, write_spec):
+    problem = specs.load(write_spec(psa_spec))
+    budget = psa.engine_budget_seconds(problem)
+    assert psa.trajectory_timeout(problem, budget) == psa.MIN_TRAJECTORY_TIMEOUT < budget
+    psa_spec["size"]["psa_events"] = 10**8  # a long trajectory gets its time
+    big = specs.load(write_spec(psa_spec))
+    assert psa.trajectory_timeout(big, 1e9) > 1e4
+    assert psa.trajectory_timeout(big, 600.0) == 600.0  # never past the budget
+
+
 def test_the_pilot_specs_load_and_declare_what_they_test():
     from conftest import REPO
 
@@ -267,7 +278,8 @@ def _install(monkeypatch, grid=GRID, **kw):
 
 
 def _ctx(tmp_path, **kw):
-    return {"workdir": str(tmp_path), "subprocess_timeout": 60, "engine_budget_seconds": 60, **kw}
+    return {"workdir": str(tmp_path), "subprocess_timeout": 60, "engine_budget_seconds": 60,
+            "trajectory_timeout_seconds": 30, **kw}
 
 
 def _scaled_everywhere(inflate=2.0):

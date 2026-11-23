@@ -117,6 +117,12 @@ ENGINE_BLOCKS = {"bngsim": 0, "run_network": 1}
 # not scale still pays for computing its multiplier), so it is planned at this many
 # exact trajectories.
 PSA_COST_FACTOR = 2.0
+# One run_network trajectory is stopped after this many times its planned cost (at
+# least MIN_TRAJECTORY_TIMEOUT s, at most the ensemble's budget): a process that
+# hangs (run_network does, on the Rohrs 2018 network) fails its ensemble then, not
+# after the whole budget. Planning never enters a freshness key.
+TRAJECTORY_TIMEOUT_FACTOR = 50.0
+MIN_TRAJECTORY_TIMEOUT = 60.0
 
 
 # --------------------------------------------------------------------------- #
@@ -241,6 +247,20 @@ def planning_seconds(problem: Problem) -> tuple[float, float]:
     rnd = _all_ensembles_seconds(problem, proto["timing_replicates"])
     measured = max(tp["min_rounds"] * rnd, min(tp["budget_seconds"] + rnd, tp["max_rounds"] * rnd))
     return correctness, 60.0 + (tp["warmup_rounds"] + 1) * rnd + measured
+
+
+def trajectory_timeout(problem: Problem, budget: float) -> float:
+    """Seconds one run_network trajectory may take before it is stopped."""
+    planned = max(trajectory_seconds(problem).values()) * PSA_COST_FACTOR
+    return min(float(budget), max(MIN_TRAJECTORY_TIMEOUT, TRAJECTORY_TIMEOUT_FACTOR * planned))
+
+
+def _timeouts(problem: Problem, ctx: dict[str, Any]) -> tuple[float, float]:
+    """(ensemble budget, run_network trajectory timeout) for a job; ``ctx`` may set
+    either (``engine_budget_seconds``, ``trajectory_timeout_seconds``)."""
+    budget = float(ctx.get("engine_budget_seconds") or engine_budget_seconds(problem))
+    traj = float(ctx.get("trajectory_timeout_seconds") or trajectory_timeout(problem, budget))
+    return budget, min(float(ctx["subprocess_timeout"]), traj)
 
 
 def engine_budget_seconds(problem: Problem) -> float:
@@ -463,9 +483,9 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     proto, info = prep["proto"], prep["info"]
     n, seed = int(proto["replicates"]), int(proto["seed"])
     workdir = Path(ctx["workdir"])
-    budget = float(ctx.get("engine_budget_seconds") or engine_budget_seconds(problem))
+    budget, timeout = _timeouts(problem, ctx)
     info["engine_budget_seconds"] = budget
-    timeout = min(float(ctx["subprocess_timeout"]), budget)
+    info["trajectory_timeout_seconds"] = timeout
 
     ensembles: dict[str, np.ndarray] = {}
     configs: dict[str, dict[str, Any]] = {}
@@ -565,7 +585,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
         return {"outcome": "BAD_TEST", "error": f"{type(exc).__name__}: {exc}"}
     proto, info = prep["proto"], prep["info"]
     workdir = Path(ctx["workdir"])
-    timeout = ctx["subprocess_timeout"]
+    _, timeout = _timeouts(problem, ctx)
     k_traj, seed = int(proto["timing_replicates"]), int(proto["seed"])
     info["timing_replicates"] = k_traj
     failed_before = _correctness_errors(job, ctx)
