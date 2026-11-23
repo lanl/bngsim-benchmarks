@@ -831,7 +831,11 @@ def test_run_isolated_attributes_a_hard_crash(tmp_path):
 
     def fn(stage):
         import faulthandler
+        import resource
         faulthandler.disable()  # pytest's handler would dump a traceback first
+        # No core file: where the limit allows one, it is the whole process image
+        # (over a gigabyte with the engines imported), written to the cwd.
+        resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
         os.kill(os.getpid(), signal.SIGSEGV)  # a segfault in a C++ engine
 
     out = ode.run_isolated(fn, 30, tmp_path / "x", poll=0.01)
