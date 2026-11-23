@@ -358,7 +358,9 @@ def outcome(bn_error: str | None, ref_errors: dict[str, str], n_refs: int,
     BAD_TEST when BNGsim failed and so did every reference (the model, not an
     engine, is the problem); EXCEPTION when only BNGsim failed; REFERENCE_FAILED
     when BNGsim ran but some reference failed; otherwise PASS when BNGsim agrees
-    with every reference, else DIFF.
+    with every reference, else DIFF. ``n_refs`` counts the references that apply
+    to the model: one that does not (run_network on an SBML model with no
+    faithful network) is neither a failure nor an agreement.
     """
     if bn_error and len(ref_errors) == n_refs:
         return "BAD_TEST"

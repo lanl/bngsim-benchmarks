@@ -1,0 +1,39 @@
+# Brain energy metabolism with the pentose phosphate pathway (BioModels BIOMD0000000627). A core
+# problem: member 1 of the ode-sbml suite (docs/DESIGN.md §3.2). The file is the curated BioModels
+# file as sys-bio/temp-biomodels holds it; the protocol is the time course of the SED-ML beside it
+# (final/BIOMD0000000627/BIOMD0000000627.sedml), whose <model source> is this file. rtol is the
+# SED-ML's; the SED-ML gives no absolute tolerance (only COPASI's adjustment factor), so atol is
+# the 1e-9 lanl/bngsim's rr_parity job manifest uses for it.
+# The SED-ML integrates from t=0 and outputs from t=100. 65 SBML species; bngsim counts 66, the
+# rate-ruled venous_balloon compartment among them (the suite's ranking count).
+id: brain_energy_metabolism_winter2017
+layer: core
+title: "Brain energy metabolism with the pentose phosphate pathway"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000627/BIOMD0000000627_url.xml
+  sha256: ba4c9be0f03ae1d6939ad3d5090922775c88e0028c9f12e281dd25813ca05ac5
+  format: sbml
+publications:
+  - citation: "Winter F, Bludszuweit-Philipp C, Wolkenhauer O (2018). Mathematical analysis of the influence of brain metabolism on the BOLD signal in Alzheimer's disease. J Cereb Blood Flow Metab 38:304-316."
+    doi: 10.1177/0271678X17693024
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000627: its curation figure and curation notes, and final/BIOMD0000000627/BIOMD0000000627.sedml at the pinned commit"
+  check: "BioModels curation: the curators simulated this file in COPASI and reproduced Fig. 3 of the paper; the SED-ML beside it at the pinned commit names Fig. 3a-c and runs exactly this file"
+  result: "curated; the curation figure reproduces Fig. 3"
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    output_start: 100
+    t_end: 400
+    n_steps: 1000
+    rtol: 1.0e-6
+    atol: 1.0e-9
+size:
+  species: 66
+  reactions: 64
+suites:
+  ode-sbml: 1
