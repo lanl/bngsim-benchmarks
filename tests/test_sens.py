@@ -17,7 +17,7 @@ from bench import netfile, specs
 from bench.capabilities import ode, sens
 
 PROTOCOL = {"netgen": "generate_network({overwrite=>1})", "t_end": 10, "n_steps": 20,
-            "rtol": 1e-8, "atol": 1e-8}
+            "rtol": 1e-8, "atol": 1e-8, "parameters": "rate_constants"}
 
 
 @pytest.fixture
@@ -43,6 +43,7 @@ def test_registry_emits_one_correctness_and_one_timing_job(sens_spec, write_spec
     proto = correctness.definition["protocol"]
     # Defaults are part of the definition, so changing one restales the results.
     assert proto["parameters"] == "rate_constants"
+    assert sens.settings(problem) == ["auto"]
     assert (proto["fd_step"], proto["fd_rtol"], proto["fd_atol"]) == (1e-3, 1e-10, 1e-12)
     assert correctness.definition["verdict"] == sens.VERDICT and "verdict" not in timing.definition
     assert timing.definition["timing"] == sens.TIMING_PROTOCOL
@@ -78,7 +79,10 @@ def test_a_spec_can_carry_ode_and_sens_and_the_ode_jobs_do_not_change(spec_data,
     ({"t_start": 5}, "unknown key 't_start'"),
     ({"n_steps": 0}, "n_steps"),
     ({"rtol": -1}, "rtol: must be a positive number"),
-    ({"parameters": "fitted"}, "parameters: one of rate_constants, all"),
+    ({"parameters": "all"}, "parameters: one of independent, rate_constants, fitted"),
+    ({"parameters": "fitted"}, "fitted: required with parameters: fitted"),
+    ({"fitted": []}, "fitted: a non-empty list"),
+    ({"parameter_scales": {"Stim": 0}}, "parameter_scales.Stim: must be a positive number"),
     ({"parameters": []}, "non-empty list"),
     ({"parameters": ["k1", "k1"]}, "listed twice"),
     ({"parameters": ["k-1"]}, "not parameter names"),
@@ -91,6 +95,32 @@ def test_invalid_sens_protocol_is_refused_with_its_name(sens_spec, write_spec, c
     sens_spec["protocol"]["sens"].update(change)
     with pytest.raises(specs.SpecError, match=message.replace("(", r"\(")):
         specs.load(write_spec(sens_spec))
+
+
+def test_the_parameters_must_be_named_a_convention_per_problem(sens_spec, write_spec):
+    del sens_spec["protocol"]["sens"]["parameters"]
+    with pytest.raises(specs.SpecError, match="missing 'parameters'"):
+        specs.load(write_spec(sens_spec))
+
+
+def test_a_fitted_set_beside_another_convention_is_a_setting_of_its_own(sens_spec, write_spec):
+    sens_spec["protocol"]["sens"].update(parameters="independent", fitted=["k1", "k2"])
+    problem = specs.load(write_spec(sens_spec))
+    assert sens.settings(problem) == ["auto", "fitted"]
+    jobs = sens.jobs(problem)
+    assert [(j.setting, j.kind) for j in jobs] == [
+        ("auto", "correctness"), ("auto", "timing"),
+        ("fitted", "correctness"), ("fitted", "timing")]
+    auto, fitted = jobs[0], jobs[2]
+    assert auto.definition["protocol"]["parameters"] == "independent"
+    assert fitted.definition["protocol"]["parameters"] == "fitted"
+    assert fitted.id.endswith("/fitted/correctness") and jobs[3].requires == fitted.id
+    assert sens.parameter_count(problem, "fitted") == 2
+    assert sens.convention(fitted.definition["protocol"]) == "fitted"
+    assert sens.convention(auto.definition["protocol"]) == "independent"
+    # A problem whose convention is its fitted set has that one setting only.
+    sens_spec["protocol"]["sens"]["parameters"] = "fitted"
+    assert sens.settings(specs.load(write_spec(sens_spec))) == ["auto"]
 
 
 def test_an_explicit_parameter_list_is_accepted_and_sizes_the_plan(sens_spec, write_spec):
@@ -148,15 +178,36 @@ end functions
 """
 
 
+ZERO = "zero value: no relative step (give it a parameter_scales entry)"
+
+
 def test_rate_constants_are_the_literals_some_rate_reads_less_zeros_and_sizes():
     params, excluded = sens.select_parameters(netfile.structure(NET), "rate_constants")
     assert params == ["NA", "V", "kon_M", "koff", "kstim"]
-    assert excluded == {"Stim": "zero value: no relative step", "vol": "sizes a compartment"}
+    assert excluded == {"Stim": ZERO, "vol": "sizes a compartment"}
 
 
-def test_all_adds_the_parameters_that_reach_only_an_initial_amount():
-    params, _ = sens.select_parameters(netfile.structure(NET), "all")
+def test_independent_adds_the_parameters_that_reach_only_an_initial_amount():
+    params, _ = sens.select_parameters(netfile.structure(NET), "independent")
     assert params == ["NA", "V", "kon_M", "koff", "L_conc", "kstim"]
+
+
+def test_the_fitted_convention_differentiates_the_fitted_set():
+    st = netfile.structure(NET)
+    params, _ = sens.select_parameters(st, "fitted", fitted=["kstim", "koff"])
+    assert params == ["koff", "kstim"]
+    with pytest.raises(ValueError, match="no fitted set"):
+        sens.select_parameters(st, "fitted")
+
+
+def test_a_zero_valued_parameter_with_a_scale_is_differentiated_on_that_scale():
+    st = netfile.structure(NET)
+    params, excluded = sens.select_parameters(st, "rate_constants", scales={"Stim": 1.0})
+    assert "Stim" in params and "Stim" not in excluded
+    np.testing.assert_array_equal(sens.parameter_scales(st, ["koff", "Stim"], {"Stim": 1.0}),
+                                  [0.1, 1.0])
+    with pytest.raises(ValueError, match="parameter_scales: derived"):
+        sens.select_parameters(st, "rate_constants", scales={"kon": 1.0})
 
 
 def test_an_explicit_list_is_kept_in_network_order_and_checked():
@@ -212,8 +263,8 @@ def test_fd_reference_differentiates_the_network_it_is_given(monkeypatch, tmp_pa
     monkeypatch.setattr(sens.FdRunNetwork, "_solve", solve)
     net = tmp_path / "m.net"
     net.write_text(DECAY_NET)
-    fd = sens.FdRunNetwork(net, proto, ["k", "A0"], np.array([0.3, 100.0]), tmp_path / "fd",
-                           timeout=10)
+    fd = sens.FdRunNetwork(net, proto, ["k", "A0"], np.array([0.3, 100.0]),
+                           np.array([0.3, 100.0]), tmp_path / "fd", timeout=10)
     (fine, coarse), X = sens.unpack(fd.run(), 2)
     assert len(seen) == 4 * 2 + 1 and seen[0] == (0.3, 100.0)
     assert (0.3 * (1 + 5e-4), 100.0) in seen and (0.3, 100.0 * (1 - 1e-3)) in seen
@@ -247,11 +298,15 @@ def _exact(t, shift=None):
     return S, X
 
 
+# What the jobs read of a job in these tests: its setting (and, for timing, below).
+JOB = types.SimpleNamespace(setting="auto", requires=None)
+
+
 def _prep():
     proto = sens.protocol(types.SimpleNamespace(protocol_for=lambda c: dict(PROTOCOL)))
     return {"net": Path("m.net"), "sbml": Path("m.xml"), "proto": proto, "info": {"network": {}},
             "species_names": SPECIES, "name_to_id": {"A()": "A", "B()": "B"},
-            "params": PARAMS, "values": np.array([K, A0]),
+            "params": PARAMS, "values": np.array([K, A0]), "scales": np.array([K, A0]),
             "observables": ["total"], "weights": np.array([[1.0, 1.0]])}
 
 
@@ -317,7 +372,7 @@ def _fake_fd(shift=None, noise=0.0):
         INPUT = "net"
         NAME = sens.FD
 
-        def __init__(self, net, proto, params, values, workdir, *, timeout):
+        def __init__(self, net, proto, params, values, scales, workdir, *, timeout):
             self.t = sens.times(proto)
             self.covered = np.ones(2, bool)
 
@@ -334,7 +389,7 @@ def _fake_fd(shift=None, noise=0.0):
 
 
 def _install(monkeypatch, refs, bngsim=None):
-    monkeypatch.setattr(sens, "_prepare", lambda problem, ctx: _prep())
+    monkeypatch.setattr(sens, "_prepare", lambda problem, ctx, setting: _prep())
     monkeypatch.setattr(sens, "BngsimSens", bngsim or _fake_bngsim())
     monkeypatch.setattr(sens, "REFERENCE_ENGINES", refs)
 
@@ -352,7 +407,7 @@ def _ctx(tmp_path, **kw):
 
 def test_correctness_passes_when_every_engine_agrees(monkeypatch, tmp_path):
     _install(monkeypatch, _refs())
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "PASS", rec
     assert set(rec["verdicts"]) == {"amici", sens.FD, "copasi"}
     for v in rec["verdicts"].values():
@@ -367,7 +422,7 @@ def test_correctness_passes_when_every_engine_agrees(monkeypatch, tmp_path):
 
 def test_bngsim_off_in_one_column_is_a_diff_naming_it(monkeypatch, tmp_path):
     _install(monkeypatch, _refs(), bngsim=_fake_bngsim(shift=(1, 0, 0.05)))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "DIFF"
     for v in rec["verdicts"].values():
         assert not v["passed"] and "refuted_by" not in v
@@ -379,7 +434,7 @@ def test_bngsim_off_in_one_column_is_a_diff_naming_it(monkeypatch, tmp_path):
 def test_a_reference_two_others_contradict_is_refuted_not_a_diff(monkeypatch, tmp_path):
     # COPASI drops a chain-rule term: its k column is zero where the others agree.
     _install(monkeypatch, _refs(copasi=_fake_reference(shift=(0, 0, -1.0), name="copasi")))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "REFERENCE_FAILED"
     v = rec["verdicts"]["copasi"]
     assert not v["passed"] and v["refuted_by"] == ["amici", sens.FD]
@@ -391,7 +446,7 @@ def test_one_reference_against_bngsim_alone_is_not_enough_to_refute(monkeypatch,
     _install(monkeypatch, _refs(amici=_fake_reference(boom="compile", name="amici"),
                                 **{sens.FD: _fake_fd(shift=(0, 0, 0.1))},
                                 copasi=_fake_reference(boom="x", name="copasi")))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "DIFF" and "refuted_by" not in rec["verdicts"][sens.FD]
 
 
@@ -399,7 +454,7 @@ def test_a_crashing_or_timed_out_reference_is_recorded_and_the_rest_still_judge(
         monkeypatch, tmp_path):
     _install(monkeypatch, _refs(amici=_fake_reference(sleep=300, name="amici"),
                                 copasi=_fake_reference(boom="KeyError: 'I'", name="copasi")))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path, engine_budget_seconds=1.0))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path, engine_budget_seconds=1.0))
     assert rec["outcome"] == "REFERENCE_FAILED"
     assert rec["amici_error"].startswith("TIMEOUT") and "first solve" in rec["amici_error"]
     assert "KeyError" in rec["copasi_error"]
@@ -409,15 +464,15 @@ def test_a_crashing_or_timed_out_reference_is_recorded_and_the_rest_still_judge(
 def test_bngsim_failing_is_an_exception_and_with_every_reference_a_bad_test(
         monkeypatch, tmp_path):
     _install(monkeypatch, _refs(), bngsim=_fake_bngsim(boom="all"))
-    assert sens.run_correctness(None, None, _ctx(tmp_path))["outcome"] == "EXCEPTION"
+    assert sens.run_correctness(JOB, None, _ctx(tmp_path))["outcome"] == "EXCEPTION"
     broken = {name: _fake_reference(boom="no", name=name) for name in ("amici", "copasi")}
     _install(monkeypatch, broken, bngsim=_fake_bngsim(boom="all"))
-    assert sens.run_correctness(None, None, _ctx(tmp_path))["outcome"] == "BAD_TEST"
+    assert sens.run_correctness(JOB, None, _ctx(tmp_path))["outcome"] == "BAD_TEST"
 
 
 def test_a_further_configuration_failing_is_bngsim_failing(monkeypatch, tmp_path):
     _install(monkeypatch, _refs(), bngsim=_fake_bngsim(boom="simultaneous"))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "EXCEPTION"
     assert rec["bngsim_error"].startswith("bngsim_simultaneous: RuntimeError")
     assert rec["verdicts"]["amici"]["passed"]  # the default was still judged
@@ -425,7 +480,7 @@ def test_a_further_configuration_failing_is_bngsim_failing(monkeypatch, tmp_path
 
 def test_configurations_that_disagree_are_a_diff(monkeypatch, tmp_path):
     _install(monkeypatch, _refs(), bngsim=_fake_bngsim(simultaneous_shift=(0, 1, 0.01)))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "DIFF"
     assert not rec["measurements"]["configurations"]["bngsim_simultaneous"]["passed"]
     assert all(v["passed"] for v in rec["verdicts"].values())
@@ -433,7 +488,7 @@ def test_configurations_that_disagree_are_a_diff(monkeypatch, tmp_path):
 
 def test_bngsim_observable_sensitivities_must_match_its_species_ones(monkeypatch, tmp_path):
     _install(monkeypatch, _refs(), bngsim=_fake_bngsim(own_obs_off=True))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "DIFF"
     assert not rec["measurements"]["bngsim"]["observables_check"]["passed"]
 
@@ -442,7 +497,7 @@ def test_a_reference_judges_only_the_parameters_it_differentiates(monkeypatch, t
     # AMICI cannot differentiate A0 and is wrong in it -- that column is not its to judge.
     _install(monkeypatch, _refs(amici=_fake_reference(covered=(True, False), name="amici",
                                                       shift=(0, 1, 0.5))))
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "PASS"
     assert rec["verdicts"]["amici"]["params_judged"] == ["k"]
 
@@ -450,7 +505,7 @@ def test_a_reference_judges_only_the_parameters_it_differentiates(monkeypatch, t
 def test_a_parameter_no_agreeing_reference_judged_is_a_reference_failure(monkeypatch, tmp_path):
     refs = {"amici": _fake_reference(covered=(True, False), name="amici")}
     _install(monkeypatch, refs)
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "REFERENCE_FAILED"
     assert rec["measurements"]["coverage"]["unjudged"] == ["A0"]
 
@@ -459,7 +514,7 @@ def test_finite_differences_judge_only_the_columns_they_resolve(monkeypatch, tmp
     # The two steps disagree by 1% in k's columns: too noisy to judge at 1e-3, so those
     # columns are left to the other references, and a wrong BNGsim there is still caught.
     _install(monkeypatch, {sens.FD: _fake_fd(noise=0.01)})
-    rec = sens.run_correctness(None, None, _ctx(tmp_path))
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     v = rec["verdicts"][sens.FD]
     assert rec["outcome"] == "REFERENCE_FAILED" and v["passed"]
     # A0's three columns, and the total's k column (zero, so its quotients agree).
@@ -467,12 +522,12 @@ def test_finite_differences_judge_only_the_columns_they_resolve(monkeypatch, tmp
 
 
 def test_preparation_failure_is_a_bad_test(monkeypatch, tmp_path):
-    def boom(problem, ctx):
+    def boom(problem, ctx, setting):
         raise ValueError("no parameter to differentiate")
 
     monkeypatch.setattr(sens, "_prepare", boom)
     for run in (sens.run_correctness, sens.run_timing):
-        rec = run(None, None, _ctx(tmp_path))
+        rec = run(JOB, None, _ctx(tmp_path))
         assert rec["outcome"] == "BAD_TEST" and "no parameter" in rec["error"]
 
 
@@ -498,7 +553,7 @@ def _timing_job(requires=None):
     return types.SimpleNamespace(
         definition={"timing": {"warmup_rounds": 1, "min_rounds": 3, "max_rounds": 3,
                                "budget_seconds": 0.0}},
-        requires=requires)
+        requires=requires, setting="auto")
 
 
 class _Plain:

@@ -20,12 +20,19 @@ compared with every reference in ``REFERENCE_ENGINES``:
 **Outputs and parameters.** Every engine returns ``S[t, i, k] = d x_i(t) / d p_k``
 for every species on the protocol's grid; the observables are formed from it by the
 harness, as the ``.net``'s weighted sums of species, the same way for every engine.
-The parameters are the protocol's ``parameters``: ``rate_constants`` (the default),
-every parameter the ``.net`` writes as a number that some reaction rate depends on,
-directly or through derived parameters and functions; ``all``, those that reach a
-rate or an initial amount; or an explicit list. The harness reads that from the
-``.net`` itself (``netfile.Structure``). A parameter whose value is zero (no relative
-step) or that sizes a compartment is left out, and recorded with its reason.
+The parameters are the protocol's ``parameters``, a convention every problem names:
+``independent``, every parameter the ``.net`` writes as a number that some reaction
+rate or initial amount depends on, directly or through derived parameters and
+functions; ``rate_constants``, those that reach a rate; ``fitted``, the problem's
+fitted set (``fitted``); or an explicit list. The harness reads that from the ``.net``
+itself (``netfile.Structure``). A problem whose fitted set is small is differentiated
+over every independent parameter, and its fitted set is then a job setting of its own
+(``fitted``, beside ``auto``). A parameter that sizes a compartment is left out, and
+so is one whose value is zero unless the protocol gives it a scale
+(``parameter_scales``): the semi-scaled sensitivity is ``scale * dx/dp``, a parameter's
+scale is its value's magnitude by default, and the finite differences step by
+``fd_step * scale``, so a zero-valued dose or switch gets an absolute step. Every
+parameter left out is recorded with its reason.
 
 **Correctness.** Each engine builds and solves cold in its own forked child under a
 wall budget (``run_isolated``), so an AMICI compile that would take hours is stopped
@@ -124,13 +131,21 @@ VERDICT = {
     "fd_resolved": 0.1,
 }
 
-# The classes a protocol may name instead of a list (specs.py validates the same).
+# The conventions a protocol may name instead of a list (specs.py validates the same).
 PARAMETER_CLASSES = SENS_PARAMETER_CLASSES
-DEFAULT_PARAMETERS = "rate_constants"
-# The finite differences: relative step h (and h/2), at tolerances tighter than any
-# protocol's, so the integration's error over the step is small against the
-# derivative (bench.sensitivity).
+# The finite differences: step h (and h/2) relative to each parameter's scale -- its
+# value, or the protocol's parameter_scales for one whose value is zero -- at
+# tolerances tighter than any protocol's, so the integration's error over the step
+# is small against the derivative (bench.sensitivity).
 FD_DEFAULTS = {"fd_step": 1e-3, "fd_rtol": 1e-10, "fd_atol": 1e-12}
+
+# The job settings. ``auto``: the parameters the problem's convention names, every
+# BNGsim choice (codegen, linear solver) left to bngsim. ``fitted``: the same, over
+# the problem's fitted set only, where its convention is another (a problem whose
+# fitted set is small is differentiated over every independent parameter, and the
+# fitted subset is kept as a setting beside it).
+DEFAULT_SETTING = "auto"
+FITTED_SETTING = "fitted"
 
 # The BNGsim configurations under test: CVODES' two correctors for the coupled
 # state + sensitivity system. Codegen and the linear solver are bngsim's own choice
@@ -142,13 +157,25 @@ CONFIGURATIONS: dict[str, dict[str, str]] = {
 DEFAULT_CONFIGURATION = "bngsim"
 
 
-def protocol(problem: Problem) -> dict[str, Any]:
-    """The sensitivity protocol with defaults filled in, as it enters a job definition."""
+def protocol(problem: Problem, setting: str = DEFAULT_SETTING) -> dict[str, Any]:
+    """The sensitivity protocol with defaults filled in, as it enters a job definition;
+    for the ``fitted`` setting, over the fitted set."""
     p = dict(problem.protocol_for(CAPABILITY))
-    p.setdefault("parameters", DEFAULT_PARAMETERS)
     for k, v in FD_DEFAULTS.items():
         p.setdefault(k, v)
+    if setting == FITTED_SETTING:
+        p["parameters"] = "fitted"
     return p
+
+
+def settings(problem: Problem) -> list[str]:
+    """The settings a problem is run at: its own convention, and its fitted set
+    beside it when that is another selection."""
+    p = problem.protocol_for(CAPABILITY)
+    out = [DEFAULT_SETTING]
+    if p.get("fitted") and p.get("parameters") != "fitted":
+        out.append(FITTED_SETTING)
+    return out
 
 
 def engines_id() -> str:
@@ -161,36 +188,40 @@ def jobs(problem: Problem) -> list[Job]:
     # (see the module docstring), with its own engines id.
     if problem.source.get("format") != "bngl":
         return []
-    proto = protocol(problem)
     engines = engines_id()
-    base = {
-        "harness": f"{CAPABILITY}/{engines}/{HARNESS_VERSION}",
-        "source_sha256": problem.source["sha256"],
-        "protocol": proto,
-        "setting": {"configurations": CONFIGURATIONS, "codegen": "auto", "linear_solver": "auto"},
-        # As in ode: the SBML references' versions key only this capability;
-        # run_network's rides the global fingerprint.
-        "reference_versions": {
-            "amici": env.amici_identity().get("version"),
-            "copasi": env.copasi_identity().get("version"),
-        },
-    }
-    est_c, est_t = planning_seconds(problem)
-    backstop = (len(REFERENCE_ENGINES) + len(CONFIGURATIONS) + 1) * engine_budget_seconds(problem)
-    correctness = Job(
-        CAPABILITY, problem.id, engines, "auto", CORRECTNESS,
-        definition={**base, "verdict": VERDICT},
-        est_seconds=est_c,
-        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c, backstop),
-    )
-    timing = Job(
-        CAPABILITY, problem.id, engines, "auto", TIMING,
-        definition={**base, "timing": TIMING_PROTOCOL, "timing_check": REPRO_CHECK_VERSION},
-        est_seconds=est_t,
-        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_t),
-        requires=correctness.id,
-    )
-    return [correctness, timing]
+    out: list[Job] = []
+    for setting in settings(problem):
+        base = {
+            "harness": f"{CAPABILITY}/{engines}/{HARNESS_VERSION}",
+            "source_sha256": problem.source["sha256"],
+            "protocol": protocol(problem, setting),
+            "setting": {"configurations": CONFIGURATIONS, "codegen": "auto",
+                        "linear_solver": "auto"},
+            # As in ode: the SBML references' versions key only this capability;
+            # run_network's rides the global fingerprint.
+            "reference_versions": {
+                "amici": env.amici_identity().get("version"),
+                "copasi": env.copasi_identity().get("version"),
+            },
+        }
+        est_c, est_t = planning_seconds(problem, setting)
+        backstop = (len(REFERENCE_ENGINES) + len(CONFIGURATIONS) + 1) \
+            * engine_budget_seconds(problem, setting)
+        correctness = Job(
+            CAPABILITY, problem.id, engines, setting, CORRECTNESS,
+            definition={**base, "verdict": VERDICT},
+            est_seconds=est_c,
+            timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c, backstop),
+        )
+        timing = Job(
+            CAPABILITY, problem.id, engines, setting, TIMING,
+            definition={**base, "timing": TIMING_PROTOCOL, "timing_check": REPRO_CHECK_VERSION},
+            est_seconds=est_t,
+            timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_t),
+            requires=correctness.id,
+        )
+        out += [correctness, timing]
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -200,8 +231,8 @@ def jobs(problem: Problem) -> list[Job]:
 # engine, plus AMICI's code generation and compile, which dominates on all but the
 # smallest networks and grows faster than the network (the BNGsim paper's AMICI
 # compiles: about 25 s at 100 reactions, 250 s at 3700, over an hour at 15000).
-# The number of parameters comes from an explicit list, else the spec's
-# ``size.sens_parameters`` (planning only), else DEFAULT_PARAMETER_COUNT.
+# The number of parameters comes from an explicit list or the fitted set, else the
+# spec's ``size.sens_parameters`` (planning only), else DEFAULT_PARAMETER_COUNT.
 # Calibrated on the two pilot problems; provisional until larger ones have run.
 MIN_TIMEOUT_SECONDS = 1800.0
 TIMEOUT_FACTOR = 4.0
@@ -209,17 +240,20 @@ ENGINE_BUDGET_CAP_SECONDS = 3600.0
 DEFAULT_PARAMETER_COUNT = 20
 
 
-def parameter_count(problem: Problem) -> int:
-    chosen = protocol(problem)["parameters"]
+def parameter_count(problem: Problem, setting: str = DEFAULT_SETTING) -> int:
+    proto = protocol(problem, setting)
+    chosen = proto["parameters"]
     if isinstance(chosen, list):
         return len(chosen)
+    if chosen == "fitted":
+        return len(proto["fitted"])
     return int(problem.size.get("sens_parameters", DEFAULT_PARAMETER_COUNT))
 
 
-def engine_seconds(problem: Problem) -> dict[str, float]:
+def engine_seconds(problem: Problem, setting: str = DEFAULT_SETTING) -> dict[str, float]:
     """Planned seconds for each engine's cold build and first solve."""
     reactions = problem.size.get("reactions") or 10 * problem.size.get("species", 100)
-    n = parameter_count(problem)
+    n = parameter_count(problem, setting)
     solve = 0.002 + 2e-6 * reactions ** 1.5  # one plain solve at the protocol's tolerances
     sens = 2.0 * (1 + n) * solve  # a forward-sensitivity solve
     return {
@@ -232,9 +266,9 @@ def engine_seconds(problem: Problem) -> dict[str, float]:
     }
 
 
-def planning_seconds(problem: Problem) -> tuple[float, float]:
+def planning_seconds(problem: Problem, setting: str = DEFAULT_SETTING) -> tuple[float, float]:
     """Rough wall-clock estimates (correctness, timing) for one problem."""
-    per = engine_seconds(problem)
+    per = engine_seconds(problem, setting)
     correctness = 30.0 + sum(per.values())
     # Timing rebuilds every engine but the FD reference, then repeats each solve over
     # at least min_rounds plus a warm-up; the solves are a small part of the build.
@@ -243,39 +277,58 @@ def planning_seconds(problem: Problem) -> tuple[float, float]:
     return correctness, timing
 
 
-def engine_budget_seconds(problem: Problem) -> float:
+def engine_budget_seconds(problem: Problem, setting: str = DEFAULT_SETTING) -> float:
     """Wall budget for one engine's cold build + solve in the correctness job."""
-    slowest = max(engine_seconds(problem).values())
+    slowest = max(engine_seconds(problem, setting).values())
     return min(ENGINE_BUDGET_CAP_SECONDS, max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * slowest))
 
 
 # --------------------------------------------------------------------------- #
 # Choosing the parameters
 # --------------------------------------------------------------------------- #
-def select_parameters(structure: netfile.Structure, chosen: str | list[str]
+def select_parameters(structure: netfile.Structure, chosen: str | list[str], *,
+                      fitted: list[str] | None = None,
+                      scales: dict[str, float] | None = None,
                       ) -> tuple[list[str], dict[str, str]]:
     """The parameters to differentiate, in ``.net`` order, and those left out with
-    the reason. Raises ValueError for an explicit name the network cannot honour."""
+    the reason.
+
+    ``chosen`` is a convention or a list: ``independent``, every parameter written
+    as a number that reaches a reaction rate or an initial amount; ``rate_constants``,
+    those that reach a rate; ``fitted``, the ``fitted`` list. A parameter that sizes a
+    compartment is left out (bngsim folds a volume into constants at load), and so is
+    one whose value is zero unless ``scales`` gives it a scale: a relative step and a
+    semi-scaled sensitivity of a zero are zero. Raises ValueError for a listed name
+    the network cannot honour."""
     primary = structure.primary()
     rates = structure.reaching_rates()
     initial = structure.reaching_initial()
     sizes = structure.sizing_compartments()
+    scales = scales or {}
     excluded: dict[str, str] = {}
-    if chosen == "rate_constants":
-        candidates = [p for p in primary if p in rates]
-    elif chosen == "all":
-        candidates = [p for p in primary if p in rates or p in initial]
-    else:
-        unknown = [p for p in chosen if p not in structure.expressions]
-        derived = [p for p in chosen if p in structure.expressions and p not in primary]
+    if chosen == "fitted":
+        chosen = list(fitted or [])
+        if not chosen:
+            raise ValueError("protocol.sens.parameters: fitted, but no fitted set is given")
+    listed = isinstance(chosen, list)
+    named = list(chosen) if listed else []
+    bad_scales = [p for p in scales if p not in primary]
+    for where, names in (("parameters", named), ("parameter_scales", bad_scales)):
+        unknown = [p for p in names if p not in structure.expressions]
+        derived = [p for p in names if p in structure.expressions and p not in primary]
         if unknown or derived:
             raise ValueError(
-                "protocol.sens.parameters: "
+                f"protocol.sens.{where}: "
                 + "; ".join(filter(None, [
                     f"not parameters of the network: {', '.join(unknown)}" if unknown else "",
                     f"derived (an expression, not a number): {', '.join(derived)}"
                     if derived else ""])))
-        candidates = [p for p in primary if p in chosen]
+    if chosen == "independent":
+        candidates = [p for p in primary if p in rates or p in initial]
+    elif chosen == "rate_constants":
+        candidates = [p for p in primary if p in rates]
+    else:
+        candidates = [p for p in primary if p in named]
         for p in candidates:
             if p not in rates and p not in initial:
                 excluded[p] = "reaches no reaction rate or initial amount"
@@ -284,11 +337,31 @@ def select_parameters(structure: netfile.Structure, chosen: str | list[str]
     for p in candidates:
         if p in sizes:
             excluded[p] = "sizes a compartment"
-        elif primary[p] == 0.0:
-            excluded[p] = "zero value: no relative step"
+        elif primary[p] == 0.0 and p not in scales:
+            excluded[p] = "zero value: no relative step (give it a parameter_scales entry)"
         else:
             chosen_out.append(p)
     return chosen_out, excluded
+
+
+def convention(proto: dict[str, Any]) -> str:
+    """The label of the protocol's parameter selection: ``fitted`` (the problem's
+    fitted set), ``independent`` (a convention over the network: every independent
+    parameter, or every rate constant) or ``listed`` (an explicit list)."""
+    chosen = proto["parameters"]
+    if chosen == "fitted" or (isinstance(chosen, list) and chosen == proto.get("fitted")):
+        return "fitted"
+    return "listed" if isinstance(chosen, list) else "independent"
+
+
+def parameter_scales(structure: netfile.Structure, params: list[str],
+                     scales: dict[str, float] | None = None) -> np.ndarray:
+    """Each parameter's scale: the protocol's ``parameter_scales`` entry, else the
+    magnitude of its value. The semi-scaled sensitivity is ``scale * dy/dp``, and the
+    finite differences step by ``fd_step * scale``."""
+    scales = scales or {}
+    return np.array([float(scales[p]) if p in scales else abs(structure.literal(p))
+                     for p in params])
 
 
 # --------------------------------------------------------------------------- #
@@ -612,10 +685,14 @@ def run_network_command(net: Path, proto: dict[str, Any], out_prefix: Path, *,
 class FdRunNetwork:
     """Central finite differences from run_network, an engine independent of BNGsim.
 
-    For each parameter, the ``.net`` is written with the parameter at ``p (1 + h)``
-    and ``p (1 - h)`` and solved by a fresh run_network process, which re-derives
-    every derived parameter, rate and initial amount from it -- so the derivative is
-    the total one, through every chain the network has. Two steps, ``h`` and ``h/2``,
+    For each parameter, the ``.net`` is written with the parameter at ``p + h s``
+    and ``p - h s`` (``s`` its scale: its value's magnitude, so a relative step, or
+    the protocol's ``parameter_scales`` entry for a parameter at zero, an absolute
+    one) and solved by a fresh run_network process, which re-derives every derived
+    parameter, rate and initial amount from it -- so the derivative is the total
+    one, through every chain the network has. For a parameter at zero the lower
+    point is negative: outside a dose's or a switch's physical range, but not the
+    ODE's, whose right-hand side is as smooth there. Two steps, ``h`` and ``h/2``,
     at the protocol's ``fd_rtol``/``fd_atol``: ``4N + 1`` solves in all.
     ``D(h/2)`` is the reference; ``|D(h) - D(h/2)|`` bounds its error
     (``bench.sensitivity``).
@@ -625,9 +702,10 @@ class FdRunNetwork:
     INPUT = "net"
 
     def __init__(self, net: Path, proto: dict[str, Any], params: list[str], values: np.ndarray,
-                 workdir: Path, *, timeout: float):
+                 scales: np.ndarray, workdir: Path, *, timeout: float):
         self.text = net.read_text(encoding="utf-8")
-        self.proto, self.params, self.values = proto, list(params), np.asarray(values, float)
+        self.proto, self.params = proto, list(params)
+        self.values, self.scales = np.asarray(values, float), np.asarray(scales, float)
         self.workdir, self.timeout = workdir, timeout
         workdir.mkdir(parents=True, exist_ok=True)
         self.covered = np.ones(len(self.params), bool)
@@ -663,10 +741,10 @@ class FdRunNetwork:
         quotients = []
         for step in (h / 2, h):
             cols = []
-            for name, p in zip(self.params, self.values):
-                up = self._solve(netfile.with_parameters(self.text, {name: p * (1 + step)}))
-                down = self._solve(netfile.with_parameters(self.text, {name: p * (1 - step)}))
-                cols.append((up - down) / (2 * step * p))
+            for name, p, s in zip(self.params, self.values, self.scales):
+                up = self._solve(netfile.with_parameters(self.text, {name: p + step * s}))
+                down = self._solve(netfile.with_parameters(self.text, {name: p - step * s}))
+                cols.append((up - down) / (2 * step * s))
             quotients.append(np.stack(cols, axis=2))
         return pack(quotients[0], base, quotients[1])
 
@@ -676,7 +754,8 @@ class FdRunNetwork:
             rtol=float(self.proto["fd_rtol"]), atol=float(self.proto["fd_atol"])))
         names = {str(self.workdir / "fd.net"): "<perturbed>.net", str(self.workdir / "fd"): "<out>"}
         return {
-            "method": "central differences at steps h and h/2 (relative)",
+            "method": "central differences at steps h and h/2 (relative to each "
+                      "parameter's scale)",
             "engine": "run_network (fresh process per solve)",
             "step": float(self.proto["fd_step"]),
             "rtol": float(self.proto["fd_rtol"]),
@@ -707,8 +786,8 @@ BUILD_STAGE = {
 def _build_reference(name: str, prep: dict[str, Any], workdir: Path, timeout: float):
     cls = REFERENCE_ENGINES[name]
     if cls.INPUT == "net":
-        return cls(prep["net"], prep["proto"], prep["params"], prep["values"], workdir,
-                   timeout=timeout)
+        return cls(prep["net"], prep["proto"], prep["params"], prep["values"], prep["scales"],
+                   workdir, timeout=timeout)
     return cls(prep["sbml"], prep["species_names"], prep["name_to_id"], prep["proto"],
                prep["params"])
 
@@ -720,22 +799,29 @@ def _progress(msg: str) -> None:
 # --------------------------------------------------------------------------- #
 # Preparation and the cold runs of the correctness job
 # --------------------------------------------------------------------------- #
-def _prepare(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
-    proto = protocol(problem)
+def _prepare(problem: Problem, ctx: dict[str, Any], setting: str = DEFAULT_SETTING
+             ) -> dict[str, Any]:
+    proto = protocol(problem, setting)
     prep = prepare_network(problem, ctx, proto["netgen"])
     structure = netfile.read_structure(prep["net"])
     if structure.species != [n.lstrip("$") for n in prep["species_names"]]:
         raise RuntimeError("the .net's species and BNGsim's species_names disagree")
-    params, excluded = select_parameters(structure, proto["parameters"])
+    scales = proto.get("parameter_scales") or {}
+    params, excluded = select_parameters(structure, proto["parameters"],
+                                         fitted=proto.get("fitted"), scales=scales)
     if not params:
         raise ValueError(f"no parameter to differentiate ({proto['parameters']!r}; "
                          f"left out: {excluded})")
     observables, weights = structure.observable_weights()
     prep.update(proto=proto, structure=structure, params=params,
                 values=np.array([structure.literal(p) for p in params]),
+                scales=parameter_scales(structure, params, scales),
                 observables=observables, weights=weights)
-    prep["info"]["parameters"] = {"selection": proto["parameters"], "n": len(params),
-                                  "names": params, "excluded": excluded}
+    prep["info"]["parameters"] = {
+        "selection": proto["parameters"], "convention": convention(proto), "n": len(params),
+        "names": params, "excluded": excluded,
+        "scales": {p: float(scales[p]) for p in params if p in scales},
+    }
     prep["info"]["network"]["observables"] = len(observables)
     return prep
 
@@ -769,7 +855,7 @@ def _observables_check(prep, engine, result, S, X) -> dict[str, Any]:
                                            f"network's {want[:5]}"}
     derived = np.einsum("oi,tik->tok", prep["weights"], S)
     y = X @ prep["weights"].T
-    c = sv.compare(sv.scaled(own, prep["values"]), sv.scaled(derived, prep["values"]),
+    c = sv.compare(sv.scaled(own, prep["scales"]), sv.scaled(derived, prep["scales"]),
                    np.abs(y).max(axis=0), atol=float(prep["proto"]["atol"]), verdict=VERDICT)
     s = c.summary([f"observable:{n}" for n in want], prep["params"], times(prep["proto"]),
                   n_species=0)
@@ -801,7 +887,7 @@ class _Run:
     def __init__(self, prep: dict[str, Any], S: np.ndarray, X: np.ndarray,
                  covered: np.ndarray, estimate: np.ndarray | None = None):
         S_out, self.y = sv.outputs(S, X, prep["weights"])
-        self.sig = sv.scaled(S_out, prep["values"])
+        self.sig = sv.scaled(S_out, prep["scales"])
         self.y_peak = np.max(np.where(np.isfinite(self.y), np.abs(self.y), 0.0), axis=0)
         self.covered = np.asarray(covered, bool)
         self.estimate = estimate  # FD only: the two-step error estimate, semi-scaled
@@ -815,8 +901,8 @@ def _run_from(prep: dict[str, Any], name: str, packed: np.ndarray, config: dict[
         fine, coarse = tensors
         fine_out, _ = sv.outputs(fine, X, prep["weights"])
         coarse_out, _ = sv.outputs(coarse, X, prep["weights"])
-        est = sv.fd_estimate(sv.scaled(coarse_out, prep["values"]),
-                             sv.scaled(fine_out, prep["values"]))
+        est = sv.fd_estimate(sv.scaled(coarse_out, prep["scales"]),
+                             sv.scaled(fine_out, prep["scales"]))
         return _Run(prep, fine, X, covered, est)
     return _Run(prep, tensors[0], X, covered)
 
@@ -918,12 +1004,13 @@ def sens_outcome(bn_error: str | None, ref_errors: dict[str, str], n_refs: int,
 # --------------------------------------------------------------------------- #
 def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
     try:
-        prep = _prepare(problem, ctx)
+        prep = _prepare(problem, ctx, job.setting)
     except Exception as exc:  # noqa: BLE001 - a bad test input, a labelled row
         return {"outcome": "BAD_TEST", "error": f"{type(exc).__name__}: {exc}"}
     info = prep["info"]
     workdir = Path(ctx["workdir"])
-    budget = float(ctx.get("engine_budget_seconds") or engine_budget_seconds(problem))
+    budget = float(ctx.get("engine_budget_seconds")
+                   or engine_budget_seconds(problem, job.setting))
     info["engine_budget_seconds"] = budget
     timeout = min(float(ctx["subprocess_timeout"]), budget)
 
@@ -1011,12 +1098,12 @@ def _role(name: str) -> str:
     return engine_role(name)
 
 
-def _capture(engine, values: np.ndarray):
+def _capture(engine, scales: np.ndarray):
     """What a timed repetition is checked on: its semi-scaled sensitivities, one
     column per (species, parameter) -- extracted outside the timed region. A
     parameter the engine does not differentiate is a column of zeros."""
     def capture(raw):
-        sig = sv.scaled(engine.tensors(raw)[0], values)
+        sig = sv.scaled(engine.tensors(raw)[0], scales)
         return np.nan_to_num(sig.reshape(sig.shape[0], -1), nan=0.0)
     return capture
 
@@ -1025,7 +1112,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     from .ode import BngsimODE, RunNetworkODE
 
     try:
-        prep = _prepare(problem, ctx)
+        prep = _prepare(problem, ctx, job.setting)
     except Exception as exc:  # noqa: BLE001 - a bad test input, a labelled row
         return {"outcome": "BAD_TEST", "error": f"{type(exc).__name__}: {exc}"}
     proto, info = prep["proto"], prep["info"]
@@ -1041,7 +1128,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
                                **CONFIGURATIONS[DEFAULT_CONFIGURATION])
     first = bngsim_engine.run()
     info["bngsim_cold_seconds"] = time.perf_counter() - t0
-    anchor = _capture(bngsim_engine, prep["values"])(first)
+    anchor = _capture(bngsim_engine, prep["scales"])(first)
     info["bngsim"] = bngsim_engine.config()
     engines: dict[str, Any] = {DEFAULT_CONFIGURATION: bngsim_engine}
     configs: dict[str, Any] = {}
@@ -1096,7 +1183,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     runs = {name: (eng.warm if name in ("bngsim_ode", "run_network") else eng.run)
             for name, eng in engines.items()}
     captures = {name: (type(eng).trajectory if name in ("bngsim_ode", "run_network")
-                       else _capture(eng, prep["values"]))
+                       else _capture(eng, prep["scales"]))
                 for name, eng in engines.items()}
     reps = round_robin_interleaved(runs, captures=captures, **job.definition["timing"])
 

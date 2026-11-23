@@ -277,26 +277,61 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
         errs.append(f"{where}.scan: a log scale needs min > 0")
 
 
-# The parameter classes a sensitivity protocol may name instead of a list
-# (bench.capabilities.sens.select_parameters reads the same two).
-SENS_PARAMETER_CLASSES = ("rate_constants", "all")
+# The parameter conventions a sensitivity protocol may name instead of a list
+# (bench.capabilities.sens.select_parameters reads the same three): every independent
+# parameter (a number in the .net that reaches a rate or an initial amount), every
+# rate constant (one that reaches a rate), or the problem's fitted set.
+SENS_PARAMETER_CLASSES = ("independent", "rate_constants", "fitted")
+
+
+def _finite(v: Any) -> bool:
+    return _number(v) and v == v and abs(v) != float("inf")
+
+
+def _names(v: Any, where: str, errs: list[str]) -> list[str]:
+    """A non-empty list of distinct parameter names (reported into ``errs``)."""
+    if not isinstance(v, list) or not v:
+        errs.append(f"{where}: a non-empty list of parameter names")
+        return []
+    bad = [x for x in v if not (isinstance(x, str) and _PARAM_NAME_RE.match(x))]
+    if bad:
+        errs.append(f"{where}: not parameter names: {bad[:5]}")
+    elif len(set(v)) != len(v):
+        errs.append(f"{where}: a name is listed twice")
+    return [x for x in v if isinstance(x, str)]
+
+
+def _values(v: Any, where: str, errs: list[str], *, positive: bool = False) -> dict[str, Any]:
+    """A non-empty mapping of parameter name to a (finite, or positive) number."""
+    if not isinstance(v, dict) or not v:
+        errs.append(f"{where}: a non-empty mapping of parameter name to number")
+        return {}
+    for k, x in v.items():
+        if not (isinstance(k, str) and _PARAM_NAME_RE.match(k)):
+            errs.append(f"{where}: {k!r} is not a parameter name")
+        elif not (_positive(x) if positive else _finite(x)):
+            errs.append(f"{where}.{k}: must be a {'positive' if positive else 'finite'} number")
+    return v
 
 
 def _validate_sens_protocol(p: Any, where: str, errs: list[str],
                             source_format: str | None = None) -> None:
-    """Forward sensitivities on the generated network: the grid ``0..t_end`` in
-    ``n_steps``, the tolerances of the sensitivity solves, which ``parameters`` to
-    differentiate (a class or a list of names), and the finite differences' relative
-    step and tolerances (bench.capabilities.sens). The capability builds its jobs
-    from BNGL only, so the source format changes nothing here."""
+    """Forward sensitivities on the generated network (bench.capabilities.sens).
+
+    The measured grid ``0..t_end`` in ``n_steps`` and the solves' tolerances; which
+    ``parameters`` to differentiate -- a convention or a list -- with the problem's
+    ``fitted`` set beside it; a scale for any parameter whose value is zero
+    (``parameter_scales``); and the finite differences' step and tolerances. The
+    capability builds its jobs from BNGL only, so the source format changes nothing
+    here."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters",
-               "fd_step", "fd_rtol", "fd_atol"}
+    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "fitted",
+               "parameter_scales", "fd_step", "fd_rtol", "fd_atol"}
     for k in sorted(set(p) - allowed):
         errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "n_steps", "rtol", "atol"):
+    for k in ("netgen", "t_end", "n_steps", "rtol", "atol", "parameters"):
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
     netgen = p.get("netgen")
@@ -318,6 +353,7 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     for fd, k in (("fd_rtol", "rtol"), ("fd_atol", "atol")):
         if _positive(p.get(fd)) and _positive(p.get(k)) and not p[fd] <= p[k]:
             errs.append(f"{where}.{fd}: must not be looser than {k}")
+
     params = p.get("parameters")
     if params is None:
         pass
@@ -325,15 +361,18 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
         if params not in SENS_PARAMETER_CLASSES:
             errs.append(f"{where}.parameters: one of {', '.join(SENS_PARAMETER_CLASSES)}, "
                         "or a list of parameter names")
-    elif isinstance(params, list) and params:
-        bad = [x for x in params if not (isinstance(x, str) and _PARAM_NAME_RE.match(x))]
-        if bad:
-            errs.append(f"{where}.parameters: not parameter names: {bad[:5]}")
-        elif len(set(params)) != len(params):
-            errs.append(f"{where}.parameters: a name is listed twice")
+    elif isinstance(params, list):
+        _names(params, f"{where}.parameters", errs)
     else:
         errs.append(f"{where}.parameters: one of {', '.join(SENS_PARAMETER_CLASSES)}, "
                     "or a non-empty list of parameter names")
+    if "fitted" in p:
+        _names(p["fitted"], f"{where}.fitted", errs)
+    elif params == "fitted":
+        errs.append(f"{where}.fitted: required with parameters: fitted (the problem's "
+                    "fitted set)")
+    if "parameter_scales" in p:
+        _values(p["parameter_scales"], f"{where}.parameter_scales", errs, positive=True)
 
 
 # One validator per capability's protocol. A capability without one cannot be
