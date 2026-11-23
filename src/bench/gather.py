@@ -43,6 +43,15 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         ps = [_p_value(v) for v in verdicts.values() if _p_value(v) is not None]
         row["min_p_value"] = min(ps) if ps else None
         row["replicates"] = (m.get("ensembles") or {}).get("bngsim", {}).get("replicates")
+        # Network-free: BNGsim's other engine drawn and compared beside the verdicts,
+        # and the same-seed check of the embedding (recorded, never scored).
+        cross = m.get("cross_setting") or {}
+        if cross.get("verdict"):
+            row["cross_setting"] = {"setting": cross.get("setting"),
+                                    "passed": cross["verdict"].get("passed"),
+                                    "p_value": _p_value(cross["verdict"])}
+        if m.get("same_seed"):
+            row["same_seed"] = m["same_seed"]
     elif job.kind == CORRECTNESS and job.capability in STEADY:
         # One agreement per reference, at every point of the protocol: the worst
         # species' distance from the reference's state over what the verdict allows
@@ -99,6 +108,9 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
                        times_per_trajectory=m.get("times_per_trajectory") or {},
                        bngsim_config={"propensity_backend":
                                       (m.get("bngsim") or {}).get("propensity_backend")})
+            if m.get("solve_split"):
+                # Each engine's own account of its solve, apart from its start-up.
+                row["solve_split"] = m["solve_split"]
     # Any engine's failure is recorded under "<name>_error"; pass every one through,
     # plus the generic "error" of a job that failed before any engine ran.
     for k, val in rec.items():
@@ -123,7 +135,7 @@ def _capability(name: str):
 
 
 # Capabilities whose correctness verdict is a statistical test on ensembles.
-STOCHASTIC = frozenset({"ssa", "psa"})
+STOCHASTIC = frozenset({"ssa", "psa", "nf"})
 # Capabilities whose correctness verdict is a steady state's agreement, point by point.
 STEADY = frozenset({"steady_state"})
 
@@ -210,7 +222,8 @@ def _sec(x: Any) -> str:
 # BNGsim's is network generation + codegen + load; a reference's is its own codegen
 # (AMICI compiles SBML->C++) + load. It is reported beside the solve time because a
 # small solve can hide a large build -- the re-simulation claim (docs/DESIGN.md 1, 7.3).
-_PRESIM_PARTS = ("netgen_seconds", "codegen_seconds", "load_seconds")
+# A network-free BNGsim has no network: its BNG2.pl step writes the XML instead.
+_PRESIM_PARTS = ("netgen_seconds", "xml_seconds", "codegen_seconds", "load_seconds")
 
 
 def _presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -224,6 +237,7 @@ def _presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {
         "bngsim": {
             "netgen_seconds": m.get("netgen_seconds"),
+            "xml_seconds": m.get("xml_seconds"),
             "codegen_seconds": bng.get("codegen_seconds"),
             "load_seconds": bng.get("load_seconds"),
             "backend": bng.get("codegen_backend") or bng.get("propensity_backend"),
@@ -274,6 +288,9 @@ def _presim_cells(d: dict[str, Any] | None) -> tuple[str, str]:
 # against. run_network is the trusted dense oracle and the historical baseline, so
 # a reader sees "how much faster than run_network" without a stored ratio (6.3).
 SPEEDUP_BASELINE = "run_network"
+# A capability whose references do not include run_network names its own: the
+# network-free one divides by standalone NFsim, the network-free engine of record.
+SPEEDUP_BASELINES = {"nf": "nfsim"}
 
 
 def _engine_order(rows: list[dict[str, Any]]) -> list[str]:
@@ -304,7 +321,8 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
                 lines += (_stochastic_correctness_table(rows) if stochastic
                           else _correctness_table(rows))
         elif name.endswith(TIMING):
-            lines += _timing_table(rows, per_trajectory=stochastic)
+            lines += _timing_table(rows, per_trajectory=stochastic,
+                                   baseline=SPEEDUP_BASELINES.get(capability, SPEEDUP_BASELINE))
         extra = getattr(_capability(capability), "report_lines", None)
         if extra is not None:
             lines += extra(name.rsplit("-", 1)[1], rows)
@@ -399,6 +417,13 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def _problem_cell(r: dict[str, Any]) -> str:
+    """The problem, with its setting where a capability runs more than one (the
+    network-free ``nf_reject`` and ``nf_exact``); ``auto`` is left unsaid."""
+    setting = r.get("setting")
+    return r["problem"] + (f" [{setting}]" if setting not in (None, "", "auto") else "")
+
+
 def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     """One row per problem, as ``_correctness_table`` but for a statistical verdict:
     the smallest p-value over the comparisons beside the outcome and the agreement
@@ -427,7 +452,7 @@ def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
             else:
                 cells.append("")
         lines.append("| " + " | ".join([
-            r["problem"], _fmt(sp, "d"), r["outcome"], reference_agreement(r),
+            _problem_cell(r), _fmt(sp, "d"), r["outcome"], reference_agreement(r),
             _fmt(r.get("min_p_value"), ".2g"), _fmt(r.get("replicates"), "d"), *cells,
             "yes" if r["current"] else "no",
         ]) + " |")
@@ -535,7 +560,8 @@ def _worst_cell(w: dict[str, Any] | None) -> str:
     return where
 
 
-def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -> list[str]:
+def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
+                  baseline: str = SPEEDUP_BASELINE) -> list[str]:
     """One row per (problem, engine): the one-time pre-sim cost (load/compile) and its
     breakdown beside the per-solve median time with its bootstrap CI, whether the
     engine reproduced its first run, and a derived speedup versus the baseline
@@ -547,13 +573,17 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -
     # A stochastic timing's repetition is an ensemble: label it so, and add the
     # derived time per trajectory beside it.
     unit = "ensemble" if per_trajectory else "sim"
+    # Where the engines report their own solve time (network-free), it is shown per
+    # trajectory beside the wall time, which for a subprocess holds its start-up.
+    solve = per_trajectory and any(r.get("solve_split") for r in rows)
     header = ["problem", "species", "engine", "outcome", "pre-sim (s)",
               "pre-sim parts (s)", f"{unit} median (s)", f"{unit} 95% CI (s)",
               *(["per trajectory (s)"] if per_trajectory else []),
-              f"x {SPEEDUP_BASELINE}", "reproducible", "rounds", "current"]
+              *(["solve per trajectory (s)"] if solve else []),
+              f"x {baseline}", "reproducible", "rounds", "current"]
     lines = ["| " + " | ".join(header) + " |",
              "|---|---:|---|---|---:|---|---:|---|" + ("---:|" if per_trajectory else "")
-             + "---:|---|---:|---|"]
+             + ("---:|" if solve else "") + "---:|---|---:|---|"]
     for r in rows:
         sp = (r.get("network") or {}).get("species")
         times = r.get("times") or {}
@@ -563,7 +593,9 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -
         # A derived number is only trusted when the job passed; a NOT_REPRODUCIBLE
         # (or failed) row would otherwise publish a speedup against times it distrusts.
         trusted = r.get("outcome") == "PASS"
-        base = (times.get(SPEEDUP_BASELINE) or {}).get("median_seconds") if trusted else None
+        base = (times.get(baseline) or {}).get("median_seconds") if trusted else None
+        split = r.get("solve_split") or {}
+        k = r.get("timing_replicates")
         for engine in engines:
             t = times.get(engine)
             if not t:
@@ -575,24 +607,27 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -
             rep = repro.get(engine)
             total, parts = _presim_cells(presim.get(engine))
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"],
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"],
                 total, parts, _sec(median), ci,
                 *([_sec((per_traj.get(engine) or {}).get("median_seconds"))]
                   if per_trajectory else []),
+                *([_sec((split.get(engine) or {}).get("solve_seconds") / k
+                        if (split.get(engine) or {}).get("solve_seconds") is not None and k
+                        else None)] if solve else []),
                 _fmt(speed, ".2f"),
                 "" if rep is None else ("yes" if rep else "NO"),
                 _fmt(r.get("rounds"), "d"), "yes" if r["current"] else "no",
             ]) + " |")
         for engine in sorted(_errored_engines(r) - set(times)):
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
-                "", *([""] if per_trajectory else []), "", "", "",
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
+                "", *([""] if per_trajectory else []), *([""] if solve else []), "", "", "",
                 "yes" if r["current"] else "no",
             ]) + " |")
         for engine in sorted(set(r.get("not_applicable") or {}) - set(times)):
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", "n/a",
-                "", *([""] if per_trajectory else []), "", "", "",
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"], "", "", "n/a",
+                "", *([""] if per_trajectory else []), *([""] if solve else []), "", "", "",
                 "yes" if r["current"] else "no",
             ]) + " |")
     lines += ["", "Times in seconds. *pre-sim* is the one-time load/build before the "
@@ -614,4 +649,11 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False) -
                   "the ensemble size. For bngsim, *codegen* is building the SSA simulator, "
                   "which compiles the propensities where it can [cc]. *n/a*: the reference "
                   "cannot simulate this model's exact SSA, so it was not run."]
+    if solve:
+        lines += ["", "*solve per trajectory* is each engine's own account of its solve, apart "
+                  "from its start-up: bngsim's session simulate calls (wall), NFsim's "
+                  "reported simulation CPU time, rm_driver's reported simulation time. For a "
+                  "network-free bngsim, *xml* is BNG2.pl writing the BNG-XML and *load* "
+                  "building the session from it; NFsim's runs are BNG2.pl processes, which "
+                  "parse the model and write the XML for every trajectory."]
     return lines

@@ -57,8 +57,10 @@ def netgen_bngl(text: str, netgen_call: str) -> str:
     ends = list(_END_MODEL_RE.finditer(text))
     if ends:
         text = text[: ends[-1].end()]
-    # Join backslash continuations so a multi-line action is removed whole.
-    text = re.sub(r"\\\s*\n", " ", text)
+    # Join backslash continuations so a multi-line action is removed whole. As
+    # BNG2.pl joins them: the next line appended as it is, with no space put in
+    # (a species graph continued after its "." must not be split by one).
+    text = re.sub(r"\\\s*\n", "", text)
     kept = [
         ln for ln in text.splitlines()
         if not _ACTION_LINE_RE.match(ln.strip()) or _KEEP_SETOPTION_RE.match(ln)

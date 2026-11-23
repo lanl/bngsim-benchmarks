@@ -187,6 +187,15 @@ def test_netgen_model_keeps_a_non_ascii_comment(tmp_path):
     assert p.read_text(encoding="utf-8") == out
 
 
+def test_netgen_joins_a_continued_line_as_bng2pl_does():
+    # A species graph continued after its "." must come out whole: BNG2.pl appends
+    # the next line as it is, and a space put in would split the graph in two.
+    text = MODEL.replace("end model", "begin seed species\n  A(b!1).\\\nB(a!1) 10\n"
+                         "end seed species\nend model")
+    out = ode.netgen_bngl(text, NETGEN)
+    assert "A(b!1).B(a!1) 10" in out
+
+
 def test_read_dat_without_header_names_columns(tmp_path):
     p = tmp_path / "x.cdat"
     p.write_text("0 1 2 3\n")

@@ -202,3 +202,30 @@ def test_amici_check_passes_when_it_compiles_and_runs():
     env = types.SimpleNamespace(
         amici_identity=lambda: {"version": bench_env.amici_identity().get("version")})
     assert cli._check_amici_loads(env) is True
+
+
+def test_nfsim_check_reads_the_version_off_its_banner(monkeypatch):
+    env = types.SimpleNamespace(
+        nfsim_identity=lambda: {"version": "1.14.3", "path": "/bng/bin/NFsim",
+                                "bundled_with": "BioNetGen 2.9.3"},
+        run_network_launch=lambda: [])
+    monkeypatch.setattr(cli.subprocess, "run", _fake_run(
+        "starting NFsim v1.14.3...\n\n\tNo parameters given, so I won't do anything.", 0))
+    assert cli._check_nfsim_loads(env) is True
+    monkeypatch.setattr(cli.subprocess, "run", _fake_run("starting NFsim v1.15.0...", 0))
+    assert cli._check_nfsim_loads(env) is False
+    monkeypatch.setattr(cli.subprocess, "run", _fake_run(
+        "NFsim: /lib64/libc.so.6: version `GLIBC_2.32' not found (required by NFsim)"))
+    assert cli._check_nfsim_loads(env) is False
+
+
+def test_rulemonkey_check_warns_when_unbuilt_and_fails_when_broken(monkeypatch):
+    missing = types.SimpleNamespace(rulemonkey_identity=lambda: {
+        "version": None, "error": "rm_driver not found (run `bench fetch-rulemonkey`)"})
+    assert cli._check_rulemonkey_runs(missing) is True
+    built = types.SimpleNamespace(rulemonkey_identity=lambda: {
+        "version": "3.13.0", "path": "/rm/bin/rm_driver", "built": True, "compiler": "gcc 15"})
+    monkeypatch.setattr(cli.subprocess, "run", _fake_run("Usage: rm_driver <xml_path> ..."))
+    assert cli._check_rulemonkey_runs(built) is True
+    monkeypatch.setattr(cli.subprocess, "run", _fake_run("rm_driver: GLIBCXX_3.4.32 not found"))
+    assert cli._check_rulemonkey_runs(built) is False
