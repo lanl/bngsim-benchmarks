@@ -61,7 +61,7 @@ The suite is built so that anyone can run it:
 | Re-simulation of a loaded model with new parameters | — | `run_network`, libRoadRunner, AMICI |
 | Exact stochastic simulation (SSA) | `run_network` SSA, libRoadRunner and COPASI (ensemble statistics, §5.3); exact moments of first-order networks; DSMTS analytic moments | `run_network` SSA; libRoadRunner; COPASI (core only) |
 | Partial scaling (PSA) | exact SSA, as the critical population N_c varies; `run_network` PSA | `run_network` PSA; exact SSA |
-| Network-free simulation | standalone NFsim; RuleMonkey; SSA on the generated network where it is finite | standalone NFsim |
+| Network-free simulation (BNGsim's `nf_reject` and `nf_exact`, two settings) | standalone NFsim driven by BNG2.pl through the protocol's own actions; standalone RuleMonkey (same lineage as `nf_exact`, a secondary reference); exact SSA (`run_network`, BNGsim) on the generated network where it is finite (ensemble statistics, §5.4); BNGsim's two engines against each other (recorded) | standalone NFsim; standalone RuleMonkey |
 | Forward sensitivities | AMICI; finite differences | AMICI; COPASI (core only) |
 | Steady state | long-time integration; AMICI steady state | integration to steady state; AMICI |
 | SBML compliance | SBML Test Suite semantic cases; DSMTS | — |
@@ -439,6 +439,87 @@ bootstrap CI, and per trajectory as that divided by the ensemble size. The one-t
 cost before sampling -- BNGsim's load and propensity compile, libRoadRunner's SBML
 load and JIT, COPASI's import -- is measured once, cold, beside it (§6.3);
 run_network loads the `.net` in every trajectory, so its load is inside its time.
+
+### 5.4 Network-free verdicts
+
+A network-free job (`bench.capabilities.nf`) runs one of BNGsim's two network-free
+engines, the system under test of its **setting**: `nf_reject`, the embedded NFsim
+(`NfsimSession`), or `nf_exact`, the embedded RuleMonkey (`RuleMonkeySession`). Both
+read the BNG-XML that BNG2.pl's `writeXML()` writes from the published BNGL, so a
+network-free problem's source is BNGL, and its suites (`nf-xml-*`) are named after
+the format the engines read, as `ode-net` is.
+
+**Protocol fields** (`protocol.nf`, validated in `specs.py`):
+
+| Field | Meaning |
+|---|---|
+| `actions` | `own` (the file's action block) or a list of BNGL actions: the protocol |
+| `replicates` | trajectories per engine in the correctness job (100 to 10^6) |
+| `timing_replicates` | trajectories per timed repetition (default 20) |
+| `seed` | the base seed every engine's seeds derive from (default 1) |
+| `netgen` | for a model whose network is finite: the `generate_network(...)` call that makes exact SSA on it a reference |
+
+`size.nf_events`, the reaction events per trajectory, is a planning estimate only.
+
+**The protocol is the authors'.** Standalone NFsim is run the way BioNetGen runs it:
+BNG2.pl executes the protocol's actions, writing the XML and starting NFsim for each
+network-free `simulate`, and applying any `setParameter` between them, which NFsim's
+own command line cannot do mid-run. `bench.nfactions` reads the actions into
+network-free steps, each with the parameter changes before it, so every other engine
+replays the same protocol: BNGsim's session sets them on the live session, and a step
+after one with `get_final_state=>0` starts from the seed species again, as BNG2.pl's
+would. Only what every engine can follow is accepted: network-free `simulate` steps,
+`setParameter`, and inert actions (`generate_network`, `writeXML`, ...), which are
+dropped; anything else is refused by name. BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
+so on a host whose glibc is too old the job points BNG2.pl at a mirror of the fetched
+distribution whose `NFsim` launches the unchanged binary under the loader swap.
+
+**References.**
+
+- `nfsim`: BNG2.pl and NFsim 1.14.3 (BioNetGen 2.9.3), one BNG2.pl process per
+  trajectory, each step's seed replaced. Its NaN stop on a rate law that divides by a
+  single-copy count (RuleWorld/nfsim#115) is recorded as such.
+- `rulemonkey`: RuleMonkey's `rm_driver` v3.13.0, built from its pinned source with
+  the environment's compiler (`bench fetch-rulemonkey`), one process per trajectory on
+  the same XML. It is the **same code lineage** as BNGsim's `nf_exact` engine (bngsim
+  0.17.2 embeds v3.13.0 plus five vendoring and documentation commits): it checks the
+  embedding and is a cost comparator, a secondary reference, not an algorithmically
+  independent answer. It cannot change a parameter between runs, so a multi-step
+  protocol is `UNSUPPORTED` for it.
+- `run_network` and `bngsim_ssa`: where the spec names `netgen`, exact SSA on the
+  generated network, by BioNetGen and by BNGsim. Network-free simulation of a finite
+  network samples the law of exact SSA on it, so these are the strictest references;
+  they are run from the seed species only (one network-free step).
+
+**The verdict** is §5.3's two-sample test, unchanged, on the model's observables by
+name: a permutation max-T test on per-cell means and variances, false-alarm rate at
+most `alpha` = 10^-3 per comparison, with parity_core's ensemble verdict recorded
+beside it. Each engine draws from a seed block of its own (`nf_reject` 0, `nf_exact`
+1, NFsim 2, RuleMonkey 3, run_network 4, BNGsim SSA 5, times 10^7; a later step that
+restarts from the seed species is 10^6 further on). The job passes only when BNGsim
+agrees with every reference that applies. Recorded beside the verdicts, never scored:
+
+- **the other setting**: BNGsim's other network-free engine, from its own seeds,
+  compared the same way, so the two embedded engines are checked against each other
+  without one's failure being charged to the other;
+- **same seed**: the first five trajectories of the twin reference's own seeds run
+  again by BNGsim -- `nf_exact` against `rm_driver`, `nf_reject` in its NFsim v1.14.3
+  compatibility mode against BNG2.pl's NFsim -- and compared exactly. Two copies of
+  one code fed one seed should give one trajectory.
+
+The ensembles are stored with the record (§6.1), so a changed verdict is re-scored
+without re-simulating.
+
+**Timing.** As §5.3: an ensemble of `timing_replicates` trajectories from the same
+seeds every round, interleaved round-robin with standalone NFsim and RuleMonkey (the
+exact-SSA references are timed by the SSA capability). BNGsim's session is built
+once, cold (`load`, after BNG2.pl's `writeXML`, `xml`); each trajectory re-initialises
+it from the XML and simulates. The references run as fresh processes, so their
+start-up -- for NFsim, BNG2.pl parsing the model and writing the XML every trajectory
+-- is inside their time. Every engine also reports its own solve time (BNGsim's
+session simulate calls; NFsim's reported simulation CPU time; `rm_driver`'s reported
+simulation time), recorded per ensemble beside the wall time, so start-up and solve
+are told apart for each. The speedup view divides by standalone NFsim.
 
 ## 6. Results
 

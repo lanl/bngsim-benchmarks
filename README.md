@@ -24,7 +24,7 @@ suites of 10 published, verified models each, in [`problems/core/`](problems/cor
 
 The correctness job passes only when BNGsim agrees with every reference. The timing
 job interleaves all the engines in one run and reports each engine's absolute time.
-NFsim and PyBNF are on the roadmap as further engines.
+PyBNF is on the roadmap as a further engine.
 
 A second capability, exact stochastic simulation (SSA), compares ensembles of
 BNGsim trajectories with ensembles from `run_network`, libRoadRunner and COPASI on
@@ -32,6 +32,17 @@ the same generated network, and with exact moments where a model has them. Its
 verdict is a statistical test with a stated false-alarm rate, from fixed seeds, so
 it is reproducible (see [docs/DESIGN.md](docs/DESIGN.md) §5.3). It runs on two
 provisional pilot models for now; its core suite is still to be chosen.
+
+A third, network-free simulation, runs BNGsim's two network-free engines (`nf_reject`,
+embedded NFsim, and `nf_exact`, embedded RuleMonkey) as two settings on the BNG-XML
+BNG2.pl writes, against standalone NFsim driven by BNG2.pl through the protocol's own
+actions, standalone RuleMonkey (same code lineage as `nf_exact`, a secondary
+reference), and, where a model's network is finite, exact SSA on it. Its verdict is
+the SSA capability's (see [docs/DESIGN.md](docs/DESIGN.md) §5.4). It runs on two
+provisional pilot models for now. Standalone RuleMonkey has no binary release: `pixi
+run bench fetch-rulemonkey` downloads its pinned source and builds `rm_driver` with the
+environment's compiler (on a cluster, `--download-only` on a node with the network,
+then the build on a compute node).
 
 ## Goals
 
