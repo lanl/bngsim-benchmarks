@@ -1,0 +1,44 @@
+# IGF1 binding to the preformed IGF1 receptor dimer. A provisional pilot problem for forward
+# sensitivities: it exercises the sens capability until the sens-net core suite is chosen and
+# audited (docs/DESIGN.md §3.2; the proposal's member 2). The curated record's file, at the
+# Erickson et al. (2019) Table 1 fit (not the PyBNF job's file, which ships the Kiselyov et al.
+# 2009 pre-fit point). Its rate constants are written per molar and converted to per-molecule
+# rates through derived parameters (Avogadro's number, the reference volume per cell), the free
+# ligand's initial count is a derived parameter too, and a2prime is fixed by detailed balance, so
+# a correct sensitivity follows every chain through a derived parameter, to a rate or to an
+# initial amount. The protocol is the record's own binding time course: 7 pM labelled IGF1 for
+# 4 h, no competitor. The fitted set has seven members, so the problem is differentiated over
+# every independent parameter (11), the fitted seven kept as a setting; the competitor dose,
+# zero here, is differentiated on the labelled dose's 7 pM scale (an absolute FD step).
+id: igf1r_ligand_binding_erickson2019
+layer: pilot
+title: "IGF1 binding to the IGF1 receptor dimer"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 676dd61f11a868f9354609ec3c8d079c77e0361a
+  path: models/igf1r_ligand_binding_erickson2019/igf1r_ligand_binding_erickson2019.bngl
+  sha256: 90672c73670a408a01cb4e660cfde9b43d827c2896171f71a8781b7b9cf13fb3
+  format: bngl
+publications:
+  - citation: "Erickson KE, Rukhlenko OS, Shahinuzzaman M, Slavkova KP, Kholodenko BN, Hlavacek WS, et al. (2019). Modeling cell line-specific recruitment of signaling proteins to the insulin-like growth factor 1 receptor. PLoS Comput Biol 15:e1006706."
+    doi: 10.1371/journal.pcbi.1006706
+  - citation: "Kiselyov VV, Versteyhe S, Gauguin L, De Meyts P (2009). Harmonic oscillator model of the insulin and IGF1 receptors' allosteric binding and activation. Mol Syst Biol 5:243."
+    doi: 10.1038/msb.2008.78
+verification:
+  kind: pending
+  evidence: models/igf1r_ligand_binding_erickson2019/verify_erickson2019.ipynb
+capabilities: [sens]
+protocol:
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 14400
+    n_steps: 48
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    parameters: independent
+    fitted: [a1_perMpers, a2_perMpers, d1, d2, kcr, d1prime, d2prime]
+    parameter_scales: {IGF1_cold_conc: 7.0e-12}
+size:
+  species: 27
+  reactions: 96
+  sens_parameters: 11

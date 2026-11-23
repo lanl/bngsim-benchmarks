@@ -151,6 +151,25 @@ def test_planning_grows_with_the_network_and_the_parameters(sens_spec, write_spe
     assert sens.engine_budget_seconds(big) == sens.ENGINE_BUDGET_CAP_SECONDS
 
 
+def test_the_pilot_specs_load_and_declare_what_they_test():
+    from conftest import REPO
+
+    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
+    igf1r = problems["igf1r_ligand_binding_erickson2019"]
+    atf2 = problems["atf2_phosphoswitch_kirsch2020"]
+    assert igf1r.layer == atf2.layer == "pilot" and not igf1r.suites and not atf2.suites
+    assert igf1r.capabilities == atf2.capabilities == ("sens",)
+    # Fitted sets below 10: every independent parameter, the fitted set as a setting.
+    for p in (igf1r, atf2):
+        assert p.protocol_for("sens")["parameters"] == "independent"
+        assert sens.settings(p) == ["auto", "fitted"] and len(sens.jobs(p)) == 4
+    assert igf1r.protocol_for("sens")["parameter_scales"] == {"IGF1_cold_conc": 7e-12}
+    # atf2 pre-equilibrates at basal activity, then stimulates (D3b).
+    assert atf2.protocol_for("sens")["preequilibration"] == {"duration": 20000,
+                                                             "set": {"Stim": 0}}
+    assert atf2.protocol_for("sens")["stimulus"] == {"Stim": 1}
+
+
 # --------------------------------------------------------------------------- #
 # Choosing the parameters
 # --------------------------------------------------------------------------- #
