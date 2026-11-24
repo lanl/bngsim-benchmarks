@@ -88,6 +88,14 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         row["configurations"] = {name: {"passed": c.get("passed"), "max_error": c.get("max_error")}
                                  for name, c in (m.get("configurations") or {}).items()}
         row["coverage"] = m.get("coverage")
+        if m.get("protocol_phases"):
+            row["phases"] = len(m["protocol_phases"])
+        if m.get("references_agreement"):
+            # BNGsim gave nothing to judge (it refused the protocol): whether the
+            # references agree with each other, as evidence beside the outcome.
+            row["references_agreement"] = {
+                pair: {k: v.get(k) for k in ("passed", "max_error", "n_judged")}
+                for pair, v in m["references_agreement"].items()}
     elif job.kind == CORRECTNESS:
         # One verdict of BNGsim against each reference engine. The table shows the
         # worst agreement across references (the hardest check the row passed) and
@@ -769,7 +777,10 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
               "column it judges is within the tolerance in the JSON row (docs/DESIGN.md §5.6). "
               "*refuted*: the reference disagreed with BNGsim, and on every column it failed "
               "another reference agreed with BNGsim and not with it. *n/a*: the reference "
-              "does not apply to the problem's protocol (COPASI to a two-phase one). "
+              "does not apply to the problem's protocol (COPASI to a multi-phase one). "
+              "*UNSUPPORTED*: BNGsim refused the protocol in its own words (it will not "
+              "carry sensitivities across a species reset); the references' agreement "
+              "with each other is in the JSON row. "
               "*configurations*: each further BNGsim configuration against the default one. "
               "A problem's *[fitted]* row differentiates its fitted set only."]
     return lines
