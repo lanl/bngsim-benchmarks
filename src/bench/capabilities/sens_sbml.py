@@ -430,6 +430,10 @@ class AmiciPetab:
         from amici.sim.sundials.petab.v1 import create_edatas
         from amici.sim.sundials.petab.v1._parameter_mapping import create_parameter_mapping
 
+        import logging
+
+        # AMICI's PEtab mapping logs every condition at DEBUG; a job log needs none of it.
+        logging.getLogger("amici").setLevel(logging.WARNING)
         self._ss = ss
         self.prep, self.proto = prep, prep["proto"]
         f = prep["files"]

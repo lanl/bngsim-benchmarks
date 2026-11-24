@@ -62,9 +62,16 @@ def test_reference_versions_key_only_this_capability(sens_spec, write_spec, monk
     assert correctness.definition["reference_versions"] == {"amici": "1.1.0", "copasi": "4.48.311"}
 
 
-def test_non_bngl_source_gets_no_jobs(sens_spec, write_spec):
-    sens_spec["source"]["format"] = "sbml"
+def test_a_net_source_gets_no_jobs(sens_spec, write_spec):
+    sens_spec["source"]["format"] = "net"
     assert sens.jobs(specs.load(write_spec(sens_spec))) == []
+
+
+def test_an_sbml_source_is_a_petab_problem_not_a_net_protocol(sens_spec, write_spec):
+    # The SBML path (tests/test_sens_sbml.py) takes its protocol from PEtab tables.
+    sens_spec["source"]["format"] = "sbml"
+    with pytest.raises(specs.SpecError, match="PEtab problem"):
+        specs.load(write_spec(sens_spec))
 
 
 def test_a_spec_can_carry_ode_and_sens_and_the_ode_jobs_do_not_change(spec_data, write_spec):
