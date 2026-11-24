@@ -44,11 +44,10 @@ values, the row's placeholder values, parameter-table values and compartment
 sizes, with every assignment-rule target expanded into its rule. Their
 sensitivities follow by the chain rule, ``dy/dp = dh/dx S + dh/dp``, the same
 arithmetic for every engine. The **log-likelihood** of the measurements is
-PEtab's (``petab.v1.calculate.calculate_single_llh``), and also in AMICI's
-convention, which leaves out the data-only Jacobian term of a log-transformed
-observable (``-log(m)``, ``-log(m ln 10)``), so the two are compared like for like;
-its gradient over the sensitivity set is the chain rule through the observable
-and the noise scale.
+PEtab's (``petab.v1.calculate.calculate_single_llh``, which AMICI's cost functions
+match, the Jacobian term of a log-transformed observable included); its gradient
+over the sensitivity set is the chain rule through the observable and the noise
+scale.
 """
 
 from __future__ import annotations
@@ -501,11 +500,14 @@ class OutputModel:
 
     def likelihood(self, out: dict[str, np.ndarray]) -> dict[str, Any]:
         """PEtab's log-likelihood of the measurements, AMICI's convention of it, and
-        the gradient over the sensitivity set (the same in both conventions)."""
+        the gradient over the sensitivity set (the same in both conventions), and the
+    sum over the rows of each gradient component's absolute contributions (the
+    size a gradient near zero at the fitted point is judged against)."""
         prob = self.problem
         llh = 0.0
         jac = 0.0  # the data-only term of a log-transformed observable
         grad = np.zeros(len(self.params))
+        magnitude = np.zeros(len(self.params))
         for j, row in enumerate(prob.rows):
             m, s, sg = row.measurement, out["y"][j], out["sigma"][j]
             ds, dsg = out["sy"][j], out["ssigma"][j]
@@ -531,4 +533,6 @@ class OutputModel:
             llh += value - jterm
             jac += jterm
             grad += dval_ds * ds + dval_dsg * dsg
-        return {"llh": llh, "llh_amici_convention": llh + jac, "gradient": grad}
+            magnitude += np.abs(dval_ds * ds) + np.abs(dval_dsg * dsg)
+        return {"llh": llh, "llh_without_log_jacobian": llh + jac, "gradient": grad,
+                "gradient_magnitude": magnitude}

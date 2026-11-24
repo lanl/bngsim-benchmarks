@@ -93,7 +93,7 @@ DEFAULT_CONFIGURATION = sens.DEFAULT_CONFIGURATION
 # - llh_atol / llh_rtol: BNGsim's log-likelihood against AMICI's, |a - b| <=
 #   llh_atol + llh_rtol |b| (AMICI's own benchmark test compares with atol 1e-3);
 # - gradient_tol: the largest difference of the semi-scaled gradient p dL/dp over
-#   the sensitivity set, as a fraction of its largest component.
+#   the sensitivity set, as a fraction of the gradient's size (``gradient_check``).
 VERDICT = {**sens.VERDICT, "llh_atol": 1e-3, "llh_rtol": 1e-6, "gradient_tol": 1e-3}
 FD_DEFAULTS = {"fd_step": 1e-3, "fd_rtol": 1e-10}
 PREEQ_DEFAULTS = {"preeq_max_time": 1.0e6}
@@ -271,14 +271,16 @@ def _observable_cells(pp: PetabProblem, offsets: np.ndarray, observables: list[s
 # --------------------------------------------------------------------------- #
 # Engines
 # --------------------------------------------------------------------------- #
-def _sample_times(times: np.ndarray) -> tuple[list[float], int]:
-    """The run's sample times from t = 0 and how many leading rows to drop."""
+def _sample_times(times: np.ndarray) -> tuple[list[float], slice]:
+    """The run's sample times from t = 0, and the rows of its output that are the
+    measurement times (a run needs two sample times; a condition measured at t = 0
+    alone is run to a moment after it, and that row dropped)."""
     t = [float(x) for x in times]
     if t[0] > 0:
-        return [0.0, *t], 1
+        return [0.0, *t], slice(1, 1 + len(t))
     if len(t) == 1:
-        return [0.0, max(1e-9, 1e-9 * abs(t[0]))], 0
-    return t, 0
+        return [0.0, 1e-9], slice(0, 1)
+    return t, slice(0, len(t))
 
 
 class BngsimPetab:
@@ -363,14 +365,14 @@ class BngsimPetab:
     def tensors(self, results) -> tuple[list[np.ndarray], list[np.ndarray]]:
         X, S = [], []
         for result, lead in results:
-            x = np.asarray(result.species, dtype=float)[lead:, self.columns] * self.factor
+            x = np.asarray(result.species, dtype=float)[lead, self.columns] * self.factor
             X.append(x)
             if self.params:
                 names = list(result.sensitivity_params)
                 if names != self.params:
                     raise RuntimeError(f"bngsim returned sensitivities for {names[:5]}..., not "
                                        f"the {len(self.params)} parameters asked for")
-                s = np.asarray(result.sensitivities, dtype=float)[lead:, self.columns, :]
+                s = np.asarray(result.sensitivities, dtype=float)[lead, self.columns, :]
                 S.append(s * self.factor[None, :, None])
                 self.stats = dict(getattr(result, "solver_stats", None) or {})
             else:
@@ -507,12 +509,10 @@ class AmiciPetab:
             ts = np.asarray(rd.ts, dtype=float)
             it = np.searchsorted(ts, c.times)
             x = np.asarray(rd.x, dtype=float)[it][:, self.idx]
-            sx = np.asarray(rd.sx, dtype=float)  # (nt, np_free, nx)
-            if sx.shape[1] != len(self.free):
-                raise RuntimeError(f"AMICI's sx has {sx.shape[1]} parameters, its model "
-                                   f"{len(self.free)}")
+            sx = np.asarray(rd.sx, dtype=float)  # (nt, len(plist), nx)
+            cols = self._plist_columns(k, sx.shape[1])
             s = np.full((len(it), len(self.idx), len(params)), np.nan)
-            s_cov = np.transpose(sx[it][:, self.pidx, :], (0, 2, 1))[:, self.idx, :]
+            s_cov = np.transpose(sx[it][:, cols, :], (0, 2, 1))[:, self.idx, :]
             s[:, :, self.covered] = _unscale(
                 s_cov, values[self.covered], [sc for sc, cv in zip(scales, self.covered) if cv])
             if not (np.all(np.isfinite(x)) and np.all(np.isfinite(s[:, :, self.covered]))):
@@ -520,6 +520,23 @@ class AmiciPetab:
             X.append(x)
             S.append(s)
         return X, S
+
+    def _plist_columns(self, k: int, width: int) -> list[int]:
+        """The columns of condition ``k``'s ``sx``/``sy`` that hold the covered
+        parameters: AMICI's PEtab simulation differentiates, per condition, only the
+        model parameters its ``ExpData.plist`` names (those mapped to estimated
+        PEtab parameters there)."""
+        plist = [int(i) for i in self.edatas[k].plist]
+        if len(plist) != width:
+            raise RuntimeError(f"AMICI's sensitivities have {width} parameters, its plist "
+                               f"{len(plist)}")
+        out = []
+        for f in self.pidx:
+            if f not in plist:
+                raise RuntimeError(f"AMICI does not differentiate {self.free[f]} in its "
+                                   f"condition {k}")
+            out.append(plist.index(f))
+        return out
 
     def observables(self, res) -> tuple[np.ndarray, np.ndarray]:
         """AMICI's own observable value and sensitivities at every measurement row."""
@@ -535,7 +552,8 @@ class AmiciPetab:
             it = int(np.searchsorted(ts, row.time))
             io = self.obs_ids.index(row.observable)
             y[j] = float(np.asarray(rd.y)[it, io])
-            s = np.asarray(rd.sy, dtype=float)[it, self.pidx, io]
+            sy_all = np.asarray(rd.sy, dtype=float)
+            s = sy_all[it, self._plist_columns(self.order[row.condition], sy_all.shape[1]), io]
             sy[j, self.covered] = _unscale(s, prep["values"][self.covered], scales)
         return y, sy
 
@@ -599,18 +617,23 @@ class RoadRunnerPetab:
             rr.reset()
             self._set({}, cond.preeq_species)
             rr.simulate(0.0, float(self.prep["proto"]["preeq_max_time"]), 2)
-            rates = np.abs(np.asarray(rr.getRatesOfChange(), dtype=float))
-            state = np.abs(np.asarray(rr.getFloatingSpeciesConcentrations(), dtype=float))
-            self.preeq_residual.append(float(np.max(rates / np.maximum(state, 1e-12)))
-                                       if rates.size else 0.0)
+            try:  # a diagnostic: how far from steady the integration ended
+                rates = np.abs(np.asarray(rr.model.getFloatingSpeciesConcentrationRates(),
+                                          dtype=float))
+                state = np.abs(np.asarray(rr.model.getFloatingSpeciesConcentrations(),
+                                          dtype=float))
+                self.preeq_residual.append(float(np.max(rates / np.maximum(state, 1e-12)))
+                                           if rates.size else 0.0)
+            except Exception:  # noqa: BLE001 - not part of the result
+                self.preeq_residual.append(float("nan"))
             self._set({**cond.parameters, **over}, cond.species)
         else:
             self._set({**cond.parameters, **over}, {})
             rr.reset()
             self._set({}, cond.species)
-        sample, lead = _sample_times(cond.times)
+        sample, rows = _sample_times(cond.times)
         out = np.asarray(rr.simulate(times=sample), dtype=float)
-        return out[lead:, 1:]
+        return out[rows, 1:]
 
     def config(self) -> dict[str, Any]:
         out = {"integrator": "cvode", "version": env.roadrunner_identity().get("version"),
@@ -770,20 +793,30 @@ def llh_check(bn: float, ref: float | None) -> dict[str, Any]:
 
 
 def gradient_check(bn: np.ndarray, ref: np.ndarray, scales: np.ndarray,
-                   params: list[str]) -> dict[str, Any]:
+                   params: list[str], magnitude: np.ndarray | None = None) -> dict[str, Any]:
+    """BNGsim's semi-scaled gradient ``p dL/dp`` against a reference's, as a fraction
+    of the gradient's own size. At the nominal parameters -- the authors' fit --
+    the gradient is near zero: a sum of the rows' contributions that cancel. So the
+    size it is held to is the larger of its largest component and the largest
+    sum of the absolute row contributions (``magnitude``, the likelihood's
+    ``gradient_magnitude``): an error in the derivative of one row shows at that
+    scale, the integrator's error in a cancelled sum does not."""
     a, b = np.asarray(ref, float) * scales, np.asarray(bn, float) * scales
     ok = np.isfinite(a)
     if not ok.any():
         return {"passed": None, "reason": "the reference differentiated no parameter"}
     peak = float(np.max(np.abs(b[ok])))
-    if peak == 0.0 or not np.isfinite(peak):
+    size = peak
+    if magnitude is not None:
+        size = max(size, float(np.max(np.abs(np.asarray(magnitude, float) * scales))))
+    if size == 0.0 or not np.isfinite(size):
         return {"passed": bool(np.allclose(a[ok], b[ok])), "max_rel_difference": None}
-    rel = np.abs(a - b) / peak
+    rel = np.abs(a - b) / size
     k = int(np.nanargmax(np.where(ok, rel, -1.0)))
     err = float(rel[k])
     return {"passed": bool(err <= VERDICT["gradient_tol"]), "max_rel_difference": err,
             "worst_parameter": params[k], "tol": VERDICT["gradient_tol"],
-            "n_parameters": int(ok.sum()), "semi_scaled_peak": peak}
+            "n_parameters": int(ok.sum()), "semi_scaled_peak": peak, "semi_scaled_size": size}
 
 
 # --------------------------------------------------------------------------- #
@@ -812,8 +845,9 @@ def _cold_bngsim(prep: dict[str, Any], name: str):
         sig, y = output_tensors(prep, X, S, out["y"], out["sy"])
         config = {**eng.config(), "solve_seconds": solve,
                   "cold_seconds": time.perf_counter() - t0,
-                  "llh": lik["llh"], "llh_amici_convention": lik["llh_amici_convention"],
-                  "gradient": lik["gradient"].tolist()}
+                  "llh": lik["llh"], "llh_without_log_jacobian": lik["llh_without_log_jacobian"],
+                  "gradient": lik["gradient"].tolist(),
+                  "gradient_magnitude": lik["gradient_magnitude"].tolist()}
         return np.concatenate([sig, y[:, :, None]], axis=2), config
     return fn
 
@@ -858,7 +892,6 @@ def _cold_fd(prep: dict[str, Any]):
         lik = om.likelihood(of)
         config = {**eng.config(), "covered": [True] * len(prep["params"]),
                   "cold_seconds": time.perf_counter() - t0, "llh": lik["llh"],
-                  "llh_amici_convention": lik["llh_amici_convention"],
                   "gradient": lik["gradient"].tolist()}
         return np.concatenate([sig_f, sig_c, y[:, :, None]], axis=2), config
     return fn
@@ -939,18 +972,17 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         bcfg = configs[DEFAULT_CONFIGURATION]
         g_bn = np.asarray(bcfg["gradient"], float)
         if "amici" in references:
-            checks["llh_vs_amici"] = llh_check(bcfg["llh_amici_convention"],
-                                               references["amici"]["llh"])
+            checks["llh_vs_amici"] = llh_check(bcfg["llh"], references["amici"]["llh"])
             checks["gradient_vs_amici"] = gradient_check(
                 g_bn, np.asarray(references["amici"]["gradient"], float), prep["scales"],
-                prep["params"])
+                prep["params"], np.asarray(bcfg["gradient_magnitude"], float))
         if "fd_roadrunner" in references:
             checks["llh_vs_fd_roadrunner_nominal"] = llh_check(
-                bcfg["llh_amici_convention"], references["fd_roadrunner"]["llh_amici_convention"])
+                bcfg["llh"], references["fd_roadrunner"]["llh"])
         ref_llh = prep["proto"].get("llh_reference")
         if ref_llh is not None:
-            checks["llh_vs_amici_benchmark_reference"] = llh_check(
-                bcfg["llh_amici_convention"], float(ref_llh))
+            checks["llh_vs_amici_benchmark_reference"] = llh_check(bcfg["llh"],
+                                                                   float(ref_llh))
         info["problem_checks"] = checks
     elif len(ref_runs) > 1:
         a, b = list(ref_runs)
