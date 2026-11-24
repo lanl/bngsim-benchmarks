@@ -41,7 +41,11 @@ capability's: a permutation max-T test on per-cell means and variances, with an
 exact false-alarm rate of ``VERDICT["alpha"]`` per comparison, and bngsim's own
 ``parity_core`` ensemble verdict recorded beside it (docs/DESIGN.md §5.3, §5.5). The
 job passes only when BNGsim agrees with every reference. Failures are attributed
-as in ``ssa``. Recorded beside the verdicts, and not gating:
+as in ``ssa``, with one rule more: ``rm_driver`` is of BNGsim's own code lineage, so
+alone it can neither pass nor refute BNGsim (``verdict_outcome``). A PASS needs at
+least one independent reference that applies (NFsim always does) to have agreed,
+and a disagreement only ``rm_driver`` finds is attributed to it (REFERENCE_FAILED),
+not a DIFF. Recorded beside the verdicts, and not gating:
 
 - the other network-free setting of BNGsim, drawn from its own seeds and compared
   the same way (``cross_setting``): the two embedded engines against each other;
@@ -108,9 +112,11 @@ TIMING_PROTOCOL = {"warmup_rounds": 1, "min_rounds": 5, "max_rounds": 20, "budge
 REPRO_CHECK_VERSION = 1
 REPRO_TOL = 1e-9
 
-# The SSA capability's ensemble verdict, unchanged (bench.stochastic): in the
-# correctness definition, so a change restales every correctness result.
-VERDICT = dict(SSA_VERDICT)
+# The SSA capability's ensemble verdict (bench.stochastic), and how the per-reference
+# verdicts combine into the outcome (``verdict_outcome``): in the correctness
+# definition, so a change restales every correctness result (re-scored by
+# ``bench rescore`` from its stored ensembles).
+VERDICT = {**SSA_VERDICT, "independent_reference_rule": 1}
 
 DEFAULT_SEED = 1
 DEFAULT_TIMING_REPLICATES = 20
@@ -132,6 +138,12 @@ COMPARISON_INDEX = {"nfsim": 0, "rulemonkey": 1, "run_network": 2, "bngsim_ssa":
 RULEMONKEY_LINEAGE = ("same code lineage as bngsim's embedded nf_exact engine (RuleMonkey "
                       "v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator "
                       "and secondary reference, not an algorithmically independent answer")
+# References of BNGsim's own network-free code lineage. They are run, compared and
+# stored like any other, and a PASS needs their agreement, but alone they can
+# neither pass nor refute BNGsim: a PASS needs at least one independent reference
+# that applies to have agreed, and a disagreement that only a same-lineage
+# reference finds is attributed to it (REFERENCE_FAILED), never a DIFF of BNGsim.
+SAME_LINEAGE_REFERENCES = frozenset({"rulemonkey"})
 
 
 def protocol(problem: Problem) -> dict[str, Any]:
@@ -775,19 +787,73 @@ def _same_seed(bn: np.ndarray, ref: np.ndarray) -> dict[str, Any]:
             "max_abs_difference": max(diffs) if diffs else None}
 
 
+def independent(applicable: list[str]) -> list[str]:
+    """The references in ``applicable`` that are not of BNGsim's own network-free
+    code lineage (``SAME_LINEAGE_REFERENCES``)."""
+    return [name for name in applicable if name not in SAME_LINEAGE_REFERENCES]
+
+
+def verdict_outcome(bn_error: str | None, ref_errors: dict[str, str], applicable: list[str],
+                    verdicts: dict[str, Any]) -> str:
+    """The outcome, with the same-lineage rule on top of ``_common.outcome``.
+
+    A BNGsim failure is EXCEPTION (TIMEOUT when it ran out of time), BAD_TEST when
+    every reference failed too. Otherwise any reference that failed to run makes it
+    REFERENCE_FAILED, as before. With every reference compared: PASS needs BNGsim to
+    agree with all of them *and* at least one independent reference to apply; DIFF
+    needs an independent reference to disagree. A same-lineage reference alone
+    (``rm_driver``, the upstream of the embedded ``nf_exact``) decides neither: with
+    no independent reference, or when it is the only one to disagree, the outcome is
+    REFERENCE_FAILED.
+    """
+    if bn_error:
+        result = outcome(bn_error, ref_errors, len(applicable), False)
+        return "TIMEOUT" if bn_error.startswith("TIMEOUT") and result == "EXCEPTION" else result
+    if ref_errors or not verdicts:
+        return "REFERENCE_FAILED"
+    judges = [name for name in independent(applicable) if name in verdicts]
+    if not judges:
+        return "REFERENCE_FAILED"
+    if all(verdicts[name].get("passed") for name in applicable if name in verdicts):
+        return "PASS"
+    if any(not verdicts[name].get("passed") for name in judges):
+        return "DIFF"
+    return "REFERENCE_FAILED"
+
+
+def verdict_basis(applicable: list[str], verdicts: dict[str, Any], result: str) -> dict[str, Any]:
+    """Which references could decide the outcome, recorded with it: the
+    independent ones, the same-lineage ones, and, where it happened, the
+    disagreement that only a same-lineage reference found."""
+    basis: dict[str, Any] = {"independent": independent(applicable),
+                             "same_lineage": [n for n in applicable
+                                              if n in SAME_LINEAGE_REFERENCES]}
+    alone = [n for n in basis["same_lineage"]
+             if n in verdicts and not verdicts[n].get("passed")]
+    if alone and result == "REFERENCE_FAILED" and all(
+            verdicts[n].get("passed") for n in basis["independent"] if n in verdicts):
+        basis["same_lineage_disagreement"] = (
+            f"only {', '.join(alone)} disagrees with BNGsim; a reference of BNGsim's own "
+            "code lineage cannot refute it alone, so the disagreement is the reference's")
+    if not basis["independent"]:
+        basis["no_independent_reference"] = ("no independent reference applies, so BNGsim "
+                                              "can neither pass nor be refuted")
+    return basis
+
+
 def _score(bn: np.ndarray | None, ensembles: dict[str, np.ndarray], seed: int,
            grid: np.ndarray, names: list[str], bn_error: str | None,
-           ref_errors: dict[str, str], n_refs: int) -> tuple[dict[str, Any], str]:
+           ref_errors: dict[str, str], applicable: list[str]
+           ) -> tuple[dict[str, Any], str, dict[str, Any]]:
     verdicts: dict[str, Any] = {}
     if bn is not None:
         for name, stack in ensembles.items():
             _progress(f"verdict vs {name}")
             verdicts[name] = two_sample(bn, stack, name, seed, grid, names)
-    passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
-    result = outcome(bn_error, ref_errors, n_refs, passed)
-    if bn_error and bn_error.startswith("TIMEOUT") and result == "EXCEPTION":
-        result = "TIMEOUT"
-    return verdicts, result
+            if name in SAME_LINEAGE_REFERENCES:
+                verdicts[name]["same_lineage"] = True
+    result = verdict_outcome(bn_error, ref_errors, applicable, verdicts)
+    return verdicts, result, verdict_basis(applicable, verdicts, result)
 
 
 def other_setting(setting: str) -> str:
@@ -869,8 +935,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
             info["same_seed"] = {"engine": twin, **_same_seed(out["trajectory"],
                                                               ensembles[twin][:k])}
 
-    verdicts, result = _score(bn, ensembles, seed, grid, names, bn_error, ref_errors,
-                              len(applicable))
+    verdicts, result, basis = _score(bn, ensembles, seed, grid, names, bn_error, ref_errors,
+                                     applicable)
     if bn is not None and cross_stack is not None:
         info["cross_setting"]["verdict"] = two_sample(bn, cross_stack, "cross_setting", seed,
                                                       grid, names)
@@ -879,7 +945,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
                                              *ensembles.items())
                          if stack is not None}
 
-    rec: dict[str, Any] = {"outcome": result, "measurements": info}
+    rec: dict[str, Any] = {"outcome": result, "measurements": info, "verdict_basis": basis}
     if verdicts:
         rec["verdicts"] = verdicts
     if bn_error:
@@ -909,9 +975,9 @@ def rescore(job: Job, record: dict[str, Any], arrays: dict[str, np.ndarray]) -> 
     refs = {name: arrays[name] for name in applicable if name in arrays}
     ref_errors = {name: str(record[f"{name}_error"]) for name in applicable
                   if record.get(f"{name}_error")}
-    verdicts, result = _score(arrays.get("bngsim"), refs, seed, grid, names,
-                              record.get("bngsim_error"), ref_errors, len(applicable))
-    update: dict[str, Any] = {"outcome": result}
+    verdicts, result, basis = _score(arrays.get("bngsim"), refs, seed, grid, names,
+                                     record.get("bngsim_error"), ref_errors, applicable)
+    update: dict[str, Any] = {"outcome": result, "verdict_basis": basis}
     if verdicts:
         update["verdicts"] = verdicts
     m = dict(record.get("measurements") or {})

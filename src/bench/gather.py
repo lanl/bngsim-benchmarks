@@ -40,6 +40,16 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
                                   "z_max": v.get("z_max"), "alpha": v.get("alpha"),
                                   "replicates": v.get("replicates"), "test": v.get("test")}
                            for name, v in verdicts.items()}
+        basis = rec.get("verdict_basis") or {}
+        if basis.get("same_lineage_disagreement"):
+            # Network-free: a disagreement only a reference of BNGsim's own code
+            # lineage found is the reference's, refuted by the independent ones.
+            agreed = [n for n in basis.get("independent") or []
+                      if (row["verdicts"].get(n) or {}).get("passed")]
+            for name in basis.get("same_lineage") or []:
+                v = row["verdicts"].get(name)
+                if v is not None and not v.get("passed"):
+                    v["refuted_by"] = agreed
         ps = [_p_value(v) for v in verdicts.values() if _p_value(v) is not None]
         row["min_p_value"] = min(ps) if ps else None
         row["replicates"] = (m.get("ensembles") or {}).get("bngsim", {}).get("replicates")
@@ -489,7 +499,8 @@ def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     """One row per problem, as ``_correctness_table`` but for a statistical verdict:
     the smallest p-value over the comparisons beside the outcome and the agreement
     label, the ensemble size, and each comparison's result with its p-value --
-    ``ok (p 0.41)``, ``DIFF (p 0.0005)``, or why a reference did not run. A
+    ``ok (p 0.41)``, ``DIFF (p 0.0005)``, ``refuted`` (a network-free reference of
+    BNGsim's own lineage alone disagreed), or why a reference did not run. A
     comparison fails when its p-value is at most alpha (in the JSON row)."""
     refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
                   | {name for r in rows for name in _errored_engines(r)})
@@ -506,7 +517,8 @@ def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
             v = verdicts.get(name)
             if v is not None:
                 p = v.get("p_value")
-                cells.append(("ok" if v.get("passed") else "DIFF")
+                cells.append(("ok" if v.get("passed") else
+                              "refuted" if v.get("refuted_by") else "DIFF")
                              + (f" (p {p:.2g})" if p is not None else ""))
             elif name in errs:
                 cells.append(_why(r, name))

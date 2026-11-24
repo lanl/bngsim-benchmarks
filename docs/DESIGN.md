@@ -602,7 +602,28 @@ beside it. Each engine draws from a seed block of its own (`nf_reject` 0, `nf_ex
 1, NFsim 2, RuleMonkey 3, run_network 4, BNGsim SSA 5, times 10^7). A later
 network-free step's seed is 10^6 further on: BNG2.pl starts NFsim afresh for every step,
 while BNGsim's session carries its random stream on unless the step restarts from the
-seed species. The job passes only when BNGsim agrees with every reference that applies. Recorded beside the verdicts, never scored:
+seed species. The job passes only when BNGsim agrees with every reference that applies.
+
+**Independent references.** `rm_driver` is the upstream of BNGsim's own `nf_exact`
+engine (five same-seed trajectories in five identical on the CaMKII pilot), so alone it
+can neither pass nor refute BNGsim (`nf.verdict_outcome`, recorded per job as
+`verdict_basis`):
+
+- a PASS needs at least one *independent* reference that applies -- one not of BNGsim's
+  network-free code lineage: NFsim, which applies to every protocol, or, on a finite
+  network, exact SSA -- to have agreed, beside the agreement of every other;
+- a DIFF needs an independent reference to disagree. When `rm_driver` is the only one to
+  disagree, the disagreement is its own: REFERENCE_FAILED, its verdict marked
+  `refuted` in the gathered table;
+- with no independent reference compared, the outcome is REFERENCE_FAILED.
+
+BNGsim's own exact SSA on the generated network counts as independent here: another
+algorithm on another representation of the model, so a disagreement with it is a
+disagreement within BNGsim, which a DIFF should report. The rule is part of the
+verdict's definition (`independent_reference_rule`), so a change to it is re-scored
+from the stored ensembles.
+
+Recorded beside the verdicts, never scored:
 
 - **the other setting**: BNGsim's other network-free engine, from its own seeds,
   compared the same way, so the two embedded engines are checked against each other
