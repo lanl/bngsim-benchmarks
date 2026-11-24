@@ -1,0 +1,37 @@
+# CaMKII holoenzyme activation with PP1. A core problem: member 6 of the ss-net suite (docs/DESIGN.md
+# §3.2). The record's _pp1 variant: the hexamer ring with a Michaelis-Menten PP1, which reaches a true
+# (non-equilibrium) steady state. The dose is the buffered ($-clamped) CaM4, through its total
+# CaM4_tot. The scan, horizon and tolerances are the file's own parameter_scan (CaM4_tot 1e-4 to 1 uM,
+# 25 points, log, to 20000 s at rtol 1e-10, atol 1e-14): the middle curve of Fig. 5a, at 1 uM PP1.
+id: camkii_holoenzyme_activation_michalski2012_pp1
+layer: core
+title: "CaMKII holoenzyme activation with PP1"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/camkii_holoenzyme_activation_michalski2012/camkii_holoenzyme_activation_michalski2012_pp1.bngl
+  sha256: 5f49583aa91f681dcd5958cffe3f830bc6b745c14a20e04d71e6286feb7f569a
+  format: bngl
+publications:
+  - citation: "Michalski PJ, Loew LM (2012). CaMKII activation and dynamics are independent of the holoenzyme structure: an infinite subunit holoenzyme approximation. Phys Biol 9:036010."
+    doi: 10.1088/1478-3975/9/3/036010
+verification:
+  kind: data
+  evidence: models/camkii_holoenzyme_activation_michalski2012/verify_michalski2012.ipynb
+  check: "vector-extracted Fig. 5a equilibrium curves (hexamer at 0.1, 1 and 10 uM PP1) vs BNG2.pl on this file, max |dFP| 0.004 asserted"
+  result: "max |dFP| < 5e-5 at all three PP1 levels"
+  supporting: "equations: an independent enumeration of the ring network (necklaces of U/C/P subunits) reproduces this file's 132 species and 868 reactions and the paper's Table 1, and its ODE solution matches BNG2.pl to 5.4e-9"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 20000
+    n_steps: 100
+    rtol: 1.0e-10
+    atol: 1.0e-14
+    scan: {parameter: CaM4_tot, min: 1.0e-4, max: 1, points: 25, log: true}
+size:
+  species: 132
+  reactions: 868
+suites:
+  ss-net: 6

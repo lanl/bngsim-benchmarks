@@ -1,0 +1,50 @@
+# UCH-L1 and protein aggregation in age-related neurodegeneration (BioModels BIOMD0000000293).
+# A core problem: member 10 of the ssa-sbml suite, the largest (136 species, 316 reactions).
+# A stochastic model; the curators reproduced Fig. 2 in COPASI (stochastic, Gibson-Bruck) over
+# 0-20 h, the horizon here (72000 s). Nine parameters are set by assignment rules; Lysosome is
+# never changed (not compared). About 8.6e6 events per trajectory: replicates is 200 (decided
+# 2026-11-24).
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the converter writes non-mass-action laws as per-species flux
+# reactions, the same ODE with other jumps); the harness derives the network and records the
+# reason in every result. size.ssa_ms_run_network is 0 for planning only.
+id: uchl1_protein_aggregation_proctor2010
+layer: core
+title: UCH-L1 and protein aggregation in neurodegeneration
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000293/BIOMD0000000293_url.xml
+  sha256: a74bfd839f5feed3ede90bbbdf34a4553140e0969d25c52424a3d81367f6d645
+  format: sbml
+publications:
+- citation: Proctor CJ, Tangeman PJ, Ardley HC (2010). Modelling the role of UCH-L1 on protein aggregation
+    in age-related neurodegeneration. PLoS ONE 5:e13175.
+  doi: 10.1371/journal.pone.0013175
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000293 curation notes and curation image
+  check: 'BioModels curation: Fig. 2 reproduced in COPASI 4.6 with Stochastic (Gibson + Bruck), 0-20 h'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 72000
+    n_steps: 100
+    replicates: 200
+    timing_replicates: 1
+    seed: 1
+size:
+  species: 136
+  reactions: 316
+  ssa_events: 8577000
+  ssa_ms_bngsim: 51400
+  ssa_ms_roadrunner: 35500
+  ssa_ms_copasi: 11900
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 10
