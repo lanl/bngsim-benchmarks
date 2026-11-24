@@ -23,11 +23,13 @@ verification:
   evidence: >-
     models/blbr_dembo1978/verify_dembo1978.ipynb
   check: >-
-    NFsim (BNG2.pl) cross-linking against the exact equilibrium theory of Dembo and Goldstein (1978)
+    BNG2.pl NFsim at three hapten doses (the file's own the middle one), 20 distinct seeds each: bonds, cross-links and free receptors against the exact chain theory at equilibrium (max |z| < 4) and against the Perelson-DeLisi ODEs at 10/40/100/300/1000 s (max |z| < 4.5); asserted
   result: >-
-    none at 676dd61: the notebook had never been executed (one fixed seed per dose)
+    equilibrium max |z| 1.66; kinetics max |z| 2.16 (over every transient time, reported: 3.26, 99.5% within 3); the file's seed-42 run reproduces reference/ exactly (after the references were regenerated with stock BioNetGen 2.9.3)
+  supporting: >-
+    the file reaches equilibrium within 1% by 220 s; BNG2.pl's default read-back of the final species (get_final_state) takes over 30 minutes on these chains, which the harness skips on the last step
   pending: >-
-    upstream branch verify-blbr_dembo1978-* (BNGL-Models, not merged): executed with several seeds, asserted; pin the merged sha here when it lands (TODO)
+    BNGL-Models branch verify-blbr_dembo1978-execute-asserts @ 05f6bb4 (on 581af0d; not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:
