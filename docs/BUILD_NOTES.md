@@ -377,3 +377,66 @@ the two platform legs stay comparable.
     keys the sdist build dir and can hold an old `CMakeCache`), clear
     `~/.cache/rattler/cache/uv-cache/{sdists,builds}-*` for amici before a clean
     rebuild.
+
+## Network-free references: standalone NFsim and RuleMonkey
+
+The network-free capability (`docs/DESIGN.md` section 5.5) runs two standalone
+engines beside BNGsim's embedded copies. Neither is in the pinned environment.
+
+### NFsim: the binary BioNetGen bundles, under the loader swap
+
+BioNetGen 2.9.3's `bin/NFsim` is NFsim 1.14.3, and like `run_network` it needs glibc
+≥ 2.34 and `GLIBCXX_3.4.29`; on an older host (RHEL 8, glibc 2.28) it fails to start
+with `GLIBC_2.34 not found`. It is run, unchanged, under the same newer loader
+`pixi run fetch-glibc` installs for `run_network` (section "run_network" above). The
+twist is that the capability runs NFsim through BNG2.pl, which execs
+`$BNGPATH/bin/NFsim` itself, so the loader prefix cannot be put on its command line.
+Each job therefore builds, in its own scratch directory, a mirror of the fetched
+distribution (`env.bng_launch_tree`): every entry a symlink to the original, except
+`bin/NFsim` and `bin/run_network`, which are two-line shell scripts that `exec` the
+unchanged binary under the loader. BNG2.pl is run with `BNGPATH` naming the mirror.
+The binaries' bytes, and so BioNetGen's sha256 in every fingerprint, are untouched.
+Where no loader swap is configured (a host whose glibc is new enough, macOS), the
+distribution is used as it is. Nothing to install beyond `fetch-bionetgen` and
+`fetch-glibc`; `bench doctor` launches NFsim and checks that its banner reports
+v1.14.3.
+
+### RuleMonkey: built from its pinned source
+
+RuleMonkey (MIT, <https://github.com/richardposner/RuleMonkey>) publishes source
+releases only. `bench fetch-rulemonkey` builds its command-line driver `rm_driver`
+reproducibly:
+
+- **Source:** the v3.13.0 release tarball (the tag names commit `ad3bd755`),
+  sha256 `5f5a7c599177aaf92561d3fbed339fc93fc1b3224ef07025d337f6dd2f89d160`, downloaded
+  into `.cache/rulemonkey/downloads/` and unpacked into a new, empty build directory.
+  bngsim 0.17.2 embeds `db7d1dff` = v3.13.0 plus five commits (a vendored
+  expression-layer update, CI wording, documentation), so the driver is the same code
+  lineage as BNGsim's `nf_exact` engine: a cost comparator and secondary reference.
+- **Toolchain:** this environment's CMake (≥ 3.20 required), Ninja and conda-forge
+  C++ compiler (`$CXX`, or the env's `*-conda-linux-gnu-g++`). A compiler outside the
+  environment, such as the host's `/usr/bin/g++` (GCC 8.5 on Darwin), is refused —
+  the ABI rule at the top of this file. `libstdc++` and `libgcc` are linked statically
+  (`-static-libstdc++ -static-libgcc`), so the driver needs only the host's libc at
+  run time, whatever environment runs it.
+- **Configuration:** Release; the driver only (`RULEMONKEY_BUILD_TESTS=OFF`, no
+  examples, no install rules); `RULEMONKEY_WARNINGS_AS_ERRORS=OFF`, since a newer
+  compiler than upstream's CI may warn where it did not.
+- **Install:** `.cache/rulemonkey/RuleMonkey-3.13.0/` holds `bin/rm_driver`, the build
+  log, and `.bench-build.json` (source, recipe, compiler, CMake and Ninja versions,
+  the CMake arguments, the binary's sha256). A build whose marker matches is reused.
+  The harness finds it from `BNGPATH` (as it finds the glibc tree) or from
+  `$BENCH_RULEMONKEY_PATH`, which names any directory holding `bin/rm_driver`.
+
+On a cluster whose compute nodes lack the network, download and build apart:
+
+```bash
+pixi run bench fetch-rulemonkey --download-only   # login node: fetch and check the tarball
+pixi run bench fetch-rulemonkey                   # compute node: build (about 2 min on 16 cores)
+```
+
+Verified on Darwin x86-64 (2026-11-23): conda-forge gcc 15.3.0, CMake 4.4.5,
+Ninja 1.13.2, built in 1.5 min on a `general` node; `rm_driver` seed 1 on the CaMKII
+`_nfsim` XML reproduces BNGsim's `RuleMonkeySession` seed 1 trajectory exactly. Not yet
+built on aarch64: the compiler search matches the out-of-tree env's
+`aarch64-conda-linux-gnu-g++`, so the same command should apply, but that is untested.

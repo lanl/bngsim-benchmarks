@@ -1,11 +1,16 @@
-# Bursty autoregulated gene expression. A provisional pilot problem for exact SSA: it exercises
-# the SSA capability until its core suite is chosen and audited (docs/DESIGN.md §3.2).
+# Bursty autoregulated gene expression. A provisional pilot problem for exact SSA and for partial
+# scaling (PSA): it exercises both capabilities until their core suites are chosen and audited
+# (docs/DESIGN.md §3.2).
 # Protein activates its own transcription through a Hill function (a functional rate), so its
 # moments do not close and the references are the engines alone. Copy numbers are low and bursty:
 # a few transcripts each hour, each translated into a burst of about 40 proteins. The protocol is
 # ours, not the record's: an ensemble from the network's seed species (no mRNA or protein) over one
 # protein lifetime (the model's dilution time, 3600 s), where the record first relaxes the
 # deterministic model and then samples one long trajectory.
+# PSA: low-copy mRNA (0-5) beside a protein that reaches about 1100, whose bimodal stationary
+# distribution over-aggressive scaling would distort. The PSA protocol runs ten protein lifetimes
+# (36000 s) from the seed species, to reach that distribution. The record notes that BioNetGen's
+# PSA aborts on the zeroth-order transcription rule; that is recorded, not worked around.
 id: bursty_autoregulated_gene_expression_lin2016
 layer: pilot
 title: "Bursty autoregulated gene expression"
@@ -21,7 +26,7 @@ publications:
 verification:
   kind: pending
   evidence: models/bursty_autoregulated_gene_expression_lin2016/verify_lin2016.ipynb
-capabilities: [ssa]
+capabilities: [ssa, psa]
 protocol:
   ssa:
     netgen: "generate_network({overwrite=>1})"
@@ -30,7 +35,16 @@ protocol:
     replicates: 10000
     timing_replicates: 100
     seed: 1
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 36000
+    n_steps: 200
+    replicates: 10000
+    timing_replicates: 100
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
 size:
   species: 2
   reactions: 4
   ssa_events: 100
+  psa_events: 4100

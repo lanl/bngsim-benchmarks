@@ -43,6 +43,15 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         ps = [_p_value(v) for v in verdicts.values() if _p_value(v) is not None]
         row["min_p_value"] = min(ps) if ps else None
         row["replicates"] = (m.get("ensembles") or {}).get("bngsim", {}).get("replicates")
+        # Network-free: BNGsim's other engine drawn and compared beside the verdicts,
+        # and the same-seed check of the embedding (recorded, never scored).
+        cross = m.get("cross_setting") or {}
+        if cross.get("verdict"):
+            row["cross_setting"] = {"setting": cross.get("setting"),
+                                    "passed": cross["verdict"].get("passed"),
+                                    "p_value": _p_value(cross["verdict"])}
+        if m.get("same_seed"):
+            row["same_seed"] = m["same_seed"]
     elif job.kind == CORRECTNESS and job.capability in STEADY:
         # One agreement per reference, at every point of the protocol: the worst
         # species' distance from the reference's state over what the verdict allows
@@ -126,6 +135,9 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
                        times_per_trajectory=m.get("times_per_trajectory") or {},
                        bngsim_config={"propensity_backend":
                                       (m.get("bngsim") or {}).get("propensity_backend")})
+            if m.get("solve_split"):
+                # Each engine's own account of its solve, apart from its start-up.
+                row["solve_split"] = m["solve_split"]
     # Any engine's failure is recorded under "<name>_error"; pass every one through,
     # plus the generic "error" of a job that failed before any engine ran.
     for k, val in rec.items():
@@ -136,11 +148,21 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
     # counted as attempted.
     if rec.get("not_applicable"):
         row["not_applicable"] = dict(rec["not_applicable"])
+    # Whatever else a capability reports, by its own hook (psa: per-N_c rows).
+    extra = getattr(_capability(job.capability), "report_fields", None)
+    if extra is not None:
+        row.update(extra(job.kind, m))
     return row
 
 
+def _capability(name: str):
+    from .capabilities import CAPABILITIES
+
+    return CAPABILITIES.get(name)
+
+
 # Capabilities whose correctness verdict is a statistical test on ensembles.
-STOCHASTIC = frozenset({"ssa"})
+STOCHASTIC = frozenset({"ssa", "psa", "nf"})
 # Capabilities whose correctness verdict is a steady state's agreement, point by point.
 STEADY = frozenset({"steady_state"})
 # Capabilities whose correctness verdict is a sensitivity column error.
@@ -229,7 +251,8 @@ def _sec(x: Any) -> str:
 # BNGsim's is network generation + codegen + load; a reference's is its own codegen
 # (AMICI compiles SBML->C++) + load. It is reported beside the solve time because a
 # small solve can hide a large build -- the re-simulation claim (docs/DESIGN.md 1, 7.3).
-_PRESIM_PARTS = ("netgen_seconds", "codegen_seconds", "load_seconds")
+# A network-free BNGsim has no network: its BNG2.pl step writes the XML instead.
+_PRESIM_PARTS = ("netgen_seconds", "xml_seconds", "codegen_seconds", "load_seconds")
 
 
 def _presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -243,6 +266,7 @@ def _presim(m: dict[str, Any]) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {
         "bngsim": {
             "netgen_seconds": m.get("netgen_seconds"),
+            "xml_seconds": m.get("xml_seconds"),
             "codegen_seconds": bng.get("codegen_seconds"),
             "load_seconds": bng.get("load_seconds"),
             "backend": bng.get("codegen_backend") or bng.get("propensity_backend"),
@@ -311,9 +335,12 @@ def _presim_cells(d: dict[str, Any] | None) -> tuple[str, str]:
 # against. run_network is the trusted dense oracle and the historical baseline, so
 # a reader sees "how much faster than run_network" without a stored ratio (6.3).
 SPEEDUP_BASELINE = "run_network"
-# For forward sensitivities the baseline is AMICI, the standard forward-sensitivity
-# tool; run_network there is a plain solve, the unit of a finite-difference gradient.
-SENS_SPEEDUP_BASELINE = "amici"
+# A capability whose references do not include run_network, or for which it is not
+# the tool of record, names its own: the network-free one divides by standalone
+# NFsim, the network-free engine of record; forward sensitivities by AMICI, the
+# standard forward-sensitivity tool (run_network there is a plain solve, the unit of
+# a finite-difference gradient).
+SPEEDUP_BASELINES = {"nf": "nfsim", "sens": "amici"}
 
 
 def _engine_order(rows: list[dict[str, Any]]) -> list[str]:
@@ -337,10 +364,6 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
         lines += [f"## {name}", "", tally + (f" ({stale} not current)" if stale else ""), ""]
         capability = name.rsplit("-", 1)[0]
         stochastic = capability in STOCHASTIC
-        if capability in SENSITIVITY:
-            # A problem runs at more than one setting (its convention, and its fitted
-            # set beside it): name the setting where it is not the default.
-            rows = [{**r, "problem": _with_setting(r)} for r in rows]
         if name.endswith(CORRECTNESS):
             if capability in SENSITIVITY:
                 lines += _sens_correctness_table(rows)
@@ -350,19 +373,16 @@ def render(reports: dict[str, list[dict[str, Any]]]) -> str:
                 lines += (_stochastic_correctness_table(rows) if stochastic
                           else _correctness_table(rows))
         elif name.endswith(TIMING):
+            lines += _timing_table(rows, per_trajectory=stochastic,
+                                   baseline=SPEEDUP_BASELINES.get(capability, SPEEDUP_BASELINE))
             if capability in SENSITIVITY:
-                lines += _timing_table(rows, baseline=SENS_SPEEDUP_BASELINE)
                 lines += _fd_baseline_table(rows)
                 lines += _gradient_table(rows)
-            else:
-                lines += _timing_table(rows, per_trajectory=stochastic)
+        extra = getattr(_capability(capability), "report_lines", None)
+        if extra is not None:
+            lines += extra(name.rsplit("-", 1)[1], rows)
         lines.append("")
     return "\n".join(lines)
-
-
-def _with_setting(r: dict[str, Any]) -> str:
-    setting = r.get("setting")
-    return r["problem"] if setting in (None, "auto") else f"{r['problem']} [{setting}]"
 
 
 def _errored_engines(r: dict[str, Any]) -> set[str]:
@@ -458,6 +478,13 @@ def _correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def _problem_cell(r: dict[str, Any]) -> str:
+    """The problem, with its setting where a capability runs more than one (the
+    network-free ``nf_reject`` and ``nf_exact``); ``auto`` is left unsaid."""
+    setting = r.get("setting")
+    return r["problem"] + (f" [{setting}]" if setting not in (None, "", "auto") else "")
+
+
 def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     """One row per problem, as ``_correctness_table`` but for a statistical verdict:
     the smallest p-value over the comparisons beside the outcome and the agreement
@@ -486,7 +513,7 @@ def _stochastic_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
             else:
                 cells.append("")
         lines.append("| " + " | ".join([
-            r["problem"], _fmt(sp, "d"), r["outcome"], reference_agreement(r),
+            _problem_cell(r), _fmt(sp, "d"), r["outcome"], reference_agreement(r),
             _fmt(r.get("min_p_value"), ".2g"), _fmt(r.get("replicates"), "d"), *cells,
             "yes" if r["current"] else "no",
         ]) + " |")
@@ -607,13 +634,17 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
     # A stochastic timing's repetition is an ensemble: label it so, and add the
     # derived time per trajectory beside it.
     unit = "ensemble" if per_trajectory else "sim"
+    # Where the engines report their own solve time (network-free), it is shown per
+    # trajectory beside the wall time, which for a subprocess holds its start-up.
+    solve = per_trajectory and any(r.get("solve_split") for r in rows)
     header = ["problem", "species", "engine", "outcome", "pre-sim (s)",
               "pre-sim parts (s)", f"{unit} median (s)", f"{unit} 95% CI (s)",
               *(["per trajectory (s)"] if per_trajectory else []),
+              *(["solve per trajectory (s)"] if solve else []),
               f"x {baseline}", "reproducible", "rounds", "current"]
     lines = ["| " + " | ".join(header) + " |",
              "|---|---:|---|---|---:|---|---:|---|" + ("---:|" if per_trajectory else "")
-             + "---:|---|---:|---|"]
+             + ("---:|" if solve else "") + "---:|---|---:|---|"]
     for r in rows:
         sp = (r.get("network") or {}).get("species")
         times = r.get("times") or {}
@@ -624,6 +655,8 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
         # (or failed) row would otherwise publish a speedup against times it distrusts.
         trusted = r.get("outcome") == "PASS"
         base = (times.get(baseline) or {}).get("median_seconds") if trusted else None
+        split = r.get("solve_split") or {}
+        k = r.get("timing_replicates")
         for engine in engines:
             t = times.get(engine)
             if not t:
@@ -635,24 +668,27 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
             rep = repro.get(engine)
             total, parts = _presim_cells(presim.get(engine))
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"],
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"],
                 total, parts, _sec(median), ci,
                 *([_sec((per_traj.get(engine) or {}).get("median_seconds"))]
                   if per_trajectory else []),
+                *([_sec((split.get(engine) or {}).get("solve_seconds") / k
+                        if (split.get(engine) or {}).get("solve_seconds") is not None and k
+                        else None)] if solve else []),
                 _fmt(speed, ".2f"),
                 "" if rep is None else ("yes" if rep else "NO"),
                 _fmt(r.get("rounds"), "d"), "yes" if r["current"] else "no",
             ]) + " |")
         for engine in sorted(_errored_engines(r) - set(times)):
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
-                "", *([""] if per_trajectory else []), "", "", "",
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"], "", "", _why(r, engine),
+                "", *([""] if per_trajectory else []), *([""] if solve else []), "", "", "",
                 "yes" if r["current"] else "no",
             ]) + " |")
         for engine in sorted(set(r.get("not_applicable") or {}) - set(times)):
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(sp, "d"), engine, r["outcome"], "", "", "n/a",
-                "", *([""] if per_trajectory else []), "", "", "",
+                _problem_cell(r), _fmt(sp, "d"), engine, r["outcome"], "", "", "n/a",
+                "", *([""] if per_trajectory else []), *([""] if solve else []), "", "", "",
                 "yes" if r["current"] else "no",
             ]) + " |")
     lines += ["", "Times in seconds. *pre-sim* is the one-time load/build before the "
@@ -674,6 +710,13 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
                   "the ensemble size. For bngsim, *codegen* is building the SSA simulator, "
                   "which compiles the propensities where it can [cc]. *n/a*: the reference "
                   "cannot simulate this model's exact SSA, so it was not run."]
+    if solve:
+        lines += ["", "*solve per trajectory* is each engine's own account of its solve, apart "
+                  "from its start-up: bngsim's session simulate calls (wall), NFsim's "
+                  "reported simulation CPU time, rm_driver's reported simulation time. For a "
+                  "network-free bngsim, *xml* is BNG2.pl writing the BNG-XML and *load* "
+                  "building the session from it; NFsim's runs are BNG2.pl processes, which "
+                  "parse the model and write the XML for every trajectory."]
     return lines
 
 
@@ -715,7 +758,7 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
         bad = sorted(n for n, c in configs.items() if not c.get("passed"))
         n_params = " ".join(filter(None, [_fmt(r.get("parameters"), "d"), r.get("convention")]))
         lines.append("| " + " | ".join([
-            r["problem"], _fmt(sp, "d"), n_params, r["outcome"],
+            _problem_cell(r), _fmt(sp, "d"), n_params, r["outcome"],
             reference_agreement(r), _fmt(r.get("worst_column_err"), ".2e"), *cells,
             ("DIFF (" + ", ".join(bad) + ")") if bad else ("agree" if configs else ""),
             "yes" if r["current"] else "no",
@@ -723,7 +766,7 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     lines += ["", "A *column* is one output's sensitivity to one parameter over time; its error is "
               "the largest difference of the semi-scaled sensitivity p dy/dp, as a fraction of "
               "the column's peak (with absolute floors), and a comparison passes when every "
-              "column it judges is within the tolerance in the JSON row (docs/DESIGN.md §5.4). "
+              "column it judges is within the tolerance in the JSON row (docs/DESIGN.md §5.6). "
               "*refuted*: the reference disagreed with BNGsim, and on every column it failed "
               "another reference agreed with BNGsim and not with it. *n/a*: the reference "
               "does not apply to the problem's protocol (COPASI to a two-phase one). "
@@ -748,7 +791,7 @@ def _fd_baseline_table(rows: list[dict[str, Any]]) -> list[str]:
         for engine, b in sorted((r.get("fd_baselines") or {}).items()):
             plain = (times.get(engine) or {}).get("median_seconds")
             lines.append("| " + " | ".join([
-                r["problem"], _fmt(b.get("parameters"), "d"), engine, _sec(plain),
+                _problem_cell(r), _fmt(b.get("parameters"), "d"), engine, _sec(plain),
                 _sec(b.get("forward_seconds")), _sec(b.get("central_seconds")), _sec(bn),
             ]) + " |")
     return lines
@@ -772,7 +815,7 @@ def _gradient_table(rows: list[dict[str, Any]]) -> list[str]:
         times = r.get("times") or {}
         agree = ((r.get("adjoint") or {}).get("agreement") or {}).get("max_rel_difference")
         lines.append("| " + " | ".join([
-            r["problem"], _fmt(r.get("parameters"), "d"),
+            _problem_cell(r), _fmt(r.get("parameters"), "d"),
             _sec((times.get("bngsim_gradient") or {}).get("median_seconds")),
             _sec((times.get("amici_adjoint") or {}).get("median_seconds")),
             _sec((times.get("amici") or {}).get("median_seconds")),
