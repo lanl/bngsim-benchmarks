@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 from bench import nfactions, specs
-from bench.capabilities import nf
+from bench.capabilities import nf, ssa
 
 ACTIONS = 'simulate({method=>"nf",t_end=>10,n_steps=>10,seed=>4})'
 PROTOCOL = {"actions": ACTIONS, "replicates": 200}
@@ -289,6 +289,17 @@ def test_a_failing_or_unsupported_reference_is_a_reference_failure(monkeypatch, 
     assert "NaN stop" in rec["nfsim_error"]
     assert rec["rulemonkey_error"] == "UNSUPPORTED: two steps"
     assert "same_seed" not in rec["measurements"]
+
+
+def test_a_disagreement_is_a_diff_even_when_another_reference_failed(monkeypatch, tmp_path):
+    _install(monkeypatch, {"nfsim": _fake_reference(boom="NaN stop"),
+                           "rulemonkey": _fake_reference()},
+             bngsim=_fake_bngsim(shift={"nf_exact": 1.5}))
+    rec = nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))
+    assert rec["outcome"] == "DIFF"
+    assert "NaN stop" in rec["nfsim_error"]
+    assert not rec["verdicts"]["rulemonkey"]["passed"]
+    assert nf.VERDICT["outcome_rule"] == ssa.VERDICT["outcome_rule"]
 
 
 def test_bngsim_failing_is_an_exception_and_with_every_reference_a_bad_test(monkeypatch,

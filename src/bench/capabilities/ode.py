@@ -43,7 +43,10 @@ A reference engine that crashes is a result to attribute, not a bug to patch: th
 correctness job records it as ``REFERENCE_FAILED`` with a ``<name>_error`` and
 still scores BNGsim against the references that ran, and the timing job gives each
 reference a trial run, records any crash the same way, and drops it from the timed
-set -- BNGsim and the surviving references are still timed.
+set -- BNGsim and the surviving references are still timed. A disagreement takes
+precedence: when a reference that ran disagrees with BNGsim the outcome is
+``DIFF``, whatever else failed (the failures are still recorded), so a wrong
+answer is never timed.
 
 **Per-engine wall budget.** In the correctness job every engine (BNGsim and each
 reference) builds and solves cold in its own forked child process, with its own
@@ -121,6 +124,7 @@ from ..timing import absolute_time_stats, round_robin_interleaved
 # The method-independent parts of the pipeline live in _common, shared with the
 # other capabilities; they keep their names here, where they were first written.
 from ._common import (  # noqa: F401 - re-exported under their ode names
+    all_passed,
     correctness_timeouts,
     export_sbml,
     generate_network,
@@ -199,8 +203,11 @@ LINEAR_SOLVER_NAMES = {0: "dense", 1: "KLU", 2: "LAPACK-dense"}
 # combined change. It is a correctness-only part of the job definition (as
 # timing_check is timing-only), so every ODE correctness result goes stale -- and
 # ``bench rescore`` re-scores it from its stored trajectories -- while no timing
-# job's definition, id or key changes.
-VERDICT_VERSION = 1
+# job's definition, id or key changes. The outcome rule (``_common.OUTCOME_RULE``)
+# is part of the scoring too, so it moves this as well.
+# 1: the vendored verdict AND the per-species check.
+# 2: outcome rule 2 -- a disagreement is DIFF even when another reference failed.
+VERDICT_VERSION = 2
 SPECIES_TOL = 1e-2
 SPECIES_ATOL_FACTOR = 10.0
 
@@ -1785,9 +1792,8 @@ def _score(bn: np.ndarray | None, refs: dict[str, np.ndarray], configs: dict[str
         for name, traj in refs.items():
             verdicts[name] = _reference_verdict(bn, traj, atol, configs.get(name) or {}, proto,
                                                 species)
-    passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
     outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES) - len(not_applicable),
-                       passed)
+                       all_passed(verdicts))
     if bn_error and bn_error.startswith("TIMEOUT") and outcome == "EXCEPTION":
         outcome = "TIMEOUT"  # BNGsim, not a reference, ran out of time
     return verdicts, outcome

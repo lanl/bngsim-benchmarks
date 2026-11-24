@@ -306,6 +306,23 @@ def test_a_crashing_reference_is_recorded_and_the_rest_still_judge(monkeypatch, 
     assert set(rec["verdicts"]) == {"copasi"} and rec["verdicts"]["copasi"]["passed"]
 
 
+def test_a_disagreement_is_a_diff_even_when_another_reference_failed(monkeypatch, tmp_path):
+    # A crashed (or UNSUPPORTED) reference must not hide a survivor's disagreement:
+    # REFERENCE_FAILED would let the timing job time a wrong answer.
+    _install(monkeypatch, {"run_network": _fake_reference(boom="edgepop"),
+                           "copasi": _fake_reference()}, bngsim=_fake_bngsim(shift=1.5))
+    rec = ssa.run_correctness(None, None, _ctx(tmp_path))
+    assert rec["outcome"] == "DIFF"
+    assert "edgepop" in rec["run_network_error"]
+    assert set(rec["verdicts"]) == {"copasi"} and not rec["verdicts"]["copasi"]["passed"]
+
+
+def test_the_outcome_rule_is_part_of_the_verdict():
+    from bench.capabilities import _common
+
+    assert ssa.VERDICT["outcome_rule"] == _common.OUTCOME_RULE
+
+
 def test_a_reference_out_of_its_budget_is_a_reference_failure(monkeypatch, tmp_path):
     _install(monkeypatch, {"run_network": _fake_reference(sleep=300), "copasi": _fake_reference()})
     rec = ssa.run_correctness(None, None, _ctx(tmp_path, engine_budget_seconds=1.0))

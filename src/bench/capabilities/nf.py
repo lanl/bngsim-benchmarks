@@ -82,6 +82,7 @@ from ..jobs import CORRECTNESS, TIMING, Job
 from ..specs import Problem
 from ..timing import absolute_time_stats, round_robin_interleaved
 from ._common import (
+    all_passed,
     correctness_timeouts,
     engine_role,
     generate_network,
@@ -783,7 +784,7 @@ def _score(bn: np.ndarray | None, ensembles: dict[str, np.ndarray], seed: int,
         for name, stack in ensembles.items():
             _progress(f"verdict vs {name}")
             verdicts[name] = two_sample(bn, stack, name, seed, grid, names)
-    passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
+    passed = all_passed(verdicts)
     result = outcome(bn_error, ref_errors, n_refs, passed)
     if bn_error and bn_error.startswith("TIMEOUT") and result == "EXCEPTION":
         result = "TIMEOUT"

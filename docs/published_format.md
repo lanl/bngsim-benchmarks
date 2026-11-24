@@ -45,7 +45,7 @@ BNGsim's agreement with one reference.
 |---|---|
 | `suite`, `position`, `problem` | the suite, the model's position in it (1-10), the problem id |
 | `species`, `reactions` | size of the generated network |
-| `outcome` | the job's outcome: `PASS` (agrees with every reference), `DIFF` (disagrees with one), `REFERENCE_FAILED` (BNGsim ran; some reference did not), `EXCEPTION` (BNGsim failed), `TIMEOUT` (BNGsim ran out of time), `BAD_TEST` (the model could not be prepared, or every engine failed) |
+| `outcome` | the job's outcome: `PASS` (agrees with every reference), `DIFF` (disagrees with one that ran, whatever else failed), `REFERENCE_FAILED` (BNGsim ran; some reference did not, and every one that ran agrees), `EXCEPTION` (BNGsim failed), `TIMEOUT` (BNGsim ran out of time), `BAD_TEST` (the model could not be prepared, or every engine failed) |
 | `agreement` | references agreed / attempted, e.g. `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`; a reference that does not apply is named (`run_network: n/a`) but not counted |
 | `engine` | the reference engine |
 | `status` | `ok` (agrees), `DIFF` (ran, disagrees), `crash` (failed to run), `timeout` (ran past its per-engine wall budget), `n/a` (it cannot simulate this model faithfully, an `UNSUPPORTED` error; counted as attempted), `not_applicable` (the comparison does not exist for this model, so the reference was not run and is not counted: run_network on an SBML model with no faithful BNGL form) |

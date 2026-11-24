@@ -349,8 +349,11 @@ Correctness jobs and timing jobs are separate:
 - **Timing jobs** follow the protocol of section 7.
 
 A timing job runs on problems whose correctness job passed, and on problems it
-marked REFERENCE_FAILED -- BNGsim ran and was anchored by the surviving
-references, so there is still a comparison worth timing. The timing job then
+marked REFERENCE_FAILED -- BNGsim ran and every surviving reference agreed with
+it, so there is still a comparison worth timing. A disagreement takes precedence
+over a failure in every capability: when a reference that ran disagrees with
+BNGsim the outcome is DIFF, whatever else failed (each failed reference is still
+recorded as `<name>_error`), so a wrong answer is never timed. The timing job then
 gives each reference a trial run and drops any that crash (recording a
 `<name>_error`, exactly as correctness does), timing BNGsim against the engines
 that survive. Any other correctness outcome (DIFF, EXCEPTION, BAD_TEST, …) blocks
@@ -687,9 +690,10 @@ Each job writes one JSON file, atomically, under a path derived from its job ID.
 file holds:
 
 - the outcome, using bngsim's outcome vocabulary across all capabilities: PASS,
-  DIFF, EXCEPTION (BNGsim failed where the reference ran), REFERENCE_FAILED (the
-  reference failed where BNGsim ran), BAD_TEST (both failed, or the model could not
-  be prepared), TIMEOUT, UNSUPPORTED, SKIP;
+  DIFF, EXCEPTION (BNGsim failed where the reference ran), REFERENCE_FAILED (a
+  reference failed where BNGsim ran, and every reference that ran agrees; one that
+  disagrees makes it DIFF, §5.2), BAD_TEST (both failed, or the model could not be
+  prepared), TIMEOUT, UNSUPPORTED, SKIP;
 - the measured values, and every timing repetition rather than only the summary;
 - provenance:
   - the BNGsim version and compiled build commit;
@@ -840,8 +844,10 @@ Both keep deciding on the vendored verdict alone, so the timing job decides as b
 The correctness record carries the per-species check of each beside it.
 
 **Versioning.** The check's version is `VERDICT_VERSION`, part of the correctness
-job's definition only (§6.2). Changing the check, its constants, or how the two
-checks combine bumps it. Every correctness result then goes stale and is re-scored
+job's definition only (§6.2). Changing the check, its constants, how the two
+checks combine, or how the verdicts become an outcome (§5.2) bumps it. Version 2
+made a disagreement DIFF even when another reference failed; it had been
+REFERENCE_FAILED, so a wrong answer could be timed (Winter 2017, Smith 2013). Every correctness result then goes stale and is re-scored
 with `bench rescore`, from the trajectories it stored (§6.1).
 
 ## 7. Timing protocol

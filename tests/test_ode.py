@@ -227,6 +227,14 @@ def test_network_size_counts_entries_not_comments(tmp_path):
         ("boom", {"run_network": "boom", "roadrunner": "boom"}, None, "BAD_TEST"),
         # BNGsim failed but only one of two references did -> still BNGsim's fault.
         ("boom", {"run_network": "boom"}, None, "EXCEPTION"),
+        # A reference failed and the one that ran agrees -> the reference's failure.
+        (None, {"run_network": "boom"}, True, "REFERENCE_FAILED"),
+        # A reference failed and the one that ran disagrees -> a wrong answer, which
+        # no failure elsewhere may hide (Winter 2017: AMICI crashed, roadrunner and
+        # COPASI disagree).
+        (None, {"run_network": "boom"}, False, "DIFF"),
+        # Every reference failed: nothing disagreed, whatever ``passed`` says.
+        (None, {"run_network": "boom", "roadrunner": "boom"}, False, "REFERENCE_FAILED"),
     ],
 )
 def test_outcome_attributes_failure_to_the_right_engine(bn_error, ref_errors, passed, outcome):
@@ -903,6 +911,32 @@ def _slow_reference(seconds=300):
         warm = run
 
     return SlowRef
+
+
+def test_a_disagreement_is_a_diff_even_when_another_reference_failed(monkeypatch, tmp_path):
+    # Smith 2013: one reference disagrees, one agrees, one crashed. The outcome is
+    # DIFF (so the timing job never times it), the crash is still recorded, and
+    # every verdict says who agreed.
+    class WrongRef(_fake_reference()):
+        def run(self):
+            return _decay(scale=1.2)
+
+        warm = run
+
+    monkeypatch.setattr(ode, "_prepare", lambda problem, ctx: _correctness_prep())
+    monkeypatch.setattr(ode, "BngsimODE", _fake_bngsim())
+    monkeypatch.setattr(ode, "REFERENCE_ENGINES", {
+        "good": _fake_reference(), "wrong": WrongRef, "crash": _fake_reference(error="boom")})
+    rec = ode.run_correctness(job=None, problem=None, ctx={
+        "workdir": str(tmp_path), "subprocess_timeout": 60, "engine_budget_seconds": 30.0})
+    assert rec["outcome"] == "DIFF"
+    assert "boom" in rec["crash_error"]
+    assert rec["verdicts"]["good"]["passed"] is True
+    assert rec["verdicts"]["wrong"]["passed"] is False
+    # Re-scored from what it stored, the same outcome.
+    job = types.SimpleNamespace(definition={"protocol": _correctness_prep()["proto"]})
+    record = {k: v for k, v in rec.items() if k != "_trajectories"}
+    assert ode.rescore(job, record, rec["_trajectories"])["outcome"] == "DIFF"
 
 
 def test_correctness_records_a_reference_timeout_and_scores_the_rest(monkeypatch, tmp_path):

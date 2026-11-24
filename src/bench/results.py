@@ -22,10 +22,11 @@ SCHEMA = 1
 
 # A dependent job (timing) runs when its requirement (correctness) reached one of
 # these outcomes. PASS is a clean cross-engine agreement; REFERENCE_FAILED means
-# BNGsim ran and was anchored by the surviving references while another reference
+# BNGsim ran and every surviving reference agreed with it while another reference
 # crashed -- that failure is recorded, not scored (parity_core.taxonomy), and
 # there is still a BNGsim-and-survivors comparison worth timing. Any other outcome
-# (DIFF/EXCEPTION/BAD_TEST/...) blocks the dependent job.
+# (DIFF/EXCEPTION/BAD_TEST/...) blocks the dependent job; a disagreement is DIFF
+# even when another reference failed, so a wrong answer is never timed.
 _REQUIREMENT_SATISFIED = frozenset({"PASS", "REFERENCE_FAILED"})
 
 

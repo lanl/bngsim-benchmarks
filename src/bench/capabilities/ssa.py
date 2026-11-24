@@ -30,8 +30,8 @@ docs/DESIGN.md §5.3. The job passes only when BNGsim agrees with every referenc
 Failures are attributed exactly as in ``ode``: each engine builds and samples in its
 own forked child under a wall budget (``run_isolated``); a reference that fails or
 runs out of time is ``REFERENCE_FAILED`` with a ``<name>_error`` and BNGsim is still
-judged against the others; a BNGsim failure is ``EXCEPTION`` (``TIMEOUT`` when it ran
-out of time). A reference that cannot simulate this model's exact SSA at all is
+judged against the others -- ``DIFF`` when one of them disagrees, whatever else
+failed; a BNGsim failure is ``EXCEPTION`` (``TIMEOUT`` when it ran out of time). A reference that cannot simulate this model's exact SSA at all is
 recorded the same way, with an error starting ``UNSUPPORTED`` and without being run:
 libRoadRunner's gillespie fires the SBML rate law as the propensity, so on a
 reaction with a repeated reactant (``A + A``) it uses ``k*A*A`` where the exact
@@ -68,6 +68,8 @@ from ..jobs import CORRECTNESS, TIMING, Job
 from ..specs import Problem
 from ..timing import absolute_time_stats, round_robin_interleaved
 from ._common import (
+    OUTCOME_RULE,
+    all_passed,
     correctness_timeouts,
     engine_role,
     outcome,
@@ -102,6 +104,9 @@ VERDICT = {
     "alpha": 1e-3,
     "permutations": 1999,
     "stop_exceedances": 20,
+    # How the verdicts become an outcome (``_common.OUTCOME_RULE``): it decides
+    # how stored ensembles score, so it restales correctness like the test does.
+    "outcome_rule": OUTCOME_RULE,
 }
 
 DEFAULT_SEED = 1
@@ -742,7 +747,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
             verdicts[name] = _two_sample(bn, stack, list(REFERENCE_ENGINES).index(name), prep)
         if moments is not None:
             verdicts[ANALYTIC] = _analytic(bn, moments, prep)
-    passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
+    passed = all_passed(verdicts)
 
     # Every engine's ensemble against the exact moments too: not scored, but it
     # says which side of a disagreement is wrong.
