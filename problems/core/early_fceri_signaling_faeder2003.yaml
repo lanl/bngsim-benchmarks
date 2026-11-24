@@ -3,11 +3,17 @@
 # 2017 seed (no exact-SSA model; it stays in psa-net), as the large-network member (Q6).
 # Thousands of reactions, where the sum tree and the dependency graph matter: 354 species, 3680
 # reactions, populations Lyn 28, Rec 400, Syk 400, Lig 6000 (scaled molecule counts). The
-# protocol is the file's own (its commented SSA action beside the active ODE one): 10 nM IgE
-# dimer, 10 min, output every 10 s. The verified figure is Fig. 3 (1.6 nM, 70 min), reproduced by
-# the same model block at Lig_tot = 963.5; the file's own condition is that of Figs. 4 and 7.
-# PSA: the same window. Every reaction has a low-copy participant, so in the probe nothing scaled
-# at any N_c: every N_c is gated as exact SSA.
+# protocol is the file's own condition (its commented SSA action beside the active ODE one:
+# 10 nM IgE dimer from the scaled initial state) over its first 2 min rather than 10, output
+# every 2 s. A cost decision: COPASI's direct method takes about 22 s a trajectory on this
+# network whatever the horizon (24 s at 2 min; the task's initialisation, which each trajectory
+# repeats to take its own seed), so 100 of them fill most of the one-hour budget per engine, and
+# libRoadRunner's gillespie takes about 25 s per 10-min trajectory. The verified figure is Fig.
+# 3 (1.6 nM, 70 min), reproduced by the same model block at Lig_tot = 963.5; the file's own
+# condition is that of Figs. 4 and 7.
+# PSA: the same protocol, so its exact-SSA ensembles are the SSA job's BNGsim and run_network
+# ones. Every reaction has a low-copy participant, so in the probe and the smoke run nothing
+# scaled at any N_c: every N_c is gated as exact SSA.
 # TODO(pin): the .bngl header calls its active protocol a "Fig. 3-style time course"; a fix is a
 # local BNGL-Models branch (verify-early_fceri_signaling_faeder2003-header). Re-pin source.commit
 # and source.sha256 to the merged fix; the model block is unchanged, but the results restale.
@@ -32,14 +38,14 @@ capabilities: [ssa, psa]
 protocol:
   ssa:
     netgen: "generate_network({overwrite=>1})"
-    t_end: 600
+    t_end: 120
     n_steps: 60
     replicates: 100
     timing_replicates: 2
     seed: 1
   psa:
     netgen: "generate_network({overwrite=>1})"
-    t_end: 600
+    t_end: 120
     n_steps: 60
     replicates: 100
     timing_replicates: 1
@@ -48,11 +54,12 @@ protocol:
 size:
   species: 354
   reactions: 3680
-  # Planning only. ssa: sized so each engine's budget covers run_network's 9 s per
-  # trajectory; psa: so the planned job matches the probe (3.4 s exact bngsim, 9 s
-  # run_network; 7.5-8 s per bngsim PSA trajectory, 10 s per run_network one).
-  ssa_events: 2000000
-  psa_events: 4500000
+  # Planning only. ssa: sized so each engine's budget is the full hour, which COPASI's
+  # 22-24 s per trajectory needs; psa: so the planned job matches the smoke run (0.7 s
+  # exact bngsim, 2.5 s run_network; about 2 s per bngsim PSA trajectory, 3.5 s per
+  # run_network one).
+  ssa_events: 4500000
+  psa_events: 1400000
 suites:
   ssa-net: 10
   psa-net: 9

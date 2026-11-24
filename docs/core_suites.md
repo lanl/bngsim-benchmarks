@@ -201,10 +201,10 @@ exact moments where `moments: linear` is declared), by the permutation max-T tes
 | 4 | `noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair` | 7 / 10 | E 0–20, N 0–10 beside X ~1.8e3 | 10 s; 200 | noise-induced bistability; a repeated reactant | `data` (Fig. 3A) | replaces the seed's primary (B10) |
 | 5 | `noise_resistant_circadian_oscillator_vilar2002` | 9 / 16 | genes 1, mRNA < 1 on average, proteins ~2e3 | 400 h; 10^3 | limit cycle under noise | `equations` + `data` | top-up; BNGL twin of `ssa-sbml`'s BIOMD0000000035 |
 | 6 | `two_state_gene_expression_noise_munsky2012` | 10 / 14 | promoters 1, mRNA 0–134 | 6000 s; 10^4 | bimodal, long-tailed and Poisson transcripts; `if()` laws | `theory` (FSP, Eq. 2) | paper seed (B11) |
-| 7 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | pMHC 30 … ERK 3e5 | 1200 s; 100 | bistable switch | `data` (Fig. 7B, ODE) | paper seed (B13) |
+| 7 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | pMHC 30 … ERK 3e5 | 600 s; 100 | bistable switch | `data` (Fig. 7B, ODE) | paper seed (B13) |
 | 8 | `prion_nucleated_polymerization_rubenstein2007` | 41 / 483 | 3 seed trimers beside 600 PrPC | 365 d; 150 | nucleation or extinction | `data` (Fig. 2, SSA) | replaces the seed's `_benchmark` (B14) |
 | 9 | `membrane_anchored_multisite_phosphorylation_dushek2011` | 143 / 284 | one substrate molecule | 1000 s; 2000 | Bernoulli occupancies; 20 identical sites | `data` + `theory` | top-up |
-| 10 | `early_fceri_signaling_faeder2003` | 354 / 3680 | Lyn 28 … Lig 6000 | 600 s; 100 | relaxation, thousands of reactions | `data` (Fig. 3) | top-up, in place of B12 |
+| 10 | `early_fceri_signaling_faeder2003` | 354 / 3680 | Lyn 28 … Lig 6000 | 120 s; 100 | early response, thousands of reactions | `data` (Fig. 3) | top-up, in place of B12 |
 
 ### Protocol and comparison
 
@@ -215,9 +215,13 @@ exact moments where `moments: linear` is declared), by the permutation max-T tes
   a stated window (Lin, Shahrezaei, Munsky, Dushek). Each spec says which and why.
 - Horizons and ensemble sizes are set so that each engine's ensemble fits the harness's
   one-hour budget per engine, from a one-trajectory probe of every engine on a Darwin node.
-  Lipniacki 2008 is the one member cut short: its SSA action runs 3 h, at 70 s per BNGsim
-  trajectory and 133 s per run_network one, so its protocol is the first 20 min, inside
-  which the deterministic switch completes.
+  Two members are cut short. Lipniacki 2008's SSA action runs 3 h, at 70 s per BNGsim
+  trajectory and 133 s per run_network one, so its protocol is the first 10 min, in which
+  the deterministic switch peaks (libRoadRunner still takes about 16 s a trajectory there).
+  Faeder 2003 runs its file's condition for 2 min rather than 10: COPASI's direct method
+  takes about 22 s a trajectory on its 3680 reactions whatever the horizon (the task's
+  initialisation, repeated for each trajectory's seed), and libRoadRunner about 25 s per
+  10 min.
 - libRoadRunner is UNSUPPORTED on member 4 (a repeated reactant, DESIGN §5.3).
 - Exact moments are declared only for member 3. Member 9's network is first order in one
   molecule, so its moments are known too, but 143 species is past the linear-moment
@@ -259,11 +263,11 @@ Every correctness job draws BNGsim's and run_network's ensembles at exact SSA an
 | 2 | `noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair` | 7 / 10 | E, N ≤ 20 beside X ~1.8e3 | 10 s; 100 | runs | top-up |
 | 3 | `noise_resistant_circadian_oscillator_vilar2002` | 9 / 16 | genes 1 beside proteins ~2e3 | 400 h; 500 | runs | top-up |
 | 4 | `mapk_relaxation_oscillations_kochanczyk2017` | 34 / 65 | 6e3–3e6 | 600 s; 200, exact 40 | runs | paper seed (B12) |
-| 5 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | 10–3e5 | 1200 s; 200, exact 100 | runs | paper seed (B13) |
+| 5 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | 10–3e5 | 600 s; 200, exact 100 | runs | paper seed (B13) |
 | 6 | `car_cd3zeta_phosphorylation_rohrs2018` | 65 / 192 | LCK 20 beside CD3ζ 2e4 | 60 min; 1000 | segfaults or hangs (exact SSA too) | top-up |
 | 7 | `scaffolded_mapk_cascade_kocieniewski2012` | 85 / 487 | 1e5–5e5 | 50 s; 100 | runs | top-up |
 | 8 | `prion_nucleated_polymerization_rubenstein2007_benchmark` | 121 / 3843 | 3 seed trimers beside PrPC 3.8e3 | 10 d; 200 | segfaults at t = 0 | paper seed (B14) |
-| 9 | `early_fceri_signaling_faeder2003` | 354 / 3680 | Lyn 28 … Lig 6000 | 600 s; 100 | runs | top-up |
+| 9 | `early_fceri_signaling_faeder2003` | 354 / 3680 | Lyn 28 … Lig 6000 | 120 s; 100 | runs | top-up |
 | 10 | `combinatorial_egfr_signaling_blinov2006` | 356 / 3749 | 1.3e4–1.2e6 | 10 s; 100 | runs | top-up |
 
 ### Protocol and comparison
