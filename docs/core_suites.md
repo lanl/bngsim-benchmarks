@@ -185,3 +185,78 @@ covers the pinned file.
   administrations Fig. 3A needs, and the curation figure comes from it.
 - **Koo 2013:** its SED-ML is named for the no-shear-stress condition, but it runs the
   file unchanged, which by the curation notes gives the shear-stress curve of Fig. 6.
+
+## nf-xml-aggregation: network-free on BNG-XML, multivalent aggregation
+
+Network-free simulation of the BNG-XML that BNG2.pl's `writeXML()` writes from published
+BNGL, on the multivalent-aggregation models of the bngsim paper's network-free set (its
+B15–B20, B31 and B35, kept whole) plus two top-ups: the strict finite-network anchor and
+polymerization with turnover (suites-stochastic.md §2.4). Every job runs one of BNGsim's
+two network-free engines (`nf_reject`, `nf_exact`, two settings) against standalone NFsim
+driven by BNG2.pl, standalone RuleMonkey (same lineage as `nf_exact`, so it cannot pass or
+refute BNGsim alone; DESIGN §5.5) and, on a finite or negligibly truncated network, exact
+SSA by run_network and by BNGsim. Members are ordered by particle count as the proposal
+ranked them (at the largest dose of a scan); see the protocol notes for the one dose each
+scan member runs.
+
+| # | problem | particles in the protocol | network | protocol (one network-free run) | replicates | evidence | how it entered |
+|---|---|---|---|---|---:|---|---|
+| 1 | `blbr_heterogeneity_goldstein1980` | 50 antibodies (excess-ligand mode) | unbounded chains | default dose 1e-8 M, 0–10 s, 50 steps, -bscb | 1000 | `theory`: Goldstein–Wofsy Eqs. 13–14 (Fig. 5) | paper seed (B18) |
+| 2 | `prion_nucleated_polymerization_rubenstein2007` | 600 PrPC + 3 seed trimers → ~3.7e4 PrPSc | unbounded chains; SSA on the 40-subunit truncation (41 / 483) | 0–365 days, 73 steps | 150 | `data`: Fig. 2, by SSA (shared with ssa-net 8) | top-up: polymerization with turnover |
+| 3 | `tnf_tnfr1_sequential_binding_mcmillan2021` | 3,613 | **finite, 9 / 24** | 0–10,000 s, 100 steps | 1000 | `data`: Fig. 1b Source Data, by ODE | top-up: the strict finite anchor |
+| 4 | `tlbr_solution_macken1982` | 4,500 | unbounded, acyclic | own: 0–500 s, 250 steps, -bscb | 1000 | `theory`: Eq. 11, Eq. 21, Theorem 1 | paper seed (B16) |
+| 5 | `tlbr_yang2008` | 4,500 | unbounded | own: 0–3000 s, 300 steps | 1000 | `theory`: mean-field bond ODE | paper seed (B15) |
+| 6 | `blbr_dembo1978` | 33,000 | unbounded chains | own: 0–3000 s, 300 steps, -bscb | 500 | `theory`: Dembo–Goldstein equilibrium | paper seed (B17) |
+| 7 | `blbr_rings_posner1995` | 33,000 | unbounded, with rings | own: 0–3000 s, 300 steps, -bscb -utl 5 | 250 | `theory`: Posner Eqs. 14a–i | paper seed (B19) |
+| 8 | `tlbr_steric_monine2010` | 4,515 at 7 nM (scan to ~1.3e5) | unbounded, acyclic | the record's single-dose run: 7 nM, 0–5000 s, 250 steps, -bscb | 500 | `data`: Fig. 2a | paper seed (B35) |
+| 9 | `blbr_cooperativity_posner2004` | 2,707 at 1 nM (scan to ~1.8e5) | unbounded | default 1 nM, 0–10 s, 50 steps | 1000 | `theory`: Wofsy–Goldstein Eqs. 10, 15, 17 | paper seed (B20) |
+| 10 | `egfr_oligomerization_mitra2019` | ~3.0e5 EGF + 900 receptors (30 nM) | unbounded, with rings | the file's 30 nM time course, cut to 0–150 s, 15 steps, -bscb -utl 5 | 120 | `data`: Kozer 2013 | paper seed (B31) |
+
+### Protocol and comparison
+
+- **One network-free run per member.** Every engine replays the protocol, so it can hold
+  only network-free `simulate` steps and `setParameter` (bench.nfactions). The action
+  blocks of Goldstein, Monine and Posner 2004 are a `parameter_scan` (so is Mitra's first
+  protocol), which no engine but BNG2.pl can replay. Each of those runs one dose: the
+  file's default (Goldstein 1e-8 M, near the peak of Fig. 5's bell; Posner 2004 1 nM),
+  the record's own single-dose alternative (Monine 7 nM, commented out in its action
+  block), or the record's time course (Mitra). A scan is a series of independent runs, so
+  one dose loses no engine path; the dose curve stays the record's own check.
+- **Mitra 2019 runs the first 150 s of its 600 s time course.** One engine spends about a
+  minute on the whole course (2.1e6 events at a steady ~3.5e3 per simulated second; RuleMonkey
+  55 s and `nf_exact` 60 s per trajectory on a general node), so 100 trajectories would
+  outrun the per-engine budget below, and a lower dose does not help (1 nM costs as much as
+  30 nM: the cost is in the receptors' clustering and phosphorylation, not the free EGF). The
+  window is cut, the same for every engine, rather than the model; clustering is still
+  evolving at 150 s.
+- **NFsim flags.** `-bscb` and `-cb` are the same in NFsim 1.14.3 (one seed, one
+  trajectory under either; measured on Yang 2008 and Posner 1995), and BNG2.pl passes
+  `-cb` by default, so every member blocks same-complex binding in every engine, whether
+  or not its file writes `-bscb`. Posner 1995 and Mitra pass `-utl 5` (RuleWorld/nfsim#52).
+- **Ensemble sizes** fit each engine's ensemble inside the harness's per-engine budget
+  of one hour (`nf.ENGINE_BUDGET_CAP_SECONDS`): 1000 trajectories where one costs under
+  about 2 s in the slowest engine, fewer where it costs more (measured per engine on a
+  general node, 2026-11-24): Dembo 1978 and Monine 2010 about 5 s, Posner 1995 9 s,
+  Rubenstein 2007 15 s and Mitra 2019 (150 s) 15 s.
+- **NFsim's final state is not read back.** BNG2.pl reads NFsim's species file back after
+  a run with `get_final_state=>1` (its default); on Dembo 1978's chains that took BNG2.pl
+  over three minutes per trajectory against NFsim's 3 s. The harness runs the protocol's
+  last step with `get_final_state=>0`, since no step follows it; the trajectory is the
+  same (DESIGN §5.5).
+- **Rubenstein 2007** is the one member whose network is truncated: exact SSA runs on the
+  network `generate_network` writes at `max_stoich` 40, the file's own. The chain-length
+  tail is negligible: in a BioNetGen SSA run to 365 days no chain ever exceeded 27
+  subunits, and at day 365 2e-4 of the aggregates held 20 or more. Its NF route has no
+  action of its own (the file runs SSA only), so the protocol is its SSA run as a
+  network-free one, output every five days.
+
+### Membership decisions
+
+- The seed is the paper's aggregation group whole (Q11, Q13); Yang 2008 is kept beside
+  its near-duplicate Macken 1982 as the rejection-method paper behind `nf_reject`.
+- TNF 2021 was the network-free capability's pilot; it entered unchanged as the strict
+  finite anchor; both of its pilot jobs passed, correctness and timing.
+- Each member's network-free check of the exact file, not run through BNGsim, is the
+  upstream work of suites-stochastic.md §3.2 items 1–3, one BNGL-Models branch per
+  record. A spec names its branch under `verification.pending` until it is merged and
+  pinned.

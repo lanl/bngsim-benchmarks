@@ -1,0 +1,44 @@
+# Bivalent ligand cross-linking two populations of cell-surface antibody (Goldstein and Wofsy
+# 1980). A core problem: member 1 of the nf-xml-aggregation suite (docs/DESIGN.md §3.2,
+# suites-stochastic.md §2.4), the smallest by particle count: 25 + 25 antibodies (X_T = 500 per
+# cell in a 0.1 subvolume). Its network is unbounded (chains). The file's own protocol is an
+# 18-dose parameter_scan, which no engine but BNG2.pl can replay; the suite runs one dose, the
+# file's default LT_conc_M = 1e-8 M (near the peak of Fig. 5's bell-shaped curve, x_poly about
+# 0.72), as a time course to 10 s (equilibrium; characteristic time ~5/koff = 0.5 s) with the
+# scan's flags (-bscb, gml). At this dose LT/RT >= 100, so the file's excess-ligand mode treats
+# free ligand as a constant bath (pseudo-first-order capture): the particles are the 50
+# antibodies and the ligands they hold.
+id: blbr_heterogeneity_goldstein1980
+layer: core
+title: "Bivalent ligand on heterogeneous cell-surface antibody"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/blbr_heterogeneity_goldstein1980/blbr_heterogeneity_goldstein1980.bngl
+  sha256: e5f293a8cddbca5d42e83972bad4c8a00f5950326769efa8c48a68bd07b71b95
+  format: bngl
+publications:
+  - citation: "Goldstein B, Wofsy C (1980). Theory of equilibrium binding of a bivalent ligand to cell surface antibody: the effect of antibody heterogeneity on cross-linking. J Math Biol 10:347-366."
+    doi: 10.1007/BF00276093
+verification:
+  kind: theory
+  evidence: >-
+    models/blbr_heterogeneity_goldstein1980/verify_goldstein1980.ipynb
+  check: >-
+    NFsim (BNG2.pl) x_poly at 18 doses, 10 seeds each, against Goldstein-Wofsy Eqs. 13-14 (Fig. 5, X_T = 500)
+  result: >-
+    max abs error 0.047 (printed against 0.20 at 676dd61)
+  pending: >-
+    upstream branch verify-blbr_heterogeneity_goldstein1980-* (BNGL-Models, not merged): fixes the renamed file in cell [5] and asserts; pin the merged sha here when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nfr",t_start=>0,t_end=>10,n_steps=>50,gml=>2147483647,print_functions=>1,param=>"-bscb"})
+    replicates: 1000
+    timing_replicates: 20
+    seed: 1
+size:
+  nf_events: 80000
+suites:
+  nf-xml-aggregation: 1

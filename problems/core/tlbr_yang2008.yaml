@@ -1,0 +1,41 @@
+# TLBR aggregation kinetics as in Yang et al. (2008), the paper of the rejection method behind
+# BNGsim's nf_reject. A core problem: member 5 of the nf-xml-aggregation suite (docs/DESIGN.md
+# §3.2, suites-stochastic.md §2.4; kept although it nearly duplicates member 4, Q11): the same
+# 4,200 ligands and 300 receptors, other rate constants. The protocol is the file's own action:
+# one network-free run to 3000 s (equilibrium ~100 s) in 300 steps, its seed replaced. The file
+# passes no -bscb, but BNG2.pl's default complex=>1 gives NFsim -cb, which in NFsim 1.14.3 is the
+# same as -bscb (one seed, one trajectory under either; bench.nfactions), so every engine blocks
+# same-complex binding.
+id: tlbr_yang2008
+layer: core
+title: "TLBR aggregation kinetics (Yang et al. 2008)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/tlbr_yang2008/tlbr_yang2008.bngl
+  sha256: 718e5aa67bfc2f7481374275e5212febb6fcdae2d4c60b75eab62d4200d78982
+  format: bngl
+publications:
+  - citation: "Yang J, Monine MI, Faeder JR, Hlavacek WS (2008). Kinetic Monte Carlo method for rule-based modeling of biochemical networks. Phys Rev E 78:031910."
+    doi: 10.1103/PhysRevE.78.031910
+verification:
+  kind: theory
+  evidence: >-
+    models/tlbr_yang2008/verify_yang2008.ipynb
+  check: >-
+    NFsim (BNG2.pl) bond-count distribution against the curator's mean-field bond ODE (below percolation, beta = 0.1)
+  result: >-
+    3.46% printed at 676dd61, from 20 runs that a pinned seed made one replicate
+  pending: >-
+    upstream branch verify-tlbr_yang2008-* (BNGL-Models, not merged): distinct seeds, asserts, -bscb recorded; pin the merged sha here when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: own
+    replicates: 1000
+    timing_replicates: 20
+    seed: 1
+size:
+  nf_events: 100000
+suites:
+  nf-xml-aggregation: 5

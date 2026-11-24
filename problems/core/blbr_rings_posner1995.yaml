@@ -1,0 +1,39 @@
+# BLBR aggregation with explicit ring closure (Posner, Wofsy and Goldstein 1995). A core problem:
+# member 7 of the nf-xml-aggregation suite (docs/DESIGN.md §3.2, suites-stochastic.md §2.4), the
+# suite's explicit-ring member. About 33,000 particles; open chains are unbounded, and rings close
+# by their own unimolecular rules. The protocol is the file's own action: one network-free run to
+# 3000 s in 300 steps, its seed replaced, with -bscb and -utl 5 (NFsim's automatic traversal limit
+# of 4 is too shallow for the ring patterns: RuleWorld/nfsim#52).
+id: blbr_rings_posner1995
+layer: core
+title: "Bivalent ligand and bivalent receptor with cyclic dimers"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/blbr_rings_posner1995/blbr_rings_posner1995.bngl
+  sha256: be2477299a88449edb23bb55e4f951e43032b625e1f9506193ee78231629a730
+  format: bngl
+publications:
+  - citation: "Posner RG, Wofsy C, Goldstein B (1995). The kinetics of bivalent ligand-bivalent receptor aggregation: ring formation and the breakdown of the equivalent site approximation. Math Biosci 126:171-190."
+    doi: 10.1016/0025-5564(94)00045-2
+verification:
+  kind: theory
+  evidence: >-
+    models/blbr_rings_posner1995/verify_posner1995.ipynb
+  check: >-
+    NFsim (BNG2.pl) against Posner Eqs. 14a-i, one seed per dose
+  result: >-
+    about 1% printed at 676dd61; its ring check was circular
+  pending: >-
+    upstream branch verify-blbr_rings_posner1995-* (BNGL-Models, not merged): several seeds, asserts, a non-circular ring check; pin the merged sha here when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: own
+    replicates: 250
+    timing_replicates: 5
+    seed: 1
+size:
+  nf_events: 950000
+suites:
+  nf-xml-aggregation: 7

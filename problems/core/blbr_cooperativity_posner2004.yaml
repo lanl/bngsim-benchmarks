@@ -1,0 +1,43 @@
+# Bivalent anti-IgE (23G3) binding cell-surface IgE-FceRI with negative cooperativity (Posner et
+# al. 2004; theory of Wofsy and Goldstein 1987). A core problem: member 9 of the
+# nf-xml-aggregation suite (docs/DESIGN.md §3.2, suites-stochastic.md §2.4), its cooperativity
+# member. The file's own protocol is a 20-dose parameter_scan over AT_nM, which no engine but
+# BNG2.pl can replay; the suite runs one dose, the file's default AT_nM = 1 nM (900 receptors and
+# ~1,800 antibodies in a 0.003 subvolume), with the scan's options (complex=>1, gml=>1000000) as a
+# time course to 10 s (equilibrium ~0.1 s at kr = 10/s) in 50 steps.
+id: blbr_cooperativity_posner2004
+layer: core
+title: "Negatively cooperative anti-IgE binding to cell-surface IgE-FceRI"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/blbr_cooperativity_posner2004/blbr_cooperativity_posner2004.bngl
+  sha256: a3daf10b388a1ab40fb10d05845c02417c0e8b8a2d983589be40e61bb4d5314a
+  format: bngl
+publications:
+  - citation: "Posner RG, Paar JM, Licht A, Pecht I, Conrad DH, Hlavacek WS (2004). Interaction of a monoclonal IgE-specific antibody with cell-surface IgE-FceRI: characterization of equilibrium binding and secretory response. Biochemistry 43:11352-11360."
+    doi: 10.1021/bi049686o
+  - citation: "Wofsy C, Goldstein B (1987). The effect of co-operativity on the equilibrium binding of symmetric bivalent ligands to antibodies: theoretical results with application to histamine release from basophils. Mol Immunol 24:151-161."
+    doi: 10.1016/0161-5890(87)90091-2
+verification:
+  kind: theory
+  evidence: >-
+    models/blbr_cooperativity_posner2004/verify_posner2004.ipynb
+  check: >-
+    NFsim (BNG2.pl) bound fraction against the Wofsy-Goldstein equilibrium (Eqs. 10, 15, 17), one seed
+  result: >-
+    |q error| 0.026 printed at 676dd61
+  pending: >-
+    upstream branch verify-blbr_cooperativity_posner2004-* (BNGL-Models, not merged): -bscb settled and recorded, seeds, asserts; pin the merged sha here when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nfr",t_start=>0,t_end=>10,n_steps=>50,complex=>1,gml=>1000000})
+    replicates: 1000
+    timing_replicates: 20
+    seed: 1
+size:
+  nf_events: 160000
+suites:
+  nf-xml-aggregation: 9

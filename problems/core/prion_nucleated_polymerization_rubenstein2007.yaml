@@ -1,0 +1,57 @@
+# Prion nucleated polymerization. A core problem: member 8 of the ssa-net suite
+# (docs/DESIGN.md §3.2). It replaces the paper's seed, the record's _benchmark variant, which has
+# no stochastic check (_benchmark moves to psa-net; suites-stochastic.md §3.1, Q5). 600 PrPC
+# and three seed trimers: nucleation and extinction are the paper's own stochastic claim (a
+# trajectory either takes off or loses its three seeds), on a network truncated at 40 subunits.
+# The protocol is the record's own exact-SSA action (one year at the Table 1 parameterization,
+# a = 0.047/day), as an ensemble, output daily rather than every 6 h. Time unit: days.
+# run_network's PSA segfaults on this network at t = 0 (probe, 2026-11-24); not in psa-net.
+# Also member 2 of the nf-xml-aggregation suite (suites-stochastic.md §2.4), its polymerization
+# member with turnover (synthesis, degradation and fragmentation). Its network is unbounded, but
+# exact SSA on the network truncated at 40 subunits is the same law to within the chain-length
+# tail, which is negligible: in a BioNetGen SSA run to 365 days no chain ever exceeded 27
+# subunits and 2e-4 of the aggregates at day 365 held 20 or more (probe, 2026-11-24), so both
+# exact-SSA engines are references for the network-free run. Its nf protocol is the ssa one, as
+# a network-free run (the file's own NF route is none: its actions are SSA only), output every
+# 5 days.
+id: prion_nucleated_polymerization_rubenstein2007
+layer: core
+title: "Prion nucleated polymerization"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/prion_nucleated_polymerization_rubenstein2007/prion_nucleated_polymerization_rubenstein2007.bngl
+  sha256: adb72aa478283ccc0f5027bb5a582e52e8b00b3ce98c25893f3d3cc6e1c9ad34
+  format: bngl
+publications:
+  - citation: "Rubenstein R, Gray PC, Cleland TJ, Piltch MS, Hlavacek WS, Roberts RM, Ambrosiano J, Kim J-I (2007). Dynamics of the nucleated polymerization model of prion replication. Biophys Chem 125:360-367."
+    doi: 10.1016/j.bpc.2006.09.011
+verification:
+  kind: data
+  evidence: models/prion_nucleated_polymerization_rubenstein2007/verify_rubenstein2007.ipynb
+  check: "digitized Fig. 2 saturated levels vs BioNetGen SSA, < 5% of panel full scale asserted; a 30-seed x 3-clearance-rate SSA ensemble asserts the published take-off times and the extinction ordering"
+  result: "worst saturated-level error 3.91% of full scale; take-off times inside the ensemble at both replicating conditions"
+  supporting: "equations: BioNetGen ODE vs an independent SciPy chain-length ODE, < 1e-5 relative; structure: the network equals an independent enumeration of Eqs. 1-6 (483/483 reactions)"
+capabilities: [ssa, nf]
+protocol:
+  ssa:
+    netgen: "generate_network({overwrite=>1,max_stoich=>{PrP=>40}})"
+    t_end: 365
+    n_steps: 365
+    replicates: 150
+    timing_replicates: 2
+    seed: 1
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>365,n_steps=>73,gml=>2147483647,print_functions=>1})
+    netgen: "generate_network({overwrite=>1,max_stoich=>{PrP=>40}})"
+    replicates: 150
+    timing_replicates: 3
+    seed: 1
+size:
+  species: 41
+  reactions: 483
+  ssa_events: 2600000
+  nf_events: 1500000
+suites:
+  nf-xml-aggregation: 2

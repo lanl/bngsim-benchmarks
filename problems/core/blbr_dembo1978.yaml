@@ -1,0 +1,41 @@
+# Bivalent hapten, bivalent receptor (BLBR) linear chains (Dembo and Goldstein 1978; kinetics
+# after Perelson and DeLisi 1980). A core problem: member 6 of the nf-xml-aggregation suite
+# (docs/DESIGN.md §3.2, suites-stochastic.md §2.4). About 33,000 particles; chains are unbounded
+# and acyclic (-bscb). The protocol is the file's own action: one network-free run from all-free
+# molecules to 3000 s in 300 steps, its seed replaced (the record's horizon; the paper's
+# experiments ran 40 s).
+id: blbr_dembo1978
+layer: core
+title: "Bivalent hapten cross-linking cell-surface antibody into chains"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/blbr_dembo1978/blbr_dembo1978.bngl
+  sha256: 4f7c4f16dd55a89a7a7f27e168d99abb9782f34a524292c18a2ce967ffd697b6
+  format: bngl
+publications:
+  - citation: "Dembo M, Goldstein B (1978). Theory of equilibrium binding of symmetric bivalent haptens to cell surface antibody: application to histamine release from basophils. J Immunol 121:345-353."
+    doi: 10.4049/jimmunol.121.1.345
+  - citation: "Perelson AS, DeLisi C (1980). Receptor clustering on a cell surface. I. Theory of receptor cross-linking by ligands bearing two chemically identical functional groups. Math Biosci 48:71-110."
+    doi: 10.1016/0025-5564(80)90017-6
+verification:
+  kind: theory
+  evidence: >-
+    models/blbr_dembo1978/verify_dembo1978.ipynb
+  check: >-
+    NFsim (BNG2.pl) cross-linking against the exact equilibrium theory of Dembo and Goldstein (1978)
+  result: >-
+    none at 676dd61: the notebook had never been executed (one fixed seed per dose)
+  pending: >-
+    upstream branch verify-blbr_dembo1978-* (BNGL-Models, not merged): executed with several seeds, asserted; pin the merged sha here when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: own
+    replicates: 500
+    timing_replicates: 10
+    seed: 1
+size:
+  nf_events: 500000
+suites:
+  nf-xml-aggregation: 6

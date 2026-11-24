@@ -1,0 +1,47 @@
+# EGFR ectodomain oligomerization with rings, coupled to phosphorylation (Mitra et al. 2019,
+# fit to Kozer et al. 2013). A core problem: member 10 of the nf-xml-aggregation suite
+# (docs/DESIGN.md §3.2, suites-stochastic.md §2.4), the largest by particle count: about 3.0e5
+# EGF against ~900 receptors at the default 30 nM in the f = 0.01 subvolume. The protocol is the
+# first quarter of the file's own time course: 30 nM, network-free to 150 s (the file runs 600 s,
+# Fig. 3B/3D) in 10-s steps, -bscb -utl 5. The whole 600 s costs one engine about a minute per
+# trajectory (2.1e6 events, ~3.5e3 per simulated second, steady; RuleMonkey 55 s, nf_exact 60 s on
+# a general node), so 100 trajectories would outrun the harness's one-hour budget per engine; the
+# cost does not fall with the dose (1 nM costs as much), so the window is cut, the same for every
+# engine, rather than the model. Clustering is still evolving at 150 s (monomers 134 -> ~120).
+# The file's other protocol, a 6-dose parameter_scan, no engine but BNG2.pl can replay.
+id: egfr_oligomerization_mitra2019
+layer: core
+title: "EGFR higher-order oligomerization coupled to phosphorylation"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/egfr_oligomerization_mitra2019/egfr_oligomerization_mitra2019.bngl
+  sha256: 23ed0c39e61f9bcdb56277ccbb41c4e55cf08b770ccc713580f2e952e75e7df6
+  format: bngl
+publications:
+  - citation: "Mitra ED, Suderman R, Colvin J, Ionkov A, Hu A, Sauro HM, Posner RG, Hlavacek WS (2019). PyBioNetFit and the Biological Property Specification Language. iScience 19:1012-1036."
+    doi: 10.1016/j.isci.2019.08.045
+  - citation: "Kozer N, Barua D, Orchard S, Nice EC, Burgess AW, Hlavacek WS, Clayton AHA (2013). Exploring higher-order EGFR oligomerisation and phosphorylation -- a combined experimental and theoretical approach. Mol BioSyst 9:1849-1863."
+    doi: 10.1039/c3mb70073a
+verification:
+  kind: data
+  evidence: >-
+    models/egfr_oligomerization_mitra2019/verify_mitra2019.ipynb and run_mitra2019.py
+  check: >-
+    Kozer 2013 cluster-density and pEGFR data against the model, chi^2 < 30 asserted
+  result: >-
+    14.91 at 676dd61 (published fit 13.4), on a cached npz in which a shared-directory glob left 4 unique replicates of 6
+  pending: >-
+    upstream branch verify-egfr_oligomerization_mitra2019-* (BNGL-Models, not merged): glob bug fixed, re-run, re-asserted on the BNG2.pl NFsim arm; pin the merged sha here when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nfr",t_start=>0,t_end=>150,n_steps=>15,gml=>2147483647,print_functions=>1,param=>"-bscb -utl 5"})
+    replicates: 120
+    timing_replicates: 2
+    seed: 1
+size:
+  nf_events: 1500000
+suites:
+  nf-xml-aggregation: 10

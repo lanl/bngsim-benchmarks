@@ -1,0 +1,40 @@
+# Trivalent ligand, bivalent receptor (TLBR) aggregation in solution (Macken and Perelson 1982).
+# A core problem: member 4 of the nf-xml-aggregation suite (docs/DESIGN.md §3.2,
+# suites-stochastic.md §2.4). 4,200 ligands and 300 receptors; the aggregates are acyclic
+# (-bscb) and unbounded, so there is no network. The protocol is the file's own action: one
+# network-free run from all-free molecules to 500 s (equilibrium after ~300 s) in 250 steps,
+# its seed replaced per trajectory. The record's theory is the strongest aggregate-size theory
+# in the suite (branching process, Theorem 1).
+id: tlbr_solution_macken1982
+layer: core
+title: "Trivalent ligand aggregating bivalent receptors in solution"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/tlbr_solution_macken1982/tlbr_solution_macken1982.bngl
+  sha256: 387d5ab1cb9b9bbc35176f620c7919695e0212d0b32533e1fed58f55f34f4857
+  format: bngl
+publications:
+  - citation: "Macken CA, Perelson AS (1982). Aggregation of cell surface receptors by multivalent ligands. J Math Biol 14:365-370."
+    doi: 10.1007/BF00275401
+verification:
+  kind: theory
+  evidence: >-
+    models/tlbr_solution_macken1982/verify_macken1982.ipynb
+  check: >-
+    NFsim (BNG2.pl) against Eq. 11 kinetics, Eq. 21 equilibrium and the Theorem 1 aggregate-size counts, 10 replicates x 3 NL
+  result: >-
+    max relative error 0.133 (printed against 15% at 676dd61)
+  pending: >-
+    upstream branch verify-tlbr_solution_macken1982-* (BNGL-Models, not merged): fixes the renamed file in cell [9] and asserts; pin the merged sha here when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: own
+    replicates: 1000
+    timing_replicates: 20
+    seed: 1
+size:
+  nf_events: 70000
+suites:
+  nf-xml-aggregation: 4
