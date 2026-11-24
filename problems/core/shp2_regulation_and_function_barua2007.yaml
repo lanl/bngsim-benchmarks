@@ -1,5 +1,8 @@
 # Shp2 regulation and function. A core problem: member 5 of the ode-net suite (docs/DESIGN.md §3.2).
 # The protocol is the model's own ODE simulate action, at the same commit.
+# Also member 6 of the sens-net suite: forward sensitivities over the same horizon and grid, on
+# every independent parameter (22; the paper's 24 included two that reach nothing), at the ODE
+# protocol's tolerances.
 # Also member 8 of the ss-net suite: the file's own parameter_scan of total receptor Rtot (0.05 to
 # 0.5 uM, 10 points, linear, at its rtol = atol = 1e-8), the koff = 1 /s, S_tot = 0.10 uM series of
 # Fig. 3 that the verification checks; the dose reaches the seed through a derived parameter
@@ -23,7 +26,7 @@ verification:
   check: "63 digitized Fig. 3 markers vs a steady-state grid, 90th-percentile distance < 0.03 asserted; Fig. 5b brackets within 0.05"
   result: "median 0.006, 90th percentile 0.014; Fig. 5b 0.596 vs ~0.60"
   supporting: "structure: 149 species and 1032 reactions, asserted equal to the paper"
-capabilities: [ode, steady_state]
+capabilities: [ode, sens, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -33,6 +36,13 @@ protocol:
     rtol: 1.0e-8
     atol: 1.0e-8
     sparse: true
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1000
+    n_steps: 200
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    parameters: independent
   steady_state:
     netgen: "generate_network({overwrite=>1})"
     t_end: 1.0e+4
@@ -43,6 +53,8 @@ protocol:
 size:
   species: 149
   reactions: 1032
+  sens_parameters: 22
 suites:
   ode-net: 5
+  sens-net: 6
   ss-net: 8

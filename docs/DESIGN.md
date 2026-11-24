@@ -686,11 +686,12 @@ sensitivities task.
 
 | Field | Meaning |
 |---|---|
-| `netgen`, `t_end`, `n_steps`, `rtol`, `atol` | as for ODE; every engine runs at these tolerances |
+| `netgen`, `rtol`, `atol` | as for ODE; every engine runs at these tolerances |
+| `t_end`, `n_steps` | one measured phase from the network's initial state (or `phases`) |
 | `parameters` | the problem's convention: `independent` (every number in the `.net` that reaches a rate or an initial amount), `rate_constants`, `fitted`, or a list |
 | `fitted` | the problem's fitted set; beside another convention it is a job setting of its own (`.../fitted`) |
 | `parameter_scales` | a scale for a parameter whose value is zero (a dose not given, a switch off) |
-| `preequilibration`, `stimulus` | a two-phase protocol: a phase of `duration` before t = 0 at its own parameter values (`set`), then the `stimulus` values from t = 0 |
+| `phases` | an ordered list of finite phases run back to back, each a `duration`, an `n_steps` grid when it is measured, and, as it starts, the parameter values it `set`s and the species it `reset`s (to a number or an expression of the parameters); t = 0 is the start of the first measured phase |
 | `fd_step`, `fd_rtol`, `fd_atol` | the finite differences' step (relative to each parameter's scale) and their tighter tolerances |
 
 **The verdict.** Columns -- one output's sensitivity to one parameter over time -- are
@@ -709,15 +710,32 @@ another reference agrees with BNGsim and disagrees with it (two independent engi
 against one), is refuted -- its own failure (REFERENCE_FAILED), as a crash or a
 timeout is. Any other disagreement is a DIFF. A significant column no agreeing
 reference judged is REFERENCE_FAILED too. A reference that cannot run the protocol at
-all (COPASI on a two-phase one: its task cannot start from an equilibration's
-sensitivities) is `not_applicable`: named, not run, not counted.
+all (COPASI on a multi-phase one: its task cannot start from an earlier phase's
+sensitivities) is `not_applicable`: named, not run, not counted. BNGsim refusing a
+protocol in its own words (it will not carry sensitivities across a species reset)
+is UNSUPPORTED; the references still run, and whether they agree with each other is
+recorded beside it.
 
-**Two phases.** The equilibration runs over `[-duration, 0]`; BNGsim carries its
-sensitivities into the measured phase on one Simulator (`carry_sensitivities=True`),
-AMICI by its own pre-simulation (`t_presim`, the set parameters compiled as fixed),
-the finite differences by a second `run_network` started from the first's state. The
-phase has a duration rather than a steady-state criterion: a model need not reach a
-steady state (the p38-ATF2 network has an absorbing state).
+**Phases.** A protocol is one measured phase or an ordered list of finite phases
+(decision D3b, refined): the phases before the first measured one run at negative
+times, as AMICI's pre-simulation does. The state and its sensitivities are carried
+from each phase into the next; a reset species starts its phase at its new value
+with, as its sensitivity row, the derivative of that value (`S = 2*S0` gives
+`dS/dS0 = 2` and 0 for every other parameter). BNGsim runs the phases on one
+Simulator (`carry_sensitivities=True`; a reset at the start of the first phase is an
+initial condition, `declare_ic_sensitivity`); AMICI an equilibration then a measured
+phase by its own pre-simulation (`t_presim`, the set parameters compiled as fixed),
+any other protocol as a chain of simulations, each from the last one's state and
+state sensitivities (compiled without conservation laws, whose totals a reset would
+change); the finite differences by a fresh `run_network` per phase, each started from
+the last one's state, a reset written into the file as a derived parameter so that
+`run_network` evaluates it at every perturbed point. A phase has a duration rather
+than a steady-state criterion: a model need not reach a steady state (the p38-ATF2
+network has an absorbing state; cSTAR's TrkA and TrkB protocols, 50000 s, then
+`S = 2*S0`, then 50000 s, are far from one). A parameter a phase sets is the
+protocol's and is not differentiated; it must reach a rate and no initial amount,
+and a multi-phase protocol refuses a network that reads the clock (`run_network`
+starts each phase at 0).
 
 **Timing.** Each engine's forward-sensitivity solve of the protocol, interleaved
 (section 7), beside plain solves of the same protocol by BNGsim and `run_network`, the

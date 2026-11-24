@@ -496,6 +496,35 @@ def test_a_sens_setting_and_a_reference_that_does_not_apply_are_named(tmp_path):
     assert row["references"] == "FULL 2/2 (copasi: n/a)"
 
 
+def test_bngsim_refusing_a_protocol_reads_the_references_agreement_not_a_crash(tmp_path):
+    """UNSUPPORTED (BNGsim will not carry sensitivities across a species reset): BNGsim
+    is no reference column, and the row says whether the references agree with each
+    other instead of counting BNGsim among them."""
+    job = Job("sens", "trka", SENS_ENGINES, "auto", CORRECTNESS)
+    rec = {"outcome": "UNSUPPORTED",
+           "bngsim_error": "RuntimeError: UNSUPPORTED: bngsim will not carry ...",
+           "measurements": {"network": {"species": 82},
+                            "parameters": {"n": 88, "convention": "independent"},
+                            "protocol_phases": [{}, {}, {}],
+                            "references_agreement": {"amici_vs_run_network_fd": {
+                                "passed": True, "max_error": 1.7e-4, "n_judged": 10000}}},
+           "not_applicable": {"copasi": "a multi-phase protocol"}}
+    dest = tmp_path / "results" / f"{job.id}.json"
+    dest.parent.mkdir(parents=True)
+    dest.write_text(json.dumps(rec))
+    g.gather([job], tmp_path / "results", tmp_path / "reports", {CORRECTNESS: {}, TIMING: {}})
+    summary = (tmp_path / "reports" / "summary.md").read_text(encoding="utf-8")
+    header = _row(summary, "problem", "species", "parameters", "outcome")
+    assert "vs bngsim" not in header
+    row = dict(zip(header, _row(summary, "trka", "82")))
+    assert row["outcome"] == "UNSUPPORTED" and row["vs copasi"] == "n/a"
+    assert row["references"] == "references agree with each other (0.00017)"
+    rows = json.loads((tmp_path / "reports" / "sens-correctness.json").read_text())
+    rows = rows["rows"] if isinstance(rows, dict) else rows
+    assert rows[0]["phases"] == 3
+    assert rows[0]["references_agreement"]["amici_vs_run_network_fd"]["max_error"] == 1.7e-4
+
+
 def test_the_adjoint_gradient_is_timed_beside_bngsims_and_shares_amicis_build(tmp_path):
     """D7: AMICI's adjoint gradient of a log-likelihood beside BNGsim's forward one,
     timing only; each gradient engine's pre-sim cost is the build it runs on."""
