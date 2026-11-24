@@ -1,0 +1,56 @@
+# Noise-induced bistable futile cycle, unordered-pair driver. A core problem: member 4 of the
+# ssa-net suite and member 2 of the psa-net suite (docs/DESIGN.md §3.2). It replaces the paper's
+# seed, the record's primary, whose driver N + N -> E+ + N fires at twice the convention under
+# which this variant reproduces the paper's Fig. 3A (the primary has one mode where the paper has
+# two; suites-stochastic.md §3.1, Q3). A repeated reactant (N + N), so libRoadRunner's gillespie,
+# which fires k*N*N for it, is UNSUPPORTED by design (§5.3). Low copy numbers that drive it: E
+# 0-20, N 0-10, beside X about 1.6-1.9e3 and X* 55-364.
+# SSA: the record's own action (one exact trajectory over t = 0..10 s from the Fig. 3 caption
+# state), as an ensemble, output every 0.05 s rather than every 0.005 s.
+# PSA: the same window. The low-copy E and N take part in most reactions, so scaling barely
+# engages: noise-induced bimodality is what over-aggressive scaling would erase.
+id: noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair
+layer: core
+title: "Noise-induced bistable futile cycle (unordered-pair driver)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/noise_induced_bistable_futile_cycle_samoilov2005/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair.bngl
+  sha256: 5fe2850742b261bca0e4595d3acf59b70b334cd072f6c77f8b9efa7c5522e621
+  format: bngl
+publications:
+  - citation: "Samoilov M, Plyasunov S, Arkin AP (2005). Stochastic amplification and signaling in enzymatic futile cycles through noise-induced bistability with oscillations. PNAS 102:2310-2315."
+    doi: 10.1073/pnas.0406841102
+verification:
+  kind: data
+  evidence: models/noise_induced_bistable_futile_cycle_samoilov2005/verify_samoilov2005.ipynb
+  check: "digitized Fig. 3A trace vs 64-replicate BioNetGen SSA ensembles: mean X, mean X* and time below X* = 190 inside the ensemble's central 95% (|z| <= 1.96), and exactly two X* modes within 15 molecules of the published 108 and 292, asserted on nine disjoint seed blocks"
+  result: "|z| 0.28, 0.35, 0.51; modes 110 and 286"
+  supporting: "equations: BioNetGen SSA vs an independent Gillespie, worst z 1.46 (tol 3); ODE vs Eqs. S5 6.3e-10"
+capabilities: [ssa, psa]
+protocol:
+  ssa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 10
+    n_steps: 200
+    replicates: 200
+    timing_replicates: 2
+    seed: 1
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 10
+    n_steps: 200
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
+size:
+  species: 7
+  reactions: 10
+  ssa_events: 13000000
+  # Planning only. Sized so the planned PSA job matches the probe (2.6 s exact, 7-8 s
+  # per bngsim PSA trajectory, 5-6.5 s per run_network one), not the events.
+  psa_events: 3470000
+suites:
+  ssa-net: 4
+  psa-net: 2

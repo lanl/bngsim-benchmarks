@@ -35,7 +35,10 @@ out of time). A reference that cannot simulate this model's exact SSA at all is
 recorded the same way, with an error starting ``UNSUPPORTED`` and without being run:
 libRoadRunner's gillespie fires the SBML rate law as the propensity, so on a
 reaction with a repeated reactant (``A + A``) it uses ``k*A*A`` where the exact
-propensity is ``k*A*(A-1)`` (and since 2.9.3 can fire without end once ``A`` is 0).
+propensity is ``k*A*(A-1)`` (and since 2.9.3 can fire without end once ``A`` is 0);
+and it starts from an initial amount as written, so a count that is not a whole
+number (one that evaluates to 24.999999999999996) is not the state the other
+engines start from.
 
 **Timing.** Each engine's timed unit is one ensemble of ``timing_replicates``
 trajectories with the same seeds every round, interleaved round-robin with the
@@ -47,15 +50,22 @@ one-time cost before sampling -- BNGsim's load and propensity compile, libRoadRu
 SBML load and JIT, COPASI's import -- is measured once, cold, and reported beside it;
 run_network loads the ``.net`` inside every trajectory, so its load is in its time.
 
-Input formats: BNGsim's SSA reads ``.net``, BNGL (through BNG2.pl) and SBML; this
-capability builds every job from BNGL through the generated ``.net``. An SBML suite
-would load the SBML into BNGsim, roadrunner and COPASI directly and reach
-run_network through a converted ``.net``; the engine adapters already take those
-inputs, and ``jobs`` is where such a suite would be admitted.
+Input formats: a BNGL model runs through the generated ``.net`` as above. An SBML
+model (the ssa-sbml suite) is read as it is -- BNGsim, roadrunner and COPASI load
+the pinned SBML, its amounts as molecule counts, and run_network reads a network
+derived from it where that is faithful for the jump process -- by
+``bench.capabilities.ssa_sbml``, through the same jobs, verdicts and timing.
+
+**Parts.** An engine's ensemble is independent of the others', so a correctness
+job's engines are its parts (``Job.parts``): a job too long for one allocation
+runs each engine as its own Slurm array task (``bench submit``), each storing
+its ensemble beside the job's result, and the job then scores the stored
+ensembles instead of sampling them again. The result is the same either way.
 """
 
 from __future__ import annotations
 
+import math
 import subprocess
 import time
 from pathlib import Path
@@ -114,9 +124,15 @@ SEED_BLOCK = 10_000_000
 # takes the next free block here.
 ENGINE_SEED_BLOCKS = {"bngsim": 0, "run_network": 1, "roadrunner": 2, "copasi": 3}
 ANALYTIC = "analytic"
-# The kinds of exact moments a spec may declare (specs.py validates the same set).
-# A pinned table of means and SDs, as DSMTS publishes them, would be the next.
-MOMENT_KINDS = ("linear",)
+# The kinds of exact moments a spec may declare (specs.py validates the same set):
+# ``linear`` (computed from a first-order .net) or, for an SBML model, a pinned
+# ``table`` of means and SDs, as DSMTS publishes them.
+MOMENT_KINDS = ("linear", "table")
+
+
+def moments_kind(proto: dict[str, Any]) -> str | None:
+    m = proto.get("moments")
+    return m.get("kind") if isinstance(m, dict) else m
 
 
 def protocol(problem: Problem) -> dict[str, Any]:
@@ -140,10 +156,8 @@ def engines_id() -> str:
 
 
 def jobs(problem: Problem) -> list[Job]:
-    # BNGL only for now. An SBML source would load directly into BNGsim, roadrunner
-    # and COPASI (and into run_network through a converted .net): the place an
-    # ssa-sbml suite would be admitted, with its own engines id.
-    if problem.source.get("format") != "bngl":
+    fmt = problem.source.get("format")
+    if fmt not in ("bngl", "sbml"):
         return []
     proto = protocol(problem)
     engines = engines_id()
@@ -158,6 +172,11 @@ def jobs(problem: Problem) -> list[Job]:
             "copasi": env.copasi_identity().get("version"),
         },
     }
+    if fmt == "sbml":
+        from .ssa_sbml import SBML_HARNESS_VERSION
+
+        # Only an SBML job carries this, so a .net job's definition is unchanged.
+        base["input"] = {"format": "sbml", "harness": SBML_HARNESS_VERSION}
     est_c, est_t = planning_seconds(problem)
     comparisons = len(REFERENCE_ENGINES) + 1
     backstop = (len(REFERENCE_ENGINES) + 2) * engine_budget_seconds(problem) \
@@ -167,6 +186,7 @@ def jobs(problem: Problem) -> list[Job]:
         definition={**base, "verdict": VERDICT},
         est_seconds=est_c,
         timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c, backstop),
+        parts=ensemble_seconds(problem),
     )
     timing = Job(
         CAPABILITY, problem.id, engines, "auto", TIMING,
@@ -187,9 +207,16 @@ def jobs(problem: Problem) -> list[Job]:
 # a millisecond (COPASI's is the largest seen, about 0.5 ms). The per-event cost is a
 # conservative bound for every engine on small networks (BNGsim measures about
 # 0.5 us). The events per trajectory come from the spec's ``size.ssa_events``
-# (planning only), else DEFAULT_EVENTS. Calibrated on the two pilot problems.
+# (planning only), else DEFAULT_EVENTS. Calibrated on the two pilot problems. A spec
+# may instead give an engine's measured cost per trajectory, ``size.ssa_ms_<engine>``
+# (milliseconds, planning only), which then takes the place of that estimate.
 MIN_TIMEOUT_SECONDS = 1800.0
 TIMEOUT_FACTOR = 4.0
+# The most wall time one engine gets for its cold build and ensemble in the
+# correctness job: room for an ensemble of a few hours (a model whose every
+# trajectory takes minutes), inside one allocation when the engine runs as a part.
+ENSEMBLE_BUDGET_CAP_SECONDS = 28800.0
+# The cap the psa capability applies to its own engines (bench.capabilities.psa).
 ENGINE_BUDGET_CAP_SECONDS = 3600.0
 DEFAULT_EVENTS = 1000
 EVENT_SECONDS = 2e-6
@@ -200,10 +227,21 @@ VERDICT_SECONDS = 30.0
 
 
 def trajectory_seconds(problem: Problem) -> dict[str, float]:
-    """Planned seconds per trajectory, per engine."""
+    """Planned seconds per trajectory, per engine: the spec's measured cost
+    (``size.ssa_ms_<engine>``) where it gives one, else the event-count estimate."""
     events = problem.size.get("ssa_events", DEFAULT_EVENTS)
-    return {name: TRAJECTORY_SECONDS.get(name, 1e-3) + EVENT_SECONDS * events
-            for name in ("bngsim", *REFERENCE_ENGINES)}
+    out = {}
+    for name in ("bngsim", *REFERENCE_ENGINES):
+        ms = problem.size.get(f"ssa_ms_{name}")
+        out[name] = ms / 1000.0 if ms is not None else \
+            TRAJECTORY_SECONDS.get(name, 1e-3) + EVENT_SECONDS * events
+    return out
+
+
+def ensemble_seconds(problem: Problem) -> dict[str, float]:
+    """Planned seconds of each engine's correctness ensemble: the job's parts."""
+    n = int(protocol(problem)["replicates"])
+    return {name: 10.0 + n * t for name, t in trajectory_seconds(problem).items()}
 
 
 def planning_seconds(problem: Problem) -> tuple[float, float]:
@@ -211,7 +249,7 @@ def planning_seconds(problem: Problem) -> tuple[float, float]:
     proto = protocol(problem)
     per = trajectory_seconds(problem)
     all_engines = sum(per.values())
-    correctness = 30.0 + int(proto["replicates"]) * all_engines \
+    correctness = 30.0 + sum(ensemble_seconds(problem).values()) \
         + VERDICT_SECONDS * (len(REFERENCE_ENGINES) + 1)
     tp = TIMING_PROTOCOL
     rnd = int(proto["timing_replicates"]) * all_engines
@@ -224,8 +262,8 @@ def planning_seconds(problem: Problem) -> tuple[float, float]:
 
 def engine_budget_seconds(problem: Problem) -> float:
     """Wall budget for one engine's cold build + ensemble in the correctness job."""
-    slowest = max(trajectory_seconds(problem).values()) * int(protocol(problem)["replicates"])
-    return min(ENGINE_BUDGET_CAP_SECONDS, max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * slowest))
+    slowest = max(ensemble_seconds(problem).values())
+    return min(ENSEMBLE_BUDGET_CAP_SECONDS, max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * slowest))
 
 
 # --------------------------------------------------------------------------- #
@@ -423,13 +461,25 @@ class RoadRunnerSSA:
         if network is None:
             return None
         reps = network.repeated_reactants()
-        if not reps:
-            return None
-        r = reps[0]
-        return (f"UNSUPPORTED: {len(reps)} reaction(s) consume one species twice (first: "
-                f"reaction {r.index}{' ' + r.label if r.label else ''}); libRoadRunner's "
-                "gillespie fires the SBML rate law k*A*A as the propensity, where exact SSA "
-                "uses k*A*(A-1), and can fire without end once A reaches 0")
+        if reps:
+            r = reps[0]
+            return (f"UNSUPPORTED: {len(reps)} reaction(s) consume one species twice (first: "
+                    f"reaction {r.index}{' ' + r.label if r.label else ''}); libRoadRunner's "
+                    "gillespie fires the SBML rate law k*A*A as the propensity, where exact SSA "
+                    "uses k*A*(A-1), and can fire without end once A reaches 0")
+        # libRoadRunner's gillespie starts from the SBML amount as it is, where the other
+        # engines start from whole molecules: a count that evaluates to 24.999999999999996
+        # (Munsky 2012's m_avg_reg) stays that, every trajectory then differs from the
+        # integer state at t = 0, and the ensembles cannot be compared.
+        frac = [(name, x) for name, x in zip(network.species, network.initial)
+                if math.isfinite(x) and x != round(x)]
+        if frac:
+            name, x = frac[0]
+            return (f"UNSUPPORTED: {len(frac)} species start at a non-integer count (first: "
+                    f"{name} = {x!r}); libRoadRunner's gillespie does not round it, so it "
+                    "samples from another initial state than the integer one the other "
+                    "engines start from")
+        return None
 
     def __init__(self, sbml: Path, species_names: list[str], name_to_id: dict[str, str],
                  proto: dict[str, Any]):
@@ -570,6 +620,10 @@ BUILD_STAGE = {
 
 
 def _build_reference(name: str, prep: dict[str, Any], *, out_prefix: Path, timeout: float):
+    if prep.get("format") == "sbml":
+        from .ssa_sbml import build_reference
+
+        return build_reference(name, prep, out_prefix=out_prefix, timeout=timeout)
     cls = REFERENCE_ENGINES[name]
     if cls.INPUT == "net":
         return cls(prep["net"], prep["proto"], out_prefix, timeout=timeout)
@@ -588,8 +642,20 @@ def _progress(msg: str) -> None:
 # --------------------------------------------------------------------------- #
 # Preparation, ensembles and the verdict
 # --------------------------------------------------------------------------- #
+def _build_bngsim(prep: dict[str, Any]) -> BngsimSSA:
+    if prep.get("format") == "sbml":
+        from .ssa_sbml import BngsimSSASBML
+
+        return BngsimSSASBML(prep["sbml"], prep["species_names"], prep["proto"])
+    return BngsimSSA(prep["net"], prep["proto"])
+
+
 def _prepare(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
     proto = protocol(problem)
+    if problem.source.get("format") == "sbml":
+        from .ssa_sbml import prepare
+
+        return prepare(problem, ctx, proto)
     prep = prepare_network(problem, ctx, proto["netgen"])
     prep["proto"] = proto
     # The harness's own reading of the network: for the exact moments and the
@@ -606,7 +672,7 @@ def _cold_bngsim(prep: dict[str, Any], n: int, seed: int):
     def fn(stage):
         t0 = time.perf_counter()
         stage(BUILD_STAGE["bngsim"])
-        engine = BngsimSSA(prep["net"], prep["proto"])
+        engine = _build_bngsim(prep)
         stage(f"ensemble of {n}")
         t1 = time.perf_counter()
         stack = engine.ensemble_detailed(n, seed)
@@ -643,12 +709,21 @@ def _permutation_seed(seed: int, k: int) -> int:
     return int(np.random.SeedSequence([int(seed), int(k)]).generate_state(1)[0])
 
 
+def _kept(prep: dict[str, Any]) -> np.ndarray:
+    """The output rows every comparison uses: all of them, except (for an SBML
+    model) the instants a time-triggered event fires (ssa_sbml.excluded_rows)."""
+    keep = prep.get("keep")
+    return np.ones(times(prep["proto"]).size, dtype=bool) if keep is None else keep
+
+
 def _two_sample(bn: np.ndarray, ref: np.ndarray, k: int, prep: dict[str, Any]) -> dict[str, Any]:
+    keep = _kept(prep)
+    bn, ref = bn[:, keep], ref[:, keep]
     v = stochastic.two_sample_verdict(
         bn, ref, alpha=VERDICT["alpha"], permutations=VERDICT["permutations"],
         stop_exceedances=VERDICT["stop_exceedances"],
         seed=_permutation_seed(prep["proto"]["seed"], k),
-        times=times(prep["proto"]), species=prep["species_names"])
+        times=times(prep["proto"])[keep], species=prep["species_names"])
     if "reason" not in v:
         v["parity_core"] = stochastic.parity_core_verdict(bn, ref)
     return v
@@ -657,16 +732,24 @@ def _two_sample(bn: np.ndarray, ref: np.ndarray, k: int, prep: dict[str, Any]) -
 def _analytic(stack: np.ndarray, moments: tuple[np.ndarray, np.ndarray],
               prep: dict[str, Any]) -> dict[str, Any]:
     mean, var = moments
-    return stochastic.analytic_verdict(stack, mean, var, alpha=VERDICT["alpha"],
-                                       times=times(prep["proto"]),
+    keep = _kept(prep)
+    return stochastic.analytic_verdict(stack[:, keep], mean[keep], var[keep],
+                                       alpha=VERDICT["alpha"],
+                                       times=times(prep["proto"])[keep],
                                        species=prep["species_names"])
 
 
 def exact_moments(prep: dict[str, Any]) -> tuple[np.ndarray, np.ndarray]:
-    """The spec's exact moments on the protocol grid (``moments: linear``)."""
-    kind = prep["proto"].get("moments")
+    """The spec's exact moments on the protocol grid: computed from the ``.net``
+    (``moments: linear``) or read from a pinned table (``kind: table``)."""
+    kind = moments_kind(prep["proto"])
     if kind not in MOMENT_KINDS:
         raise ValueError(f"unknown moments kind {kind!r}")
+    if kind == "table":
+        from .ssa_sbml import table_moments
+
+        return table_moments(prep["proto"]["moments"], prep["cache_dir"], prep["proto"],
+                             prep["species_names"])
     if prep.get("network") is None:
         raise RuntimeError("the .net could not be read: "
                            + str(prep["info"].get("netfile_error", "unknown error")))
@@ -677,6 +760,97 @@ def exact_moments(prep: dict[str, Any]) -> tuple[np.ndarray, np.ndarray]:
 # --------------------------------------------------------------------------- #
 # Jobs
 # --------------------------------------------------------------------------- #
+def _derive_isolated(prep: dict[str, Any], workdir: Path, budget: float,
+                     timeout: float) -> dict[str, Any]:
+    """For an SBML model, the network run_network samples (``ssa_sbml.derive_network``),
+    derived in a forked child under ``budget``; run_network not applicable, with the
+    reason, when there is no faithful one or the derivation failed (it is model
+    preparation, never run_network's failure)."""
+    from .ssa_sbml import derive_network
+
+    def fn(stage):
+        derived = derive_network(prep["sbml"], prep["species_names"], prep["proto"],
+                                 workdir / "derived", timeout=timeout, stage=stage)
+        return np.zeros(0), derived
+
+    _progress(f"run_network: deriving a network from the SBML (budget {budget:g} s)")
+    out = run_isolated(fn, budget, workdir / "isolated" / "derive")
+    if "error" in out:
+        derived = {"applicable": False, "info": {},
+                   "reason": f"the network derivation failed: {out['error']}"[:400]}
+    else:
+        derived = out["config"]
+    derived.setdefault("info", {})["seconds"] = out["seconds"]
+    _progress("run_network: " + ("derived network ready" if derived.get("applicable")
+                                 else f"not applicable ({derived.get('reason')})"))
+    return derived
+
+
+def _engine_run(name: str, prep: dict[str, Any], n: int, seed: int, workdir: Path,
+                budget: float, timeout: float) -> dict[str, Any]:
+    """One engine's correctness ensemble, cold, in its own forked child: what
+    ``run_isolated`` returns; for a reference that cannot simulate the model,
+    ``{"error": "UNSUPPORTED ..."}`` without running it; for one that does not
+    apply to it (run_network on an SBML model with no faithful network),
+    ``{"not_applicable": reason}``."""
+    def isolated(fn) -> dict[str, Any]:
+        _progress(f"{name}: start (budget {budget:g} s; {threads()} threads in the worker)")
+        out = run_isolated(fn, budget, workdir / "isolated" / name)
+        _progress(f"{name}: {out.get('error') or 'done'} after {out['seconds']:.1f} s")
+        return out
+
+    if name == "bngsim":
+        return isolated(_cold_bngsim(prep, n, seed_for("bngsim", seed)))
+    reason = _unsupported(name, prep)
+    if reason:
+        _progress(f"{name}: not run, {reason}")
+        return {"error": reason}
+    extra: dict[str, Any] = {}
+    if prep.get("format") == "sbml" and name == "run_network":
+        derived = _derive_isolated(prep, workdir, budget, timeout)
+        extra["derived_network"] = derived.get("info", {})
+        if not derived.get("applicable"):
+            return {"not_applicable": str(derived.get("reason")), **extra}
+        prep["derived"] = derived
+    out = isolated(_cold_reference(name, prep, n, seed_for(name, seed),
+                                   workdir / name / "rn", timeout))
+    return {**out, **extra}
+
+
+# What a stored part keeps of ``_engine_run``'s output besides the ensemble.
+_PART_FIELDS = ("config", "error", "seconds", "not_applicable", "derived_network")
+
+
+def _store_part(job: Job, name: str, out: dict[str, Any], ctx: dict[str, Any]) -> None:
+    from ..results import write_part
+
+    record = {k: out[k] for k in _PART_FIELDS if k in out}
+    arrays = {"trajectory": out["trajectory"]} if "trajectory" in out else None
+    write_part(ctx["results_dir"], job, name, ctx["key"], record, arrays)
+
+
+def _stored_part(job: Job, name: str, ctx: dict[str, Any]) -> dict[str, Any] | None:
+    """An engine's ensemble as a part of this job stored it, under the job's
+    current key (``Job.parts``); None when there is none."""
+    if (job is None or name not in job.parts or not ctx.get("key")
+            or not ctx.get("results_dir")):
+        return None
+    from ..results import read_part
+
+    got = read_part(ctx["results_dir"], job, name, ctx["key"])
+    if got is None:
+        return None
+    rec, arrays = got
+    out = {k: rec[k] for k in _PART_FIELDS if k in rec}
+    if "trajectory" in arrays:
+        out["trajectory"] = arrays["trajectory"]
+    elif "error" not in out and "not_applicable" not in out:
+        return None
+    out["from_part"] = True
+    _progress(f"{name}: the ensemble its own task stored ({out.get('seconds', 0):.1f} s there)")
+    return out
+
+
 def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
     try:
         prep = _prepare(problem, ctx)
@@ -689,33 +863,36 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     info["engine_budget_seconds"] = budget
     timeout = min(float(ctx["subprocess_timeout"]), budget)
 
-    def isolated(name: str, fn) -> dict[str, Any]:
-        _progress(f"{name}: start (budget {budget:g} s; {threads()} threads in the worker)")
-        out = run_isolated(fn, budget, workdir / "isolated" / name)
-        _progress(f"{name}: {out.get('error') or 'done'} after {out['seconds']:.1f} s")
-        return out
+    part = ctx.get("part")
+    if part:
+        # One engine only, stored for the run that scores the job (Job.parts).
+        _store_part(job, part, _engine_run(part, prep, n, seed, workdir, budget, timeout), ctx)
+        return {"outcome": "PART_STORED"}
+    outs = {}
+    for name in ("bngsim", *REFERENCE_ENGINES):
+        outs[name] = _stored_part(job, name, ctx) or _engine_run(
+            name, prep, n, seed, workdir, budget, timeout)
+    from_parts = [name for name, o in outs.items() if o.get("from_part")]
+    if from_parts:
+        info["from_parts"] = from_parts
 
     bn = None
-    bn_error = None
-    out = isolated("bngsim", _cold_bngsim(prep, n, seed_for("bngsim", seed)))
-    if "error" in out:
-        bn_error = out["error"]
-    else:
-        info["bngsim"] = out["config"]
-        bn = out["trajectory"]
+    bn_error = outs["bngsim"].get("error")
+    if not bn_error:
+        info["bngsim"] = outs["bngsim"]["config"]
+        bn = outs["bngsim"]["trajectory"]
 
     references: dict[str, Any] = {}
     ensembles: dict[str, np.ndarray] = {}
     ref_errors: dict[str, str] = {}
+    not_applicable: dict[str, str] = {}
     for name in REFERENCE_ENGINES:
-        reason = _unsupported(name, prep)
-        if reason:
-            ref_errors[name] = reason
-            _progress(f"{name}: not run, {reason}")
-            continue
-        out = isolated(name, _cold_reference(name, prep, n, seed_for(name, seed),
-                                             workdir / name / "rn", timeout))
-        if "error" in out:
+        out = outs[name]
+        if "derived_network" in out:
+            info["derived_network"] = out["derived_network"]
+        if "not_applicable" in out:
+            not_applicable[name] = out["not_applicable"]
+        elif "error" in out:
             ref_errors[name] = out["error"]
         else:
             ensembles[name] = out["trajectory"]
@@ -723,13 +900,13 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     info["references"] = references
 
     moments = None
-    n_refs = len(REFERENCE_ENGINES)
+    n_refs = len(REFERENCE_ENGINES) - len(not_applicable)
     if proto.get("moments"):
         n_refs += 1
         t0 = time.perf_counter()
         try:
             moments = exact_moments(prep)
-            info[ANALYTIC] = {"kind": proto["moments"], "seconds": time.perf_counter() - t0}
+            info[ANALYTIC] = {"kind": moments_kind(proto), "seconds": time.perf_counter() - t0}
         except Exception as exc:  # noqa: BLE001 - a reference that could not be built
             ref_errors[ANALYTIC] = f"{type(exc).__name__}: {exc}"[:400]
 
@@ -770,6 +947,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         rec["bngsim_error"] = bn_error
     for name, err in ref_errors.items():
         rec[f"{name}_error"] = err
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
     return rec
 
 
@@ -794,7 +973,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     # BNGsim cold: load, propensity compile and a first ensemble, with the empty
     # compile cache the worker gave this job. That ensemble anchors the warm ones.
     t0 = time.perf_counter()
-    bngsim_engine = BngsimSSA(prep["net"], proto)
+    bngsim_engine = _build_bngsim(prep)
     first = bngsim_engine.ensemble(k, seed_for("bngsim", seed))
     info["bngsim_cold_seconds"] = time.perf_counter() - t0
     info["bngsim"] = bngsim_engine.config()
@@ -805,6 +984,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     references: dict[str, Any] = {}
     engines: dict[str, Any] = {"bngsim": bngsim_engine}
     ref_errors: dict[str, str] = {}
+    not_applicable: dict[str, str] = {}
     timed_out = correctness_timeouts(job, ctx, REFERENCE_ENGINES)
     for name in REFERENCE_ENGINES:
         reason = _unsupported(name, prep)
@@ -815,6 +995,13 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
             ref_errors[name] = f"TIMEOUT in the correctness job, so not timed ({timed_out[name]})"
             _progress(f"{name}: skipped, {ref_errors[name]}")
             continue
+        if prep.get("format") == "sbml" and name == "run_network":
+            # Derived as the correctness job derives it, and judged the same way.
+            derived = _derive_isolated(prep, workdir, float(timeout), float(timeout))
+            if not derived.get("applicable"):
+                not_applicable[name] = str(derived.get("reason"))
+                continue
+            prep["derived"] = derived
         _progress(f"{name}: build + trial run")
         try:
             engine = _build_reference(name, prep, out_prefix=workdir / name / "rn",
@@ -856,6 +1043,8 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     }
     for name, err in ref_errors.items():
         rec[f"{name}_error"] = err
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
     return rec
 
 

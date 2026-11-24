@@ -1,0 +1,46 @@
+# MAPK relaxation oscillations. A core problem: member 4 of the psa-net suite (docs/DESIGN.md
+# §3.2), one of the three published models of the PSA paper (Lin, Feng & Hlavacek 2019). It
+# leaves ssa-net (suites-stochastic.md §3.1, Q4): its record declares no exact-SSA action, and
+# exact SSA is about 1e8 events per simulated 10 min. Populations 6e3-3e6. The protocol is the
+# record's own PSA alternative (EGF 20 pg/ml from the primed state, poplevel 100 there) cut from
+# its first hour to its first 10 min, output every 10 s: an exact trajectory over 10 min costs
+# 49 s (bngsim) and 43 s (run_network) on a Darwin node, a scaled one 1.5-5.5 s, so exact SSA has
+# its own, smaller ensemble (exact_replicates). The file's verification is deterministic (Fig.
+# 4B); its stochastic behaviour is checked in the job (Q1).
+id: mapk_relaxation_oscillations_kochanczyk2017
+layer: core
+title: "MAPK relaxation oscillations"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/mapk_relaxation_oscillations_kochanczyk2017/mapk_relaxation_oscillations_kochanczyk2017.bngl
+  sha256: 9dac883b7f245dfdc92a4df37ae54f464a33addfd9fe8a10684370f044983004
+  format: bngl
+publications:
+  - citation: "Kochanczyk M, Kocieniewski P, Kozlowska E, Jaruszewicz-Blonska J, Sparta B, Pargett M, Albeck JG, Hlavacek WS, Lipniacki T (2017). Relaxation oscillations and hierarchy of feedbacks in MAPK signaling. Sci Rep 7:38244."
+    doi: 10.1038/srep38244
+verification:
+  kind: data
+  evidence: models/mapk_relaxation_oscillations_kochanczyk2017/verify_kochanczyk2017.ipynb
+  check: "digitized Fig. 4B active-ERK trace vs the BioNetGen ODE over 24 h: pulse count, median period and peak amplitude asserted"
+  result: "17/17 pulses; median period 1.433 h vs 1.500 h (4.44%); peak amplitude 0.90% of full scale; median residual timing error 3.0 min after phase registration"
+  supporting: "equations: BioNetGen vs an independent SciPy integration of the generated network, 2.3e-4 relative; nine conserved pools to 1e-12"
+capabilities: [psa]
+protocol:
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 600
+    n_steps: 60
+    replicates: 200
+    exact_replicates: 40
+    timing_replicates: 1
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
+size:
+  species: 34
+  reactions: 65
+  # Planning only: sized so the planned PSA job matches the probe (49 s exact bngsim,
+  # 43 s run_network per trajectory; 1.5-5.5 s and about 2 s scaled).
+  psa_events: 2280000
+suites:
+  psa-net: 4

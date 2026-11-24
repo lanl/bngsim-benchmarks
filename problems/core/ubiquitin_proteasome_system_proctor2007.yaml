@@ -1,0 +1,49 @@
+# The ubiquitin-proteasome system in normal homeostasis and age-related decline (BioModels
+# BIOMD0000000105). A core problem: member 8 of the ssa-sbml suite. A stochastic model (its
+# notes); the curators reproduced Fig. 3 (i)(iii)(v) with Gillespie2 over about 0-71000 s.
+# The horizon is 72000 s (20 h). DUB and ROS are never changed: not compared.
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the converter writes non-mass-action laws as per-species flux
+# reactions, the same ODE with other jumps); the harness derives the network and records the
+# reason in every result. size.ssa_ms_run_network is 0 for planning only.
+id: ubiquitin_proteasome_system_proctor2007
+layer: core
+title: Ubiquitin-proteasome system and age-related decline
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000105/BIOMD0000000105_url.xml
+  sha256: 3a32ecfc5730193c0c6c1526cc1899acc5490aaab35fc90d423d27116e63bb82
+  format: sbml
+publications:
+- citation: Proctor CJ, Tsirigotis M, Gray DA (2007). An in silico model of the ubiquitin-proteasome system
+    that incorporates normal homeostasis and age-related decline. BMC Syst Biol 1:17.
+  doi: 10.1186/1752-0509-1-17
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000105 curation notes and curation image
+  check: 'BioModels curation: Fig. 3 (i)(iii)(v) reproduced with Gillespie2, about 0-72000 s; model notes:
+    a stochastic model'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 72000
+    n_steps: 100
+    replicates: 10000
+    timing_replicates: 100
+    seed: 1
+size:
+  species: 39
+  reactions: 94
+  ssa_events: 65600
+  ssa_ms_bngsim: 166
+  ssa_ms_roadrunner: 106
+  ssa_ms_copasi: 86
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 8

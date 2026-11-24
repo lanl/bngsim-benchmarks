@@ -3,6 +3,11 @@
 # Also member 6 of the sens-net suite: forward sensitivities over the same horizon and grid, on
 # every independent parameter (22; the paper's 24 included two that reach nothing), at the ODE
 # protocol's tolerances.
+# Also member 8 of the ss-net suite: the file's own parameter_scan of total receptor Rtot (0.05 to
+# 0.5 uM, 10 points, linear, at its rtol = atol = 1e-8), the koff = 1 /s, S_tot = 0.10 uM series of
+# Fig. 3 that the verification checks; the dose reaches the seed through a derived parameter
+# (R_dim = Rtot/2). The horizon is ours, 1e4 s, ten times the file's, so the integration references
+# settle; the file asks for the sparse solver, and run_network runs dense here (DESIGN §2).
 id: shp2_regulation_and_function_barua2007
 layer: core
 title: "Shp2 regulation and function"
@@ -21,7 +26,7 @@ verification:
   check: "63 digitized Fig. 3 markers vs a steady-state grid, 90th-percentile distance < 0.03 asserted; Fig. 5b brackets within 0.05"
   result: "median 0.006, 90th percentile 0.014; Fig. 5b 0.596 vs ~0.60"
   supporting: "structure: 149 species and 1032 reactions, asserted equal to the paper"
-capabilities: [ode, sens]
+capabilities: [ode, sens, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -38,6 +43,13 @@ protocol:
     rtol: 1.0e-8
     atol: 1.0e-8
     parameters: independent
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1.0e+4
+    n_steps: 100
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    scan: {parameter: Rtot, min: 0.05, max: 0.5, points: 10}
 size:
   species: 149
   reactions: 1032
@@ -45,3 +57,4 @@ size:
 suites:
   ode-net: 5
   sens-net: 6
+  ss-net: 8

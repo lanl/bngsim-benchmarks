@@ -1,18 +1,20 @@
-# CAR CD3zeta site-specific phosphorylation by LCK. A provisional pilot problem for partial scaling
-# (PSA): it exercises the PSA capability until its core suite is chosen and audited
-# (docs/DESIGN.md §3.2). Six-site phosphorylation of 20,000 CD3zeta by about 20 LCK (the seeded
+# CAR CD3zeta site-specific phosphorylation by LCK. A core problem: member 6 of the psa-net suite
+# (docs/DESIGN.md §3.2); it entered as a pilot and keeps the pilot's protocol, so its pilot results
+# stay current. Six-site phosphorylation of 20,000 CD3zeta by about 20 LCK (the seeded
 # 19.703 is rounded to 20 by every stochastic engine) through Michaelis-Menten rate laws with
 # competitive inhibition (functional propensities), 64 phosphoforms. LCK is a reactant of every
 # reaction, so the smallest participating population is at most 20 and scaling can engage only at
 # the smallest N_c. The protocol is ours, not the record's (its active action is the ODE time
 # course over 1000 min, with exact SSA commented out beside it): an ensemble from the seed species
 # over the first 60 min (time unit: minutes), when A1 is past half-maximal and C1 has begun.
+# run_network segfaults or hangs on this network, for exact SSA and PSA alike, on x86 and on the
+# native aarch64 build (the pilot's finding): recorded as REFERENCE_FAILED, never worked around.
 id: car_cd3zeta_phosphorylation_rohrs2018
-layer: pilot
+layer: core
 title: "CAR CD3zeta site-specific phosphorylation by LCK"
 source:
   repo: wshlavacek/BNGL-Models
-  commit: 676dd61f11a868f9354609ec3c8d079c77e0361a
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
   path: models/car_cd3zeta_phosphorylation_rohrs2018/car_cd3zeta_phosphorylation_rohrs2018.bngl
   sha256: 7d178c1f9f1b1052ac732bc21fc766a53a962f5ffb76a5bf846681f2a62a5b78
   format: bngl
@@ -20,8 +22,11 @@ publications:
   - citation: "Rohrs JA, Zheng D, Graham NA, Wang P, Finley SD (2018). Computational model of chimeric antigen receptors explains site-specific phosphorylation kinetics. Biophys J 115:1116-1129."
     doi: 10.1016/j.bpj.2018.08.018
 verification:
-  kind: pending
+  kind: data
   evidence: models/car_cd3zeta_phosphorylation_rohrs2018/verify_rohrs2018.ipynb
+  check: "the nine digitized Fig. S5 model curves vs the BioNetGen ODE, and the Fig. S5 measurements against the authors' own published fit"
+  result: "Fig. S5 model curves within 1.6 percentage points; SSE 1.25e4 against the authors' 1.27e4 over 354 points"
+  supporting: "equations: Eqs. 2-5 transcribed independently in SciPy match BioNetGen to 1e-3 percentage points"
 capabilities: [psa]
 protocol:
   psa:
@@ -36,3 +41,5 @@ size:
   species: 65
   reactions: 192
   psa_events: 64000
+suites:
+  psa-net: 6

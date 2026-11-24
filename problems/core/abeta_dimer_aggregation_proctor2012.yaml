@@ -1,0 +1,53 @@
+# Amyloid-beta dimer aggregation (BioModels BIOMD0000000462). A core problem: member 2 of the
+# ssa-sbml suite. A stochastic model by its authors; the curators reproduced Figs 5A and 5B with
+# COPASI's stochastic direct method over 0-100 years. The horizon is that: 3.156e9 s (100 y;
+# the file declares no time unit, so seconds). Rate laws are written per molecule count,
+# dimerisation as k*X*(X-1)*0.5. replicates is 5000, not the 1e4 default (cost, decided
+# 2026-11-24); a probe at 200 per engine (wave 1) found no disagreement between the engines.
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the converter writes non-mass-action laws as per-species flux
+# reactions, the same ODE with other jumps); the harness derives the network and records the
+# reason in every result. size.ssa_ms_run_network is 0 for planning only.
+id: abeta_dimer_aggregation_proctor2012
+layer: core
+title: Amyloid-beta dimers in aggregation (stochastic)
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000462/BIOMD0000000462_url.xml
+  sha256: 2bb81ccb90acf4a9f226f0c3563d10b531d78c541d4ee3a49e070b3c5b84d7ae
+  format: sbml
+publications:
+- citation: 'Proctor CJ, Pienaar IS, Elson JL, Kirkwood TBL (2012). Aggregation, impaired degradation
+    and immunization targeting of amyloid-beta dimers in Alzheimer''s disease: a stochastic modelling
+    approach. Mol Neurodegener 7:32.'
+  doi: 10.1186/1750-1326-7-32
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000462 curation notes and curation image (final/BIOMD0000000462/ at the
+    pinned commit)
+  check: 'BioModels curation: Figs 5A and 5B reproduced in COPASI 4.8 with Stochastic (Direct), 0-100
+    years'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 3156000000.0
+    n_steps: 100
+    replicates: 5000
+    timing_replicates: 20
+    seed: 1
+size:
+  species: 6
+  reactions: 8
+  ssa_events: 3400000
+  ssa_ms_bngsim: 2310
+  ssa_ms_roadrunner: 2680
+  ssa_ms_copasi: 1850
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 2

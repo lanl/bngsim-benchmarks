@@ -17,7 +17,9 @@ compared with:
 Each of the ``2 (K + 1)`` ensembles (two engines; exact SSA and K values of N_c) is
 drawn as the ``ssa`` capability draws one -- the same engines, ``replicates``
 trajectories on the uniform grid, fixed seeds from a block of its own -- in its own
-forked child under a wall budget. The exact-SSA blocks are the ``ssa`` capability's
+forked child under a wall budget. A spec may set ``exact_replicates``, fewer
+trajectories for the two exact-SSA ensembles, where an exact trajectory can cost
+minutes and a scaled one seconds; the permutation tests take unequal ensembles. The exact-SSA blocks are the ``ssa`` capability's
 for these two engines, so the N_c = infinity ensembles are the ones an ``ssa`` job on
 the same protocol draws.
 
@@ -162,6 +164,14 @@ def exactness_key(nc: float) -> str:
     return f"{EXACT}@{label(nc)}"
 
 
+def ensemble_size(proto: dict[str, Any], nc: float | None) -> int:
+    """Trajectories in one correctness ensemble: ``exact_replicates`` (when the spec
+    sets it) for exact SSA, where a trajectory can cost minutes, else ``replicates``."""
+    if nc is None and "exact_replicates" in proto:
+        return int(proto["exact_replicates"])
+    return int(proto["replicates"])
+
+
 def levels(proto: dict[str, Any]) -> list[float | None]:
     """Exact SSA (None) first, then the protocol's N_c in order."""
     return [None, *proto["poplevels"]]
@@ -233,15 +243,17 @@ def trajectory_seconds(problem: Problem) -> dict[str, float]:
             for name in ENGINES}
 
 
-def _all_ensembles_seconds(problem: Problem, n: int) -> float:
+def _all_ensembles_seconds(problem: Problem, n: int, n_exact: int | None = None) -> float:
     k = len(protocol(problem)["poplevels"])
-    return int(n) * sum(trajectory_seconds(problem).values()) * (1 + PSA_COST_FACTOR * k)
+    per = sum(trajectory_seconds(problem).values())
+    return per * (int(n if n_exact is None else n_exact) + int(n) * PSA_COST_FACTOR * k)
 
 
 def planning_seconds(problem: Problem) -> tuple[float, float]:
     """Rough wall-clock estimates (correctness, timing) for one problem."""
     proto = protocol(problem)
-    correctness = 30.0 + _all_ensembles_seconds(problem, proto["replicates"]) \
+    correctness = 30.0 + _all_ensembles_seconds(problem, proto["replicates"],
+                                                ensemble_size(proto, None)) \
         + ssa.VERDICT_SECONDS * n_comparisons(proto)
     tp = ssa.TIMING_PROTOCOL
     rnd = _all_ensembles_seconds(problem, proto["timing_replicates"])
@@ -507,7 +519,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     except Exception as exc:  # noqa: BLE001
         return {"outcome": "BAD_TEST", "error": f"{type(exc).__name__}: {exc}"}
     proto, info = prep["proto"], prep["info"]
-    n, seed = int(proto["replicates"]), int(proto["seed"])
+    seed = int(proto["seed"])
     workdir = Path(ctx["workdir"])
     budget, timeout = _timeouts(problem, ctx)
     info["engine_budget_seconds"] = budget
@@ -518,7 +530,9 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     bn_errors: dict[str, str] = {}
     ref_errors: dict[str, str] = {}
     for name, engine, nc, k in variants(proto):
-        _progress(f"{name}: start (budget {budget:g} s; {threads()} threads in the worker)")
+        n = ensemble_size(proto, nc)
+        _progress(f"{name}: start, {n} trajectories (budget {budget:g} s; "
+                  f"{threads()} threads in the worker)")
         out = run_isolated(_cold(engine, nc, prep, n, seed_for(engine, k, seed),
                                  workdir / name.replace("@", "_") / "rn", timeout),
                            budget, workdir / "isolated" / name.replace("@", "_"))

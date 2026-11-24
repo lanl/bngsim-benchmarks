@@ -14,6 +14,7 @@ each one wrote its own result file.
 
 from __future__ import annotations
 
+import dataclasses
 import os
 import signal
 import subprocess
@@ -73,6 +74,8 @@ def subprocess_launcher(job: Job, timeout: float, cpu: int | None, cfg: RunConfi
         "--problems", str(cfg.problems_dir), "--results", str(cfg.results_dir),
         "--cache", str(cfg.cache_dir), "--subprocess-timeout", str(job.timeout_seconds),
     ]
+    if job.part is not None:
+        cmd += ["--part", job.part]
     env = dict(os.environ)
     if cpu is not None:
         env["BENCH_CPU"] = str(cpu)
@@ -157,11 +160,11 @@ def _run_phase(
                 if cfg.until is not None:
                     remaining = cfg.until - clock() - cfg.margin_seconds
                     if remaining < job.est_seconds:
-                        summary.deferred.append(job.id)
+                        summary.deferred.append(job.task_id)
                         continue
                     timeout = min(timeout, remaining)
                 cpu = free.pop(0)
-                summary.launched.append(job.id)
+                summary.launched.append(job.task_id)
                 fut = pool.submit(launcher, job, timeout, cpu, cfg)
                 running[fut] = (job, timeout, cpu)
             if not running:
@@ -177,6 +180,22 @@ def _run_phase(
                 except Exception as exc:  # noqa: BLE001
                     summary.failed[job.id] = f"launcher error: {exc}"
                     log(f"[{n}/{total}] LAUNCH-ERROR {job.id}: {exc}")
+                    continue
+                if launch.timed_out and job.part is not None:
+                    # A part keeps no record of its own: the next run runs it again.
+                    summary.cut.append(job.task_id)
+                    log(f"[{n}/{total}] CUT {job.task_id} ({launch.seconds:.1f}s)")
+                    continue
+                if job.part is not None:
+                    if launch.returncode != 0:
+                        tail = launch.output.strip().splitlines()[-5:]
+                        summary.failed[job.task_id] = (f"worker exit {launch.returncode}: "
+                                                       + " | ".join(tail))
+                        log(f"[{n}/{total}] PART-FAILED {job.task_id}: "
+                            f"{summary.failed[job.task_id]}")
+                    else:
+                        summary.outcomes[job.task_id] = "PART_STORED"
+                        log(f"[{n}/{total}] PART_STORED      {job.task_id} ({launch.seconds:.1f}s)")
                     continue
                 if launch.timed_out:
                     if timeout < job.timeout_seconds:
@@ -218,13 +237,13 @@ def run(
         from .results import fingerprints_now
 
         fingerprints = fingerprints_now()
-    by_id = {j.id: j for j in jobs}
+    by_id = {j.id: j.whole() for j in jobs}
     summary = RunSummary()
 
     def todo(kind: str) -> list[Job]:
         out = []
         for j in jobs:
-            if j.kind != kind:
+            if j.kind != kind or j.part is not None:
                 continue
             st = status(j, cfg.results_dir, fingerprints, by_id)
             if st.state in ("missing", "stale") or (cfg.force and st.state == "fresh"):
@@ -233,9 +252,38 @@ def run(
                 summary.skipped[j.id] = st.state
         return out
 
+    # Parts of split jobs (Job.parts) run first; a part already stored under the
+    # job's current key is not run again. Then each split job whose every part is
+    # stored -- by this run or by another task's -- runs itself, which scores the
+    # stored parts; the run that stores a job's last part is the one that sees
+    # that, so a split job is scored once its parts are all in.
+    from .results import part_fresh
+
+    parts = [j for j in jobs if j.part is not None]
+    for j in parts:
+        if not cfg.force and part_fresh(cfg.results_dir, j, j.part, fingerprints[j.kind]):
+            summary.skipped[j.task_id] = "fresh"
+    todo_parts = [j for j in parts if j.task_id not in summary.skipped]
+    whole: dict[str, Job] = {}
+    for j in parts:
+        whole.setdefault(j.id, j.whole())
     first = todo(CORRECTNESS)
-    total = len(first) + sum(1 for j in jobs if j.kind == TIMING)
-    _run_phase(first, cfg.workers, cfg, fingerprints, summary, launcher, clock, total)
+    total = len(todo_parts) + len(first) + len(whole) + sum(1 for j in jobs if j.kind == TIMING)
+    # The parts start first: each is the longest piece of a job too long to run whole.
+    _run_phase(todo_parts + first, cfg.workers, cfg, fingerprints, summary, launcher, clock,
+               total)
+    scoring = []
+    for jid, j in whole.items():
+        done = all(part_fresh(cfg.results_dir, j, p, fingerprints[j.kind]) for p in j.parts)
+        st = status(j, cfg.results_dir, fingerprints, by_id)
+        if st.state == "fresh" and not cfg.force:
+            summary.skipped[jid] = "fresh"
+        elif done:
+            # What is left to do is the scoring: plan it as that.
+            scoring.append(dataclasses.replace(j, est_seconds=j.remainder_seconds))
+        else:
+            summary.skipped[jid] = "waiting for its parts"
+    _run_phase(scoring, cfg.workers, cfg, fingerprints, summary, launcher, clock, total)
     # Timing jobs are judged after the correctness phase: a correctness job that
     # just passed unblocks its timing job in the same run.
     for jid in [j.id for j in jobs if j.kind == TIMING]:

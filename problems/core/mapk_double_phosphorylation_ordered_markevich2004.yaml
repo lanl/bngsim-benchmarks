@@ -1,0 +1,45 @@
+# Bistability from multisite phosphorylation: MAPK double phosphorylation, ordered Michaelis-
+# Menten form (BioModels BIOMD0000000027). A core problem: member 4 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000027/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# Three MAPK forms (one conservation law, M + Mp + Mpp = 500 nM) and two constant enzymes.
+# The scan is the constant kinase MAPKK over the curation's range, from the file's M = 500
+# nM (the curation's M + Mpp = 500 with Mpp = 0).
+id: mapk_double_phosphorylation_ordered_markevich2004
+layer: core
+title: "Bistability from multisite phosphorylation: MAPK double phosphorylation, ordered Michaelis-Menten form"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000027/BIOMD0000000027_url.xml
+  sha256: 555373de7ab7fee7ca5891998403c8c53fbba5a906d274306e7e5e91d551bf2b
+  format: sbml
+publications:
+  - citation: "Markevich NI, Hoek JB, Kholodenko BN (2004). Signaling switches and bistability arising from multisite phosphorylation in protein kinase cascades. J Cell Biol 164:353-359."
+    doi: 10.1083/jcb.200308060
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000027: its curation figure and curation notes (final/BIOMD0000000027/curation_notes.txt at the pinned commit): 'Reproduction of figure 3 from the original publication using Copasi 4.6. To calculate all steady states a parameter scan was performed over the initial concentrations of MAPKK and M, with the sum of the initial concentrations of Mpp and M being held constant at 500 nM. For MAPKK the scanned range was from 0 to 100 with 100 intervals, for M from 450 to 100 with 5 intervals.'"
+  check: "BioModels curation: the curators reproduced Fig. 3 of the paper from this file in COPASI 4.6, scanning MAPKK from 0 to 100 nM with M + Mpp held at 500 nM"
+  result: "curated; the curation figure reproduces Fig. 3"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      species: MAPKK
+      min: 5
+      max: 100
+      points: 20
+      log: false
+size:
+  species: 5
+  reactions: 4
+suites:
+  ss-sbml: 4

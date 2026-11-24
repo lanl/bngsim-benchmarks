@@ -1,0 +1,47 @@
+# Prion nucleated polymerization, the Lin et al. (2019) parameterization. A core problem:
+# member 8 of the psa-net suite (docs/DESIGN.md §3.2), one of the three published models of the
+# PSA paper itself (suites-stochastic.md §2.3, Q5). PrPC 3.8e3-7.6e3 beside three seed trimers and
+# low-copy aggregates up to 120 subunits: 3843 reactions. The protocol is the record's own exact-
+# SSA action (ten days, the record's choice: take-off happens within days at this PrPC level; Lin
+# et al.'s Fig. 7 runs 300 days), output every 0.1 day. Time unit: days. Generation takes about
+# 45 s (isomorphism checks on the longest chains). run_network's PSA segfaults on this network at
+# t = 0 (probe, 2026-11-24): recorded as REFERENCE_FAILED, never worked around; its exact SSA runs.
+# UNVERIFIED: the parameterization matches the bngsim-paper copy but was never checked against
+# Lin et al. (2019) itself.
+id: prion_nucleated_polymerization_rubenstein2007_benchmark
+layer: core
+title: "Prion nucleated polymerization (Lin et al. 2019 parameterization)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/prion_nucleated_polymerization_rubenstein2007/prion_nucleated_polymerization_rubenstein2007_benchmark.bngl
+  sha256: 88acf773d57518e377932ea0ac9967166a0bab305eb149639e363caa3ba94c2e
+  format: bngl
+publications:
+  - citation: "Rubenstein R, Gray PC, Cleland TJ, Piltch MS, Hlavacek WS, Roberts RM, Ambrosiano J, Kim J-I (2007). Dynamics of the nucleated polymerization model of prion replication. Biophys Chem 125:360-367."
+    doi: 10.1016/j.bpc.2006.09.011
+  - citation: "Lin YT, Feng S, Hlavacek WS (2019). Scaling methods for accelerating kinetic Monte Carlo simulations of chemical reaction networks. J Chem Phys 150:244101."
+    doi: 10.1063/1.5096774
+verification:
+  kind: equations
+  evidence: models/prion_nucleated_polymerization_rubenstein2007/verify_rubenstein2007.ipynb
+  check: "the generated network vs an independent enumeration of the paper's Eqs. 1-6 over chain length, asserted; the fresh BioNetGen run reproduces the committed seeded reference exactly"
+  result: "3843/3843 reactions, sets identical; reference reproduced to the last digit"
+capabilities: [psa]
+protocol:
+  psa:
+    netgen: "generate_network({overwrite=>1,check_iso=>1,max_iter=>150,max_stoich=>{PrP=>120}})"
+    t_end: 10
+    n_steps: 100
+    replicates: 200
+    timing_replicates: 2
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
+size:
+  species: 121
+  reactions: 3843
+  # Planning only: sized so the planned PSA job matches the probe (3.5 s exact bngsim,
+  # 4.3 s run_network; 1-2.5 s scaled; run_network's PSA fails at once).
+  psa_events: 720000
+suites:
+  psa-net: 8

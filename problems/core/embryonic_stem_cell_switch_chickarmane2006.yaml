@@ -1,0 +1,45 @@
+# Transcriptional dynamics of the embryonic stem cell switch (irreversible switch) (BioModels
+# BIOMD0000000204). A core problem: member 6 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000204/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# OCT4, SOX2, NANOG, the OCT4-SOX2 heterodimer and a target protein, with the genes and the
+# signal A as boundary species. The scan is the signal A (A+, Fig. 10), read as its initial
+# concentration; the switch from the file's initial state lies between A = 80 and 90.
+id: embryonic_stem_cell_switch_chickarmane2006
+layer: core
+title: "Transcriptional dynamics of the embryonic stem cell switch (irreversible switch)"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000204/BIOMD0000000204_url.xml
+  sha256: 75e5dc671e271d749387e7066e16a5692e0c575519b057b55e6eb0a53a799586
+  format: sbml
+publications:
+  - citation: "Chickarmane V, Troein C, Nuber UA, Sauro HM, Peterson C (2006). Transcriptional dynamics of the embryonic stem cell switch. PLoS Comput Biol 2:e123."
+    doi: 10.1371/journal.pcbi.0020123
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000204: its curation figure and curation notes (final/BIOMD0000000204/curation_notes.txt at the pinned commit): 'The figures 10 and 11 of the original paper is reproduced. The stable steady state behavior of the OCT4-SOX2 and NANOG concentration levels as functions of the a) Signal A+ (Figure 10 of the paper) and b) Signal B_ (Figure 11 of the paper) is reproduced.'"
+  check: "BioModels curation: the curators reproduced the stable steady states of OCT4-SOX2 and NANOG against the signal A+ (Fig. 10 of the paper) and B- (Fig. 11) from this file"
+  result: "curated; the curation figure reproduces Figs. 10 and 11"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      species: A
+      min: 0
+      max: 100
+      points: 20
+      log: false
+size:
+  species: 12
+  reactions: 10
+suites:
+  ss-sbml: 6

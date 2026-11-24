@@ -5,6 +5,12 @@
 # sensitivities per engine), on every independent parameter (43: the 6 totals and the 37 rate
 # constants; the paper: 45), at the ODE protocol's tolerances, the finite
 # differences tighter still.
+# Also member 10 of the psa-net suite: PSA's realistic target, a large network (356 species,
+# 3749 reactions) with large populations (1.3e4-1.2e6); its record calls exact SSA impractical.
+# PSA: the ODE protocol's first 10 s (EGF binding, receptor dimerization and the first
+# phosphorylation), output every 0.5 s: over 30 s an exact trajectory is 8e6 events (bngsim
+# 31 s, run_network 32 s on a Darwin node), and bngsim's PSA is no faster at N_c = 1000 (44 s),
+# so twelve ensembles over the full 120 s would not fit one job.
 id: combinatorial_egfr_signaling_blinov2006
 layer: core
 title: "Combinatorial EGFR signaling"
@@ -22,7 +28,7 @@ verification:
   evidence: models/combinatorial_egfr_signaling_blinov2006/verify_blinov2006.ipynb
   check: "digitized Fig. 2 A/C/D/E network curves, RMS within 2-4 nM per panel asserted"
   result: "RMS 0.44 / 1.51 / 1.33 / 1.72 nM"
-capabilities: [ode, sens]
+capabilities: [ode, sens, psa]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -41,10 +47,21 @@ protocol:
     fd_rtol: 1.0e-12
     fd_atol: 1.0e-12
     parameters: independent
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 10
+    n_steps: 20
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
 size:
   species: 356
   reactions: 3749
   sens_parameters: 43
+  # Planning only: sized so the planned PSA job matches the probe.
+  psa_events: 3500000
 suites:
   ode-net: 6
   sens-net: 10
+  psa-net: 10

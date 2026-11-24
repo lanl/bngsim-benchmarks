@@ -198,21 +198,7 @@ class Network:
         or one no reaction touches, is a law of its own); ``Q`` an orthonormal basis
         (one column per direction) of the directions the reactions move the state in,
         the range of ``S``. Together they span the state space."""
-        s = self.stoichiometry()
-        n_sp, n_rx = s.shape
-        if n_sp == 0:
-            return np.zeros((0, 0)), np.zeros((0, 0))
-        if n_rx == 0:
-            return np.eye(n_sp), np.zeros((n_sp, 0))
-        if n_rx >= n_sp:
-            _, sv, vh = np.linalg.svd(s.T, full_matrices=False)
-            basis = vh
-        else:
-            u, sv, _ = np.linalg.svd(s, full_matrices=True)
-            basis = u.T
-        sv = np.concatenate([sv, np.zeros(n_sp - len(sv))])
-        rank = int(np.sum(sv > rank_tol * max(float(sv.max(initial=0.0)), 1.0)))
-        return basis[rank:].copy(), basis[:rank].T.copy()
+        return subspaces_of(self.stoichiometry(), rank_tol)
 
     def conservation_laws(self, rank_tol: float = 1e-10) -> np.ndarray:
         """The rows of ``L`` (``subspaces``): the network's conservation laws."""
@@ -344,6 +330,28 @@ def _indices(field_text: str) -> tuple[int, ...]:
         if i > 0:
             out.append(i - 1)
     return tuple(out)
+
+
+def subspaces_of(s: np.ndarray, rank_tol: float = 1e-10) -> tuple[np.ndarray, np.ndarray]:
+    """``(L, Q)`` of a stoichiometry matrix ``s`` (species x reactions), as
+    ``Network.subspaces`` gives them: ``L`` an orthonormal basis of the left null
+    space (one row per conservation law), ``Q`` one of the range (one column per
+    direction the reactions move the state in)."""
+    s = np.asarray(s, dtype=float)
+    n_sp, n_rx = s.shape
+    if n_sp == 0:
+        return np.zeros((0, 0)), np.zeros((0, 0))
+    if n_rx == 0:
+        return np.eye(n_sp), np.zeros((n_sp, 0))
+    if n_rx >= n_sp:
+        _, sv, vh = np.linalg.svd(s.T, full_matrices=False)
+        basis = vh
+    else:
+        u, sv, _ = np.linalg.svd(s, full_matrices=True)
+        basis = u.T
+    sv = np.concatenate([sv, np.zeros(n_sp - len(sv))])
+    rank = int(np.sum(sv > rank_tol * max(float(sv.max(initial=0.0)), 1.0)))
+    return basis[rank:].copy(), basis[:rank].T.copy()
 
 
 def parse(text: str, overrides: Mapping[str, float] | None = None) -> Network:

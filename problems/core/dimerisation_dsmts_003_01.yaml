@@ -1,0 +1,64 @@
+# Dimerisation, DSMTS model 003-01 (SBML Test Suite stochastic case 00030). A core problem:
+# member 1 of the ssa-sbml suite (docs/DESIGN.md §3.2), the suite's exact-moments anchor.
+# P + P -> P2 at k1*P*(P-1)/2 (k1 = 1e-3) and P2 -> 2 P at k2*P2 (k2 = 1e-2), from P = 100. The
+# file, the exact mean and SD tables and the settings (start 0, duration 50, 50 steps, amounts
+# of P and P2) are the case's own at sbmlteam/sbml-test-suite 473e119d (the files lanl/bngsim
+# vendors byte-identically in harness/sbml_test_suite/dsmts/); the horizon is the settings'.
+# The repeated reactant's law is written k1*P*(P-1)/2, which every engine fires as written, so
+# libRoadRunner is not screened out. The compartment has no size (read as 1).
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the converter writes the non-mass-action law as per-species flux
+# reactions, the same ODE with other jumps); the harness derives the network and records the
+# reason in every result. size.ssa_ms_run_network is 0 for planning only.
+id: dimerisation_dsmts_003_01
+layer: core
+title: 'Dimerisation (DSMTS 003-01): exact CME moments'
+source:
+  repo: sbmlteam/sbml-test-suite
+  commit: 473e119dd57226c3a7a729d598f9007f06f781c3
+  path: cases/stochastic/00030/00030-sbml-l3v2.xml
+  sha256: 113c2ee0a56a44cebcde9f5cfafdd28d6780d49b3ba289f96c91975cbd9f3d42
+  format: sbml
+publications:
+- citation: Evans TW, Gillespie CS, Wilkinson DJ (2008). The SBML discrete stochastic models test suite.
+    Bioinformatics 24:285-286.
+  doi: 10.1093/bioinformatics/btm566
+verification:
+  kind: theory
+  evidence: 'sbmlteam/sbml-test-suite @ 473e119d cases/stochastic/00030/: dsmts-003-01-mean.csv and dsmts-003-01-sd.csv
+    (exact CME moments shipped with the case; vendored byte-identical in lanl/bngsim harness/sbml_test_suite/dsmts/)'
+  check: 'the job compares each engine''s ensemble with the case''s exact mean and SD at every output
+    time (moments: table)'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 50
+    n_steps: 50
+    replicates: 10000
+    timing_replicates: 100
+    seed: 1
+    moments:
+      kind: table
+      repo: sbmlteam/sbml-test-suite
+      commit: 473e119dd57226c3a7a729d598f9007f06f781c3
+      mean:
+        path: cases/stochastic/00030/dsmts-003-01-mean.csv
+        sha256: 6ea0552747810cdb6e59094833a66eea373ba48716853a576c23883b8be7b1b6
+      sd:
+        path: cases/stochastic/00030/dsmts-003-01-sd.csv
+        sha256: 9c8ba57a87ef1030688c44474e93e88efb2f1b3aace0de4054c665804efef3ce
+size:
+  species: 2
+  reactions: 2
+  ssa_events: 65
+  ssa_ms_bngsim: 7
+  ssa_ms_roadrunner: 1
+  ssa_ms_copasi: 1
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 1

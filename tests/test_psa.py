@@ -123,17 +123,26 @@ def test_a_run_network_trajectory_is_stopped_long_before_its_ensembles_budget(
     assert psa.trajectory_timeout(big, 600.0) == 600.0  # never past the budget
 
 
-def test_the_pilot_specs_load_and_declare_what_they_test():
+def test_the_psa_net_suite_loads_and_declares_what_it_tests():
     from conftest import REPO
 
-    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
-    lin = problems["bursty_autoregulated_gene_expression_lin2016"]
-    rohrs = problems["car_cd3zeta_phosphorylation_rohrs2018"]
-    assert lin.layer == rohrs.layer == "pilot" and not lin.suites and not rohrs.suites
+    problems = specs.load_all(REPO / "problems")
+    members = specs.suite_members(problems)["psa-net"]
+    assert len(members) == specs.SUITE_SIZE
+    by_id = {p.id: p for p in members}
+    lin = by_id["bursty_autoregulated_gene_expression_lin2016"]
+    rohrs = by_id["car_cd3zeta_phosphorylation_rohrs2018"]
+    assert lin.suites["psa-net"] == 1 and rohrs.suites["psa-net"] == 6
     assert set(lin.capabilities) == {"ssa", "psa"} and rohrs.capabilities == ("psa",)
-    for p in (lin, rohrs):
-        assert psa.protocol(p)["poplevels"] == [10, 30, 100, 300, 1000]
-        assert len(psa.jobs(p)) == 2
+    for p in members:
+        proto = psa.protocol(p)
+        assert p.layer == "core", p.id
+        assert proto["poplevels"] == [10, 30, 100, 300, 1000], p.id
+        assert len(psa.jobs(p)) == 2, p.id
+        assert psa.ensemble_size(proto, None) <= psa.ensemble_size(proto, 10), p.id
+    # Only the members whose exact trajectory costs tens of seconds draw fewer of them.
+    assert {p.id for p in members if "exact_replicates" in p.protocol_for("psa")} == {
+        "mapk_relaxation_oscillations_kochanczyk2017", "tcr_signaling_bistability_lipniacki2008"}
 
 
 # --------------------------------------------------------------------------- #
@@ -480,3 +489,40 @@ def test_the_gathered_report_has_a_row_per_nc(monkeypatch, tmp_path, psa_spec, w
     nc10 = [ln for ln in text.splitlines() if ln.startswith("| toy_model | 10 |")]
     assert "crash" in nc10[0] and "FLAG" not in nc10[0]
     assert rows["psa-timing"][0]["psa_speedup_events"]["bngsim@nc=10"] == 3.0
+
+
+def test_exact_replicates_sizes_only_the_two_exact_ssa_ensembles(monkeypatch, tmp_path):
+    prep = _prep()
+    prep["proto"]["exact_replicates"] = 40
+    monkeypatch.setattr(psa, "_prepare", lambda problem, ctx: prep)
+    monkeypatch.setattr(psa, "_build", _factory())
+    rec = psa.run_correctness(None, None, _ctx(tmp_path))
+    assert rec["outcome"] == "PASS", rec.get("verdicts")
+    sizes = {name: e["replicates"] for name, e in rec["measurements"]["ensembles"].items()}
+    assert sizes["bngsim"] == sizes["run_network"] == 40
+    assert {n for name, n in sizes.items() if "@nc=" in name} == {200}
+    assert rec["verdicts"]["run_network"]["replicates"] == [40, 40]
+    assert rec["verdicts"]["run_network@nc=10"]["replicates"] == [200, 200]
+    # PSA where nothing scaled is still judged against the smaller exact ensemble.
+    assert rec["measurements"]["psa"]["accuracy"]["nc=10"]["bngsim"]["means"]["replicates"] \
+        == [200, 40]
+
+
+@pytest.mark.parametrize("value, ok", [(20, True), (200, True), (19, False), (201, False),
+                                       (40.0, False)])
+def test_exact_replicates_is_validated(psa_spec, write_spec, value, ok):
+    psa_spec["protocol"]["psa"]["exact_replicates"] = value
+    if ok:
+        p = specs.load(write_spec(psa_spec))
+        assert psa.ensemble_size(psa.protocol(p), None) == value
+        assert psa.ensemble_size(psa.protocol(p), 100) == 200
+    else:
+        with pytest.raises(specs.SpecError, match="exact_replicates: an integer from 20"):
+            specs.load(write_spec(psa_spec))
+
+
+def test_exact_replicates_lowers_the_planned_correctness_cost(psa_spec, write_spec):
+    base = psa.planning_seconds(specs.load(write_spec(psa_spec)))[0]
+    psa_spec["protocol"]["psa"]["exact_replicates"] = 20
+    fewer = psa.planning_seconds(specs.load(write_spec(psa_spec)))[0]
+    assert fewer < base
