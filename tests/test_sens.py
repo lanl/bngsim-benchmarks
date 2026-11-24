@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import types
 from pathlib import Path
 
@@ -1068,9 +1069,19 @@ def test_the_trajectory_diagnostic_does_not_read_rounding_noise_as_a_disagreemen
 # --------------------------------------------------------------------------- #
 # Real engines on the gated fixture, against its closed form
 # --------------------------------------------------------------------------- #
+# AMICI's pre-simulation calls cblas_dgemm on an empty matrix with a leading dimension
+# of 0 (LDA=0, M=0), which macOS's Accelerate rejects by exiting the process ("BLAS
+# error: Parameter number 9 passed to cblas_dgemm had an invalid value"); OpenBLAS
+# accepts it. AMICI's failure, recorded here, not worked around.
+_AMICI_PRESIM_MACOS = pytest.mark.xfail(
+    sys.platform == "darwin", strict=False,
+    reason="AMICI pre-simulation: cblas_dgemm with LDA=0 exits the process on macOS Accelerate")
+
+
 @pytest.mark.integration
-@pytest.mark.parametrize("phases, mode", [(TP_PHASES, "presimulation"),
-                                          (RESET_PHASES, "chained")])
+@pytest.mark.parametrize("phases, mode", [
+    pytest.param(TP_PHASES, "presimulation", marks=_AMICI_PRESIM_MACOS),
+    (RESET_PHASES, "chained")])
 def test_amici_carries_every_sensitivity_across_the_phases(tmp_path, phases, mode):
     pytest.importorskip("amici")
     pytest.importorskip("bngsim")
