@@ -1,0 +1,91 @@
+# PKA-RII subunit phosphorylation precedes activation by cAMP (PEtab Isensee_JCB2018).
+# A core problem, not a sens-sbml member (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# proposed top-up, not a member: BNGsim does not pre-equilibrate it (decision D4: the refusal is recorded once by this spec's correctness job; Fujita 2010 holds the place).
+# The PEtab problem as the harness applies it (bench.petab_problem): 123 simulation condition(s), 123 with pre-equilibration, 687 measurements of 3 observables; 46 estimated parameters, of which
+# the 32 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: b_Calpha_global, b_pRII_global, rel_open, s_Calpha_global, s_pRII_JI09_150302_Drg345_343_CycNuc, s_pRII_JI09_150330_Drg350_348_CycNuc and 8 more.
+id: pka_rii_phosphorylation_camp_isensee2018
+layer: core
+title: PKA-RII subunit phosphorylation precedes activation by cAMP
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Isensee_JCB2018/model_Isensee_JCB2018.xml
+  sha256: 9cce849ff3e56bc8042ac04ad820deacc0d10359230cfb7954c905bb1e1f4e25
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Isensee_JCB2018/Isensee_JCB2018.yaml
+    sha256: a2fccbd77a70684efd700322b46f7122a27eee664b37864921eab93260b3003f
+  conditions:
+    path: Benchmark-Models/Isensee_JCB2018/experimentalCondition_Isensee_JCB2018.tsv
+    sha256: 17da6b6facd86aaa1c58c305ffcd92107dedef9141aaf09700bc0351ec2b4b70
+  measurements:
+    path: Benchmark-Models/Isensee_JCB2018/measurementData_Isensee_JCB2018.tsv
+    sha256: 8fcc20e58a45a2feb746a5a87c917fd1456b3faf7759ebe67faa3002297d18a8
+  observables:
+    path: Benchmark-Models/Isensee_JCB2018/observables_Isensee_JCB2018.tsv
+    sha256: 1bc00720241abc8cca3d07a780d278175be9cb1934df053a528a848e938629ad
+  parameters:
+    path: Benchmark-Models/Isensee_JCB2018/parameters_Isensee_JCB2018.tsv
+    sha256: a40d382b08a567b4cb10bcbb7c82746b2cdc46711fda7c159e9575472203f044
+publications:
+- citation: Isensee J, Kaufholz M, Knape MJ, Hasenauer J, Hammerich H, Gonczarowska-Jorge H et al. (2018).
+    PKA-RII subunit phosphorylation precedes activation by cAMP and regulates activity termination. J
+    Cell Biol 217:2167-2184.
+  doi: 10.1083/jcb.201708053
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Isensee_JCB2018 at Benchmark-Models-PEtab 4d20850 (the authors''
+    model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark
+    test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: L (G skipped for runtime)'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal -3949.375966548649
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: -3949.375966548649
+    parameters:
+    - KD_Fsk
+    - KD_H89
+    - KD_IBMX
+    - KD_cAMP
+    - kdeg_cAMP
+    - kdeg_cAMP_free
+    - kf_Fsk
+    - kf_H89
+    - kf_RII_2__RII_C_2
+    - kf_RII_C_2__RII_2
+    - kf_RII_C_2__RIIp_C_2
+    - kf_RIIp_2__RII_2
+    - kf_RIIp_C_2__RII_C_2
+    - kf_RIIp_cAMP_C_2__RIIp_2
+    - kf_cAMP
+    - ki_IBMX
+    - ki_Rp8_Br_cAMPS_pAB
+    - ki_Rp8_pCPT_cAMPS_pAB
+    - ki_Rp_cAMPS_pAB
+    - ki_Sp8_Br_cAMPS_AM
+    - ks_AC_cAMP
+    - xi_AC_cAMP_Fsk
+    - xi_b_Rp8_Br_cAMPS
+    - xi_b_Rp8_pCPT_cAMPS
+    - xi_b_Rp_cAMPS
+    - xi_b_Sp8_Br_cAMPS
+    - xi_kf_RII_2__RII_C_2
+    - xi_kf_RII_C_2__RII_2
+    - xi_KD_Rp8_Br_cAMPS
+    - xi_KD_Rp8_pCPT_cAMPS
+    - xi_KD_Rp_cAMPS
+    - xi_KD_Sp8_Br_cAMPS
+size:
+  species: 25
+  reactions: 43
+  conditions: 123
+  measurements: 687
+  sens_parameters: 32

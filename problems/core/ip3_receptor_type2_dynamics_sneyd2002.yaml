@@ -1,0 +1,74 @@
+# A dynamic model of the type-2 inositol trisphosphate receptor (PEtab Sneyd_PNAS2002).
+# A core problem: member 3 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# kept from the paper's set (P02); the paper ran IP3 = 0, none of the nine conditions this suite applies.
+# The PEtab problem as the harness applies it (bench.petab_problem): 9 simulation condition(s), 135 measurements of 1 observables; 15 estimated parameters, of which
+# the 14 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: sigma.
+id: ip3_receptor_type2_dynamics_sneyd2002
+layer: core
+title: A dynamic model of the type-2 inositol trisphosphate receptor
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Sneyd_PNAS2002/model_Sneyd_PNAS2002.xml
+  sha256: 2c3b5e5ffe2f62c19a28bf3261d5aa0582f862ce6b64532737c87a070f7ca592
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Sneyd_PNAS2002/Sneyd_PNAS2002.yaml
+    sha256: abd00723740ddfc5c336d307b5d99db2c4025d24303b7e4cdecb5fee827687da
+  conditions:
+    path: Benchmark-Models/Sneyd_PNAS2002/experimentalCondition_Sneyd_PNAS2002.tsv
+    sha256: fe527b402bcccfab2edebcccbebe76f6bfc3270242921b130a1d7fe50684742e
+  measurements:
+    path: Benchmark-Models/Sneyd_PNAS2002/measurementData_Sneyd_PNAS2002.tsv
+    sha256: 3b11f5ff9dbfa91b549a6de0ed2f15da950abfe418dcf13fb9df0b38f78d3864
+  observables:
+    path: Benchmark-Models/Sneyd_PNAS2002/observables_Sneyd_PNAS2002.tsv
+    sha256: 81f236862b05b2e25fe2d6c86bafede0c1e96b3c6f0a9042ee823b20b6a4ba7e
+  parameters:
+    path: Benchmark-Models/Sneyd_PNAS2002/parameters_Sneyd_PNAS2002.tsv
+    sha256: f2f5b61633519ce5918898daf74c5c609b3aee6511fcd9fcfb79a0bbe02b8bd6
+publications:
+- citation: Sneyd J, Dufour JF (2002). A dynamic model of the type-2 inositol trisphosphate receptor.
+    Proc Natl Acad Sci USA 99:2398-2403.
+  doi: 10.1073/pnas.032281999
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Sneyd_PNAS2002 at Benchmark-Models-PEtab 4d20850 (the authors'' model,
+    data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark test
+    (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 319.79177818768756
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: 319.79177818768756
+    parameters:
+    - k1
+    - k2
+    - k3
+    - k4
+    - k_1
+    - k_2
+    - k_3
+    - k_4
+    - l2
+    - l4
+    - l6
+    - l_2
+    - l_4
+    - l_6
+size:
+  species: 6
+  reactions: 10
+  conditions: 9
+  measurements: 135
+  sens_parameters: 14
+suites:
+  sens-sbml: 3

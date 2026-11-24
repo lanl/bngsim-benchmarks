@@ -1,0 +1,77 @@
+# Regulation of insulin signalling by oxidative stress (PEtab problem) (PEtab Smith_BMCSystBiol2013).
+# A core problem: member 9 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# top-up (3 events, amount-only species in 5 compartments); the same model as ode-sbml's insulin_signalling_oxidative_stress_smith2013, here as the PEtab problem's file.
+# The PEtab problem as the harness applies it (bench.petab_problem): 35 simulation condition(s), 62 measurements of 9 observables; 25 estimated parameters, of which
+# the 16 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: sc_PI3K, sc_GLUT_2B, sc_BINS, sc_PIRS, sc_PTP, sc_GLUT_3B_120 and 3 more.
+id: insulin_signalling_oxidative_stress_smith2013_petab
+layer: core
+title: Regulation of insulin signalling by oxidative stress (PEtab problem)
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Smith_BMCSystBiol2013/model_Smith_BMCSystBiol2013.xml
+  sha256: a21f1453e81ceb8595a072cccb57ccb3c5ae1437074044640fdce1b45bced069
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Smith_BMCSystBiol2013/Smith_BMCSystBiol2013.yaml
+    sha256: 371cb2e0c7b78eb5d3e0fae59cc853c992657edcda98861221647549df742aba
+  conditions:
+    path: Benchmark-Models/Smith_BMCSystBiol2013/experimentalCondition_Smith_BMCSystBiol2013.tsv
+    sha256: df29fa4bb7a572b9c35c31a13bbc2a1a9931d5f8a00188253c37d2a9aeba0844
+  measurements:
+    path: Benchmark-Models/Smith_BMCSystBiol2013/measurementData_Smith_BMCSystBiol2013.tsv
+    sha256: 6493591b5f70714f3690fce3d865b9cc8597b158d22d7ff139b819b4761a13d4
+  observables:
+    path: Benchmark-Models/Smith_BMCSystBiol2013/observables_Smith_BMCSystBiol2013.tsv
+    sha256: a0d68a70b44a9bed59605aed37c768a7f0dbf9a0d0a7b89d36140485aef62f6b
+  parameters:
+    path: Benchmark-Models/Smith_BMCSystBiol2013/parameters_Smith_BMCSystBiol2013.tsv
+    sha256: 96987d2b8a5a926e727a6fd76bcd72ce1a175b2f6a83d0003803e49f80b9dc81
+publications:
+- citation: Smith GR, Shanley DP (2013). Computational modelling of the regulation of insulin signalling
+    by oxidative stress. BMC Syst Biol 7:41.
+  doi: 10.1186/1752-0509-7-41
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Smith_BMCSystBiol2013 at Benchmark-Models-PEtab 4d20850 (the authors''
+    model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark
+    test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: L, against AMICI''s own
+    regression value (not part of the original benchmark collection)'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal -888198.436541014
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: -888198.436541014
+    parameters:
+    - k1
+    - kminus1
+    - k30f
+    - k30r
+    - k35f
+    - k7
+    - kminus7a
+    - kminus7b
+    - k8
+    - kminus8
+    - k42f
+    - k42r
+    - k43f
+    - k43r
+    - k32f
+    - k32r
+size:
+  species: 133
+  reactions: 367
+  conditions: 35
+  measurements: 62
+  sens_parameters: 16
+suites:
+  sens-sbml: 9

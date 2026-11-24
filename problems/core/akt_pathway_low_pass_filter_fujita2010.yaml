@@ -1,0 +1,76 @@
+# Decoupling of receptor and downstream signals in the Akt pathway by its low-pass filter characteristics (PEtab Fujita_SciSignal2010).
+# A core problem: member 4 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# replaces Isensee_JCB2018 (decision D4: BNGsim's refusal of Isensee's pre-equilibration recorded once, then the first alternate by the criterion that BNGsim can pre-equilibrate).
+# The PEtab problem as the harness applies it (bench.petab_problem): 6 simulation condition(s), 144 measurements of 3 observables; 19 estimated parameters, of which
+# the 16 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: scaling_pAkt_tot, scaling_pEGFR_tot, scaling_pS6_tot.
+id: akt_pathway_low_pass_filter_fujita2010
+layer: core
+title: Decoupling of receptor and downstream signals in the Akt pathway by its low-pass filter characteristics
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Fujita_SciSignal2010/model_Fujita_SciSignal2010.xml
+  sha256: 7c98367f2210b1d10b3e3edbb9d80153f8f010b7f222c6899b5d94bbf44cc6b8
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Fujita_SciSignal2010/Fujita_SciSignal2010.yaml
+    sha256: 0cf9180d19e57f83af68f233652b97c447f74033ccd8a4fe08007b6599a82a42
+  conditions:
+    path: Benchmark-Models/Fujita_SciSignal2010/experimentalCondition_Fujita_SciSignal2010.tsv
+    sha256: 8c03ee64c2b66fb62a93dfa0cf55e115bc73d260f5094d13780f1896058e8922
+  measurements:
+    path: Benchmark-Models/Fujita_SciSignal2010/measurementData_step_Fujita_SciSignal2010.tsv
+    sha256: 1b954ea16f0c4dc8248337c46b5af5b9da09bda6494494805d07879a13625889
+  observables:
+    path: Benchmark-Models/Fujita_SciSignal2010/observables_Fujita_SciSignal2010.tsv
+    sha256: d0f72fc7391d5b56923f1b7d441962872b61fb812a27d0392f8f6b2520b7b06d
+  parameters:
+    path: Benchmark-Models/Fujita_SciSignal2010/parameters_Fujita_SciSignal2010.tsv
+    sha256: ad8605c9dc3626b8e03fb562ff1284cab3c7fde79be42eba210c5a2db189f7f7
+publications:
+- citation: Fujita KA, Toyoshima Y, Uda S, Ozaki Y, Kubota H, Kuroda S (2010). Decoupling of receptor
+    and downstream signals in the Akt pathway by its low-pass filter characteristics. Sci Signal 3:ra56.
+  doi: 10.1126/scisignal.2000810
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Fujita_SciSignal2010 at Benchmark-Models-PEtab 4d20850 (the authors''
+    model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark
+    test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 53.08377736998929
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: 53.08377736998929
+    parameters:
+    - EGFR_turnover
+    - init_AKT
+    - init_EGFR
+    - init_S6
+    - reaction_1_k1
+    - reaction_1_k2
+    - reaction_2_k1
+    - reaction_2_k2
+    - reaction_3_k1
+    - reaction_4_k1
+    - reaction_5_k1
+    - reaction_5_k2
+    - reaction_6_k1
+    - reaction_7_k1
+    - reaction_8_k1
+    - reaction_9_k1
+size:
+  species: 9
+  reactions: 11
+  conditions: 6
+  measurements: 144
+  sens_parameters: 16
+suites:
+  sens-sbml: 4
