@@ -202,7 +202,7 @@ scan member runs.
 | # | problem | particles in the protocol | network | protocol (one network-free run) | replicates | evidence | how it entered |
 |---|---|---|---|---|---:|---|---|
 | 1 | `blbr_heterogeneity_goldstein1980` | 50 antibodies (excess-ligand mode) | unbounded chains | default dose 1e-8 M, 0–10 s, 50 steps, -bscb | 1000 | `theory`: Goldstein–Wofsy Eqs. 13–14 (Fig. 5) | paper seed (B18) |
-| 2 | `prion_nucleated_polymerization_rubenstein2007` | 600 PrPC + 3 seed trimers → ~3.7e4 PrPSc | unbounded chains; SSA on the 40-subunit truncation (41 / 483) | 0–365 days, 73 steps | 150 | `data`: Fig. 2, by SSA (shared with ssa-net 8) | top-up: polymerization with turnover |
+| 2 | `prion_nucleated_polymerization_rubenstein2007` | 600 PrPC + 3 seed trimers → ~3.7e4 PrPSc | unbounded chains; SSA on the 40-subunit truncation (41 / 483) | 0–200 days, 40 steps | 100 | `data`: Fig. 2, by SSA (shared with ssa-net 8) | top-up: polymerization with turnover |
 | 3 | `tnf_tnfr1_sequential_binding_mcmillan2021` | 3,613 | **finite, 9 / 24** | 0–10,000 s, 100 steps | 1000 | `data`: Fig. 1b Source Data, by ODE | top-up: the strict finite anchor |
 | 4 | `tlbr_solution_macken1982` | 4,500 | unbounded, acyclic | own: 0–500 s, 250 steps, -bscb | 1000 | `theory`: Eq. 11, Eq. 21, Theorem 1 | paper seed (B16) |
 | 5 | `tlbr_yang2008` | 4,500 | unbounded | own: 0–3000 s, 300 steps | 1000 | `theory`: mean-field bond ODE | paper seed (B15) |
@@ -237,7 +237,8 @@ scan member runs.
   of one hour (`nf.ENGINE_BUDGET_CAP_SECONDS`): 1000 trajectories where one costs under
   about 2 s in the slowest engine, fewer where it costs more (measured per engine on a
   general node, 2026-11-24): Dembo 1978 and Monine 2010 about 5 s, Posner 1995 9 s,
-  Rubenstein 2007 15 s and Mitra 2019 (150 s) 15 s.
+  Mitra 2019 (150 s) 15 s, and Rubenstein 2007 over 24 s for BNGsim's `nf_exact` on a scaling
+  node (its whole year timed out at 150 trajectories; it now runs 200 days, 100).
 - **NFsim's final state is not read back.** BNG2.pl reads NFsim's species file back after
   a run with `get_final_state=>1` (its default); on Dembo 1978's chains that took BNG2.pl
   over three minutes per trajectory against NFsim's 3 s. The harness runs the protocol's

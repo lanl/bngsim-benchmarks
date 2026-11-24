@@ -11,9 +11,11 @@
 # exact SSA on the network truncated at 40 subunits is the same law to within the chain-length
 # tail, which is negligible: in a BioNetGen SSA run to 365 days no chain ever exceeded 27
 # subunits and 2e-4 of the aggregates at day 365 held 20 or more (probe, 2026-11-24), so both
-# exact-SSA engines are references for the network-free run. Its nf protocol is the ssa one, as
-# a network-free run (the file's own NF route is none: its actions are SSA only), output every
-# 5 days.
+# exact-SSA engines are references for the network-free run. Its nf protocol is the ssa one as a
+# network-free run (the file's own NF route is none: its actions are SSA only), cut to its first
+# 200 days, past the take-off and PrPSc's saturation near day 150, output every 5 days: over the
+# whole year BNGsim's nf_exact spent over 24 s a trajectory on a scaling node and ran out of its
+# hour at 150 trajectories (correctness job 17415397, 2026-11-24).
 id: prion_nucleated_polymerization_rubenstein2007
 layer: core
 title: "Prion nucleated polymerization"
@@ -43,15 +45,15 @@ protocol:
     seed: 1
   nf:
     actions: |
-      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>365,n_steps=>73,gml=>2147483647,print_functions=>1})
+      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>200,n_steps=>40,gml=>2147483647,print_functions=>1})
     netgen: "generate_network({overwrite=>1,max_stoich=>{PrP=>40}})"
-    replicates: 150
-    timing_replicates: 3
+    replicates: 100
+    timing_replicates: 2
     seed: 1
 size:
   species: 41
   reactions: 483
   ssa_events: 2600000
-  nf_events: 1500000
+  nf_events: 2500000
 suites:
   nf-xml-aggregation: 2
