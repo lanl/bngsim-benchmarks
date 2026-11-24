@@ -125,8 +125,9 @@ Each suite has its own models, rather than one shared set serving every feature:
   would be a compromise that serves none of them well.
 - **Each format is its own code path, with its own references.** bngsim reads `.net`,
   SBML and Antimony through separate readers, and the reference engines differ by
-  format: `run_network` reads only `.net`; COPASI and AMICI read SBML; libRoadRunner
-  reads SBML and Antimony. One format per suite keeps every row of a suite against the
+  format: `run_network` reads only `.net`; COPASI, AMICI and libRoadRunner read SBML
+  (Antimony through libantimony, as tellurium reads it for libRoadRunner). One format
+  per suite keeps every row of a suite against the
   same engines, and a slow or wrong reader shows up as that suite's result.
 
 A model may still sit in several suites; a `.net` ODE model is often a steady-state
@@ -154,7 +155,8 @@ interleaves the other two ODE suites:
 - its even positions are the SBML suite's models 2, 4, 6, 8 and 10, converted to
   Antimony.
 
-The conversion tools are pinned, and the converted file's sha256 is recorded. A
+The conversion tools are pinned, the conversion runs at job time as network generation
+does, and the converted file's sha256 is recorded in every result. A
 derived model is as published and verified as the model it came from. It also gives a
 cross-format check: the same model read from two formats must agree. Handcrafted
 Antimony test sets are left to the breadth tier: they are small models, and a suite

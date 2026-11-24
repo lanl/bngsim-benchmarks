@@ -1,0 +1,47 @@
+# Segment polarity network on a 1x4 grid of cells, read as Antimony. A core problem: member 10 of
+# the ode-antimony suite (docs/DESIGN.md §3.2, docs/core_suites.md), derived from member 10 of
+# ode-sbml (segment_polarity_network_vondassow2000). The model, its pin, its evidence and its ODE
+# protocol are that member's (bench checks that they stay equal); the .ant is converted from it at
+# job time, and its sha256 is recorded in every result.
+id: segment_polarity_network_vondassow2000_antimony
+layer: core
+title: Segment polarity network on a 1x4 grid of cells (Antimony)
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000001065/vonDassow2000_1x4.timecourse1.xml
+  sha256: 2b0a292e348f5ce6af21e812e0228b97e447fc29161b0441af78715b7d430023
+  format: sbml
+derived:
+  from: segment_polarity_network_vondassow2000
+  suite: ode-sbml
+  position: 10
+  format: antimony
+  conversion: pinned SBML -> Antimony (libantimony), at job time
+publications:
+- citation: von Dassow G, Meir E, Munro EM, Odell GM (2000). The segment polarity network is a robust
+    developmental module. Nature 406:188-192.
+  doi: 10.1038/35018085
+verification:
+  kind: author_file
+  evidence: 'BioModels BIOMD0000001065: its curation figure, and final/BIOMD0000001065/vonDassow2000_1x4.timecourse1.sedml
+    at the pinned commit'
+  check: 'BioModels curation (curated): the curators reproduced the paper''s Fig. 2, a radial plot over
+    the model''s parameters (Fig2.png and param_radial.plt beside this file at the pinned commit). The
+    SED-ML beside it, which runs exactly this file, is the curators'' time course; it names no figure,
+    so the horizon here is theirs, not the paper''s'
+  result: curated; the curation figure reproduces Fig. 2 (a parameter plot, not this time course)
+  supporting: the same folder holds this SED-ML's time course from four other engines (timecourse1.{amici,copasi,tellurium,vcell}.tsv)
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 1100
+    n_steps: 220
+    rtol: 1.0e-08
+    atol: 1.0e-09
+size:
+  species: 148
+  reactions: 480
+suites:
+  ode-antimony: 10
