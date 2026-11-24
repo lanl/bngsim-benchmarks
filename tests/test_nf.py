@@ -106,7 +106,8 @@ def test_the_pilot_specs_load_and_declare_what_they_test():
     problems = {p.id: p for p in specs.load_all(REPO / "problems")}
     camkii = problems["camkii_holoenzyme_activation_michalski2012_nfsim"]
     tnf = problems["tnf_tnfr1_sequential_binding_mcmillan2021"]
-    assert camkii.layer == "pilot" and not camkii.suites
+    # Both pilots became core members, their protocols unchanged.
+    assert camkii.layer == "core"
     # The TNF pilot became the aggregation suite's finite anchor, its protocol unchanged.
     assert tnf.layer == "core" and tnf.suites == {"nf-xml-aggregation": 3}
     assert camkii.protocol_for("nf")["actions"] == "own"

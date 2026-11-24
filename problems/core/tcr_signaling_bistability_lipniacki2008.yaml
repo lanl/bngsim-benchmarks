@@ -2,6 +2,11 @@
 # The model's only live simulate is SSA; the protocol is its ODE simulate, which the file
 # keeps commented out and the verification notebook runs in its place (time in seconds
 # since stimulation). The model body is the same either way.
+# Also member 10 of the nf-xml-signaling suite (suites-stochastic.md §2.5), its high-particle
+# finite anchor: 925,633 particles on a 37-species network, so exact SSA on it is a reference. A
+# network-free trajectory of the ssa protocol's 600 s costs an engine 42-60 s (cost probe,
+# 2026-11-24), so 100 would outrun the hour each engine has; the nf protocol is its first 200 s,
+# output every 10 s, the same for every engine.
 id: tcr_signaling_bistability_lipniacki2008
 layer: core
 title: "TCR signaling bistability"
@@ -20,7 +25,7 @@ verification:
   check: "digitized Fig. 7B deterministic ppERK vs the BioNetGen ODE: NRMSE <= 1% FS, peak <= 2%, plateau <= 1% asserted"
   result: "NRMSE 0.22% FS, peak 1.1%, plateau 0.10%"
   supporting: "equations: hand-written 37-state SciPy ODE vs BioNetGen, max relative error 4.2e-9 (follows the supplied chemical specification rather than the paper's Appendix A)"
-capabilities: [ode]
+capabilities: [ode, nf]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -29,8 +34,16 @@ protocol:
     n_steps: 600
     rtol: 1.0e-10
     atol: 1.0e-10
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>200,n_steps=>20,gml=>2147483647})
+    netgen: "generate_network({overwrite=>1})"
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
 size:
   species: 37
   reactions: 97
+  nf_events: 2000000
 suites:
   ode-net: 2

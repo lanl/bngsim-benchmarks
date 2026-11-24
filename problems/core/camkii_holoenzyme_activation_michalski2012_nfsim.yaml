@@ -1,19 +1,20 @@
-# CaMKII dodecamer holoenzyme activation, network free. A provisional pilot problem for the
-# network-free capability, until its core suites are chosen and audited (docs/DESIGN.md §3.2); in
-# the approved proposal it is nf-xml-signaling member 7. It is the one record whose asserted
-# network-free check runs the exact file without BNGsim (BNG2.pl's NFsim, verification notebook
-# cell [17]). The protocol is the file's own action block -- one network-free run of 6 s in 60
-# steps from the fully autoinhibited dodecamer, with print_functions and get_final_state=>0 -- its
-# seed replaced per trajectory. Its network (44,368 dodecamer configurations) cannot be generated,
-# so there is no exact-SSA reference. Every rule is first order in the holoenzyme species, so at
-# N_sub = 6 the enumerated ODE is the exact mean (FP = 0.13436, FC = 0.25945 at 6 s); this file is
-# N_sub = 12, where FP is size independent only to within 1-2% (the record's data check).
+# CaMKII dodecamer holoenzyme activation, network free. A core problem: member 7 of the nf-xml-
+# signaling suite (docs/DESIGN.md §3.2, suites-stochastic.md §2.5); it was the network-free
+# capability's pilot (layer pilot until 2026-11-24), with this protocol. It is the one record
+# whose asserted network-free check runs the exact file without BNGsim (BNG2.pl's NFsim,
+# verification notebook cell [17]). The protocol is the file's own action block -- one network-
+# free run of 6 s in 60 steps from the fully autoinhibited dodecamer, with print_functions and
+# get_final_state=>0 -- its seed replaced per trajectory. Its network (44,368 dodecamer
+# configurations) cannot be generated, so there is no exact-SSA reference. Every rule is first
+# order in the holoenzyme species, so at N_sub = 6 the enumerated ODE is the exact mean (FP =
+# 0.13436, FC = 0.25945 at 6 s); this file is N_sub = 12, where FP is size independent only to
+# within 1-2% (the record's data check).
 id: camkii_holoenzyme_activation_michalski2012_nfsim
-layer: pilot
+layer: core
 title: "CaMKII dodecamer holoenzyme activation, network free"
 source:
   repo: wshlavacek/BNGL-Models
-  commit: 676dd61f11a868f9354609ec3c8d079c77e0361a
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
   path: models/camkii_holoenzyme_activation_michalski2012/camkii_holoenzyme_activation_michalski2012_nfsim.bngl
   sha256: 285584a6f99b90419f3bfd68b74778252427013f8aee7b9b0ef59800f5a734dc
   format: bngl
