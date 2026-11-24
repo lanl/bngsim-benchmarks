@@ -22,6 +22,12 @@ Implemented so far:
 - a third: partial scaling (PSA) of BNGL models, comparing BNGsim's PSA with
   `run_network`'s at each critical population size N_c, and with exact SSA, its
   N_c = infinity limit (§5.4), on two provisional pilot models.
+- a fourth: network-free simulation of BNGL models, BNGsim's two network-free
+  engines against standalone NFsim and RuleMonkey and, where a model's network is
+  finite, exact SSA on it (§5.5), on two provisional pilot models.
+- a fifth: forward sensitivities on the generated network, comparing BNGsim's with
+  AMICI's, with finite differences from `run_network` and with COPASI's (§5.6), on
+  two provisional pilot models.
 
 Not yet: bundles, the container, the validation of section 9, and every other
 capability.
