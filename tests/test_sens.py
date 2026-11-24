@@ -1074,7 +1074,7 @@ def test_the_trajectory_diagnostic_does_not_read_rounding_noise_as_a_disagreemen
 def test_amici_carries_every_sensitivity_across_the_phases(tmp_path, phases, mode):
     pytest.importorskip("amici")
     pytest.importorskip("bngsim")
-    from bench.capabilities._common import export_sbml
+    from bench.capabilities._common import export_sbml, run_isolated
 
     net = tmp_path / "m.net"
     net.write_text(GATED_NET)
@@ -1083,9 +1083,18 @@ def test_amici_carries_every_sensitivity_across_the_phases(tmp_path, phases, mod
     params, values = ["k0", "k1", "A0"], np.array([0.2, 0.5, 10.0])
     sched = sens.schedule(netfile.structure(GATED_NET), proto)
     sens.reset_values(GATED_NET, sched, params, values)
-    engine = sens.AmiciSens(sbml, names, name_to_id, proto, params, schedule=sched)
-    assert engine.mode == mode
-    S, X = engine.tensors(engine.run())
+
+    # Built and run in a forked child, as a job runs every engine (run_isolated): an
+    # AMICI model left loaded until the test process exits crashes it at exit on macOS.
+    def build_and_run(stage):
+        engine = sens.AmiciSens(sbml, names, name_to_id, proto, params, schedule=sched)
+        S, X = engine.tensors(engine.run())
+        return S, {"mode": engine.mode, "X": np.asarray(X).tolist()}
+
+    out = run_isolated(build_and_run, 1800.0, tmp_path / "amici_child")
+    assert "error" not in out, out.get("error")
+    S, X = out["trajectory"], np.asarray(out["config"]["X"])
+    assert out["config"]["mode"] == mode
     t = sens.times(proto)
     if mode == "presimulation":   # A = A0 exp(-3 k0 - (k0 + k1) t)
         a, pre = 10.0 * np.exp(-0.6 - 0.7 * t), 3.0
