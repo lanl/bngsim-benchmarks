@@ -1063,3 +1063,40 @@ def test_the_trajectory_diagnostic_does_not_read_rounding_noise_as_a_disagreemen
     a = np.array([[0.0, 1.0], [0.0, 2.0]])
     b = np.array([[3e-21, 1.0], [-2e-21, 2.002]])
     assert sens.trajectory_error(a, b, atol=1e-8) == pytest.approx(0.002 / 2.002, rel=1e-9)
+
+
+# --------------------------------------------------------------------------- #
+# Real engines on the gated fixture, against its closed form
+# --------------------------------------------------------------------------- #
+@pytest.mark.integration
+@pytest.mark.parametrize("phases, mode", [(TP_PHASES, "presimulation"),
+                                          (RESET_PHASES, "chained")])
+def test_amici_carries_every_sensitivity_across_the_phases(tmp_path, phases, mode):
+    pytest.importorskip("amici")
+    pytest.importorskip("bngsim")
+    from bench.capabilities._common import export_sbml
+
+    net = tmp_path / "m.net"
+    net.write_text(GATED_NET)
+    sbml, names, name_to_id = export_sbml(net, tmp_path / "m.xml")
+    proto = {**TP_PROTO, "phases": phases, "rtol": 1e-10, "atol": 1e-12}
+    params, values = ["k0", "k1", "A0"], np.array([0.2, 0.5, 10.0])
+    sched = sens.schedule(netfile.structure(GATED_NET), proto)
+    sens.reset_values(GATED_NET, sched, params, values)
+    engine = sens.AmiciSens(sbml, names, name_to_id, proto, params, schedule=sched)
+    assert engine.mode == mode
+    S, X = engine.tensors(engine.run())
+    t = sens.times(proto)
+    if mode == "presimulation":   # A = A0 exp(-3 k0 - (k0 + k1) t)
+        a, pre = 10.0 * np.exp(-0.6 - 0.7 * t), 3.0
+        dB = np.stack([(3.0 + t) * a, t * a, 1.0 - a / 10.0], axis=1)
+    else:                         # A := 2*A0 at -2: A = 2 A0 exp(-2 k0 - (k0 + k1) t)
+        a, pre = 20.0 * np.exp(-0.4 - 0.7 * t), 2.0
+        # B keeps the first phase's A0 (1 - exp(-3 k0)): its derivatives through the
+        # network's initial state, which the chain must carry from the start.
+        dB = np.stack([30.0 * np.exp(-0.6) + (2.0 + t) * a, t * a,
+                       (1.0 - np.exp(-0.6)) + 2.0 - a / 10.0], axis=1)
+    dA = np.stack([-(pre + t) * a, -t * a, a / 10.0], axis=1)
+    np.testing.assert_allclose(X[:, 0], a, rtol=1e-7)
+    np.testing.assert_allclose(S[:, 0, :], dA, rtol=1e-6, atol=1e-8)
+    np.testing.assert_allclose(S[:, 1, :], dB, rtol=1e-6, atol=1e-8)

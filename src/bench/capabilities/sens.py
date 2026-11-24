@@ -867,12 +867,18 @@ class AmiciSens:
         self.uncovered = _not_covered(self.params, self.covered,
                                       "not a free parameter of the AMICI model")
         if self.mode == "chained":
-            # The network's own initial state and its sensitivities, which every
-            # chained run starts its first phase from (a custom state persists).
-            nx, n_k = len(pos), int(self.covered.sum())
-            self.x0 = np.asarray(self.model.get_initial_state(), dtype=float)
-            self.sx0 = np.asarray(self.model.get_initial_state_sensitivities(),
-                                  dtype=float).reshape(n_k, nx)
+            # The network's own initial state and its sensitivities at the first
+            # phase's start, which every chained run starts from (a custom state
+            # persists): as AMICI initialises a simulation itself, read from one
+            # that outputs only t0. (Model.get_initial_state_sensitivities is not
+            # that: with several parameters it put dA/dA0 in the first
+            # parameter's row.)
+            first = self.schedule["phases"][0]
+            self.model.set_t0(first["start"])
+            self.model.set_timepoints([first["start"]])
+            r0 = self._simulate()
+            self.x0 = np.asarray(r0.x, dtype=float)[0].copy()
+            self.sx0 = np.asarray(r0.sx, dtype=float)[0].copy()
         self.edata = self._new_edata() if self.mode == "presimulation" else None
 
     def _fixed_order(self, fixed: list[str]) -> list[str]:
