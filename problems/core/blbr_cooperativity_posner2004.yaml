@@ -24,11 +24,13 @@ verification:
   evidence: >-
     models/blbr_cooperativity_posner2004/verify_posner2004.ipynb
   check: >-
-    NFsim (BNG2.pl) bound fraction against the Wofsy-Goldstein equilibrium (Eqs. 10, 15, 17), one seed
+    BNG2.pl NFsim, 120 distinct seeds at each of the file's 20 scan doses, against the Wofsy-Goldstein equilibrium (Eqs. 10, 15, 17 by scipy.optimize), within 3 SE + 0.002 per dose and a pooled |z| < 3, asserted; a ring count (bonds - molecules + 1 per final complex) is zero
   result: >-
-    |q error| 0.026 printed at 676dd61
+    max |q - theory| 0.0016, max |z| 2.61, pooled z +0.72
+  supporting: >-
+    -bscb settled: the '-rings' model has J2 = 0 (linear chains only) and BNG2.pl's default -cb blocks same-complex binding exactly as -bscb (byte-identical scans, 10 seeds), so the file needs no -bscb
   pending: >-
-    upstream branch verify-blbr_cooperativity_posner2004-* (BNGL-Models, not merged): -bscb settled and recorded, seeds, asserts; pin the merged sha here when it lands (TODO)
+    BNGL-Models branch verify-blbr_cooperativity_posner2004-seeds-bscb @ 2cd5a16 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:

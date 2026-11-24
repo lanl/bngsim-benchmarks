@@ -28,11 +28,13 @@ verification:
   evidence: >-
     models/egfr_oligomerization_mitra2019/verify_mitra2019.ipynb and run_mitra2019.py
   check: >-
-    Kozer 2013 cluster-density and pEGFR data against the model, chi^2 < 30 asserted
+    BNG2.pl NFsim, 24 time-course and 24 dose-response replicates (distinct seeds, each in its own run directory), scaled and compared with the Kozer 2013 average-normalized data (Figs. 2B, 2D, 3B, 3D): total chi^2 < 30, asserted
   result: >-
-    14.91 at 676dd61 (published fit 13.4), on a cached npz in which a shared-directory glob left 4 unique replicates of 6
+    chi^2 13.90 +- 0.50 (Fig. 3B 3.40, 3D 4.72, 2B 2.53, 2D 3.24; the published fit scores 13.4); the old cache (4 distinct replicates of 6) read 14.91
+  supporting: >-
+    the record's own contrast, not evidence here: BNG2.pl's NFsim 1.14.3 reads 12.0% below RuleMonkey on pEGFR (281 against 317 at 1 nM)
   pending: >-
-    upstream branch verify-egfr_oligomerization_mitra2019-* (BNGL-Models, not merged): glob bug fixed, re-run, re-asserted on the BNG2.pl NFsim arm; pin the merged sha here when it lands (TODO)
+    BNGL-Models branch verify-egfr_oligomerization_mitra2019-replicates @ 5b8ebb1 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:

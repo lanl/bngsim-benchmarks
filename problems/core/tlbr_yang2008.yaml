@@ -23,11 +23,13 @@ verification:
   evidence: >-
     models/tlbr_yang2008/verify_yang2008.ipynb
   check: >-
-    NFsim (BNG2.pl) bond-count distribution against the curator's mean-field bond ODE (below percolation, beta = 0.1)
+    BNG2.pl NFsim, 200 distinct seeds, against the curator's mean-field bond ODE (below percolation, beta = 0.1): equilibrium observables within 3 SE + 0.3%, kinetics at 1200 points with 99% within |z| < 3 and max |z| < 4; Fig. 3's caption's rejected fractions at beta = 0.1 and 50; all asserted
   result: >-
-    3.46% printed at 676dd61, from 20 runs that a pinned seed made one replicate
+    equilibrium bonds 293.13 +- 0.17 against 293.21 (tolerance 1.40); kinetics 99.33% within 3, max |z| 3.73; rejected fraction 1.6e-4 (beta 0.1, 'essentially 0') and 0.567 +- 0.001 (beta 50, 'approximately 0.6')
+  supporting: >-
+    -bscb settled: the paper's model is acyclic and BNG2.pl's default -cb blocks same-complex binding exactly as -bscb (byte-identical output at beta = 50, 3571 rejected attempts each), so the file needs no -bscb
   pending: >-
-    upstream branch verify-tlbr_yang2008-* (BNGL-Models, not merged): distinct seeds, asserts, -bscb recorded; pin the merged sha here when it lands (TODO)
+    BNGL-Models branch verify-tlbr_yang2008-seeds-bscb @ d4cceef (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:

@@ -3,8 +3,8 @@
 # suites-stochastic.md §2.4), the smallest by particle count: 25 + 25 antibodies (X_T = 500 per
 # cell in a 0.1 subvolume). Its network is unbounded (chains). The file's own protocol is an
 # 18-dose parameter_scan, which no engine but BNG2.pl can replay; the suite runs one dose, the
-# file's default LT_conc_M = 1e-8 M (near the peak of Fig. 5's bell-shaped curve, x_poly about
-# 0.72), as a time course to 10 s (equilibrium; characteristic time ~5/koff = 0.5 s) with the
+# file's default LT_conc_M = 1e-8 M (near the peak of Fig. 5's bell-shaped curve: theory x_poly
+# 0.744), as a time course to 10 s (at equilibrium by then at this dose) with the
 # scan's flags (-bscb, gml). At this dose LT/RT >= 100, so the file's excess-ligand mode treats
 # free ligand as a constant bath (pseudo-first-order capture): the particles are the 50
 # antibodies and the ligands they hold.
@@ -25,11 +25,13 @@ verification:
   evidence: >-
     models/blbr_heterogeneity_goldstein1980/verify_goldstein1980.ipynb
   check: >-
-    NFsim (BNG2.pl) x_poly at 18 doses, 10 seeds each, against Goldstein-Wofsy Eqs. 13-14 (Fig. 5, X_T = 500)
+    BNG2.pl NFsim x_poly at the file's 18 scan doses, 64 distinct seeds each (runs to 60 s, averaged over 20-60 s), against Goldstein-Wofsy Eqs. 13-14 (Fig. 5, X_T = 500); asserted within 4.32 SE + 0.01 (half a receptor's worth of x_poly at 50 receptors); a control at 10x the receptors within 5.55 SE + 0.001; no drift over the window
   result: >-
-    max abs error 0.047 (printed against 0.20 at 676dd61)
+    max |diff| 0.0100 (0.41 of its tolerance); control 0.0026 (0.38); the file's own 10 s horizon 0.35 of tolerance at the 13 excess-ligand doses; Eq. 13 solved two ways agrees to 2.3e-14
+  supporting: >-
+    explicit-ligand mode covers 5 of the 18 doses (the rising limb, x_poly 0.14-0.51); the peak and the prozone limb are in the excess-ligand mode, where Eq. 13 is the model's mean field exactly. Finding: the file's 10 s is short of equilibrium at the two lowest doses (0.023 below, about 3 SE); the suite's dose, 1e-8 M, is at equilibrium by 10 s
   pending: >-
-    upstream branch verify-blbr_heterogeneity_goldstein1980-* (BNGL-Models, not merged): fixes the renamed file in cell [5] and asserts; pin the merged sha here when it lands (TODO)
+    BNGL-Models branch verify-blbr_heterogeneity_goldstein1980-asserts @ 168a072 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:

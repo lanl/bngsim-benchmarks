@@ -22,11 +22,11 @@ verification:
   evidence: >-
     models/tlbr_steric_monine2010/verify_monine2010.ipynb and run_monine2010.py
   check: >-
-    BNG2.pl NFsim lambda at the 12 Fig. 2a doses against the published CSV, RMS lambda < 0.02 asserted
+    24 fresh BNG2.pl NFsim scans (seeds 1000-1023, each in its own run directory, asserted distinct) at the 12 Fig. 2a doses against the published CSV: RMS lambda < 0.02 (Monine's own acceptance criterion, SI Eq. 11) with a margin of more than 3 bootstrap SE, asserted
   result: >-
-    0.0124 at 676dd61, on a cached npz in which a shared-directory glob left 1 unique replicate of 5
+    RMS lambda 0.0153 +- 0.0005 (margin 9.4 SE); the old cache, which a shared-directory glob had left with 1 distinct scan of 5, read 0.0124
   pending: >-
-    upstream branch verify-tlbr_steric_monine2010-* (BNGL-Models, not merged): glob bug fixed, npz regenerated, re-asserted on the BNG2.pl NFsim arm; pin the merged sha here when it lands (TODO)
+    BNGL-Models branch verify-tlbr_steric_monine2010-replicates @ 936660b (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:

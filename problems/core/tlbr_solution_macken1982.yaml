@@ -22,11 +22,11 @@ verification:
   evidence: >-
     models/tlbr_solution_macken1982/verify_macken1982.ipynb
   check: >-
-    NFsim (BNG2.pl) against Eq. 11 kinetics, Eq. 21 equilibrium and the Theorem 1 aggregate-size counts, 10 replicates x 3 NL
+    BNG2.pl NFsim, the file's own action at 3 ligand doses x 200 distinct seeds, against Eq. 11 kinetics at every output time (|z| capped at 5.33, 99% within 3) and the Eq. 21 equilibrium and Theorem 1 aggregate counts over the last 60 s; all asserted; below the gel point (Eq. 18) at every dose
   result: >-
-    max relative error 0.133 (printed against 15% at 676dd61)
+    kinetics: 3703 comparisons, max |z| 3.76, 99.86% within 3; final window max |z| 1.57; Eq. 21 max relative error 0.020 (0.133 was printed at 676dd61)
   pending: >-
-    upstream branch verify-tlbr_solution_macken1982-* (BNGL-Models, not merged): fixes the renamed file in cell [9] and asserts; pin the merged sha here when it lands (TODO)
+    BNGL-Models branch verify-tlbr_solution_macken1982-asserts @ 0c3b431 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:
