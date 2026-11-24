@@ -16,9 +16,10 @@ Implemented so far:
 - one capability: ODE simulation of BNGL and SBML models, comparing BNGsim against
   a registry of reference engines (`run_network`, libRoadRunner, COPASI and AMICI),
   on two core suites, `ode-net` and `ode-sbml` (section 3.2).
-- a second capability: exact stochastic simulation (SSA) of BNGL models, comparing
-  BNGsim's ensembles against `run_network`, libRoadRunner and COPASI, and against
-  exact moments where a model has them (§5.3), on two provisional pilot models.
+- a second capability: exact stochastic simulation (SSA) of BNGL and SBML models,
+  comparing BNGsim's ensembles against `run_network`, libRoadRunner and COPASI, and
+  against exact moments where a model has them (§5.3), on two provisional pilot
+  models and the core suite `ssa-sbml` (section 3.2).
 - a third: partial scaling (PSA) of BNGL models, comparing BNGsim's PSA with
   `run_network`'s at each critical population size N_c, and with exact SSA, its
   N_c = infinity limit (§5.4), on two provisional pilot models.
@@ -371,10 +372,38 @@ false-alarm rate, and every number it rests on is reproducible.
 | `replicates` | trajectories per engine in the correctness job (100 to 10^6) |
 | `timing_replicates` | trajectories per timed repetition (default 100) |
 | `seed` | the base seed every engine's seeds derive from (default 1) |
-| `moments` | `linear`: compare also against the network's exact moments (needs `replicates` >= 10^4) |
+| `moments` | `linear`: compare also against the network's exact moments (needs `replicates` >= 10^4); for an SBML model, a pinned table (below) |
 
 `size.ssa_events`, the mean reaction events per trajectory, is a planning estimate
-only, like the rest of `size`.
+only, like the rest of `size`; so is `size.ssa_ms_<engine>`, an engine's measured
+milliseconds per trajectory, which replaces the estimate from events where given.
+
+**SBML models** (the `ssa-sbml` suite; `bench.capabilities.ssa_sbml`) have no
+`netgen`: BNGsim, libRoadRunner and COPASI read the pinned SBML, its amounts as
+molecule counts (every compartment of size 1; COPASI's quantity unit set to `#`, and
+the unit it imported recorded). What is compared is every **changing** species, by
+SBML id -- one a reaction (net stoichiometry not zero, not a boundary species), a
+rate rule or an event changes; the census records the rest. An output time that is
+exactly an instant a time-triggered event fires is left out of every comparison
+(before or after the event is a convention), and named. libRoadRunner's gillespie
+fires a time-triggered event at its first reaction event after the trigger; it is
+run, and its warning recorded. run_network reads a network derived from the SBML
+(the ODE suite's derivation, §6.4) only where the derived network also has the
+SBML's **jumps** -- every derived reaction's net change of the compared species is an
+SBML reaction's, with multiplicity, no derived reaction consumes a species twice,
+and every value set between phases is a whole number of molecules; a converter that
+writes a law that is not mass action as per-species flux reactions keeps the ODE but
+not the jump process. Otherwise run_network is not applicable, with the reason. An
+SBML model's exact moments are a pinned table, `moments: {kind: table, repo, commit,
+mean: {path, sha256}, sd: {path, sha256}}`, as DSMTS publishes them (time, then one
+column per species), sha256-checked like a model file.
+
+**Parts.** The engines' ensembles are independent, so they are the correctness job's
+parts (`Job.parts`): `bench submit` splits a job past half an allocation into one
+array-task unit per engine (`<job id>#<engine>` in a task file). Each part stores
+its ensemble beside the job's result, under the job's freshness key; the run that
+stores the last part then runs the job, which scores the stored ensembles rather
+than sampling them again, so the result is the same as an unsplit run's.
 
 **Seeds.** Each engine draws from a fixed block of its own, `seed + 10^7 k` (BNGsim
 k = 0, run_network 1, libRoadRunner 2, COPASI 3), so no two ensembles share a

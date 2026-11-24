@@ -66,8 +66,8 @@ def test_reference_versions_key_only_this_capability(ss_spec, write_spec, monkey
         "roadrunner": "9.9.9", "copasi": "4.48.311", "amici": "1.1.0"}
 
 
-def test_non_bngl_source_gets_no_jobs(ss_spec, write_spec):
-    ss_spec["source"]["format"] = "sbml"
+def test_a_net_source_gets_no_jobs(ss_spec, write_spec):
+    ss_spec["source"]["format"] = "net"
     assert steady.jobs(specs.load(write_spec(ss_spec))) == []
 
 
@@ -89,6 +89,7 @@ def test_a_spec_can_carry_ode_and_steady_state_and_the_ode_jobs_do_not_change(
     ({"atol": -1.0}, "atol: must be a positive number"),
     ({"netgen": "simulate({})"}, "netgen"),
     ({"t_start": 5}, "unknown key 't_start'"),
+    ({"engine_budget_seconds": 0}, "engine_budget_seconds: must be a positive number"),
     ({"parameters": {"k": "big"}}, "parameters.k: must be a number"),
     ({"parameters": ["k"]}, "parameters: a mapping"),
     ({"scan": {"parameter": "k", "min": 1, "max": 10}}, "missing 'points'"),
@@ -134,6 +135,20 @@ def test_planning_grows_with_points_and_size_within_its_budget(ss_spec, write_sp
     huge = types.SimpleNamespace(size={"reactions": 10**6},
                                  protocol_for=lambda c: dict(PROTOCOL))
     assert steady.engine_budget_seconds(huge) == steady.ENGINE_BUDGET_CAP_SECONDS
+
+
+def test_a_specs_own_engine_budget_replaces_the_estimate_and_keys_nothing(ss_spec, write_spec):
+    plain = specs.load(write_spec(ss_spec))
+    ss_spec["protocol"]["steady_state"]["engine_budget_seconds"] = 6 * 3600
+    own = specs.load(write_spec(ss_spec))
+    # Above the cap, and the job's backstop grows with it ...
+    assert steady.engine_budget_seconds(own) == 6 * 3600 > steady.ENGINE_BUDGET_CAP_SECONDS
+    c_plain, t_plain = steady.jobs(plain)
+    c_own, t_own = steady.jobs(own)
+    assert c_own.timeout_seconds >= (len(steady.REFERENCE_ENGINES) + 3) * 6 * 3600
+    # ... but it is planning: no definition, so no result, depends on it.
+    assert "engine_budget_seconds" not in c_own.definition["protocol"]
+    assert c_own.canonical() == c_plain.canonical() and t_own.canonical() == t_plain.canonical()
 
 
 # --------------------------------------------------------------------------- #

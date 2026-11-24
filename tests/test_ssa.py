@@ -60,8 +60,9 @@ def test_reference_versions_key_only_this_capability(ssa_spec, write_spec, monke
         "roadrunner": "9.9.9", "copasi": "4.48.311"}
 
 
-def test_non_bngl_source_gets_no_jobs(ssa_spec, write_spec):
-    ssa_spec["source"]["format"] = "sbml"
+def test_a_net_source_gets_no_jobs(ssa_spec, write_spec):
+    # SBML sources have jobs of their own (tests/test_ssa_sbml.py); a .net source none.
+    ssa_spec["source"]["format"] = "net"
     assert ssa.jobs(specs.load(write_spec(ssa_spec))) == []
 
 
@@ -110,7 +111,7 @@ def test_planning_grows_with_replicates_and_events(ssa_spec, write_spec):
     assert ssa.engine_budget_seconds(small) == ssa.MIN_TIMEOUT_SECONDS
     huge = types.SimpleNamespace(size={"ssa_events": 10**8},
                                  protocol_for=lambda c: dict(PROTOCOL, replicates=10**6))
-    assert ssa.engine_budget_seconds(huge) == ssa.ENGINE_BUDGET_CAP_SECONDS
+    assert ssa.engine_budget_seconds(huge) == ssa.ENSEMBLE_BUDGET_CAP_SECONDS
 
 
 def test_the_ssa_net_suite_loads_and_declares_what_it_tests():

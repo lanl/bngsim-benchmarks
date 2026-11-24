@@ -1,0 +1,55 @@
+# p21-ROS feedback in DNA-damage senescence (BioModels BIOMD0000000287). A core problem: member
+# 6 of the ssa-sbml suite. The paper's Fig. 3B is the mean and SD of 500 stochastic runs; the
+# curators reproduced the deterministic Fig. S17 in COPASI over 0-10 days, the horizon here
+# (864000 s). Three time-triggered events: irradiation IR = 200 at t >= 172800 s, IR = 0 at
+# t >= 172860 s, kp38ROS = 0.6 at t >= 691200 s; the output rows at 172800 s and 691200 s,
+# instants an event fires, are left out of every comparison. Each trajectory costs minutes
+# (about 1.35e8 reaction events), so replicates is 100 (decided 2026-11-24) and the correctness
+# job runs each engine as its own Slurm array task (its parts, bench.capabilities.ssa).
+# libRoadRunner runs it and warns that its time events are not precise (recorded).
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the derived protocol sets kp38ROS, a parameter the converter
+# promotes to a species, to 0.6 between phases, and run_network's SSA rounds it to 1 (wave-1
+# probe, Slurm job 17413393)); the harness derives the network and records the reason in every
+# result. size.ssa_ms_run_network is 0 for planning only.
+id: p21_ros_senescence_passos2010
+layer: core
+title: p21-ROS feedback in DNA-damage senescence
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000287/BIOMD0000000287_url.xml
+  sha256: 4b9370bd3643dd07e46eec75e1f48ec04e4f34bed00ede84ee1e1ad789158447
+  format: sbml
+publications:
+- citation: Passos JF, Nelson G, Wang C, et al. (2010). Feedback between p21 and reactive oxygen production
+    is necessary for cell senescence. Mol Syst Biol 6:347.
+  doi: 10.1038/msb.2010.5
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000287 curation_notes.txt and curation image
+  check: 'BioModels curation: Fig. 3B (mean+sd of 500 stochastic runs in the paper) and Fig. S17 reproduced
+    deterministically in COPASI 4.6, 0-10 days'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 864000
+    n_steps: 100
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+size:
+  species: 23
+  reactions: 37
+  ssa_events: 135300000
+  ssa_ms_bngsim: 180000
+  ssa_ms_roadrunner: 137000
+  ssa_ms_copasi: 87000
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 6

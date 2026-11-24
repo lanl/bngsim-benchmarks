@@ -72,11 +72,38 @@ def test_a_suite_name_selects_exactly_its_members_jobs(spec_data, write_spec, tm
     write_spec(outsider)
     problems = specs.load_all(tmp_path / "problems")
     pats = cli._expand_suites(["ode-net"], problems)
-    assert pats == [f"/model_{i:02d}/" for i in range(1, 11)]
+    assert pats == [f"ode/model_{i:02d}/" for i in range(1, 11)]
     from bench import jobs as jobs_mod
 
     chosen = jobs_mod.select(jobs_mod.jobs_for(problems), pats)
     assert {j.problem for j in chosen} == {f"model_{i:02d}" for i in range(1, 11)}
+
+
+def test_a_member_of_two_suites_gives_each_suite_only_its_capabilitys_jobs(
+        spec_data, write_spec, tmp_path):
+    from bench import jobs as jobs_mod
+
+    steady = {"netgen": "generate_network({overwrite=>1})", "t_end": 100, "rtol": 1.0e-8,
+              "atol": 1.0e-8}
+    for i in range(1, specs.SUITE_SIZE + 1):
+        d = _member(spec_data, i)
+        if i == 1:  # also the steady-state suite's first member
+            d["capabilities"] = ["ode", "steady_state"]
+            d["protocol"] = {**d["protocol"], "steady_state": dict(steady)}
+            d["suites"] = {"ode-net": 1, "ss-net": 1}
+        write_spec(d)
+    for i in range(2, specs.SUITE_SIZE + 1):
+        d = _member(spec_data, 20 + i, suite="ss-net", pos=i)
+        d["capabilities"] = ["steady_state"]
+        d["protocol"] = {"steady_state": dict(steady)}
+        write_spec(d)
+    problems = specs.load_all(tmp_path / "problems")
+    every = jobs_mod.jobs_for(problems)
+    ode_jobs = jobs_mod.select(every, cli._expand_suites(["ode-net"], problems))
+    ss_jobs = jobs_mod.select(every, cli._expand_suites(["ss-net"], problems))
+    assert {j.capability for j in ode_jobs} == {"ode"} and len(ode_jobs) == 2 * 10
+    assert {j.capability for j in ss_jobs} == {"steady_state"} and len(ss_jobs) == 2 * 10
+    assert "model_01" in {j.problem for j in ode_jobs} & {j.problem for j in ss_jobs}
 
 
 def test_other_patterns_pass_through(spec_data, write_spec, tmp_path):

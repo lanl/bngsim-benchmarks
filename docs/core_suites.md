@@ -186,6 +186,218 @@ covers the pinned file.
 - **Koo 2013:** its SED-ML is named for the no-shear-stress condition, but it runs the
   file unchanged, which by the curation notes gives the shear-stress curve of Fig. 6.
 
+## ssa-sbml: exact SSA on published SBML, amounts as molecule counts
+
+Ten SBML models whose amounts are molecule counts, run with each engine's exact SSA:
+BNGsim, libRoadRunner (gillespie) and COPASI (direct method) read the pinned file;
+run_network reads a network derived from it where that network has the SBML's jumps
+(DESIGN §5.3). Ordered by species, then reactions. Horizons are the published ones
+(the curation figures, or DSMTS's settings), never a placeholder SED-ML's. Pins: the
+SBML Test Suite at `sbmlteam/sbml-test-suite` 473e119d for DSMTS, `sys-bio/temp-biomodels`
+6a09daf4 for the BioModels.
+
+| # | problem | source | species / reactions | events | horizon, steps | replicates | references | evidence |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `dimerisation_dsmts_003_01` | DSMTS 003-01 | 2 / 2 | none | 50, 50 | 10^4 | rr, COPASI, exact moments (table); run_network n/a | `theory` |
+| 2 | `abeta_dimer_aggregation_proctor2012` | BIOMD0000000462 | 6 / 8 | none | 100 y, 100 | 5000 | rr, COPASI; run_network n/a | `author_file`: Figs 5A, 5B (COPASI stochastic) |
+| 3 | `repressilator_elowitz2000` | BIOMD0000000012 | 6 / 12 | none | 1000 min, 100 | 10^4 | rr, COPASI; run_network n/a | `author_file`: Fig. 1c |
+| 4 | `mirna_positive_feedback_osteoarthritis_proctor2017` | BIOMD0000000862 | 9 / 11 | 2 (t = 3600, 7200 s) | 8 h, 100 | 10^4 | rr (time-event warning), COPASI; run_network n/a | `author_file`: Suppl. Fig. A(i) |
+| 5 | `noise_resistant_circadian_oscillator_vilar2002_sbml` | BIOMD0000000035 | 10 / 16 | none | 400 h, 200 | 10^4 | run_network (derived), rr, COPASI | `author_file`: Fig. 2AB |
+| 6 | `p21_ros_senescence_passos2010` | BIOMD0000000287 | 23 / 37 | 3 (t = 172800, 172860, 691200 s) | 10 d, 100 | 100 | rr (time-event warning), COPASI; run_network n/a | `author_file`: Fig. S17 (Fig. 3B stochastic) |
+| 7 | `ras_camp_pka_oscillations_besozzi2012` | BIOMD0000000478 | 33 / 39 | none | 1400 a.u., 140 | 200 | rr, COPASI; run_network n/a | `author_file`: Fig. 6 (COPASI stochastic) |
+| 8 | `ubiquitin_proteasome_system_proctor2007` | BIOMD0000000105 | 39 / 94 | none | 20 h, 100 | 10^4 | rr, COPASI; run_network n/a | `author_file`: Fig. 3 (Gillespie2) |
+| 9 | `telomere_uncapping_checkpoint_proctor2007` | BIOMD0000000087 | 55 / 43 | 9 state-triggered | 12 h, 100 | 4000 | rr, COPASI; run_network n/a (state events) | `author_file`: Fig. 5 (Gillespie 2.0) |
+| 10 | `uchl1_protein_aggregation_proctor2010` | BIOMD0000000293 | 136 / 316 | none | 20 h, 100 | 200 | rr, COPASI; run_network n/a | `author_file`: Fig. 2 (COPASI stochastic) |
+
+run_network n/a: the network `bngsim.convert.sbml_to_bngl` derives keeps the ODE but
+writes each law that is not mass action as per-species flux reactions, so its jumps
+are not the SBML's (members 1-4, 7, 8, 10); it refuses state-triggered events (9);
+and on 6 it would set a parameter it promotes to a species to 0.6, which run_network's
+SSA rounds to 1. Each result records the reason.
+
+### What the suite spans (DESIGN §3.2, SSA)
+
+| axis | members |
+|---|---|
+| size | 2 to 136 species, 2 to 316 reactions |
+| exact moments | 1 (the DSMTS tables) |
+| repeated reactants, written `k*X*(X-1)/2` | 1, 2, 7, 8, 10 |
+| time-triggered events | 4, 6 (rows at an event instant left out) |
+| state-triggered events | 9 |
+| cost per trajectory | 1 ms (1) to minutes (6: about 1.35e8 events) |
+
+### Membership decisions
+
+- Members, horizons and pins are those of the stochastic-suites proposal (§2.2 and
+  Appendix B), accepted 2026-11-23, with 287 and 105 in for the proposal's S07/S08 and
+  087 for 344.
+- **Ensemble sizes** below the 10^4 default (462: 5000, 087: 4000, 478, 293: 200,
+  287: 100) are a cost decision (2026-11-24); each verdict records its replicates.
+  287's correctness job runs each engine as its own array task (its parts).
+- **libRoadRunner on time-triggered events** (4, 6) is run, not screened out: 2.11
+  fires them, at its first reaction event after the trigger, and warns that this is
+  not precise; the warning is in its configuration.
+- **COPASI on 087** looked wrong in a wave-1 probe (n = 10); a DIFF it causes is
+  recorded, not worked around.
+
+## ss-net: steady state on the `.net` generated from published BNGL
+
+Members are ordered by network size. Each runs a dose-response: a scan of one
+parameter, every point solved from the file's seed species at that point's parameters,
+as BNG's `parameter_scan` does (`bench.capabilities.steady`). Where the file has its own
+`parameter_scan` and the verification checks those points, the scan is the file's;
+otherwise it is the verification's.
+
+| # | problem | species / reactions | dose (points) | mono / bistable | evidence | how it entered |
+|---|---|---|---|---|---|---|
+| 1 | `genetic_switch_gardner2000` | 2 / 4 | alpha_2, 1–500 linear (100, the file's scan) | bistable for 14.76 < alpha_2 < 80.57 (13 points) | `equations`: exact fixed points of Box 1 Eq. 1, both stable branches and the saddle | paper seed |
+| 2 | `lac_operon_dreisigmeyer2008` | 3 / 8 | l_ext, 1e-2–1e6 uM log (100, the file's scan) | monostable (relabelled) | `equations`: SciPy Eq. 1 at all 100 doses | paper seed |
+| 3 | `kinetic_proofreading_hlavacek2001` | 9 / 14 | koff, 1e-3–1 /s log (20) | monostable | `theory`: closed form D_i/D = alpha^i (1 − alpha) at every dose | paper seed |
+| 4 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | N_agonist, 1–1000 log (20) | bistable for 8.85 < N < 772 (13 points) | `equations` (independent 37-state ODE, both branches) + `data` (Fig. 7A) | top-up: the second switch |
+| 5 | `scaffolded_mapk_cascade_kocieniewski2012` | 85 / 487 | Stot, 1e1–1e6 log (61, the file's scan) | monostable, biphasic (prozone) | `data`: digitized Fig. 2 | paper seed |
+| 6 | `camkii_holoenzyme_activation_michalski2012_pp1` | 132 / 868 | CaM4_tot, 1e-4–1 uM log (25, the file's scan), a clamped species | monostable, non-equilibrium | `data` (Fig. 5a at three PP1 levels) + `equations` | top-up |
+| 7 | `membrane_anchored_multisite_phosphorylation_dushek2011` | 143 / 284 | r = E/F, 0.01–100 log (41, the file's scan) | monostable (linear network) | `theory`: exact null space at every dose + `data` (Fig. 2) | top-up: an exact reference at every dose |
+| 8 | `shp2_regulation_and_function_barua2007` | 149 / 1032 | Rtot, 0.05–0.5 uM linear (10, the file's scan), through R_dim = Rtot/2 | monostable | `data`: digitized Fig. 3 | paper seed |
+| 9 | `beta_catenin_destruction_complex_barua2013` | 409 / 2737 | APCtot, 31855–3185540 log (11, the file's scan) | monostable; 4 write-only sinks | `data`: digitized Fig. 5A | paper seed |
+| 10 | `ksr1_raf_mek_inhibitor_response_imoto2026` | 2709 / 27457 | RAFi1_0, 0–50 nM (20 of the record's 27-dose ladder), a clamped species, at the paper's type II factors | monostable | `data`: digitized Fig. 3 (725 steady states) | top-up: thousands of species |
+
+### Protocol and comparison
+
+- The system under test is BNGsim's `steady_state(method="newton")` (a CVODE burst,
+  then KINSOL); BNGsim's integration to steady state is run and recorded beside it,
+  not scored. The references are run_network integrating to the protocol's horizon
+  (the integration reference, which must have settled), libRoadRunner's
+  `steadyState`, COPASI's steady-state task and AMICI's steady state by simulation, on
+  the SBML exported from the same `.net`; and two engine-free checks, the residual and
+  every conservation law's initial total (DESIGN §5, `bench.capabilities.steady`).
+- A reference that returns a state the integration from the initial state does not
+  reach (a saddle, the other branch of a switch), a state that fails an engine-free
+  check, or no state is `REFERENCE_FAILED` with its reason, and is not scored.
+- Horizons and tolerances are the verification's or the file's scan's, lengthened
+  where a file's own scan does not settle: Gardner 2000 (t = 1000, not 20), kinetic
+  proofreading (20000 s, not 1000), the lac operon (5000 min, not 500), Barua 2007
+  (1e4 s, not 1e3) and Barua 2013 (1e6 s, not 2.5e5).
+- Barua 2013's four write-only sinks grow forever, so the full system has no steady
+  state; they are left out of every comparison and check (BNGsim's `mask`).
+- Imoto 2026 is solved from the seed at every dose (its record's driver continues from
+  the previous dose), so each point is a full relaxation of a 2709-species network. It
+  keeps 20 doses with its own per-engine budget (`engine_budget_seconds` in its
+  protocol), and needs a long allocation.
+
+### What the suite spans (DESIGN §3.2, steady state)
+
+| axis | members |
+|---|---|
+| size | 2 to 2709 species |
+| bistable | 1, 4 (each run on the branch the seed reaches; the verification covers both) |
+| conservation laws (a singular Jacobian) | 3, 4, 5, 6, 7, 8, 9, 10 |
+| write-only sinks (masked) | 9 |
+| the dose is a clamped species | 6, 10 |
+| the dose sets a conserved total or an initial amount | 4, 5, 7, 8, 9 |
+| an exact reference at every dose | 3, 7 |
+
+### Membership decisions
+
+- **Seed:** the paper's six steady-state models, all kept. The lac operon is labelled
+  bistable in the paper's table and in bngsim's own suite; it is monostable at the
+  published growth rate (one root at every dose), as its record says, and is kept
+  with that label. Barua 2013 is kept with its sinks masked.
+- **Top-ups** (proposal D6, accepted): Lipniacki 2008 for a second genuine switch,
+  CaMKII `_pp1` and Dushek 2011 between 37 and 149 species (Dushek also gives an exact
+  reference at every dose), and Imoto 2026 for thousands of species.
+- **Seed evidence closed upstream** (D6c): Gardner's second branch and saddle
+  (wshlavacek/BNGL-Models#67), the closed form at all 20 kinetic proofreading doses
+  (#68), and both branches of Lipniacki 2008 against the equations and Fig. 7A (#69).
+- **Not run yet:** the proposal's continuation along each branch of the bistable
+  members, `steady_states()` multistart root counts, the file's `parameter_scan`
+  replayed by `run_bngl`, and steady-state sensitivities. The capability solves each
+  point from the seed only; these are settings to add.
+
+## ss-sbml: steady state on published SBML, read as it is
+
+Every member but one is a curated BioModels file, pinned at `sys-bio/temp-biomodels`
+`6a09daf4` (the commit ode-sbml pins), whose curation note names a published
+*steady-state* figure: a dose-response curve or a bifurcation diagram. Member 8 is a
+PEtab benchmark problem whose measurements are all at steady state, pinned at
+`Benchmarking-Initiative/Benchmark-Models-PEtab` `4d20850`. Members are ordered by SBML
+species count (dynamic species in parentheses). The suite's design is
+`suites-deterministic.md` §2.4 (decision D5).
+
+| # | problem | source | species / reactions | laws | dose (points) | roots at the file's own parameters | evidence |
+|---|---|---|---|---|---|---|---|
+| 1 | `inflammation_rheumatoid_arthritis_baker2013` | BIOMD0000000550 | 2 (rate rules) / 0 | 0 | alpha2 (`parameter_2`), 1–25 linear (20) | 1 stable; bistable for ~7.5 < alpha2 < ~15.5 | `author_file`: Fig. 3a |
+| 2 | `smallest_bistable_reaction_wilhelm2009` | BIOMD0000000233 | 4 (2) / 4 | 0 | the constant species S, 0.1–2 linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 1 |
+| 3 | `mutual_activation_switch_tyson2003` | BIOMD0000000311 | 4 (1) / 5 | 0 | the boundary signal S, 0–20 linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 1e |
+| 4 | `mapk_double_phosphorylation_ordered_markevich2004` | BIOMD0000000027 | 5 (3) / 4 | 1 | the constant kinase MAPKK, 5–100 nM linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 3 |
+| 5 | `tunable_reversible_receptor_switch_palani2011` | BIOMD0000000325 | 6 (5) / 10 | 0 | the ligand L, 1e-3–10 log (20) | 1 stable | `author_file`: Fig. 1B |
+| 6 | `embryonic_stem_cell_switch_chickarmane2006` | BIOMD0000000204 | 12 (5) / 10 | 0 | the signal A, 0–100 linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 10 |
+| 7 | `mapk_double_phosphorylation_random_markevich2004` | BIOMD0000000028 | 16 / 17 | 3 | MEK, 300–400 nM linear (20), at ERK 1000 nM and MKP3 180 nM | 1 stable | `author_file`: Fig. 5 |
+| 8 | `histone_h4_acetylation_motifs_blasi2016` | PEtab `Blasi_CellSystems2016` | 16 / 32 | 1 | none: one point, the PEtab nominal parameters | 1 stable | `author_file`: the PEtab problem, 252 measurements at t = inf |
+| 9 | `aspartate_metabolism_curien2009` | BIOMD0000000212 | 31 (8) / 18 | 1 | V_max of the tRNA synthetases (`V_AA_RS`), 0.15–2 uM/s linear (20) | 1 stable | `author_file`: Fig. 7c |
+| 10 | `carbohydrate_flux_oxidative_stress_ralser2007` | BIOMD0000000247 | 31 (24) / 25 | 2 | relative TPI activity (`k_rel_TPI`), 0.25–1 linear (20) | 1 stable | `author_file`: Fig. 5a |
+
+Laws: conservation laws among the dynamic species, from the SBML's stoichiometry.
+Roots: `steady_states(n_starts=200)` at the file's own parameters (the proposal's
+probe). Each `author_file` row quotes its curation note in the spec's evidence; the
+curation figure is the curators' re-simulation, not a numeric oracle, so the suite's
+numeric correctness rests on the engines agreeing with each other, with long-time
+integration and with the engine-free checks.
+
+### Protocol and comparison
+
+- Each point starts from the file's initial state at that point's doses (BNG
+  `parameter_scan` with `reset_conc`), as on the `.net` path. A dose is an SBML global
+  parameter or, for members 2–7, a species' initial concentration (`scan.species`).
+  Member 7 also sets ERK and MKP3 at every point (`species`), to the totals the
+  curation note gives for its MEK scan; the file's own values are 800 and 100 nM.
+- `rtol` 1e-8, `atol` 1e-10 on every member; the horizon is 1e6, and 1e8 for Curien
+  2009, whose threonine pool takes about 1e7 s to settle at the low end of its scan.
+- The compared species are the SBML's state species, by id, as concentrations.
+  run_network integrates each point's network derived from the SBML
+  (`ode.derive_network`, its faithfulness check included) to the horizon; it applies to
+  all ten members.
+- The engine-free checks read the derived network for the residual, and the SBML's own
+  stoichiometry for the conservation laws (the converter writes each reaction as
+  signed per-species fluxes, so the derived network's stoichiometry carries no laws).
+  Three refinements over the `.net` verdict, each found on these members: the
+  residual's floor also scales with the flux at the point's initial state (Wilhelm
+  2009's off state is the origin); species moved by a rate rule are left out of the
+  residual (Baker 2013 has only those); a law passes within 10 atol absolute
+  (Chickarmane 2006's genes are held at 0).
+- **Continuation is not yet run.** The design asks for both branches of the bistable
+  members (each point seeded from the last, or from the seeds the curation notes name:
+  X(0) = 1 and 4 for Wilhelm 2009, L = 0.001 and 0.2 for Palani 2011); every point here
+  starts from the file's initial state, so each dose-response follows the branch that
+  state reaches.
+
+### What the suite spans
+
+| axis | members |
+|---|---|
+| size | 2 to 31 species (at most 24 dynamic): curated BioModels with a steady-state curation are small, and the larger PEtab pre-equilibration problems read the clock, which `steady_state()` refuses (proposal §2.4) |
+| bistable at the file's parameters | 2, 3, 4, 6 |
+| a switch crossed by the dose from the initial state | 1, 2, 3, 5, 6 |
+| conservation laws (a singular full Jacobian) | 4, 7, 8, 9, 10 |
+| rate rules only | 1 |
+| species doses (constant or boundary species) | 2, 3, 4, 5, 6, 7 |
+| assignment rules | 3, 8, 9, 10 |
+| two compartments | 10 |
+| steady-state data | 8 |
+
+### Membership decisions
+
+- **Criterion** (D5): curated BioModels whose curation reproduces a published
+  steady-state curve or bifurcation diagram, that `steady_state()` accepts (no events,
+  no clock), plus Blasi 2016 from PEtab for steady-state data; ordered by species count.
+- **Blasi 2016** replaces BIOMD0000000210 (Chickarmane, Peterson 2008), the first
+  alternate. It runs at the PEtab problem's nominal parameters, which the SBML holds
+  rounded to 3–4 digits.
+- **Dose grids** follow the curation notes' ranges where they give one (1, 2, 4, 7, 9),
+  at 20 points. Where they do not (3, 5, 6, 10), the grid was chosen to cross the
+  curated figure's response from the file's initial state: Ralser 2007 stops at
+  `k_rel_TPI` = 0.25 because at 0.1 BNGsim finds no steady state within 1e6 (DHAP is
+  still growing, past 4e6), while 0.2 converges.
+
 ## ssa-net: exact SSA on the `.net` generated from published BNGL
 
 Members are ordered by network size, as in `ode-net`. Each correctness job compares BNGsim's

@@ -1,0 +1,45 @@
+# The smallest chemical reaction system with bistability (BioModels BIOMD0000000233). A core
+# problem: member 2 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000233/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# Four species (S and P constant), mass action. The scan is the constant species S, the
+# curation's continuation parameter, from the file's X(0) = 1 (the curation's off-branch
+# seed); the on branch (X(0) = 4) needs per-point seeding, which the protocol does not do yet.
+id: smallest_bistable_reaction_wilhelm2009
+layer: core
+title: "The smallest chemical reaction system with bistability"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000233/BIOMD0000000233_url.xml
+  sha256: ef698f56d31c8d5a6020dae8fb08b16d670862dba2b34b5116a6c924ce56fcf6
+  format: sbml
+publications:
+  - citation: "Wilhelm T (2009). The smallest chemical reaction system with bistability. BMC Syst Biol 3:90."
+    doi: 10.1186/1752-0509-3-90
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000233: its curation figure and curation notes (final/BIOMD0000000233/curation_notes.txt at the pinned commit): 'The reproduces figure 1 of the reference publication. The bifurcation analysis was performed using the AUTO2000 front end and SBW 2.7.10. Both branches were calculated independently, the off state with X[t=0]=1 and the on state with X[t=0]=4. Continuation was performed from S=0 to 2 in negative direction.'"
+  check: "BioModels curation: the curators reproduced the bifurcation diagram of Fig. 1 of the paper from this file (AUTO2000), S from 0 to 2, the off branch from X(0) = 1 and the on branch from X(0) = 4"
+  result: "curated; the curation figure reproduces Fig. 1"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      species: S
+      min: 0.1
+      max: 2.0
+      points: 20
+      log: false
+size:
+  species: 4
+  reactions: 4
+suites:
+  ss-sbml: 2

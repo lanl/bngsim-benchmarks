@@ -1,0 +1,49 @@
+# Kinetic proofreading in receptor signaling. A core problem: member 3 of the ss-net suite
+# (docs/DESIGN.md §3.2). The steady-state protocol is a koff dose-response on a log grid (1e-3 to
+# 1 /s, 20 points), the verification's: the closed form D_i/D = alpha^i (1 - alpha) gives an exact
+# steady state at every dose. The horizon and tolerances are the verification's (20000 s, rtol =
+# atol = 1e-10); the file's own 30-point scan integrates to 1000 s, which has not settled below
+# koff ~ 0.05 /s. The ode protocol is the model's own ODE simulate action, at the same commit; it
+# is in no suite (it was a pilot problem, kept for the end-to-end tests).
+id: kinetic_proofreading_hlavacek2001
+layer: core
+title: "Kinetic proofreading in receptor signaling"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/kinetic_proofreading_hlavacek2001/kinetic_proofreading_hlavacek2001.bngl
+  sha256: 81d11fc2095ed4f3f2e39c8997334fb772d2b81e8add9463cb0b603ae0e3698c
+  format: bngl
+publications:
+  - citation: "Hlavacek WS, Redondo A, Metzger H, Wofsy C, Goldstein B (2001). Kinetic proofreading models for cell signaling predict ways to escape kinetic proofreading. PNAS 98:7295-7300."
+    doi: 10.1073/pnas.121172298
+  - citation: "Hlavacek WS, Redondo A, Wofsy C, Goldstein B (2002). Kinetic proofreading in receptor-mediated transduction of cellular signals: receptor aggregation, partially activated receptors, and cytosolic messengers. Bull Math Biol 64:887-911."
+    doi: 10.1006/bulm.2002.0306
+verification:
+  kind: theory
+  evidence: models/kinetic_proofreading_hlavacek2001/verify_hlavacek2001_steady_state.ipynb
+  check: "exact steady state (closed form D_i/D = alpha^i (1 - alpha), detailed balance of the two binding steps, the two conservation laws; one scalar root, no integration) vs BNG2.pl parameter_scan at 20 log-spaced koff from 1e-3 to 1 /s, relative error 1e-6 asserted"
+  result: "dimer fractions 4.1e-12, all nine species 2.9e-11; runs converged to 9.9e-12 between their last two outputs"
+  supporting: "equations: verify_hlavacek2001.ipynb, an independent SciPy ODE vs the BioNetGen time course, max relative error 2.75e-8 (printed, not asserted)"
+capabilities: [ode, steady_state]
+protocol:
+  ode:
+    netgen: "generate_network({overwrite=>1})"
+    t_start: 0
+    t_end: 600
+    n_steps: 300
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    sparse: false
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 20000
+    n_steps: 100
+    rtol: 1.0e-10
+    atol: 1.0e-10
+    scan: {parameter: koff, min: 1.0e-3, max: 1, points: 20, log: true}
+size:
+  species: 9
+  reactions: 14
+suites:
+  ss-net: 3
