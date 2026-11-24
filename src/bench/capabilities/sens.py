@@ -101,6 +101,7 @@ a suite would be admitted, with its own engines id.
 
 from __future__ import annotations
 
+import hashlib
 import subprocess
 import time
 from pathlib import Path
@@ -834,15 +835,18 @@ class AmiciSens:
                 noise_distribution="normal", sigma=1.0))
         self.n_observables = len(channels)
         outdir = sbml.parent / "amici_sens_model"
+        # A module name of its own per build: two models built in one process under one
+        # name (the integration test's two protocols) crash that process at exit on macOS.
+        module = "bench_sens_model_" + hashlib.sha1(str(outdir.resolve()).encode()).hexdigest()[:10]
         t0 = time.perf_counter()
         amici.SbmlImporter(str(sbml)).sbml2amici(
-            "bench_sens_model", str(outdir), generate_sensitivity_code=True, verbose=False,
+            module, str(outdir), generate_sensitivity_code=True, verbose=False,
             fixed_parameters=fixed or None, observation_model=channels,
             compute_conservation_laws=self.mode != "chained")
         self.codegen_seconds = time.perf_counter() - t0
 
         t1 = time.perf_counter()
-        self.model = amici.import_model_module("bench_sens_model", str(outdir)).get_model()
+        self.model = amici.import_model_module(module, str(outdir)).get_model()
         self.model.set_timepoints(times(proto))
         free = list(self.model.get_free_parameter_ids())
         ids = []
