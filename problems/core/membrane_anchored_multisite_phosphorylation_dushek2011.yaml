@@ -1,0 +1,57 @@
+# Membrane-anchored multisite phosphorylation. A core problem: member 7 of the ss-net suite
+# (docs/DESIGN.md §3.2). A linear network (a Markov chain over phosphorylation states with kinase
+# and phosphatase bound or free), so its steady state is unique and the exact null space gives a
+# reference at every dose. The dose is the kinase/phosphatase ratio r = E/F at fixed E + F, through
+# derived initial amounts. The scan, horizon and tolerances are the file's own first parameter_scan
+# (r 0.01 to 100, 41 points, log, to 1e5 s at rtol 1e-10, atol 1e-12): Fig. 2 D, the
+# diffusion-limited regime, at the file's parameters.
+# Also member 9 of the ssa-net suite. One substrate molecule with 20 identical sites, a kinase and a phosphatase
+# held as parameters: every reaction is first order in that one molecule, so the network is a
+# 143-state Markov chain, every occupancy is Bernoulli, and the SSA mean is the ODE solution. The
+# twenty identical sites test the statistical factors; mid-size (143 species, 284 reactions) at
+# the lowest copy number there is. The record has no SSA action, so the protocol is ours: a time
+# course at the nominal r = [E]/[F] = 1 from the seed state (all sites free) over 1000 s, about
+# the relaxation of total phosphorylation, output every 20 s.
+# Exact moments are not declared: the harness's linear-moment solver stops at 40 species (the
+# covariance system of 143 has 1e4 states). For a single molecule the variances follow from the
+# means alone (p(1 - p)), which a moments kind of that name could use (open item).
+id: membrane_anchored_multisite_phosphorylation_dushek2011
+layer: core
+title: "Membrane-anchored multisite phosphorylation"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/membrane_anchored_multisite_phosphorylation_dushek2011/membrane_anchored_multisite_phosphorylation_dushek2011.bngl
+  sha256: a7ae14839044fac6cf2862d9c9d1ce4280a0207efe0a87879f8a34b4bce44126
+  format: bngl
+publications:
+  - citation: "Dushek O, van der Merwe PA, Shahrezaei V (2011). Ultrasensitivity in multisite phosphorylation of membrane-anchored proteins. Biophys J 100:1189-1197."
+    doi: 10.1016/j.bpj.2011.01.060
+verification:
+  kind: theory
+  evidence: models/membrane_anchored_multisite_phosphorylation_dushek2011/verify_dushek2011.ipynb
+  check: "level 1: BNG2.pl scans vs the exact null space of the linear network, 1e-6 asserted; level 2: digitized Fig. 2 A-D curves (80), RMSE 0.02 of full scale asserted"
+  result: "level 1 max absolute difference 2.65e-8 (Fig. 2 D, the 41 scan points); level 2 RMSE max 0.0040, median 0.0021 of full scale"
+capabilities: [ssa, steady_state]
+protocol:
+  ssa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1000
+    n_steps: 50
+    replicates: 2000
+    timing_replicates: 100
+    seed: 1
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1.0e+5
+    n_steps: 100
+    rtol: 1.0e-10
+    atol: 1.0e-12
+    scan: {parameter: r, min: 0.01, max: 100, points: 41, log: true}
+size:
+  species: 143
+  reactions: 284
+  ssa_events: 5000
+suites:
+  ssa-net: 9
+  ss-net: 7

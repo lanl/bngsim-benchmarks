@@ -60,8 +60,9 @@ def test_reference_versions_key_only_this_capability(ssa_spec, write_spec, monke
         "roadrunner": "9.9.9", "copasi": "4.48.311"}
 
 
-def test_non_bngl_source_gets_no_jobs(ssa_spec, write_spec):
-    ssa_spec["source"]["format"] = "sbml"
+def test_a_net_source_gets_no_jobs(ssa_spec, write_spec):
+    # SBML sources have jobs of their own (tests/test_ssa_sbml.py); a .net source none.
+    ssa_spec["source"]["format"] = "net"
     assert ssa.jobs(specs.load(write_spec(ssa_spec))) == []
 
 
@@ -110,18 +111,27 @@ def test_planning_grows_with_replicates_and_events(ssa_spec, write_spec):
     assert ssa.engine_budget_seconds(small) == ssa.MIN_TIMEOUT_SECONDS
     huge = types.SimpleNamespace(size={"ssa_events": 10**8},
                                  protocol_for=lambda c: dict(PROTOCOL, replicates=10**6))
-    assert ssa.engine_budget_seconds(huge) == ssa.ENGINE_BUDGET_CAP_SECONDS
+    assert ssa.engine_budget_seconds(huge) == ssa.ENSEMBLE_BUDGET_CAP_SECONDS
 
 
-def test_the_pilot_specs_load_and_declare_what_they_test():
+def test_the_ssa_net_suite_loads_and_declares_what_it_tests():
     from conftest import REPO
 
-    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
-    shz = problems["three_stage_stochastic_gene_expression_shahrezaei2008"]
-    lin = problems["bursty_autoregulated_gene_expression_lin2016"]
-    assert shz.layer == lin.layer == "pilot" and not shz.suites and not lin.suites
+    problems = specs.load_all(REPO / "problems")
+    members = specs.suite_members(problems)["ssa-net"]
+    assert len(members) == specs.SUITE_SIZE
+    by_id = {p.id: p for p in members}
+    # The two former pilots keep their protocols (and with them their results).
+    shz = by_id["three_stage_stochastic_gene_expression_shahrezaei2008"]
+    lin = by_id["bursty_autoregulated_gene_expression_lin2016"]
+    assert shz.suites["ssa-net"] == 3 and lin.suites["ssa-net"] == 1
     assert shz.protocol_for("ssa")["moments"] == "linear"
     assert "moments" not in lin.protocol_for("ssa")
+    for p in members:
+        assert p.layer == "core" and p.source["format"] == "bngl", p.id
+        assert [j.kind for j in ssa.jobs(p)] == ["correctness", "timing"], p.id
+        # Each ensemble's planned cost stays inside the cap the per-engine budget applies.
+        assert ssa.engine_budget_seconds(p) <= ssa.ENSEMBLE_BUDGET_CAP_SECONDS
 
 
 # --------------------------------------------------------------------------- #
@@ -199,6 +209,29 @@ def test_roadrunner_is_not_run_on_a_repeated_reactant():
     assert ssa.RoadRunnerSSA.unsupported(netfile.parse("begin species\n 1 A() 1\nend species\n")) \
         is None
     assert ssa.RoadRunnerSSA.unsupported(None) is None
+
+
+def test_roadrunner_is_not_run_from_a_non_integer_count():
+    # Munsky 2012's m_avg_reg evaluates to 24.999999999999996: the other engines start
+    # from 25 molecules, libRoadRunner's gillespie from the amount as it is.
+    net = netfile.parse("""begin parameters
+ 1 k 100/300
+ 2 g 1/300
+ 3 m k/g*0.25
+end parameters
+begin species
+ 1 A() m
+ 2 B() 3
+end species
+begin reactions
+ 1 1 0 g #R_clear
+end reactions
+""")
+    reason = ssa.RoadRunnerSSA.unsupported(net)
+    assert reason.startswith("UNSUPPORTED: 1 species start at a non-integer count")
+    assert "A() = 24.999999999999996" in reason
+    whole = netfile.parse("begin species\n 1 A() 25\n 2 B() 0\nend species\n")
+    assert ssa.RoadRunnerSSA.unsupported(whole) is None
 
 
 # --------------------------------------------------------------------------- #

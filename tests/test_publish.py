@@ -142,6 +142,29 @@ def test_a_stale_result_is_refused(suite, tmp_path):
         publish("ode-net", problems, jobs, results, tmp_path / "published", newer, root=tmp_path)
 
 
+def test_a_members_jobs_of_another_capability_are_not_the_suites(spec_data, write_spec,
+                                                                 tmp_path):
+    # Member 1 also has a steady-state protocol (another suite's capability): ode-net
+    # publishes without its steady-state results, and leaves them out.
+    for i in range(1, specs.SUITE_SIZE + 1):
+        d = _member(spec_data, i)
+        if i == 1:
+            d["capabilities"] = ["ode", "steady_state"]
+            d["protocol"] = {**d["protocol"], "steady_state": {
+                "netgen": "generate_network({overwrite=>1})", "t_end": 100,
+                "rtol": 1.0e-8, "atol": 1.0e-8}}
+        write_spec(d)
+    problems = specs.load_all(tmp_path / "problems")
+    jobs = jobs_mod.jobs_for(problems)
+    assert {j.capability for j in jobs} == {"ode", "steady_state"}
+    results = tmp_path / "results"
+    _write_all([j for j in jobs if j.capability == "ode"], results)
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    manifest = json.loads((dest / "manifest.json").read_text())
+    assert manifest["capabilities"] == ["ode"]
+
+
 def test_a_host_name_that_survives_the_scrub_refuses_publishing(suite, tmp_path):
     problems, jobs = suite
     results = tmp_path / "results"

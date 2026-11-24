@@ -1,6 +1,6 @@
-# Bursty autoregulated gene expression. A provisional pilot problem for exact SSA and for partial
-# scaling (PSA): it exercises both capabilities until their core suites are chosen and audited
-# (docs/DESIGN.md §3.2).
+# Bursty autoregulated gene expression. A core problem: member 1 of the ssa-net suite and member 1
+# of the psa-net suite (docs/DESIGN.md §3.2); it entered both as a pilot and keeps the pilot's
+# protocols, so its pilot results stay current.
 # Protein activates its own transcription through a Hill function (a functional rate), so its
 # moments do not close and the references are the engines alone. Copy numbers are low and bursty:
 # a few transcripts each hour, each translated into a burst of about 40 proteins. The protocol is
@@ -12,11 +12,11 @@
 # (36000 s) from the seed species, to reach that distribution. The record notes that BioNetGen's
 # PSA aborts on the zeroth-order transcription rule; that is recorded, not worked around.
 id: bursty_autoregulated_gene_expression_lin2016
-layer: pilot
+layer: core
 title: "Bursty autoregulated gene expression"
 source:
   repo: wshlavacek/BNGL-Models
-  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
   path: models/bursty_autoregulated_gene_expression_lin2016/bursty_autoregulated_gene_expression_lin2016.bngl
   sha256: 50f0ed2754c925bdfa8cae677190f433da97547083b94449ee4f870f0636e2d7
   format: bngl
@@ -24,8 +24,11 @@ publications:
   - citation: "Lin YT, Doering CR (2016). Gene expression dynamics with stochastic bursts: construction and exact results for a coarse-grained model. Phys Rev E 93:022409."
     doi: 10.1103/PhysRevE.93.022409
 verification:
-  kind: pending
+  kind: data
   evidence: models/bursty_autoregulated_gene_expression_lin2016/verify_lin2016.ipynb
+  check: "digitized Fig. 3b stationary protein distribution vs the record's seeded BioNetGen SSA (one seed), total variation <= 0.15 asserted"
+  result: "total variation 0.046"
+  supporting: "equations: SciPy mean-field ODE vs the BioNetGen ODE, <= 1e-6 asserted"
 capabilities: [ssa, psa]
 protocol:
   ssa:
@@ -48,3 +51,6 @@ size:
   reactions: 4
   ssa_events: 100
   psa_events: 4100
+suites:
+  ssa-net: 1
+  psa-net: 1

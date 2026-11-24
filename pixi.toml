@@ -94,6 +94,12 @@ BNGPATH = "$PIXI_PROJECT_ROOT/.cache/bionetgen/BioNetGen-2.9.3"
 # corpus BNGL files have one). This covers BNGsim's own reads too, not just the
 # harness's. It is not part of a result's freshness key.
 PYTHONUTF8 = "1"
+# Ignore the user's own site-packages (~/.local/lib/pythonX.Y/site-packages). Python
+# puts that directory ahead of the environment's, so anything a user once installed
+# with `pip install --user` (numpy, pandas, sympy, pyyaml, ...) silently replaces the
+# locked version in every run, Slurm workers included, and a result no longer comes
+# from the environment pixi.lock describes. Not part of a result's freshness key.
+PYTHONNOUSERSITE = "1"
 # Build AMICI without HDF5. AMICI uses HDF5 only to read/write simulation data as
 # files; the suite drives it in-process through numpy and never touches that path.
 # Left to its default (ON "if available"), AMICI's CMake half-finds HDF5 -- the C

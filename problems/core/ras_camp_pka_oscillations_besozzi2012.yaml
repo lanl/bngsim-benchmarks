@@ -1,0 +1,51 @@
+# Oscillations in the yeast Ras/cAMP/PKA pathway (BioModels BIOMD0000000478). A core problem:
+# member 7 of the ssa-sbml suite. A stochastic model by its authors; the curators reproduced
+# Fig. 6 in COPASI (stochastic, Gibson-Bruck, and deterministic) over 0-1400 a.u., the horizon
+# here. hasOnlySubstanceUnits is false, in a compartment of size 1, so amount = concentration.
+# About 5e7 reaction events per trajectory: replicates is 200 (decided 2026-11-24).
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in its unit '1', has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the converter writes non-mass-action laws as per-species flux
+# reactions, the same ODE with other jumps); the harness derives the network and records the
+# reason in every result. size.ssa_ms_run_network is 0 for planning only.
+id: ras_camp_pka_oscillations_besozzi2012
+layer: core
+title: Oscillatory regimes in the yeast Ras/cAMP/PKA pathway
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000478/BIOMD0000000478_url.xml
+  sha256: 8fe652885e49f42149aa8f163544cabb5b0d0264f18f315f929ea0d36a333f8c
+  format: sbml
+publications:
+- citation: Besozzi D, Cazzaniga P, Pescini D, Mauri G, Colombo S, Martegani E (2012). The role of feedback
+    control mechanisms on the establishment of oscillatory regimes in the Ras/cAMP/PKA pathway in S. cerevisiae.
+    EURASIP J Bioinform Syst Biol 2012:10.
+  doi: 10.1186/1687-4153-2012-10
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000478 curation_notes.txt and curation image
+  check: 'BioModels curation: Fig. 6 reproduced in COPASI 4.10, stochastic with Gibson-Bruck and deterministic
+    with LSODA, 0-1400 a.u.'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 1400
+    n_steps: 140
+    replicates: 200
+    timing_replicates: 1
+    seed: 1
+size:
+  species: 33
+  reactions: 39
+  ssa_events: 49790000
+  ssa_ms_bngsim: 45800
+  ssa_ms_roadrunner: 58600
+  ssa_ms_copasi: 19400
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 7

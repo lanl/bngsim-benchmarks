@@ -75,11 +75,10 @@ forked child under a wall budget (``run_isolated``); a reference that fails or r
 out of time is ``REFERENCE_FAILED``; a BNGsim failure is ``EXCEPTION`` (``TIMEOUT``
 when it ran out of time).
 
-Input formats: BNGsim's steady state works on any model it loads -- ``.net``, BNGL
-(through BNG2.pl), SBML and Antimony. This capability builds every job from BNGL
-through the generated ``.net``; ``jobs`` is where an SBML suite would be admitted,
-loading the SBML into BNGsim and the SBML engines directly and reaching run_network
-and the engine-free checks through a converted ``.net``.
+Input formats: a BNGL model is built through the generated ``.net``, as above. An
+**SBML model** (the ss-sbml suite) is read as it is -- by BNGsim (``Model.from_sbml``)
+and by every SBML engine -- and reaches run_network and the engine-free checks
+through a network derived from it: ``bench.capabilities.steady_sbml``.
 """
 
 from __future__ import annotations
@@ -159,10 +158,13 @@ COMPARATORS = ("bngsim_integration",)
 
 
 def protocol(problem: Problem) -> dict[str, Any]:
-    """The steady-state protocol with defaults filled in, as it enters a definition."""
-    p = dict(problem.protocol_for(CAPABILITY))
+    """The steady-state protocol with defaults filled in, as it enters a definition
+    (without the planning keys, which no result depends on)."""
+    p = {k: v for k, v in problem.protocol_for(CAPABILITY).items() if k not in PLANNING_KEYS}
     p.setdefault("n_steps", DEFAULT_N_STEPS)
     p["parameters"] = dict(p.get("parameters") or {})
+    if "species" in p:
+        p["species"] = dict(p["species"] or {})
     if p.get("scan") is not None:
         scan = dict(p["scan"])
         if "values" not in scan:
@@ -176,6 +178,7 @@ def points(proto: dict[str, Any]) -> list[dict[str, float]]:
     without a scan; with one, a point per scanned value, in order, each also
     setting the protocol's ``parameters``."""
     base = {k: float(v) for k, v in (proto.get("parameters") or {}).items()}
+    base.update({k: float(v) for k, v in (proto.get("species") or {}).items()})
     scan = proto.get("scan")
     if not scan:
         return [base]
@@ -186,7 +189,13 @@ def points(proto: dict[str, Any]) -> list[dict[str, float]]:
                              int(scan["points"])).tolist()
     else:
         values = np.linspace(float(scan["min"]), float(scan["max"]), int(scan["points"])).tolist()
-    return [{**base, str(scan["parameter"]): float(v)} for v in values]
+    return [{**base, str(scan_target(scan)): float(v)} for v in values]
+
+
+def scan_target(scan: dict[str, Any]) -> str:
+    """What a scan sets: a parameter, or (an SBML model only) a species' initial
+    concentration."""
+    return str(scan["species"] if "species" in scan else scan["parameter"])
 
 
 def engines_id() -> str:
@@ -195,10 +204,8 @@ def engines_id() -> str:
 
 
 def jobs(problem: Problem) -> list[Job]:
-    # BNGL only for now. An SBML source would load directly into BNGsim and the
-    # SBML engines, and reach run_network and the engine-free checks through a
-    # converted .net: the place an SBML steady-state suite would be admitted.
-    if problem.source.get("format") != "bngl":
+    fmt = problem.source.get("format")
+    if fmt not in ("bngl", "sbml"):
         return []
     proto = protocol(problem)
     engines = engines_id()
@@ -215,11 +222,21 @@ def jobs(problem: Problem) -> list[Job]:
         },
         "reference_settings": REFERENCE_SETTINGS,
     }
+    if fmt == "sbml":
+        # Only an SBML job carries these, so a .net job's definition is unchanged.
+        from . import steady_sbml
+
+        base["input"] = {"format": "sbml", "harness": steady_sbml.SBML_HARNESS_VERSION}
+        base["setting"] = {"bngsim": steady_sbml.BNGSIM_SETTINGS, "codegen": "auto"}
+        base["reference_settings"] = steady_sbml.REFERENCE_SETTINGS
     est_c, est_t = planning_seconds(problem)
     backstop = (len(REFERENCE_ENGINES) + len(COMPARATORS) + 2) * engine_budget_seconds(problem)
+    verdict = VERDICT
+    if fmt == "sbml":
+        verdict = steady_sbml.VERDICT
     correctness = Job(
         CAPABILITY, problem.id, engines, SETTING, CORRECTNESS,
-        definition={**base, "verdict": VERDICT},
+        definition={**base, "verdict": verdict},
         est_seconds=est_c,
         timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c, backstop),
     )
@@ -245,6 +262,12 @@ def jobs(problem: Problem) -> list[Job]:
 MIN_TIMEOUT_SECONDS = 1800.0
 TIMEOUT_FACTOR = 4.0
 ENGINE_BUDGET_CAP_SECONDS = 3600.0
+# A spec may give its own per-engine budget (``engine_budget_seconds`` in its
+# protocol), in place of the estimate and above the cap: for a problem known to need
+# more than an hour per engine (thousands of species at many points), which then
+# needs an allocation long enough for every engine to use it. Planning only: it is
+# left out of every definition, like the cap.
+PLANNING_KEYS = ("engine_budget_seconds",)
 
 
 def n_points(problem: Problem) -> int:
@@ -267,7 +290,11 @@ def planning_seconds(problem: Problem) -> tuple[float, float]:
 
 
 def engine_budget_seconds(problem: Problem) -> float:
-    """Wall budget for one engine's cold build + every point in the correctness job."""
+    """Wall budget for one engine's cold build + every point in the correctness job:
+    the spec's own, if it gives one, else the estimate within the cap."""
+    own = problem.protocol_for(CAPABILITY).get("engine_budget_seconds")
+    if own is not None:
+        return float(own)
     est_c, _ = planning_seconds(problem)
     return min(ENGINE_BUDGET_CAP_SECONDS, max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c))
 
@@ -361,12 +388,28 @@ def engine_free(states: np.ndarray, prep: dict[str, Any]) -> dict[str, Any]:
                 "reason": f"states of shape {list(states.shape)}, expected "
                           f"{[len(nets), len(names)]}",
                 "residual": dict(bad), "conservation": dict(bad, n_laws=int(prep["laws"].shape[0]))}
+    if prep.get("net_columns") is not None:
+        # An SBML model: its compared species, placed in the derived network's state.
+        states = np.array([to_network(x, p, prep) for p, x in enumerate(states)])
+        names = prep["net_species_names"]
+    if states.shape != (len(nets), len(names)):
+        bad = {"passed": False, "evaluated": True, "worst_point": 0, "max": math.inf,
+               "worst_species": None}
+        return {"passed": False, "evaluated": True,
+                "reason": f"states of shape {list(states.shape)}, expected "
+                          f"{[len(nets), len(names)]}",
+                "residual": dict(bad), "conservation": dict(bad, n_laws=int(prep["laws"].shape[0]))}
     sinks = prep["sinks"]
     keep = _keep(states.shape[1], sinks)
     out: dict[str, Any] = {"evaluated": True}
     # Residual.
     residual: dict[str, Any] = {"tol": VERDICT["residual_tol"]}
+    if prep.get("residual_skip"):
+        # Species with no gross flux to judge against (an SBML rate rule).
+        keep = keep & _keep(states.shape[1], prep["residual_skip"])
     try:
+        if not np.any(keep):
+            raise ValueError("no species has a gross flux to judge its net rate against")
         worst = (0.0, 0, 0)
         per_point = []
         for p, (x, net) in enumerate(zip(states, nets)):
@@ -377,6 +420,11 @@ def engine_free(states: np.ndarray, prep: dict[str, Any]) -> dict[str, Any]:
             f, g = net.flux(x)
             f, g = np.abs(f[keep]), g[keep]
             top = float(np.max(g)) if g.size else 0.0
+            if prep.get("residual_floor_initial") and g.size:
+                # An SBML model's floor also scales with the flux at the point's
+                # initial state, so a steady state at (round-off from) zero, where
+                # every flux vanishes, is not judged on its round-off.
+                top = max(top, float(np.max(net.flux(prep["x0"][p])[1][keep])))
             if top == 0.0:
                 per_point.append(0.0)
                 continue
@@ -391,6 +439,7 @@ def engine_free(states: np.ndarray, prep: dict[str, Any]) -> dict[str, Any]:
     except (netfile.NetFileError, ValueError, ArithmeticError) as exc:
         residual.update(evaluated=False, passed=True, reason=f"{type(exc).__name__}: {exc}"[:300])
     out["residual"] = residual
+    keep = _keep(states.shape[1], sinks)
     # Conservation.
     laws = prep["laws"]
     cons: dict[str, Any] = {"n_laws": int(laws.shape[0]), "tol": VERDICT["conservation_tol"]}
@@ -406,6 +455,10 @@ def engine_free(states: np.ndarray, prep: dict[str, Any]) -> dict[str, Any]:
             sub, sub0 = x[prep["law_species"]], x0[prep["law_species"]]
             d = np.abs(laws @ (sub - sub0))
             scale = np.abs(laws) @ np.maximum(np.abs(sub), np.abs(sub0))
+            if prep.get("conservation_atol"):
+                # An SBML model's laws also pass within an absolute tolerance, so a
+                # law whose total is zero is not judged on round-off.
+                scale = scale + float(prep["conservation_atol"]) / VERDICT["conservation_tol"]
             with np.errstate(divide="ignore", invalid="ignore"):
                 defect = np.where(scale > 0, d / scale, np.where(d > 0, np.inf, 0.0))
             m = float(np.max(defect))
@@ -434,6 +487,8 @@ def stability(x: np.ndarray, p: int, prep: dict[str, Any]) -> dict[str, Any]:
     or where the check does not apply. For a disagreement's record, not a verdict."""
     nets, basis = prep.get("point_networks"), prep.get("moving_basis")
     x = np.asarray(x, dtype=float)
+    if nets and prep.get("net_columns") is not None and x.size == len(prep["species_names"]):
+        x = to_network(x, p, prep)
     if (not nets or basis is None or prep["sinks"] or x.size > STABILITY_MAX_SPECIES
             or not np.all(np.isfinite(x))):
         return {"stability": "undetermined", "reason": "not classified for this network"}
@@ -453,6 +508,16 @@ def stability(x: np.ndarray, p: int, prep: dict[str, Any]) -> dict[str, Any]:
     else:
         kind = "stable" if top < 0 else "unstable"
     return {"stability": kind, "max_real_eigenvalue": top, "spectral_radius": scale}
+
+
+def to_network(x: np.ndarray, p: int, prep: dict[str, Any]) -> np.ndarray:
+    """An SBML model's compared species ``x`` at point ``p``, placed in the derived
+    network's state; every other species of it (a constant or boundary species, an
+    assignment rule's placeholder) at its initial value there, which is what the
+    network holds it at."""
+    full = np.array(prep["x0"][p], dtype=float)
+    full[np.asarray(prep["net_columns"], dtype=int)] = np.asarray(x, dtype=float)
+    return full
 
 
 def _root_words(st: dict[str, Any]) -> str:
@@ -538,7 +603,7 @@ class BngsimSteady:
         diags = []
         for i, point in enumerate(self.points):
             r = self.solve(point)
-            x = np.array(r.concentrations, dtype=float)
+            x = self.state(r)
             if not r.converged:
                 raise RuntimeError(
                     f"steady_state(method={self.method!r}) did not converge at point {i} "
@@ -560,6 +625,9 @@ class BngsimSteady:
         if detailed:
             self.diagnostics = diags
         return np.array(out)
+
+    def state(self, result) -> np.ndarray:
+        return np.array(result.concentrations, dtype=float)
 
     def config(self) -> dict[str, Any]:
         out: dict[str, Any] = {
@@ -903,6 +971,10 @@ BUILD_STAGE = {
 
 
 def _build_reference(name: str, prep: dict[str, Any], *, out_prefix: Path, timeout: float):
+    if prep.get("format") == "sbml":
+        from . import steady_sbml
+
+        return steady_sbml.build_reference(name, prep, out_prefix=out_prefix, timeout=timeout)
     cls = REFERENCE_ENGINES[name]
     if cls.INPUT == "net":
         return cls(prep["point_nets"], prep["proto"], out_prefix, timeout=timeout,
@@ -912,6 +984,10 @@ def _build_reference(name: str, prep: dict[str, Any], *, out_prefix: Path, timeo
 
 
 def _build_bngsim(prep: dict[str, Any], method: str) -> BngsimSteady:
+    if prep.get("format") == "sbml":
+        from . import steady_sbml
+
+        return steady_sbml.build_bngsim(prep, method)
     keep = None
     if prep["sinks"]:
         keep = [n for i, n in enumerate(prep["species_names"]) if i not in set(prep["sinks"])]
@@ -977,7 +1053,12 @@ def network_checks(text: str, pts: list[dict[str, float]],
 
 def _prepare(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
     """Build the network and the SBML once, read the ``.net`` (once per point, at
-    that point's parameters), and write each point's ``.net`` for run_network."""
+    that point's parameters), and write each point's ``.net`` for run_network. An
+    SBML model is prepared by ``steady_sbml``."""
+    if problem.source.get("format") == "sbml":
+        from . import steady_sbml
+
+        return steady_sbml.prepare(problem, ctx)
     proto = protocol(problem)
     prep = prepare_network(problem, ctx, proto["netgen"])
     prep["proto"] = proto
@@ -1087,7 +1168,14 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
 
     references: dict[str, Any] = {}
     ref_errors: dict[str, str] = {}
+    # A reference that does not apply to the model (run_network on an SBML model with
+    # no faithful network) is recorded with its reason and counted neither way.
+    not_applicable = dict(prep.get("not_applicable") or {})
+    integration_reference = prep.get("integration_reference", INTEGRATION_REFERENCE)
+    info["integration_reference"] = integration_reference
     for name in REFERENCE_ENGINES:
+        if name in not_applicable:
+            continue
         out = isolated(name, _cold_reference(name, prep, workdir / name / "rn", timeout))
         if "error" in out:
             ref_errors[name] = out["error"]
@@ -1119,10 +1207,10 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
             ref_errors[name] = err
         else:
             valid[name] = states[name]
-    branch = valid.get(INTEGRATION_REFERENCE)
+    branch = valid.get(integration_reference)
     if branch is not None:
         for name in list(valid):
-            if name == INTEGRATION_REFERENCE:
+            if name == integration_reference:
                 continue
             v = agreement(valid[name], branch, atol, names, sinks)
             reference_checks[name]["vs_integration"] = _summary(v)
@@ -1161,15 +1249,18 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     info["states"] = _states_record(states, prep)
 
     passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
+    n_refs = len(REFERENCE_ENGINES) - len(not_applicable)
     if bn_error:
-        result = outcome(bn_error, ref_errors, len(REFERENCE_ENGINES), False)
+        result = outcome(bn_error, ref_errors, n_refs, False)
         if bn_error.startswith("TIMEOUT") and result == "EXCEPTION":
             result = "TIMEOUT"
     elif not passed:
         result = "DIFF"  # a wrong answer, whatever else failed
     else:
-        result = outcome(None, ref_errors, len(REFERENCE_ENGINES), True)
+        result = outcome(None, ref_errors, n_refs, True)
     rec: dict[str, Any] = {"outcome": result, "measurements": info}
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
     if verdicts:
         rec["verdicts"] = verdicts
     if bn_error:
@@ -1232,7 +1323,11 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     # measuring: record why and time the rest. The others get a trial solve, so one
     # that crashes is dropped rather than taking the interleave down.
     failed = _correctness_errors(job, ctx)
+    not_applicable = dict(prep.get("not_applicable") or {})
     for name in REFERENCE_ENGINES:
+        if name in not_applicable:
+            _progress(f"{name}: not applicable ({not_applicable[name][:200]})")
+            continue
         if name in failed:
             errors[name] = f"failed in the correctness job, so not timed ({failed[name][:300]})"
             _progress(f"{name}: skipped, {errors[name]}")
@@ -1282,6 +1377,8 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     }
     for name, err in errors.items():
         rec[f"{name}_error"] = err
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
     return rec
 
 

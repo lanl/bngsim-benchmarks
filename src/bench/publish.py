@@ -290,7 +290,9 @@ def publish(
     if not members:
         raise PublishError(f"no suite {suite!r}; known: {', '.join(specs.suite_members(problems))}")
     member_ids = {p.id for p in members}
-    suite_jobs = [j for j in jobs if j.problem in member_ids]
+    # The suite's capability only: a member may also sit in a suite of another.
+    capability = specs.SUITES[suite][0]
+    suite_jobs = [j for j in jobs if j.problem in member_ids and j.capability == capability]
     by_problem = {p.id: p for p in members}
 
     # A timing whose member's current correctness result blocks it is withheld: not

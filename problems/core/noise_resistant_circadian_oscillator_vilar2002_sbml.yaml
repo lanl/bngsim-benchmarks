@@ -1,0 +1,48 @@
+# The noise-resistant circadian oscillator (BioModels BIOMD0000000035): Vilar et al.'s model
+# as SBML. A core problem: member 5 of the ssa-sbml suite (the same model in BNGL is in
+# problems/core/noise_resistant_circadian_oscillator_vilar2002.yaml). Curated with COPASI 4.5
+# (Fig. 2AB, 0-400 h); the horizon is that, 400 (the time unit is the hour). All laws are mass
+# action, so the network derived from the SBML has the SBML's jumps and run_network applies
+# (the only member where it does; planned at 0.58 s a trajectory, the bench-node smoke's).
+# EmptySet is a boundary species no reaction changes: not compared.
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in moles, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+id: noise_resistant_circadian_oscillator_vilar2002_sbml
+layer: core
+title: Noise-resistant circadian oscillator (SBML)
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000035/BIOMD0000000035_url.xml
+  sha256: 29d8319281da29c49386b9b74770578a1ef0375b9c342bdc98521d1dab400641
+  format: sbml
+publications:
+- citation: Vilar JMG, Kueh HY, Barkai N, Leibler S (2002). Mechanisms of noise-resistance in genetic
+    oscillators. PNAS 99:5988-5992.
+  doi: 10.1073/pnas.092133899
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000035 curation notes and curation image
+  check: 'BioModels curation: Figure 2AB reproduced with COPASI 4.5, 0-400 h'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 400
+    n_steps: 200
+    replicates: 10000
+    timing_replicates: 100
+    seed: 1
+size:
+  species: 10
+  reactions: 16
+  ssa_events: 1108000
+  ssa_ms_bngsim: 158
+  ssa_ms_roadrunner: 866
+  ssa_ms_copasi: 296
+  ssa_ms_run_network: 578
+suites:
+  ssa-sbml: 5

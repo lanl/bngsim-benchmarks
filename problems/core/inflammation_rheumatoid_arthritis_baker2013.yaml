@@ -1,0 +1,45 @@
+# Cytokine-mediated inflammation in rheumatoid arthritis (BioModels BIOMD0000000550). A core
+# problem: member 1 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000550/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# Two species driven by rate rules alone (no reactions). The scan is alpha2 (parameter_2)
+# across the curated bistable window; every point starts from the file's initial (healthy)
+# state, so the dose-response follows the lower branch until it ends near alpha2 = 15.5.
+id: inflammation_rheumatoid_arthritis_baker2013
+layer: core
+title: "Cytokine-mediated inflammation in rheumatoid arthritis"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000550/BIOMD0000000550_url.xml
+  sha256: 498b2c5f826214e6c9944eba1a2511792b8a927dc653c205201547acd5ad4d4c
+  format: sbml
+publications:
+  - citation: "Baker M, Denman-Johnson S, Brook BS, Gaywood I, Owen MR (2013). Mathematical modelling of cytokine-mediated inflammation in rheumatoid arthritis. Math Med Biol 30:311-337."
+    doi: 10.1093/imammb/dqs026
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000550: its curation figure and curation notes (final/BIOMD0000000550/curation_notes.txt at the pinned commit): 'Representation of bifurcation diagram Figure 3a in paper. [...] The region where ~7.5 < alpha2 < ~15.5 describes this ability.'"
+  check: "BioModels curation: the curators drew the bifurcation diagram of Fig. 3a of the paper from this file, bistable for about 7.5 < alpha2 < 15.5 (alpha2 is parameter_2)"
+  result: "curated; the curation figure reproduces Fig. 3a"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      parameter: parameter_2
+      min: 1
+      max: 25
+      points: 20
+      log: false
+size:
+  species: 2
+  reactions: 0
+suites:
+  ss-sbml: 1

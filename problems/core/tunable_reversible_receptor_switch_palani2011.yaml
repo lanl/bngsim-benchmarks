@@ -1,0 +1,45 @@
+# Synthetic conversion of a graded receptor signal into a tunable, reversible switch (minimal
+# two-feedback model) (BioModels BIOMD0000000325). A core problem: member 5 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000325/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# Receptor, complex, inhibitor and activator with two positive feedbacks; the ligand L is a
+# boundary species. The scan is L on a log scale, every point from the file's initial state
+# (the curation's two seeded branches need per-point seeding, not done yet).
+id: tunable_reversible_receptor_switch_palani2011
+layer: core
+title: "Synthetic conversion of a graded receptor signal into a tunable, reversible switch (minimal two-feedback model)"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000325/BIOMD0000000325_url.xml
+  sha256: 9a050d4d0dd24152600b7520cb7ee9ff0f5bfe2cfaaebb5e2809d29e9dbf6908
+  format: sbml
+publications:
+  - citation: "Palani S, Sarkar CA (2011). Synthetic conversion of a graded receptor signal into a tunable, reversible switch. Mol Syst Biol 7:480."
+    doi: 10.1038/msb.2011.13
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000325: its curation figure and curation notes (final/BIOMD0000000325/curation_notes.txt at the pinned commit): 'Ligand concentration response curve as in figure 1B of the publication. All calculation were performed using Copasi v4.6.33. Two logarithmic parameter scans over the the given ligand range with steady state determination were combined in the graph. For the low activity state, the systems initial conditions were taken from the steady state values at L = 0.001, for the high activity from L = 0.2.'"
+  check: "BioModels curation: the curators reproduced the ligand dose-response of Fig. 1B of the paper from this file in COPASI 4.6.33, two logarithmic steady-state scans seeded from L = 0.001 and L = 0.2"
+  result: "curated; the curation figure reproduces Fig. 1B"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      species: L
+      min: 0.001
+      max: 10
+      points: 20
+      log: true
+size:
+  species: 6
+  reactions: 10
+suites:
+  ss-sbml: 5

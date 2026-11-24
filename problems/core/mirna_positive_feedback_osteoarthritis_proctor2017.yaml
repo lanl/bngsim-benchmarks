@@ -1,0 +1,53 @@
+# MicroRNA positive feedback in osteoarthritis (BioModels BIOMD0000000862, model 0). A core
+# problem: member 4 of the ssa-sbml suite. Curated in COPASI 4.24 (Supplementary Fig. A(i),
+# 0-8 h); the horizon is that, 28800 s, as the curators' SED-ML runs it (100 steps). Two
+# time-triggered events set Signal to 100 at t > 3600 s and back to 0 at t > 7200 s: the
+# output row at 7200 s, an instant an event fires, is left out of every comparison (before or
+# after the event is a convention). libRoadRunner's gillespie fires a time event at its first
+# reaction event after the trigger and warns that this is not precise; it is run, and its
+# warning recorded (decided 2026-11-24). A probe at 300 per engine found no disagreement.
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the converter writes non-mass-action laws as per-species flux
+# reactions, the same ODE with other jumps); the harness derives the network and records the
+# reason in every result. size.ssa_ms_run_network is 0 for planning only.
+id: mirna_positive_feedback_osteoarthritis_proctor2017
+layer: core
+title: MicroRNA positive feedback in osteoarthritis
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000862/Proctor2017_model0.xml
+  sha256: 0050d1729c11a81a5ebf24ebc4d9460af956e84899429f30115d47b0620d26be
+  format: sbml
+publications:
+- citation: Proctor CJ, Smith GR (2017). Computer simulation models as a tool to investigate the role
+    of microRNAs in osteoarthritis. PLoS ONE 12:e0187568.
+  doi: 10.1371/journal.pone.0187568
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000862 curation notes, curation image and Proctor2017_model0.sedml (28800
+    s, 100 steps)
+  check: 'BioModels curation: encoded in COPASI 4.24, Supplementary Figure A(i) regenerated, 0-8 h (deterministic)'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 28800
+    n_steps: 100
+    replicates: 10000
+    timing_replicates: 100
+    seed: 1
+size:
+  species: 9
+  reactions: 11
+  ssa_events: 15100
+  ssa_ms_bngsim: 108
+  ssa_ms_roadrunner: 16
+  ssa_ms_copasi: 8
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 4
