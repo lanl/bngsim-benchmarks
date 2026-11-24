@@ -602,3 +602,108 @@ differentiated and the fitted set is a job setting of its own (D3c).
   start from an earlier phase's, so it is `not_applicable` on 3, 5, 7 and 8. BNGsim 0.17.2
   refuses to carry sensitivities across a species reset (7, 8), which is BNGsim's result
   to record.
+
+## sens-sbml: forward sensitivities on SBML, from PEtab benchmark problems
+
+BNGsim's forward sensitivities on the SBML of ten PEtab benchmark problems, each applied
+as PEtab defines it, against AMICI's own PEtab importer and central finite differences
+from libRoadRunner (`bench.capabilities.sens_sbml`). Every member is pinned at
+`Benchmarking-Initiative/Benchmark-Models-PEtab` `4d20850` (the commit BNGL-Models' Grein
+job and AMICI v1.1.0's CI resolved): the SBML is the spec's `source`, and its `petab:` block
+pins the YAML and the four tables by sha256 (D12). Members are ordered by N x N_p, N the
+SBML species and N_p the sensitivity set (`suites-deterministic.md` §2.2, decision D4).
+
+| # | problem | PEtab id | species / reactions | conditions (measurements) | estimated / N_p | what the problem adds | AMICI v1.1.0 CI |
+|---|---|---|---|---|---|---|---|
+| 1 | `sphingolipid_rheostat_apoptosis_armistead2024` | `Armistead_CellDeathDis2024` | 4 / 8 | 2 (58), each setting a switch and four initial values | 14 / 10 | initial values set per condition | G |
+| 2 | `stat5_dimerization_isoforms_boehm2014` | `Boehm_JProteomeRes2014` | 8 / 9 | 1 (48) | 9 / 6 | two compartments of unequal volume; initial assignments | G + L |
+| 3 | `ip3_receptor_type2_dynamics_sneyd2002` | `Sneyd_PNAS2002` | 6 / 10 | 9 (135), IP3 and Ca doses | 15 / 14 | a dose-response read as nine conditions | G + L |
+| 4 | `akt_pathway_low_pass_filter_fujita2010` | `Fujita_SciSignal2010` | 9 / 11 | 6 (144), EGF steps and ramps | 19 / 16 | a time-dependent input set per condition; scaling parameters | G + L |
+| 5 | `il13_signaling_lymphoma_raia2011` | `Raia_CancerResearch2011` | 14 / 16 | 4 (205), IL13 doses | 39 / 18 | two compartments (10 / 100); a noise model that reads the state | G |
+| 6 | `covid19_italy_interventions_giordano2020` | `Giordano_Nature2020` | 13 / 13 | 1 (313) | 50 / 43 | 55 `piecewise` terms in time (rates switched at intervention dates) | G |
+| 7 | `histone_h3_k27_k36_methylation_zheng2012` | `Zheng_PNAS2012` | 15 / 60 | 1 after a pre-equilibration (60) | 46 / 45 | **pre-equilibration**: sensitivities carried from a steady state | G + L |
+| 8 | `jak2_stat5_dual_feedback_bachmann2011` | `Bachmann_MSB2011` | 25 / 36 | 36 (541) | 113 / 27 | initial values set per condition through initial assignments; log10 observables | L |
+| 9 | `insulin_signalling_oxidative_stress_smith2013_petab` | `Smith_BMCSystBiol2013` | 133 / 367 | 35 (62), species and parameters set | 25 / 16 | **3 events** (insulin pulses); 5 compartments of 6.4e-14 to 1.65e-11; amount-only species | L (AMICI's own regression value) |
+| 10 | `smad_complex_gene_expression_lucarelli2018` | `Lucarelli_CellSystems2018` | 33 / 57 | 16 (1755) | 84 / 69 | three estimated totals reach initial values through the condition table; 65 log10 observables | L |
+
+Evidence: every member is `author_file` (the collection holds the authors' model, data and
+fitted nominal parameters). AMICI v1.1.0's benchmark test checks each at that commit: G, the
+likelihood gradient against finite differences at nominal plus 5% noise; L, the
+log-likelihood at nominal against a stored value, which the specs copy as `llh_reference`.
+
+### Protocol and comparison
+
+- **The PEtab problem is applied, not just its SBML** (the paper's rows read none of the
+  tables). For each simulation condition of the measurement table: the SBML's values,
+  overridden by every SBML parameter's nominal value in the parameter table, overridden
+  by the condition table (a number, or a parameter-table id standing for its nominal
+  value); initial assignments evaluated at those values; the condition's species
+  initial values; the condition's measurement times from t = 0. A pre-equilibration
+  runs the pre-equilibration condition to steady state on the same model, then the
+  simulation condition's parameters take effect and the state, with its
+  sensitivities, carries over. The harness reads the tables itself (`bench.petab_problem`,
+  no `petab` library); AMICI reads them through `petab` 0.10.0, an independent application.
+- **Sensitivity set:** the estimated parameters that are the model's own SBML parameters,
+  in parameter-table order: not a noise, scaling or offset parameter (those never reach the
+  state), not a condition-table column (the experiment's). The spec writes the set down; the
+  harness and a unit test re-derive it from the pinned tables and refuse a spec that differs.
+- **Engines:** BNGsim (`Model.from_sbml`, both CVODES correctors), its pre-equilibration by
+  its own recipe (`run(steady_state=True)`, then `carry_sensitivities=True`); AMICI's PEtab
+  importer (`amici.importers.petab.v1`, `simulate_petab` with forward sensitivities, its
+  steady-state pre-equilibration; sensitivities on the PEtab scale put back on a linear
+  one); libRoadRunner central differences at steps 1e-3 and 5e-4 of each parameter, at
+  rtol 1e-10 and atol 1e-12. COPASI is not wired for PEtab conditions (recorded).
+- **Outputs:** the state species, by SBML semantics (an amount for a species with
+  `hasOnlySubstanceUnits`, a concentration otherwise; BNGsim reports concentrations, which
+  the harness multiplies by the constant compartment size for Smith's amount-only species),
+  and every measurement row's observable, at each condition's measurement times, the
+  conditions end to end. The verdict is `sens-net`'s column error of the semi-scaled
+  sensitivity (tol 1e-3, with its floors, refutation and coverage rules). An observable is
+  formed from the states by the harness for BNGsim and the finite differences, and by AMICI
+  itself for AMICI.
+- **Problem-level checks**, part of the outcome: BNGsim's PEtab log-likelihood at nominal
+  against AMICI's (atol 1e-3 + rtol 1e-6; AMICI 1.1.0's cost functions keep the Jacobian term
+  of a log-transformed observable, as PEtab's do) and against AMICI's stored value; its
+  gradient over the sensitivity set against AMICI's forward gradient, within 1e-3 of the
+  size of the rows' contributions (at the fitted point the gradient is a cancelled sum).
+- `rtol` 1e-8 and `atol` 1e-10 on every member; a pre-equilibration may integrate to 1e6.
+- **Timing** interleaves one evaluation of the whole problem per engine: both BNGsim
+  correctors, AMICI's forward sensitivities and its adjoint gradient of the PEtab
+  log-likelihood (D7, timing only), and the plain solves of BNGsim and libRoadRunner that a
+  finite-difference gradient pays N_p + 1 or 2 N_p times.
+
+### What the suite spans (DESIGN §3.2, sensitivities)
+
+| axis | members |
+|---|---|
+| size | 4 to 133 species; N_p 6 to 69; N x N_p 40 to 2277 |
+| conditions | 1 to 36 simulation conditions; 48 to 1755 measurements |
+| pre-equilibration, sensitivities carried from a steady state | 7 |
+| events | 9 |
+| the clock read by an assignment rule (a time-dependent input, `piecewise` rates) | 4, 6; 9's events trigger on time |
+| compartments of unequal size | 2, 5, 9 |
+| initial values set per condition (directly or through initial assignments) | 1, 8, 9, 10 |
+| log-transformed observables | 8, 10 |
+| observable and noise parameters (scalings, offsets, a noise model of the state) | 4, 5, 8, 9, 10 |
+
+### Membership decisions
+
+- **Seed:** the paper's six PEtab rows. Kept: Armistead (P04), Boehm (P01), Sneyd (P02), Raia
+  (P05), each now at its PEtab nominal parameters and every condition (the paper ran
+  Armistead at the SBML's 1.0 placeholders, Sneyd at IP3 = 0, Raia unstimulated). Replaced:
+  Perelson 1996 (P03; N_p = 2, a nominal 210 log-likelihood units from the optimum) and
+  Crauste 2017 (P06; AMICI's own test excludes its gradient for numerical failures; the
+  paper's manifest named Bruno 2016, whose per-condition estimated initial values BNGsim's
+  sensitivity path cannot route). Boehm stays below the 10-parameter floor (D4).
+- **Top-ups** by the criterion of proposal §2.2: at least 10 estimated parameters, N_p <= 200,
+  validated by AMICI v1.1.0's CI at the pinned commit, the largest N x N_p: Giordano, Zheng,
+  Bachmann, Isensee, Smith, Lucarelli.
+- **Isensee 2018 replaced by Fujita 2010** (D4: record the refusal once, then replace). BNGsim
+  does not reach a steady state in Isensee's pre-equilibration: the model reads the clock, and
+  BNGsim never marks such a model steady (bngsim issue #710), so its correctness job is
+  UNSUPPORTED in BNGsim's words. Its spec stays (`pka_rii_phosphorylation_camp_isensee2018`,
+  no suite) so the refusal is reproducible. Fujita 2010 is the first alternate BNGsim can
+  pre-equilibrate (Weber 2015 reads the clock too); it has no pre-equilibration, and takes
+  its place by N x N_p (4).
+- **Smith 2013** is the PEtab problem's file, not `ode-sbml`'s BIOMD0000000474: the problem's
+  parameter table sets 54 of the model's parameters and its conditions three species.
