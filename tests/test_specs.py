@@ -51,7 +51,7 @@ def test_invalid_field_is_refused_with_its_name(spec_data, write_spec, mutate, m
 
 def test_yaml_float_without_decimal_point_is_refused(tmp_path):
     # The literal text a hand-written spec would contain.
-    text = (REPO / "problems" / "pilot" / "kinetic_proofreading_hlavacek2001.yaml").read_text()
+    text = (REPO / "problems" / "core" / "kinetic_proofreading_hlavacek2001.yaml").read_text()
     path = tmp_path / "kinetic_proofreading_hlavacek2001.yaml"
     path.write_text(text.replace("rtol: 1.0e-8", "rtol: 1e-8"))
     with pytest.raises(specs.SpecError, match="rtol"):

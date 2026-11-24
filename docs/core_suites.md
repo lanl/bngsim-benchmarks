@@ -185,3 +185,76 @@ covers the pinned file.
   administrations Fig. 3A needs, and the curation figure comes from it.
 - **Koo 2013:** its SED-ML is named for the no-shear-stress condition, but it runs the
   file unchanged, which by the curation notes gives the shear-stress curve of Fig. 6.
+
+## ss-net: steady state on the `.net` generated from published BNGL
+
+Members are ordered by network size. Each runs a dose-response: a scan of one
+parameter, every point solved from the file's seed species at that point's parameters,
+as BNG's `parameter_scan` does (`bench.capabilities.steady`). Where the file has its own
+`parameter_scan` and the verification checks those points, the scan is the file's;
+otherwise it is the verification's.
+
+| # | problem | species / reactions | dose (points) | mono / bistable | evidence | how it entered |
+|---|---|---|---|---|---|---|
+| 1 | `genetic_switch_gardner2000` | 2 / 4 | alpha_2, 1–500 linear (100, the file's scan) | bistable for 14.76 < alpha_2 < 80.57 (13 points) | `equations`: exact fixed points of Box 1 Eq. 1, both stable branches and the saddle | paper seed |
+| 2 | `lac_operon_dreisigmeyer2008` | 3 / 8 | l_ext, 1e-2–1e6 uM log (100, the file's scan) | monostable (relabelled) | `equations`: SciPy Eq. 1 at all 100 doses | paper seed |
+| 3 | `kinetic_proofreading_hlavacek2001` | 9 / 14 | koff, 1e-3–1 /s log (20) | monostable | `theory`: closed form D_i/D = alpha^i (1 − alpha) at every dose | paper seed |
+| 4 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | N_agonist, 1–1000 log (20) | bistable for 8.85 < N < 772 (13 points) | `equations` (independent 37-state ODE, both branches) + `data` (Fig. 7A) | top-up: the second switch |
+| 5 | `scaffolded_mapk_cascade_kocieniewski2012` | 85 / 487 | Stot, 1e1–1e6 log (61, the file's scan) | monostable, biphasic (prozone) | `data`: digitized Fig. 2 | paper seed |
+| 6 | `camkii_holoenzyme_activation_michalski2012_pp1` | 132 / 868 | CaM4_tot, 1e-4–1 uM log (25, the file's scan), a clamped species | monostable, non-equilibrium | `data` (Fig. 5a at three PP1 levels) + `equations` | top-up |
+| 7 | `membrane_anchored_multisite_phosphorylation_dushek2011` | 143 / 284 | r = E/F, 0.01–100 log (41, the file's scan) | monostable (linear network) | `theory`: exact null space at every dose + `data` (Fig. 2) | top-up: an exact reference at every dose |
+| 8 | `shp2_regulation_and_function_barua2007` | 149 / 1032 | Rtot, 0.05–0.5 uM linear (10, the file's scan), through R_dim = Rtot/2 | monostable | `data`: digitized Fig. 3 | paper seed |
+| 9 | `beta_catenin_destruction_complex_barua2013` | 409 / 2737 | APCtot, 31855–3185540 log (11, the file's scan) | monostable; 4 write-only sinks | `data`: digitized Fig. 5A | paper seed |
+| 10 | `ksr1_raf_mek_inhibitor_response_imoto2026` | 2709 / 27457 | RAFi1_0, 0–50 nM (20 of the record's 27-dose ladder), a clamped species, at the paper's type II factors | monostable | `data`: digitized Fig. 3 (725 steady states) | top-up: thousands of species |
+
+### Protocol and comparison
+
+- The system under test is BNGsim's `steady_state(method="newton")` (a CVODE burst,
+  then KINSOL); BNGsim's integration to steady state is run and recorded beside it,
+  not scored. The references are run_network integrating to the protocol's horizon
+  (the integration reference, which must have settled), libRoadRunner's
+  `steadyState`, COPASI's steady-state task and AMICI's steady state by simulation, on
+  the SBML exported from the same `.net`; and two engine-free checks, the residual and
+  every conservation law's initial total (DESIGN §5, `bench.capabilities.steady`).
+- A reference that returns a state the integration from the initial state does not
+  reach (a saddle, the other branch of a switch), a state that fails an engine-free
+  check, or no state is `REFERENCE_FAILED` with its reason, and is not scored.
+- Horizons and tolerances are the verification's or the file's scan's, lengthened
+  where a file's own scan does not settle: Gardner 2000 (t = 1000, not 20), kinetic
+  proofreading (20000 s, not 1000), the lac operon (5000 min, not 500), Barua 2007
+  (1e4 s, not 1e3) and Barua 2013 (1e6 s, not 2.5e5).
+- Barua 2013's four write-only sinks grow forever, so the full system has no steady
+  state; they are left out of every comparison and check (BNGsim's `mask`).
+- Imoto 2026 is solved from the seed at every dose (its record's driver continues from
+  the previous dose), so each point is a full relaxation of a 2709-species network. It
+  keeps 20 doses with its own per-engine budget (`engine_budget_seconds` in its
+  protocol), and needs a long allocation.
+
+### What the suite spans (DESIGN §3.2, steady state)
+
+| axis | members |
+|---|---|
+| size | 2 to 2709 species |
+| bistable | 1, 4 (each run on the branch the seed reaches; the verification covers both) |
+| conservation laws (a singular Jacobian) | 3, 4, 5, 6, 7, 8, 9, 10 |
+| write-only sinks (masked) | 9 |
+| the dose is a clamped species | 6, 10 |
+| the dose sets a conserved total or an initial amount | 4, 5, 7, 8, 9 |
+| an exact reference at every dose | 3, 7 |
+
+### Membership decisions
+
+- **Seed:** the paper's six steady-state models, all kept. The lac operon is labelled
+  bistable in the paper's table and in bngsim's own suite; it is monostable at the
+  published growth rate (one root at every dose), as its record says, and is kept
+  with that label. Barua 2013 is kept with its sinks masked.
+- **Top-ups** (proposal D6, accepted): Lipniacki 2008 for a second genuine switch,
+  CaMKII `_pp1` and Dushek 2011 between 37 and 149 species (Dushek also gives an exact
+  reference at every dose), and Imoto 2026 for thousands of species.
+- **Seed evidence closed upstream** (D6c): Gardner's second branch and saddle
+  (wshlavacek/BNGL-Models#67), the closed form at all 20 kinetic proofreading doses
+  (#68), and both branches of Lipniacki 2008 against the equations and Fig. 7A (#69).
+- **Not run yet:** the proposal's continuation along each branch of the bistable
+  members, `steady_states()` multistart root counts, the file's `parameter_scan`
+  replayed by `run_bngl`, and steady-state sensitivities. The capability solves each
+  point from the seed only; these are settings to add.

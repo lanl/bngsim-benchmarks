@@ -1,4 +1,4 @@
-"""End to end on the smallest pilot model: BioNetGen builds the network, BNGsim,
+"""End to end on the ODE protocol of a small model (kinetic proofreading, 9 species): BioNetGen builds the network, BNGsim,
 run_network and libRoadRunner integrate it, the cross-engine verdict and the
 interleaved timing are recorded.
 
@@ -27,6 +27,8 @@ pytestmark = pytest.mark.integration
 
 PROBLEM = "kinetic_proofreading_hlavacek2001"
 JOB = f"ode/{PROBLEM}/{ode.engines_id()}/auto"
+# Its ODE jobs only: the problem also has a steady-state protocol (ss-net).
+PATTERN = f"ode/{PROBLEM}/"
 
 
 def _bionetgen_present() -> bool:
@@ -42,7 +44,7 @@ def run_dir(tmp_path_factory):
     out = tmp_path_factory.mktemp("integration")
     args = ["--problems", str(REPO / "problems"), "--results", str(out / "results"),
             "--cache", str(REPO / ".cache")]
-    assert cli.main(["run", PROBLEM, *args]) == 0
+    assert cli.main(["run", PATTERN, *args]) == 0
     return out, args
 
 
@@ -124,7 +126,7 @@ def test_failed_codegen_build_fails_the_job_instead_of_falling_back(tmp_path):
 
 
 def test_slurm_array_task_runs_its_jobs_for_real(tmp_path, capsys):
-    # `bench submit --dry-run` on the smallest pilot model, then its batch script
+    # `bench submit --dry-run` on the small model's ODE jobs, then its batch script
     # run by bash as Slurm would run array task 0, with the real bench.
     if not _bionetgen_present():
         pytest.skip("BioNetGen not installed; run `pixi run fetch-bionetgen`")
@@ -136,7 +138,7 @@ def test_slurm_array_task_runs_its_jobs_for_real(tmp_path, capsys):
     out, results = tmp_path / "slurm", tmp_path / "results"
     common = ["--problems", str(REPO / "problems"), "--results", str(results),
               "--cache", str(REPO / ".cache")]
-    assert cli.main(["submit", PROBLEM, *common, "--config", str(config),
+    assert cli.main(["submit", PATTERN, *common, "--config", str(config),
                      "--out", str(out), "--dry-run"]) == 0
     assert "2 jobs in 1 array task" in capsys.readouterr().out
     (sub_dir,) = out.iterdir()
@@ -148,7 +150,7 @@ def test_slurm_array_task_runs_its_jobs_for_real(tmp_path, capsys):
         r = json.loads((results / JOB / f"{kind}.json").read_text())
         assert r["outcome"] == "PASS", r.get("verdict") or r.get("error")
     # Everything it was given now has a current result: nothing left to submit.
-    assert cli.main(["submit", PROBLEM, *common, "--config", str(config),
+    assert cli.main(["submit", PATTERN, *common, "--config", str(config),
                      "--out", str(out), "--dry-run"]) == 0
     assert "nothing to run" in capsys.readouterr().out
 
@@ -156,7 +158,7 @@ def test_slurm_array_task_runs_its_jobs_for_real(tmp_path, capsys):
 def test_second_run_has_nothing_to_do(run_dir, capsys):
     out, args = run_dir
     before = {p: p.stat().st_mtime_ns for p in (out / "results").rglob("*.json")}
-    assert cli.main(["run", PROBLEM, *args]) == 0
+    assert cli.main(["run", PATTERN, *args]) == 0
     after = {p: p.stat().st_mtime_ns for p in (out / "results").rglob("*.json")}
     assert before == after
     assert "fresh 2" in capsys.readouterr().out

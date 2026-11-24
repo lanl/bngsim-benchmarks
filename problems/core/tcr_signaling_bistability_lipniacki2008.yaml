@@ -2,6 +2,12 @@
 # The model's only live simulate is SSA; the protocol is its ODE simulate, which the file
 # keeps commented out and the verification notebook runs in its place (time in seconds
 # since stimulation). The model body is the same either way.
+# Also member 4 of the ss-net suite: the steady states over N_agonist = 1 to 1000 (20 points, log),
+# the verification's doses, bistable for 8.845 < N < 772.1 (13 of the 20). Every point starts from
+# the file's seed species (the primed, ligand-free cell given N agonists), which reaches the ERK-high
+# branch exactly above the lower fold; the horizon and tolerances are the verification's (2e6 s,
+# rtol = atol = 1e-10). Its steady-state evidence is at BNGL-Models 7d6d366, where the .bngl is
+# byte-identical to the pinned one.
 id: tcr_signaling_bistability_lipniacki2008
 layer: core
 title: "TCR signaling bistability"
@@ -20,7 +26,10 @@ verification:
   check: "digitized Fig. 7B deterministic ppERK vs the BioNetGen ODE: NRMSE <= 1% FS, peak <= 2%, plateau <= 1% asserted"
   result: "NRMSE 0.22% FS, peak 1.1%, plateau 0.10%"
   supporting: "equations: hand-written 37-state SciPy ODE vs BioNetGen, max relative error 4.2e-9 (follows the supplied chemical specification rather than the paper's Appendix A)"
-capabilities: [ode]
+  steady_state_evidence: "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008_steady_state.ipynb at BNGL-Models 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab"
+  steady_state_check: "equations: BNG2.pl (a primed cell given N agonists, and a ramp from steady state) vs the independent 37-state equations run the same way and Newton-polished, at 20 log-spaced N_agonist from 1 to 1000, both branches, 1e-6 relative asserted; data: digitized Fig. 7A (d = 0.05/s) ppERK at 19 doses on both branches, 0.024 decade asserted"
+  steady_state_result: "37 species x 20 doses x 2 protocols, 7.9e-10; folds at N = 8.8452 and 772.11 by continuation (13 doses bistable); Fig. 7A max 0.0102 decade (2.4%)"
+capabilities: [ode, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -29,8 +38,16 @@ protocol:
     n_steps: 600
     rtol: 1.0e-10
     atol: 1.0e-10
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 2.0e+6
+    n_steps: 100
+    rtol: 1.0e-10
+    atol: 1.0e-10
+    scan: {parameter: N_agonist, min: 1, max: 1000, points: 20, log: true}
 size:
   species: 37
   reactions: 97
 suites:
   ode-net: 2
+  ss-net: 4

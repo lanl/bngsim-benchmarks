@@ -2,6 +2,13 @@
 # The protocol is the model's own ODE simulate action, at the same commit: the drug-free
 # relaxation to steady state (time in seconds). Expensive: the file records a 22 min
 # BioNetGen ODE solve, set by stiffness rather than size.
+# Also member 10 of the ss-net suite: steady-state ppERK against the type II RAF inhibitor RAFi1, the
+# Fig. 3B curve at the file's KSR1 = 15 nM and RAS-GTP = 300 nM (PSN1), with the paper's Table S3
+# type II factors (fa 0.005, g1a 0.044, g2a 4.346, g3a 1, fKa 0.025; the file's defaults of 1 are a
+# drug with no effect). The doses are 20 of the 27 on the ladder of the record's run_imoto2026.py
+# (RAFi1_0 in nM = dose/Kd, Kd_BRAF_RAFi1 = 1 nM). Every point starts from the seed species, not
+# from the previous dose as run_imoto2026.py does, so each is a full relaxation: the horizon and
+# tolerances are the ode protocol's. Expensive (proposal D6b: kept at 20 doses, its own budget).
 id: ksr1_raf_mek_inhibitor_response_imoto2026
 layer: core
 title: "KSR1-RAF-MEK inhibitor response"
@@ -20,7 +27,7 @@ verification:
   check: "digitized Fig. 3A-F model panels vs 725 steady states of the committed network (independent SciPy integrator), median residual per panel < 0.05 asserted"
   result: "panel medians 0.003-0.028"
   supporting: "network identity with the authors' SBML (27457/27457 reactions, max rel. error 3.6e-15); not re-runnable from the commit, since the authors' SBML is git-ignored there"
-capabilities: [ode]
+capabilities: [ode, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -29,8 +36,19 @@ protocol:
     n_steps: 200
     rtol: 1.0e-8
     atol: 1.0e-8
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 20000
+    n_steps: 20
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    parameters: {fa: 0.005, g1a: 0.044, g2a: 4.346, g3a: 1.0, fKa: 0.025}
+    scan:
+      parameter: RAFi1_0
+      values: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 3.0, 4.0, 5.0, 8.0, 10.0, 15.0, 20.0, 30.0, 50.0]
 size:
   species: 2709
   reactions: 27457
 suites:
   ode-net: 10
+  ss-net: 10
