@@ -40,7 +40,12 @@ SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ssa-net": ("ssa", ("bngl",)),  # exact SSA on the .net generated from published BNGL
     "psa-net": ("psa", ("bngl",)),  # partial scaling (PSA) on the .net from published BNGL
     "sens-net": ("sens", ("bngl",)),  # forward sensitivities on the .net from published BNGL
+    "sens-sbml": ("sens", ("sbml",)),  # forward sensitivities on SBML, from PEtab problems
 }
+
+# A PEtab problem's tables (a spec's ``petab:`` block): the YAML is optional.
+PETAB_ROLES = ("yaml", "conditions", "measurements", "observables", "parameters")
+PETAB_REQUIRED = ("conditions", "measurements", "observables", "parameters")
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -70,6 +75,9 @@ class Problem:
     size: dict[str, int] = field(default_factory=dict)
     suites: dict[str, int] = field(default_factory=dict)
     path: str = ""
+    # A PEtab problem's tables, by role (``PETAB_ROLES``), each {path, sha256} in the
+    # source's repository at the source's commit (decision D12). Empty otherwise.
+    petab: dict[str, dict[str, str]] = field(default_factory=dict)
 
     def protocol_for(self, capability: str) -> dict[str, Any]:
         return self.protocol[capability]
@@ -477,6 +485,41 @@ def _values(v: Any, where: str, errs: list[str], *, positive: bool = False) -> d
     return v
 
 
+# What a sens protocol on an SBML source (a PEtab problem, bench.capabilities.sens_sbml)
+# may hold: the solves' tolerances, the sensitivity set as the PEtab tables give it
+# (re-derived from them by the harness and a unit test, so a spec cannot drift from
+# the problem), the finite differences' step and tolerances, how long a
+# pre-equilibration may integrate, and AMICI's v1.1.0 benchmark log-likelihood.
+_SENS_SBML_KEYS = {"rtol", "atol", "parameters", "fd_step", "fd_rtol", "fd_atol",
+                   "preeq_max_time", "llh_reference", "max_steps"}
+
+
+def _validate_sens_sbml_protocol(p: Any, where: str, errs: list[str]) -> None:
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    for k in sorted(set(p) - _SENS_SBML_KEYS):
+        errs.append(f"{where}: unknown key {k!r} (a PEtab problem's conditions, times and "
+                    "observables come from its tables)")
+    for k in ("rtol", "atol", "parameters"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    for k in ("rtol", "atol", "fd_rtol", "fd_atol", "preeq_max_time"):
+        if k in p and not _positive(p[k]):
+            errs.append(f"{where}.{k}: must be a positive number")
+    if "fd_step" in p and not (_positive(p["fd_step"]) and p["fd_step"] <= 0.1):
+        errs.append(f"{where}.fd_step: a relative step in (0, 0.1]")
+    for fd, k in (("fd_rtol", "rtol"), ("fd_atol", "atol")):
+        if _positive(p.get(fd)) and _positive(p.get(k)) and not p[fd] <= p[k]:
+            errs.append(f"{where}.{fd}: must not be looser than {k}")
+    if "parameters" in p:
+        _names(p["parameters"], f"{where}.parameters", errs)
+    if "llh_reference" in p and not _finite(p["llh_reference"]):
+        errs.append(f"{where}.llh_reference: a finite number")
+    if "max_steps" in p and not _int_in(p["max_steps"], 1, 10**9):
+        errs.append(f"{where}.max_steps: a positive integer")
+
+
 def _validate_sens_protocol(p: Any, where: str, errs: list[str],
                             source_format: str | None = None) -> None:
     """Forward sensitivities on the generated network (bench.capabilities.sens).
@@ -488,8 +531,11 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     protocol: one measured phase of ``t_end`` in ``n_steps``, or an ordered list of
     ``phases``, each of a ``duration``, measured on ``n_steps`` or not at all, with
     parameter values it ``set``s and species it ``reset``s (to a number or an
-    expression of the parameters) as it starts. The capability builds its jobs from
-    BNGL only, so the source format changes nothing here."""
+    expression of the parameters) as it starts. An SBML source is a PEtab problem,
+    whose protocol is its tables (``_validate_sens_sbml_protocol``)."""
+    if source_format == "sbml":
+        _validate_sens_sbml_protocol(p, where, errs)
+        return
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
@@ -619,7 +665,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
 
     allowed = {
         "id", "layer", "title", "source", "publications", "verification",
-        "capabilities", "protocol", "size", "suites",
+        "capabilities", "protocol", "size", "suites", "petab",
     }
     for k in sorted(set(data) - allowed):
         errs.append(f"unknown key {k!r}")
@@ -706,6 +752,28 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         errs.append("size: a mapping of non-negative integers")
         size = {}
 
+    petab = data.get("petab", {})
+    if not isinstance(petab, dict):
+        errs.append("petab: a mapping of table role to {path, sha256}")
+        petab = {}
+    elif petab:
+        if isinstance(source, dict) and source.get("format") != "sbml":
+            errs.append("petab: only an SBML source is a PEtab problem's model")
+        for role in sorted(set(petab) - set(PETAB_ROLES)):
+            errs.append(f"petab: unknown table {role!r} (one of {', '.join(PETAB_ROLES)})")
+        for role in PETAB_REQUIRED:
+            if role not in petab:
+                errs.append(f"petab: missing the {role} table")
+        for role, f in petab.items():
+            fpath = f.get("path") if isinstance(f, dict) else None
+            if not isinstance(fpath, str) or not fpath or fpath.startswith("/") or ".." in fpath:
+                errs.append(f"petab.{role}.path: a relative path inside the source's repository")
+            if not isinstance(f, dict) or not _SHA256_RE.match(str(f.get("sha256", ""))):
+                errs.append(f"petab.{role}.sha256: 64 lowercase hex characters")
+    if "sens" in (caps or []) and isinstance(source, dict) and source.get("format") == "sbml" \
+            and not petab:
+        errs.append("petab: an SBML sens problem is a PEtab problem (its tables are required)")
+
     suites = data.get("suites", {})
     if not isinstance(suites, dict):
         errs.append("suites: a mapping of suite name to position")
@@ -738,6 +806,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         size=dict(size),
         suites=dict(suites),
         path=str(path),
+        petab={k: {kk: str(vv) for kk, vv in v.items()} for k, v in petab.items()},
     )
 
 
