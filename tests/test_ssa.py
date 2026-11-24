@@ -113,15 +113,24 @@ def test_planning_grows_with_replicates_and_events(ssa_spec, write_spec):
     assert ssa.engine_budget_seconds(huge) == ssa.ENGINE_BUDGET_CAP_SECONDS
 
 
-def test_the_pilot_specs_load_and_declare_what_they_test():
+def test_the_ssa_net_suite_loads_and_declares_what_it_tests():
     from conftest import REPO
 
-    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
-    shz = problems["three_stage_stochastic_gene_expression_shahrezaei2008"]
-    lin = problems["bursty_autoregulated_gene_expression_lin2016"]
-    assert shz.layer == lin.layer == "pilot" and not shz.suites and not lin.suites
+    problems = specs.load_all(REPO / "problems")
+    members = specs.suite_members(problems)["ssa-net"]
+    assert len(members) == specs.SUITE_SIZE
+    by_id = {p.id: p for p in members}
+    # The two former pilots keep their protocols (and with them their results).
+    shz = by_id["three_stage_stochastic_gene_expression_shahrezaei2008"]
+    lin = by_id["bursty_autoregulated_gene_expression_lin2016"]
+    assert shz.suites["ssa-net"] == 3 and lin.suites["ssa-net"] == 1
     assert shz.protocol_for("ssa")["moments"] == "linear"
     assert "moments" not in lin.protocol_for("ssa")
+    for p in members:
+        assert p.layer == "core" and p.source["format"] == "bngl", p.id
+        assert [j.kind for j in ssa.jobs(p)] == ["correctness", "timing"], p.id
+        # Each ensemble's planned cost stays inside the per-engine budget's cap.
+        assert ssa.engine_budget_seconds(p) <= ssa.ENGINE_BUDGET_CAP_SECONDS
 
 
 # --------------------------------------------------------------------------- #

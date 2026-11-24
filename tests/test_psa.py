@@ -123,17 +123,26 @@ def test_a_run_network_trajectory_is_stopped_long_before_its_ensembles_budget(
     assert psa.trajectory_timeout(big, 600.0) == 600.0  # never past the budget
 
 
-def test_the_pilot_specs_load_and_declare_what_they_test():
+def test_the_psa_net_suite_loads_and_declares_what_it_tests():
     from conftest import REPO
 
-    problems = {p.id: p for p in specs.load_all(REPO / "problems")}
-    lin = problems["bursty_autoregulated_gene_expression_lin2016"]
-    rohrs = problems["car_cd3zeta_phosphorylation_rohrs2018"]
-    assert lin.layer == rohrs.layer == "pilot" and not lin.suites and not rohrs.suites
+    problems = specs.load_all(REPO / "problems")
+    members = specs.suite_members(problems)["psa-net"]
+    assert len(members) == specs.SUITE_SIZE
+    by_id = {p.id: p for p in members}
+    lin = by_id["bursty_autoregulated_gene_expression_lin2016"]
+    rohrs = by_id["car_cd3zeta_phosphorylation_rohrs2018"]
+    assert lin.suites["psa-net"] == 1 and rohrs.suites["psa-net"] == 6
     assert set(lin.capabilities) == {"ssa", "psa"} and rohrs.capabilities == ("psa",)
-    for p in (lin, rohrs):
-        assert psa.protocol(p)["poplevels"] == [10, 30, 100, 300, 1000]
-        assert len(psa.jobs(p)) == 2
+    for p in members:
+        proto = psa.protocol(p)
+        assert p.layer == "core", p.id
+        assert proto["poplevels"] == [10, 30, 100, 300, 1000], p.id
+        assert len(psa.jobs(p)) == 2, p.id
+        assert psa.ensemble_size(proto, None) <= psa.ensemble_size(proto, 10), p.id
+    # Only the members whose exact trajectory costs tens of seconds draw fewer of them.
+    assert {p.id for p in members if "exact_replicates" in p.protocol_for("psa")} == {
+        "mapk_relaxation_oscillations_kochanczyk2017", "tcr_signaling_bistability_lipniacki2008"}
 
 
 # --------------------------------------------------------------------------- #

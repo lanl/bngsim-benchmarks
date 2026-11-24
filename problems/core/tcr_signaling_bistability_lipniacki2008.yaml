@@ -2,6 +2,14 @@
 # The model's only live simulate is SSA; the protocol is its ODE simulate, which the file
 # keeps commented out and the verification notebook runs in its place (time in seconds
 # since stimulation). The model body is the same either way.
+# Also member 7 of the ssa-net suite and member 5 of the psa-net suite. SSA and PSA: the record's
+# live SSA action (30 agonist pMHC on the primed state) over its first 20 min rather than its
+# 3 h, output every 20 s. A cost decision: one exact trajectory over 3 h is 1.3e8 events (bngsim
+# 70 s, run_network 133 s on a Darwin node), so even the smallest admissible ensemble (100) would
+# pass the harness's one-hour budget per engine; at 20 min it is 8 s and 15 s. The deterministic
+# switch completes inside that window (ppERK 2.6e5 at 10 min, overshooting its 2.2e5 plateau),
+# so the ensemble still samples which cells switch. Populations 10 (pMHC) to 3e5 (ERK). The
+# file's verification is deterministic; its stochastic behaviour is checked in the job (Q1).
 id: tcr_signaling_bistability_lipniacki2008
 layer: core
 title: "TCR signaling bistability"
@@ -20,7 +28,7 @@ verification:
   check: "digitized Fig. 7B deterministic ppERK vs the BioNetGen ODE: NRMSE <= 1% FS, peak <= 2%, plateau <= 1% asserted"
   result: "NRMSE 0.22% FS, peak 1.1%, plateau 0.10%"
   supporting: "equations: hand-written 37-state SciPy ODE vs BioNetGen, max relative error 4.2e-9 (follows the supplied chemical specification rather than the paper's Appendix A)"
-capabilities: [ode]
+capabilities: [ode, ssa, psa]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -29,8 +37,30 @@ protocol:
     n_steps: 600
     rtol: 1.0e-10
     atol: 1.0e-10
+  ssa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1200
+    n_steps: 60
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1200
+    n_steps: 60
+    replicates: 200
+    exact_replicates: 100
+    timing_replicates: 1
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
 size:
   species: 37
   reactions: 97
+  ssa_events: 14400000
+  # Planning only: sized so the planned PSA job matches the probe (exact 8 s bngsim and
+  # 15 s run_network per trajectory; scaled 0.2-3.5 s and about 1 s).
+  psa_events: 1070000
 suites:
   ode-net: 2
+  ssa-net: 7
+  psa-net: 5

@@ -1,5 +1,12 @@
-# Noise-resistant circadian oscillator. A core problem: member 1 of the ode-net suite (docs/DESIGN.md §3.2).
-# The protocol is the model's own ODE simulate action, at the same commit (time in hours).
+# Noise-resistant circadian oscillator. A core problem: member 1 of the ode-net suite, member 5 of
+# the ssa-net suite and member 3 of the psa-net suite (docs/DESIGN.md §3.2).
+# The ODE protocol is the model's own ODE simulate action, at the same commit (time in hours).
+# SSA: the record's own exact-SSA action (t = 0..400 h from the empty state), as an ensemble,
+# output every 0.5 h rather than every 0.1 h. Single-copy genes, mRNA below one molecule on average
+# beside about 2e3 proteins; the BNGL twin of ssa-sbml's BIOMD0000000035 (9 species here, 10 there).
+# PSA: the same window: single-copy genes that must stay exact beside scaled proteins.
+# The stochastic evidence is the record's at BNGL-Models 7d6d366 (wshlavacek/BNGL-Models#73); the
+# file is byte-identical to the pinned commit's.
 id: noise_resistant_circadian_oscillator_vilar2002
 layer: core
 title: "Noise-resistant circadian oscillator"
@@ -18,7 +25,8 @@ verification:
   check: "independent SciPy LSODA integration of the paper's Eq. 1 (parameters from the Fig. 1 caption, not read from the .net) vs the BioNetGen ODE, tolerance 1e-6"
   result: "max relative error 2.6e-7"
   supporting: "data: digitized Fig. 2a/2b, RMSE/panel height 0.030 (A) and 0.038 (R) against a stated 0.06"
-capabilities: [ode]
+  stochastic: "equations: 64 BioNetGen SSA seeds vs 16 independent Gillespie runs, mean peak R and period in three regimes, worst |z| 1.13 (Welch-t, 1% family-wise); data: eight statistics of the five published realizations inside t(n-1) prediction intervals of a 64-replicate ensemble, worst |z| 1.62 (tol 3.38); all asserted (verify_vilar2002.ipynb at 7d6d366)"
+capabilities: [ode, ssa, psa]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -27,8 +35,29 @@ protocol:
     n_steps: 4000
     rtol: 1.0e-10
     atol: 1.0e-10
+  ssa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 400
+    n_steps: 800
+    replicates: 1000
+    timing_replicates: 10
+    seed: 1
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 400
+    n_steps: 800
+    replicates: 500
+    timing_replicates: 5
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
 size:
   species: 9
   reactions: 16
+  ssa_events: 1100000
+  # Planning only: sized so the planned PSA job matches the probe (bngsim's PSA runs
+  # interpreted propensities, 0.6-1 s per trajectory against 0.2 s exact).
+  psa_events: 380000
 suites:
   ode-net: 1
+  ssa-net: 5
+  psa-net: 3
