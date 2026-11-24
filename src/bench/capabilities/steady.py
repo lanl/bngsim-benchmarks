@@ -159,8 +159,9 @@ COMPARATORS = ("bngsim_integration",)
 
 
 def protocol(problem: Problem) -> dict[str, Any]:
-    """The steady-state protocol with defaults filled in, as it enters a definition."""
-    p = dict(problem.protocol_for(CAPABILITY))
+    """The steady-state protocol with defaults filled in, as it enters a definition
+    (without the planning keys, which no result depends on)."""
+    p = {k: v for k, v in problem.protocol_for(CAPABILITY).items() if k not in PLANNING_KEYS}
     p.setdefault("n_steps", DEFAULT_N_STEPS)
     p["parameters"] = dict(p.get("parameters") or {})
     if p.get("scan") is not None:
@@ -245,6 +246,12 @@ def jobs(problem: Problem) -> list[Job]:
 MIN_TIMEOUT_SECONDS = 1800.0
 TIMEOUT_FACTOR = 4.0
 ENGINE_BUDGET_CAP_SECONDS = 3600.0
+# A spec may give its own per-engine budget (``engine_budget_seconds`` in its
+# protocol), in place of the estimate and above the cap: for a problem known to need
+# more than an hour per engine (thousands of species at many points), which then
+# needs an allocation long enough for every engine to use it. Planning only: it is
+# left out of every definition, like the cap.
+PLANNING_KEYS = ("engine_budget_seconds",)
 
 
 def n_points(problem: Problem) -> int:
@@ -267,7 +274,11 @@ def planning_seconds(problem: Problem) -> tuple[float, float]:
 
 
 def engine_budget_seconds(problem: Problem) -> float:
-    """Wall budget for one engine's cold build + every point in the correctness job."""
+    """Wall budget for one engine's cold build + every point in the correctness job:
+    the spec's own, if it gives one, else the estimate within the cap."""
+    own = problem.protocol_for(CAPABILITY).get("engine_budget_seconds")
+    if own is not None:
+        return float(own)
     est_c, _ = planning_seconds(problem)
     return min(ENGINE_BUDGET_CAP_SECONDS, max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c))
 

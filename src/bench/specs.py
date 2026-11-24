@@ -35,6 +35,7 @@ SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ode-net": ("ode", ("bngl",)),  # ODE on the .net generated from published BNGL
     "ode-sbml": ("ode", ("sbml",)),  # ODE on published SBML, read as it is
     "ssa-sbml": ("ssa", ("sbml",)),  # exact SSA on published SBML, amounts as molecule counts
+    "ss-net": ("steady_state", ("bngl",)),  # steady state on the .net generated from published BNGL
 }
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
@@ -246,11 +247,13 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
     grid ``n_steps`` for the integration references, the integrators' ``rtol`` and
     ``atol``, parameters set for every point (``parameters``), and optionally a
     dose-response ``scan`` of one parameter -- explicit ``values``, or ``min``,
-    ``max`` and ``points``, spaced on a ``log`` scale or linearly."""
+    ``max`` and ``points``, spaced on a ``log`` scale or linearly -- and the
+    problem's own per-engine wall budget (``engine_budget_seconds``, planning only)."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "scan"}
+    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "scan",
+               "engine_budget_seconds"}
     for k in sorted(set(p) - allowed):
         errs.append(f"{where}: unknown key {k!r}")
     for k in ("netgen", "t_end", "rtol", "atol"):
@@ -267,7 +270,7 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
     # output, so the grid needs a point inside it besides the last.
     if "n_steps" in p and not _int_in(p["n_steps"], 2, 10**5):
         errs.append(f"{where}.n_steps: an integer from 2 to 100000")
-    for k in ("rtol", "atol"):
+    for k in ("rtol", "atol", "engine_budget_seconds"):
         if k in p and not (_number(p[k]) and p[k] > 0):
             errs.append(f"{where}.{k}: must be a positive number")
     params = p.get("parameters", {})

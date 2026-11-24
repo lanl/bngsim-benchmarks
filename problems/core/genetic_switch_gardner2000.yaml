@@ -1,0 +1,41 @@
+# Genetic toggle switch. A core problem: member 1 of the ss-net suite (docs/DESIGN.md §3.2).
+# Two mutually repressing genes with Hill repression, in dimensionless units: bistable for
+# 14.76 < alpha_2 < 80.57 (at the file's alpha_1, beta, gamma), with two stable states and a saddle
+# between them, so which steady state a solve returns depends on where it starts. The scan is the
+# file's own parameter_scan of alpha_2 (1 to 500, 100 points, linear; 13 points bistable), the
+# points the verification checks. Every point starts from the file's seed species, (0, 0), as BNG
+# parameter_scan does; the horizon and tolerances are the verification's (t = 1000, rtol 1e-10,
+# atol 1e-12), since the file's own scan integrates only to t = 20, which does not settle next to
+# the folds. The verification covers both stable branches at every bistable point, so either branch
+# a solve reaches from (0, 0) is checked; the suite runs the one the seed reaches.
+id: genetic_switch_gardner2000
+layer: core
+title: "Genetic toggle switch"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/genetic_switch_gardner2000/genetic_switch_gardner2000.bngl
+  sha256: 9a2dec25f8d16f7f8912c514bc7baa2871138f8bcb9f11d740e4c63b84b6a57e
+  format: bngl
+publications:
+  - citation: "Gardner TS, Cantor CR, Collins JJ (2000). Construction of a genetic toggle switch in Escherichia coli. Nature 403:339-342."
+    doi: 10.1038/35002131
+verification:
+  kind: equations
+  evidence: models/genetic_switch_gardner2000/verify_gardner2000_steady_state.ipynb
+  check: "exact fixed points of Box 1 Eq. 1 (scalar reduction, bracketed roots) vs BNG2.pl scans of the file's 100 alpha_2 points from (alpha_1, 0) and (0, 500), both stable branches and the saddle, relative error 1e-6 asserted"
+  result: "u-dominant branch 4.6e-10, v-dominant 3.9e-10; bistable 14.7594 < alpha_2 < 80.5674 (13 scan points); the saddle displaced +/-1e-6 along its unstable eigenvector reaches opposite branches at 13 of 13"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1000
+    n_steps: 100
+    rtol: 1.0e-10
+    atol: 1.0e-12
+    scan: {parameter: alpha_2, min: 1, max: 500, points: 100}
+size:
+  species: 2
+  reactions: 4
+suites:
+  ss-net: 1

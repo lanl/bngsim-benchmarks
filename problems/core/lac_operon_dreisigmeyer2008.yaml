@@ -1,0 +1,39 @@
+# Lac operon lactose induction. A core problem: member 2 of the ss-net suite (docs/DESIGN.md §3.2).
+# Monostable: the lactose induction curve has one steady state at every dose (the file's header,
+# and the source paper's conclusion for lactose at growth rate 0.0231 /min), although the bngsim
+# paper's table and bngsim's own steady-state suite label it bistable. The scan is the file's own
+# parameter_scan of external lactose l_ext (0.01 to 1e6 uM, 100 points, log), the induction curve of
+# Fig. 8 (top) and the points the verification checks. The horizon is ours: the slowest process is
+# growth dilution (0.0231 /min, a 43 min time constant), so the file's 500 min leaves ~1e-5 of the
+# transient; 5000 min settles it.
+id: lac_operon_dreisigmeyer2008
+layer: core
+title: "Lac operon lactose induction"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/lac_operon_dreisigmeyer2008/lac_operon_dreisigmeyer2008.bngl
+  sha256: 8b09d978facc8b4b98b2e0e39ba838678264a6c5fe59f16303779ba6ee59a3de
+  format: bngl
+publications:
+  - citation: "Dreisigmeyer DW, Stajic J, Nemenman I, Hlavacek WS, Wall ME (2008). Determinants of bistability in induction of the Escherichia coli lac operon. IET Syst Biol 2:293-303."
+    doi: 10.1049/iet-syb:20080095
+verification:
+  kind: equations
+  evidence: models/lac_operon_dreisigmeyer2008/verify_dreisigmeyer2008.ipynb
+  check: "SciPy (BDF, rtol 1e-10, atol 1e-12, to t = 2000 min) steady states of Eq. 1 at all 100 doses of the file's l_ext scan (Fig. 8, top) vs the BNG2.pl scan; printed, not asserted"
+  result: "max relative error above basal: Z 0.0089%, L 0.0004%, A 0.0007%"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 5000
+    n_steps: 100
+    rtol: 1.0e-10
+    atol: 1.0e-12
+    scan: {parameter: l_ext, min: 0.01, max: 1.0e+6, points: 100, log: true}
+size:
+  species: 3
+  reactions: 8
+suites:
+  ss-net: 2

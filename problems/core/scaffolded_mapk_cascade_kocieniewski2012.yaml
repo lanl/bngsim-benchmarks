@@ -1,5 +1,9 @@
 # Scaffolded MAPK cascade. A core problem: member 4 of the ode-net suite (docs/DESIGN.md §3.2).
 # The protocol is the model's own ODE simulate action, at the same commit.
+# Also member 5 of the ss-net suite: the file's own parameter_scan of the total scaffold Stot (1e1 to
+# 1e6 molecules, 61 points, log, at its rtol 1e-8, atol 1e-6), the biphasic (prozone) Scaff-22 curve
+# of Fig. 2 that the verification checks; the dose sets a conserved total. The horizon is the scan's
+# 2000 s.
 id: scaffolded_mapk_cascade_kocieniewski2012
 layer: core
 title: "Scaffolded MAPK cascade"
@@ -18,7 +22,7 @@ verification:
   check: "digitized Fig. 2 (Scaff-22) steady states vs the generated network, 5% of full scale asserted"
   result: "peak amplitude error 0.46% FS, RMS 0.20% FS"
   supporting: "theory: active MAP3K steady state vs S*Atot/(S+u), 0.025% (printed, not asserted)"
-capabilities: [ode]
+capabilities: [ode, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -28,8 +32,16 @@ protocol:
     rtol: 1.0e-8
     atol: 1.0e-6
     sparse: false
+  steady_state:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 2000
+    n_steps: 100
+    rtol: 1.0e-8
+    atol: 1.0e-6
+    scan: {parameter: Stot, min: 10, max: 1.0e+6, points: 61, log: true}
 size:
   species: 85
   reactions: 487
 suites:
   ode-net: 4
+  ss-net: 5

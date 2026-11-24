@@ -1,5 +1,10 @@
 # Beta-catenin destruction complex. A core problem: member 7 of the ode-net suite (docs/DESIGN.md §3.2).
 # The protocol is the model's own ODE simulate action, at the same commit.
+# Also member 9 of the ss-net suite: the file's own parameter_scan of full-length APC APCtot (31855
+# to 3185540 molecules, 11 points, log, at its rtol 1e-8, atol 1e-6), the Fig. 5A dose response the
+# verification checks. Four write-only sink species grow forever, so the full system has no steady
+# state: they are left out of every comparison and check (BNGsim's mask). The horizon is ours, 1e6 s,
+# four times the file's 2.5e5 s nominal relaxation, so the integration references settle.
 id: beta_catenin_destruction_complex_barua2013
 layer: core
 title: "Beta-catenin destruction complex"
@@ -18,7 +23,7 @@ verification:
   check: "digitized Fig. 5A dose response vs the generated network, point-wise relative error < 6% asserted"
   result: "max 0.018, median 0.007"
   supporting: "nominal steady state 35.89 nM vs the paper's 35 nM (printed, not asserted)"
-capabilities: [ode]
+capabilities: [ode, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1,max_stoich=>{APC=>1,AXIN=>1,bCat=>1}})"
@@ -28,8 +33,16 @@ protocol:
     rtol: 1.0e-8
     atol: 1.0e-8
     sparse: true
+  steady_state:
+    netgen: "generate_network({overwrite=>1,max_stoich=>{APC=>1,AXIN=>1,bCat=>1}})"
+    t_end: 1.0e+6
+    n_steps: 100
+    rtol: 1.0e-8
+    atol: 1.0e-6
+    scan: {parameter: APCtot, min: 31855, max: 3185540, points: 11, log: true}
 size:
   species: 409
   reactions: 2737
 suites:
   ode-net: 7
+  ss-net: 9
