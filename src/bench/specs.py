@@ -37,6 +37,8 @@ SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ssa-sbml": ("ssa", ("sbml",)),  # exact SSA on published SBML, amounts as molecule counts
     "ss-net": ("steady_state", ("bngl",)),  # steady state on the .net generated from published BNGL
     "ss-sbml": ("steady_state", ("sbml",)),  # steady state on published SBML, read as it is
+    "ssa-net": ("ssa", ("bngl",)),  # exact SSA on the .net generated from published BNGL
+    "psa-net": ("psa", ("bngl",)),  # partial scaling (PSA) on the .net from published BNGL
 }
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
@@ -348,20 +350,36 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
 PSA_MAX_POPLEVELS = 10
 
 
+# The fewest trajectories an exact-SSA ensemble of a PSA job may hold: the permutation
+# test's false-alarm rate is exact at any size; below this it has little power.
+PSA_MIN_EXACT_REPLICATES = 20
+
+
 def _validate_psa_protocol(p: Any, where: str, errs: list[str],
                            source_format: str | None = None) -> None:
     """Partial scaling (PSA) on the generated network against exact SSA: the ssa
     protocol (grid, ensemble sizes, seed) without exact moments -- PSA's law is an
     approximation -- plus the critical population sizes ``poplevels``, a strictly
-    increasing list of numbers above 1 (bench.capabilities.psa)."""
+    increasing list of numbers above 1 (bench.capabilities.psa), and optionally
+    ``exact_replicates``, a smaller ensemble for the two exact-SSA (N_c = infinity)
+    ensembles where an exact trajectory costs far more than a scaled one."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
     if "moments" in p:
         errs.append(f"{where}: unknown key 'moments' (PSA samples an approximate law; "
                     "exact moments belong to the ssa protocol)")
-    _validate_ssa_protocol({k: v for k, v in p.items() if k not in ("poplevels", "moments")},
+    _validate_ssa_protocol({k: v for k, v in p.items()
+                            if k not in ("poplevels", "moments", "exact_replicates")},
                            where, errs)
+    # Fewer trajectories for the two exact-SSA ensembles, where an exact trajectory
+    # costs minutes and a scaled one seconds (the N_c = infinity rows).
+    if "exact_replicates" in p:
+        n = p.get("replicates")
+        if not _int_in(p["exact_replicates"], PSA_MIN_EXACT_REPLICATES, 10**6) or (
+                _int_in(n, 1, 10**6) and p["exact_replicates"] > n):
+            errs.append(f"{where}.exact_replicates: an integer from "
+                        f"{PSA_MIN_EXACT_REPLICATES} to replicates")
     if "poplevels" in p:
         lv = p["poplevels"]
         if not (isinstance(lv, list) and 1 <= len(lv) <= PSA_MAX_POPLEVELS

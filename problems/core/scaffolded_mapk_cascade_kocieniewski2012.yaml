@@ -1,5 +1,9 @@
 # Scaffolded MAPK cascade. A core problem: member 4 of the ode-net suite (docs/DESIGN.md §3.2).
 # The protocol is the model's own ODE simulate action, at the same commit.
+# Also member 7 of the psa-net suite: uniformly large populations (1e5-5e5). PSA: the ODE
+# protocol's start, its first 50 s, output every 1 s: an exact trajectory over 100 s is 1e7
+# events (bngsim 14 s, run_network 15.5 s on a Darwin node), and bngsim's PSA runs no faster
+# here (10-18 s), so twelve ensembles over the full 500 s would not fit one job.
 # Also member 5 of the ss-net suite: the file's own parameter_scan of the total scaffold Stot (1e1 to
 # 1e6 molecules, 61 points, log, at its rtol 1e-8, atol 1e-6), the biphasic (prozone) Scaff-22 curve
 # of Fig. 2 that the verification checks; the dose sets a conserved total. The horizon is the scan's
@@ -22,7 +26,7 @@ verification:
   check: "digitized Fig. 2 (Scaff-22) steady states vs the generated network, 5% of full scale asserted"
   result: "peak amplitude error 0.46% FS, RMS 0.20% FS"
   supporting: "theory: active MAP3K steady state vs S*Atot/(S+u), 0.025% (printed, not asserted)"
-capabilities: [ode, steady_state]
+capabilities: [ode, psa, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -32,6 +36,14 @@ protocol:
     rtol: 1.0e-8
     atol: 1.0e-6
     sparse: false
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 50
+    n_steps: 50
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
   steady_state:
     netgen: "generate_network({overwrite=>1})"
     t_end: 2000
@@ -42,6 +54,9 @@ protocol:
 size:
   species: 85
   reactions: 487
+  # Planning only: sized so the planned PSA job matches the probe.
+  psa_events: 3200000
 suites:
   ode-net: 4
+  psa-net: 7
   ss-net: 5

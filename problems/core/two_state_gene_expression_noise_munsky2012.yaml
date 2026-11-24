@@ -1,0 +1,44 @@
+# Two-state gene expression noise. A core problem: member 6 of the ssa-net suite
+# (docs/DESIGN.md §3.2). One constitutive transcript and three independently switching two-state
+# promoters (single copies) whose transcripts share a steady-state mean of 25 but differ in shape
+# (bimodal, long-tailed, near-Poisson); transcription is written with if() functional rate laws,
+# so the moments do not close in the harness's reading and the references are the engines. The
+# source study solved the same chemical master equation by finite-state projection rather than by
+# SSA. The protocol is ours, not the record's (one fixed-seed trajectory over 1e8 s): an ensemble
+# from the record's seed state over 20 transcript lifetimes (6000 s), the record's own burn-in,
+# output every 30 s. Zeroth-order creation rules: run_network's PSA cannot run it (not in psa-net).
+id: two_state_gene_expression_noise_munsky2012
+layer: core
+title: "Two-state gene expression noise"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/two_state_gene_expression_noise_munsky2012/two_state_gene_expression_noise_munsky2012.bngl
+  sha256: d1709ebb3c7adf23793ed4143e40f9c4bfc12b6a29050218300abe0e2f7332c0
+  format: bngl
+publications:
+  - citation: "Munsky B, Neuert G, van Oudenaarden A (2012). Using gene expression noise to understand gene regulation. Science 336:183-187."
+    doi: 10.1126/science.1216379
+  - citation: "Chylek LA, Harris LA, Faeder JR, Hlavacek WS (2015). Modeling for (physical) biologists: an introduction to the rule-based approach. Phys Biol 12:045007."
+    doi: 10.1088/1478-3975/12/4/045007
+verification:
+  kind: theory
+  evidence: models/two_state_gene_expression_noise_munsky2012/verify_munsky2012.ipynb
+  check: "the record's seeded BioNetGen SSA stationary distributions vs an independent finite-state projection and the paper's Eq. 2 mean and Fano factor, total variation <= 0.03 asserted"
+  result: "total variation 0.017"
+  supporting: "data: digitized Fig. 2B, NRMSE <= 0.08 asserted (0.043)"
+capabilities: [ssa]
+protocol:
+  ssa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 6000
+    n_steps: 200
+    replicates: 10000
+    timing_replicates: 100
+    seed: 1
+size:
+  species: 10
+  reactions: 14
+  ssa_events: 2900
+suites:
+  ssa-net: 6

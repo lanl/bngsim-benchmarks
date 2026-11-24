@@ -2,6 +2,17 @@
 # The model's only live simulate is SSA; the protocol is its ODE simulate, which the file
 # keeps commented out and the verification notebook runs in its place (time in seconds
 # since stimulation). The model body is the same either way.
+# Also member 7 of the ssa-net suite and member 5 of the psa-net suite. SSA and PSA: the record's
+# live SSA action (30 agonist pMHC on the primed state) over its first 10 min rather than its
+# 3 h, output every 10 s. A cost decision: one exact trajectory over 3 h is 1.3e8 events (bngsim
+# 70 s, run_network 133 s on a Darwin node), so even the smallest admissible ensemble (100) would
+# pass the harness's one-hour budget per engine; over 10 min libRoadRunner's gillespie still
+# takes about 16 s a trajectory (3.1 s per 2 min in the smoke run), bngsim about 4 s. The
+# deterministic switch is reached inside that window (ppERK 2.6e5 at 10 min, its peak, above its
+# 2.2e5 plateau), so the ensemble samples which cells switch. Populations 10 (pMHC) to 3e5 (ERK).
+# The SSA and PSA protocols are the same, so the PSA job's exact-SSA ensembles are the SSA job's
+# BNGsim and run_network ones. The file's verification is deterministic; its stochastic
+# behaviour is checked in the job (Q1).
 # Also member 4 of the ss-net suite: the steady states over N_agonist = 1 to 1000 (20 points, log),
 # the verification's doses, bistable for 8.845 < N < 772.1 (13 of the 20). Every point starts from
 # the file's seed species (the primed, ligand-free cell given N agonists), which reaches the ERK-high
@@ -29,7 +40,7 @@ verification:
   steady_state_evidence: "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008_steady_state.ipynb at BNGL-Models 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab"
   steady_state_check: "equations: BNG2.pl (a primed cell given N agonists, and a ramp from steady state) vs the independent 37-state equations run the same way and Newton-polished, at 20 log-spaced N_agonist from 1 to 1000, both branches, 1e-6 relative asserted; data: digitized Fig. 7A (d = 0.05/s) ppERK at 19 doses on both branches, 0.024 decade asserted"
   steady_state_result: "37 species x 20 doses x 2 protocols, 7.9e-10; folds at N = 8.8452 and 772.11 by continuation (13 doses bistable); Fig. 7A max 0.0102 decade (2.4%)"
-capabilities: [ode, steady_state]
+capabilities: [ode, ssa, psa, steady_state]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -38,6 +49,22 @@ protocol:
     n_steps: 600
     rtol: 1.0e-10
     atol: 1.0e-10
+  ssa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 600
+    n_steps: 60
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+  psa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 600
+    n_steps: 60
+    replicates: 200
+    exact_replicates: 100
+    timing_replicates: 1
+    seed: 1
+    poplevels: [10, 30, 100, 300, 1000]
   steady_state:
     netgen: "generate_network({overwrite=>1})"
     t_end: 2.0e+6
@@ -48,6 +75,12 @@ protocol:
 size:
   species: 37
   reactions: 97
+  ssa_events: 7200000
+  # Planning only: sized so the planned PSA job matches the probe (exact 4 s bngsim and
+  # 8 s run_network per trajectory; scaled 0.1-2.5 s and up to about 2.5 s).
+  psa_events: 600000
 suites:
   ode-net: 2
+  ssa-net: 7
+  psa-net: 5
   ss-net: 4

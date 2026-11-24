@@ -397,3 +397,119 @@ integration and with the engine-free checks.
   curated figure's response from the file's initial state: Ralser 2007 stops at
   `k_rel_TPI` = 0.25 because at 0.1 BNGsim finds no steady state within 1e6 (DHAP is
   still growing, past 4e6), while 0.2 converges.
+
+## ssa-net: exact SSA on the `.net` generated from published BNGL
+
+Members are ordered by network size, as in `ode-net`. Each correctness job compares BNGsim's
+exact SSA ensemble with run_network's, libRoadRunner's and COPASI's (and with the network's
+exact moments where `moments: linear` is declared), by the permutation max-T test of DESIGN
+§5.3.
+
+| # | problem | species / reactions | copy numbers | protocol (t_end; ensemble) | stochastic behaviour | evidence | how it entered |
+|---|---|---|---|---|---|---|---|
+| 1 | `bursty_autoregulated_gene_expression_lin2016` | 2 / 4 | mRNA 0–5, protein up to ~1100 | 3600 s; 10^4 | bursty autoregulation; Hill law | `data` (Fig. 3b) | paper seed (B07) |
+| 2 | `demographic_noise_predator_prey_cycles_mckane2005` | 3 / 5 | N = 3200 individuals | 1200; 10^3 | noise-sustained quasi-cycles | `theory` (LNA spectrum) | paper seed (B08) |
+| 3 | `three_stage_stochastic_gene_expression_shahrezaei2008` | 4 / 6 | DNA 1, mRNA 0–4, protein 0–155 | 2e4 s; 10^4, exact moments | promoter switching, bursts | `theory` (CME) | paper seed (B09) |
+| 4 | `noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair` | 7 / 10 | E 0–20, N 0–10 beside X ~1.8e3 | 10 s; 200 | noise-induced bistability; a repeated reactant | `data` (Fig. 3A) | replaces the seed's primary (B10) |
+| 5 | `noise_resistant_circadian_oscillator_vilar2002` | 9 / 16 | genes 1, mRNA < 1 on average, proteins ~2e3 | 400 h; 10^3 | limit cycle under noise | `equations` + `data` | top-up; BNGL twin of `ssa-sbml`'s BIOMD0000000035 |
+| 6 | `two_state_gene_expression_noise_munsky2012` | 10 / 14 | promoters 1, mRNA 0–134 | 6000 s; 10^4 | bimodal, long-tailed and Poisson transcripts; `if()` laws | `theory` (FSP, Eq. 2) | paper seed (B11) |
+| 7 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | pMHC 30 … ERK 3e5 | 600 s; 100 | bistable switch | `data` (Fig. 7B, ODE) | paper seed (B13) |
+| 8 | `prion_nucleated_polymerization_rubenstein2007` | 41 / 483 | 3 seed trimers beside 600 PrPC | 365 d; 150 | nucleation or extinction | `data` (Fig. 2, SSA) | replaces the seed's `_benchmark` (B14) |
+| 9 | `membrane_anchored_multisite_phosphorylation_dushek2011` | 143 / 284 | one substrate molecule | 1000 s; 2000 | Bernoulli occupancies; 20 identical sites | `data` + `theory` | top-up |
+| 10 | `early_fceri_signaling_faeder2003` | 354 / 3680 | Lyn 28 … Lig 6000 | 120 s; 100 | early response, thousands of reactions | `data` (Fig. 3) | top-up, in place of B12 |
+
+### Protocol and comparison
+
+- A protocol is the record's own stochastic action (McKane, Samoilov, Vilar, Lipniacki,
+  Rubenstein, Faeder), run as an ensemble from the record's seed state rather than as its
+  one seeded trajectory, or, where the record samples a stationary distribution from one
+  long trajectory or has no SSA action, an ensemble relaxing from the seed state over
+  a stated window (Lin, Shahrezaei, Munsky, Dushek). Each spec says which and why.
+- Horizons and ensemble sizes are set so that each engine's ensemble fits the harness's
+  one-hour budget per engine, from a one-trajectory probe of every engine on a Darwin node.
+  Two members are cut short. Lipniacki 2008's SSA action runs 3 h, at 70 s per BNGsim
+  trajectory and 133 s per run_network one, so its protocol is the first 10 min, in which
+  the deterministic switch peaks (libRoadRunner still takes about 16 s a trajectory there).
+  Faeder 2003 runs its file's condition for 2 min rather than 10: COPASI's direct method
+  takes about 22 s a trajectory on its 3680 reactions whatever the horizon (the task's
+  initialisation, repeated for each trajectory's seed), and libRoadRunner about 25 s per
+  10 min.
+- libRoadRunner is UNSUPPORTED on member 4 (a repeated reactant, DESIGN §5.3).
+- Exact moments are declared only for member 3. Member 9's network is first order in one
+  molecule, so its moments are known too, but 143 species is past the linear-moment
+  solver's limit of 40.
+
+### What the suite spans (DESIGN §3.2, SSA)
+
+| axis | members |
+|---|---|
+| copy numbers | one molecule (9); single-copy genes or promoters (1, 3, 5, 6); up to ~3e5 (7) |
+| size | 2–354 species, 4–3680 reactions |
+| known moments | in the job: exact moments (3); in the records' checks: LNA spectrum (2), CME (3), FSP (6), the Markov chain's null space (9) |
+| dynamics | stationary distributions (1, 3, 6); limit cycle (5); quasi-cycles (2); noise-induced bistability (4); bistable switch (7); nucleation and extinction (8); relaxation (9, 10) |
+| rate laws | mass action; a repeated reactant (4); functional: Hill (1), `if()` (6) |
+
+### Membership decisions
+
+- **Seed:** the paper's BNGL exact-SSA set B07–B14, models simulated with exact SSA in the
+  source study. Five are kept as they are.
+- **Samoilov 2005, `_unordered_pair` for the primary:** the primary's driver `N + N` fires
+  at twice the convention under which `_unordered_pair` reproduces the paper's Fig. 3A
+  (one mode where the paper has two); BNGL-Models#72 asserts that check.
+- **Kochańczyk 2017 out:** its record declares no exact-SSA action, and exact SSA is about
+  6e8 events per hour of its protocol. It stays in `psa-net`.
+- **Rubenstein 2007, the primary for `_benchmark`:** `_benchmark` has no stochastic check;
+  the primary's Fig. 2 check is of SSA. `_benchmark` moves to `psa-net`.
+- **Top-ups:** Vilar 2002 (asserted in BNGL-Models#73), Dushek 2011 (#71) and Faeder 2003
+  (Fig. 3 data check, #70) in place of Kochańczyk.
+
+## psa-net: partial scaling (PSA) on the `.net`
+
+Every correctness job draws BNGsim's and run_network's ensembles at exact SSA and at N_c =
+10, 30, 100, 300 and 1000, and gates like for like and exactness where nothing scaled
+(DESIGN §5.4); PSA's error against exact SSA is reported per N_c.
+
+| # | problem | species / reactions | populations | protocol (t_end; ensemble) | run_network PSA | how it entered |
+|---|---|---|---|---|---|---|
+| 1 | `bursty_autoregulated_gene_expression_lin2016` | 2 / 4 | mRNA 0–5 beside protein ~1100 | 3.6e4 s; 10^4 | aborts at t = 0 (zeroth-order reaction) | top-up |
+| 2 | `noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair` | 7 / 10 | E, N ≤ 20 beside X ~1.8e3 | 10 s; 100 | runs | top-up |
+| 3 | `noise_resistant_circadian_oscillator_vilar2002` | 9 / 16 | genes 1 beside proteins ~2e3 | 400 h; 500 | runs | top-up |
+| 4 | `mapk_relaxation_oscillations_kochanczyk2017` | 34 / 65 | 6e3–3e6 | 600 s; 200, exact 40 | runs | paper seed (B12) |
+| 5 | `tcr_signaling_bistability_lipniacki2008` | 37 / 97 | 10–3e5 | 600 s; 200, exact 100 | runs | paper seed (B13) |
+| 6 | `car_cd3zeta_phosphorylation_rohrs2018` | 65 / 192 | LCK 20 beside CD3ζ 2e4 | 60 min; 1000 | segfaults or hangs (exact SSA too) | top-up |
+| 7 | `scaffolded_mapk_cascade_kocieniewski2012` | 85 / 487 | 1e5–5e5 | 50 s; 100 | runs | top-up |
+| 8 | `prion_nucleated_polymerization_rubenstein2007_benchmark` | 121 / 3843 | 3 seed trimers beside PrPC 3.8e3 | 10 d; 200 | segfaults at t = 0 | paper seed (B14) |
+| 9 | `early_fceri_signaling_faeder2003` | 354 / 3680 | Lyn 28 … Lig 6000 | 120 s; 100 | runs | top-up |
+| 10 | `combinatorial_egfr_signaling_blinov2006` | 356 / 3749 | 1.3e4–1.2e6 | 10 s; 100 | runs | top-up |
+
+### Protocol and comparison
+
+- *exact N* (`exact_replicates`) is a smaller ensemble for the two exact-SSA ensembles
+  alone, where an exact trajectory costs tens of seconds and a scaled one seconds
+  (Kochańczyk: 49 s exact, 1.5–5.5 s scaled, per 10 min).
+- Kochańczyk, Kocieniewski and Blinov run the start of their own protocol (the record's PSA
+  hour, the ODE protocol's 500 s and 120 s) so that twelve ensembles fit one job: BNGsim's
+  PSA runs interpreted propensities and is no faster than exact SSA on Kocieniewski and
+  Blinov at the larger N_c. The specs give the probe's numbers.
+- **run_network's PSA segfaults on networks with null-species reactions** (Munsky 2012, both
+  Rubenstein 2007 files, Rohrs 2018 in the probe), beside its documented abort on a
+  zeroth-order reaction (Lin 2016). These are recorded as REFERENCE_FAILED, never worked
+  around; BNGsim's PSA is then gated against exact SSA only where nothing scaled.
+
+### What the suite spans (DESIGN §3.2, PSA)
+
+| axis | members |
+|---|---|
+| populations spanning orders of magnitude | every member; 2–3 orders (1–3, 6, 8, 9), 3 or more (4, 5, 10) |
+| low copies beside scaled ones | single genes (3), low-copy enzymes or drivers (2, 6, 9), seed aggregates (8), mRNA (1) |
+| uniformly large populations | 7, 10 |
+| size | 2–356 species, 4–3843 reactions |
+| the three published models of Lin et al. 2019 | 4, 5, 8 |
+
+### Membership decisions
+
+- **Seed:** B12–B14, the three published models of Lin, Feng & Hlavacek (2019), kept whole.
+- **Top-ups**, by Lin et al.'s own rule (populations large enough to make exact SSA slow),
+  with populations spanning two to three orders and exact SSA feasible as the N_c = ∞
+  reference: Lin 2016, Samoilov `_unordered_pair`, Vilar 2002, Rohrs 2018, Kocieniewski 2012,
+  Faeder 2003 and Blinov 2006.
