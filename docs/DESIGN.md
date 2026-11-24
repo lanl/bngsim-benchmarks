@@ -22,6 +22,12 @@ Implemented so far:
 - a third: partial scaling (PSA) of BNGL models, comparing BNGsim's PSA with
   `run_network`'s at each critical population size N_c, and with exact SSA, its
   N_c = infinity limit (§5.4), on two provisional pilot models.
+- a fourth: network-free simulation of BNGL models, BNGsim's two network-free
+  engines against standalone NFsim and RuleMonkey and, where a model's network is
+  finite, exact SSA on it (§5.5), on two provisional pilot models.
+- a fifth: forward sensitivities on the generated network, comparing BNGsim's with
+  AMICI's, with finite differences from `run_network` and with COPASI's (§5.6), on
+  two provisional pilot models.
 
 Not yet: bundles, the container, the validation of section 9, and every other
 capability.
@@ -311,10 +317,10 @@ layer: core
 source: {repo: wshlavacek/BNGL-Models, commit: <sha>, path: models/<record>/<file>.bngl, sha256: <sha256>}
 publication: {citation: "<authors, year, journal>", doi: "<doi>"}
 verification: {kind: equations, evidence: models/<record>/<notebook>, metric: max_rel_err, value: <value>}
-capabilities: [ode, ode_settings, sensitivity]
+capabilities: [ode, ode_settings, sens]
 protocol:
   ode: {t_end: <t>, n_points: <n>, rtol: <rtol>, atol: <atol>}
-  sensitivity: {parameters: <list or "all">}
+  sens: {parameters: independent, fitted: [<names>]}  # section 5.6
 references: {ode/run_network: <path to stored reference output>}
 ```
 
@@ -619,6 +625,59 @@ start-up -- for NFsim, BNG2.pl parsing the model and writing the XML every traje
 session simulate calls; NFsim's reported simulation CPU time; `rm_driver`'s reported
 simulation time), recorded per ensemble beside the wall time, so start-up and solve
 are told apart for each. The speedup view divides by standalone NFsim.
+
+### 5.6 Sensitivity verdicts (forward sensitivities)
+
+The `sens` capability (`bench.capabilities.sens`, verdict in `bench.sensitivity`)
+compares BNGsim's CVODES forward sensitivities `dx/dp` -- both correctors, staggered
+(bngsim's default) and simultaneous (AMICI's) -- with AMICI's forward sensitivities
+on the SBML exported from the `.net`, with central finite differences from
+`run_network` (which shares no code with BNGsim), and with COPASI's time-course
+sensitivities task.
+
+**Protocol fields** (`protocol.sens`, validated in `specs.py`):
+
+| Field | Meaning |
+|---|---|
+| `netgen`, `t_end`, `n_steps`, `rtol`, `atol` | as for ODE; every engine runs at these tolerances |
+| `parameters` | the problem's convention: `independent` (every number in the `.net` that reaches a rate or an initial amount), `rate_constants`, `fitted`, or a list |
+| `fitted` | the problem's fitted set; beside another convention it is a job setting of its own (`.../fitted`) |
+| `parameter_scales` | a scale for a parameter whose value is zero (a dose not given, a switch off) |
+| `preequilibration`, `stimulus` | a two-phase protocol: a phase of `duration` before t = 0 at its own parameter values (`set`), then the `stimulus` values from t = 0 |
+| `fd_step`, `fd_rtol`, `fd_atol` | the finite differences' step (relative to each parameter's scale) and their tighter tolerances |
+
+**The verdict.** Columns -- one output's sensitivity to one parameter over time -- are
+compared on the semi-scaled sensitivity `s_p dy/dp` (`s_p` the parameter's value, or
+its `parameter_scales` entry), so parameters of very different magnitudes are judged
+alike. A column's error is its largest difference over time as a fraction of its
+peak, floored at `floor_rel` of the output's own peak and at `floor_atol` state
+atols; a comparison passes when every column it judges is within `tol` (1e-3). A
+reference judges the columns it produced: AMICI its free parameters, the finite
+differences only where their two-step error estimate (`h` and `h/2`) is a tenth of
+the tolerance. Each further BNGsim corrector must agree with the default, and BNGsim's
+observable sensitivities with the ones formed from its species sensitivities.
+
+**Attribution.** A reference that disagrees with BNGsim, where on every failing column
+another reference agrees with BNGsim and disagrees with it (two independent engines
+against one), is refuted -- its own failure (REFERENCE_FAILED), as a crash or a
+timeout is. Any other disagreement is a DIFF. A significant column no agreeing
+reference judged is REFERENCE_FAILED too. A reference that cannot run the protocol at
+all (COPASI on a two-phase one: its task cannot start from an equilibration's
+sensitivities) is `not_applicable`: named, not run, not counted.
+
+**Two phases.** The equilibration runs over `[-duration, 0]`; BNGsim carries its
+sensitivities into the measured phase on one Simulator (`carry_sensitivities=True`),
+AMICI by its own pre-simulation (`t_presim`, the set parameters compiled as fixed),
+the finite differences by a second `run_network` started from the first's state. The
+phase has a duration rather than a steady-state criterion: a model need not reach a
+steady state (the p38-ATF2 network has an absorbing state).
+
+**Timing.** Each engine's forward-sensitivity solve of the protocol, interleaved
+(section 7), beside plain solves of the same protocol by BNGsim and `run_network`, the
+unit of a finite-difference gradient (`N + 1` and `2N` solves, derived), and -- timing
+only (decision D7) -- AMICI's adjoint gradient of a synthetic Gaussian log-likelihood
+of the observables beside BNGsim's gradient from its forward sensitivities. Every
+engine's load and compile is reported beside its solve.
 
 ## 6. Results
 

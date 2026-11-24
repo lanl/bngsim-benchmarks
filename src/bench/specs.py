@@ -185,9 +185,17 @@ def _number(v: Any) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
+def _positive(v: Any) -> bool:
+    return _number(v) and v > 0
+
+
+# A parameter name as BioNetGen writes one in a .net (and an SBML id allows): ASCII
+# letters, digits and underscores, not starting with a digit. One pattern for every
+# protocol that names parameters (steady_state's doses, sens's parameter lists).
+_PARAM_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
 # The most points a steady-state scan may ask for: each is a solve per engine.
 STEADY_MAX_POINTS = 1000
-_PARAM_NAME_RE = re.compile(r"^[A-Za-z_]\w*$")
 
 
 def _validate_steady_protocol(p: Any, where: str, errs: list[str],
@@ -347,6 +355,126 @@ def _validate_nf_protocol(p: Any, where: str, errs: list[str],
         errs.append(f"{where}.seed: an integer from 0 to 2**30")
 
 
+# The parameter conventions a sensitivity protocol may name instead of a list
+# (bench.capabilities.sens.select_parameters reads the same three): every independent
+# parameter (a number in the .net that reaches a rate or an initial amount), every
+# rate constant (one that reaches a rate), or the problem's fitted set.
+SENS_PARAMETER_CLASSES = ("independent", "rate_constants", "fitted")
+
+
+def _finite(v: Any) -> bool:
+    return _number(v) and v == v and abs(v) != float("inf")
+
+
+def _names(v: Any, where: str, errs: list[str]) -> list[str]:
+    """A non-empty list of distinct parameter names (reported into ``errs``)."""
+    if not isinstance(v, list) or not v:
+        errs.append(f"{where}: a non-empty list of parameter names")
+        return []
+    bad = [x for x in v if not (isinstance(x, str) and _PARAM_NAME_RE.match(x))]
+    if bad:
+        errs.append(f"{where}: not parameter names: {bad[:5]}")
+    elif len(set(v)) != len(v):
+        errs.append(f"{where}: a name is listed twice")
+    return [x for x in v if isinstance(x, str)]
+
+
+def _values(v: Any, where: str, errs: list[str], *, positive: bool = False) -> dict[str, Any]:
+    """A non-empty mapping of parameter name to a (finite, or positive) number."""
+    if not isinstance(v, dict) or not v:
+        errs.append(f"{where}: a non-empty mapping of parameter name to number")
+        return {}
+    for k, x in v.items():
+        if not (isinstance(k, str) and _PARAM_NAME_RE.match(k)):
+            errs.append(f"{where}: {k!r} is not a parameter name")
+        elif not (_positive(x) if positive else _finite(x)):
+            errs.append(f"{where}.{k}: must be a {'positive' if positive else 'finite'} number")
+    return v
+
+
+def _validate_sens_protocol(p: Any, where: str, errs: list[str],
+                            source_format: str | None = None) -> None:
+    """Forward sensitivities on the generated network (bench.capabilities.sens).
+
+    The measured grid ``0..t_end`` in ``n_steps`` and the solves' tolerances; which
+    ``parameters`` to differentiate -- a convention or a list -- with the problem's
+    ``fitted`` set beside it; a scale for any parameter whose value is zero
+    (``parameter_scales``); the finite differences' step and tolerances; and,
+    optionally, a two-phase protocol: a ``preequilibration`` phase of a given
+    ``duration`` (with parameter values of its own, ``set``) before t = 0, and the
+    ``stimulus``, the parameter values from t = 0 on. The capability builds its jobs
+    from BNGL only, so the source format changes nothing here."""
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "fitted",
+               "parameter_scales", "preequilibration", "stimulus",
+               "fd_step", "fd_rtol", "fd_atol"}
+    for k in sorted(set(p) - allowed):
+        errs.append(f"{where}: unknown key {k!r}")
+    for k in ("netgen", "t_end", "n_steps", "rtol", "atol", "parameters"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    netgen = p.get("netgen")
+    if netgen is not None and not (
+        isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
+    ):
+        errs.append(f"{where}.netgen: must be a generate_network(...) call")
+    if "t_end" in p and not _positive(p["t_end"]):
+        errs.append(f"{where}.t_end: must be a positive number (the measured phase starts "
+                    "at t = 0)")
+    if "n_steps" in p and not _int_in(p["n_steps"], 1, 10**5):
+        errs.append(f"{where}.n_steps: an integer from 1 to 100000")
+    for k in ("rtol", "atol", "fd_rtol", "fd_atol"):
+        if k in p and not _positive(p[k]):
+            errs.append(f"{where}.{k}: must be a positive number")
+    if "fd_step" in p and not (_positive(p["fd_step"]) and p["fd_step"] <= 0.1):
+        errs.append(f"{where}.fd_step: a relative step in (0, 0.1]")
+    # The finite differences judge the sensitivity solves, so they must be the
+    # tighter of the two.
+    for fd, k in (("fd_rtol", "rtol"), ("fd_atol", "atol")):
+        if _positive(p.get(fd)) and _positive(p.get(k)) and not p[fd] <= p[k]:
+            errs.append(f"{where}.{fd}: must not be looser than {k}")
+
+    params = p.get("parameters")
+    if params is None:
+        pass
+    elif isinstance(params, str):
+        if params not in SENS_PARAMETER_CLASSES:
+            errs.append(f"{where}.parameters: one of {', '.join(SENS_PARAMETER_CLASSES)}, "
+                        "or a list of parameter names")
+    elif isinstance(params, list):
+        _names(params, f"{where}.parameters", errs)
+    else:
+        errs.append(f"{where}.parameters: one of {', '.join(SENS_PARAMETER_CLASSES)}, "
+                    "or a non-empty list of parameter names")
+    if "fitted" in p:
+        _names(p["fitted"], f"{where}.fitted", errs)
+    elif params == "fitted":
+        errs.append(f"{where}.fitted: required with parameters: fitted (the problem's "
+                    "fitted set)")
+    if "parameter_scales" in p:
+        _values(p["parameter_scales"], f"{where}.parameter_scales", errs, positive=True)
+
+    pre, stim = p.get("preequilibration"), p.get("stimulus")
+    if (pre is None) != (stim is None):
+        errs.append(f"{where}: preequilibration and stimulus come together (a two-phase "
+                    "protocol)")
+    if pre is not None:
+        if not isinstance(pre, dict):
+            errs.append(f"{where}.preequilibration: a mapping (duration, set)")
+        else:
+            for k in sorted(set(pre) - {"duration", "set"}):
+                errs.append(f"{where}.preequilibration: unknown key {k!r}")
+            if not _positive(pre.get("duration")):
+                errs.append(f"{where}.preequilibration.duration: a positive time, the "
+                            "length of the phase before t = 0")
+            if "set" in pre:
+                _values(pre["set"], f"{where}.preequilibration.set", errs)
+    if stim is not None:
+        _values(stim, f"{where}.stimulus", errs)
+
+
 # One validator per capability's protocol. A capability without one cannot be
 # named in a spec. Each is called with the source's format (``source_format``);
 # one whose capability runs on a single input format may ignore it.
@@ -356,6 +484,7 @@ PROTOCOL_VALIDATORS = {
     "steady_state": _validate_steady_protocol,
     "psa": _validate_psa_protocol,
     "nf": _validate_nf_protocol,
+    "sens": _validate_sens_protocol,
 }
 
 

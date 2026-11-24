@@ -100,3 +100,20 @@ def test_committed_problem_specs_all_validate():
     assert len(problems) >= 1
     # Sorted by id, so job order and reports are stable.
     assert [p.id for p in problems] == sorted(p.id for p in problems)
+
+
+@pytest.mark.parametrize("name, ok", [("k_1", True), ("_K2", True), ("1k", False),
+                                      ("k-1", False), ("kå", False), ("k 1", False)])
+def test_one_parameter_name_rule_serves_every_protocol_that_names_parameters(name, ok):
+    """steady_state's doses and sens's parameter lists share one rule: a name as
+    BioNetGen writes it in a .net (ASCII letters, digits, underscores)."""
+    errs: list[str] = []
+    specs._validate_steady_protocol({"netgen": "generate_network({})", "t_end": 10,
+                                     "rtol": 1e-8, "atol": 1e-8, "parameters": {name: 1.0}},
+                                    "steady", errs)
+    specs._validate_sens_protocol({"netgen": "generate_network({})", "t_end": 10,
+                                   "n_steps": 5, "rtol": 1e-8, "atol": 1e-8,
+                                   "parameters": [name]}, "sens", errs, source_format="bngl")
+    assert (errs == []) == ok, errs
+    if not ok:
+        assert len(errs) == 2 and all("name" in e for e in errs)

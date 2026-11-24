@@ -50,6 +50,17 @@ run bench fetch-rulemonkey` downloads its pinned source and builds `rm_driver` w
 environment's compiler (on a cluster, `--download-only` on a node with the network,
 then the build on a compute node).
 
+A fifth, forward sensitivities, compares BNGsim's CVODES sensitivities `dx/dp`, with
+both of its correctors, against three references: AMICI's forward sensitivities on
+SBML exported from the `.net`, central finite differences from `run_network`, and
+COPASI's sensitivity task. Its verdict is each semi-scaled sensitivity column's error
+as a fraction of its peak, within 1e-3. A reference that disagrees with BNGsim where
+another reference agrees with BNGsim is refuted, its own failure, rather than counted
+against BNGsim (see [docs/DESIGN.md](docs/DESIGN.md) §5.6). A problem names its
+parameter convention (`independent`, `rate_constants` or `fitted`), and its fitted
+set also runs as a setting of its own; a protocol may pre-equilibrate for a finite
+time before its stimulus. It runs on two provisional pilot models for now.
+
 ## Goals
 
 - **Runnable by anyone**, from a pinned, documented software environment.

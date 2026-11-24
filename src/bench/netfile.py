@@ -15,7 +15,12 @@ Its uses:
 - the steady-state capability's engine-free checks: the network's right-hand side
   ``f(x)`` at a state an engine returned (``Network.rhs``), its conservation laws
   (``Network.conservation_laws``), and the network read again with some parameters
-  set, as a dose-response point sets them (``parse(..., overrides=...)``).
+  set, as a dose-response point sets them (``parse(..., overrides=...)``);
+- for forward sensitivities, the network's structure as written (``structure``):
+  which parameters are literals and which reach a reaction rate or an initial
+  condition, through derived parameters and functions; the observables as weighted
+  sums of species; and a copy of the file with some parameters set to new values
+  (``with_parameters``), for finite differences on an engine that reads the ``.net``.
 
 The right-hand side follows BioNetGen's ODE semantics: a reaction's rate is its
 rate expression -- a parameter, an expression, or a global function of the
@@ -154,7 +159,7 @@ class Network:
                 raise NetFileError(f"reaction {r.index} has a {m.group(1)} rate law, which "
                                    "this reader does not evaluate")
         names = dict(self.parameters)
-        if any(_names_in(r.rate) & set(self.function_bodies) for r in self.reactions):
+        if any(names_in(r.rate) & set(self.function_bodies) for r in self.reactions):
             names.update(self.function_values(x))
         cache: dict[str, float] = {}
         out = np.empty(len(self.reactions))
@@ -291,10 +296,13 @@ def evaluate(expr: str, names: dict[str, float]) -> float:
 
 # Rate laws written in a ``.net`` that the right-hand side does not evaluate.
 _UNEVALUATED_RATE_RE = re.compile(r"^\s*(?:[-+.\deE]+\*)?(Sat|MM|Hill|Arrhenius|FunctionProduct)\b")
-_NAME_RE = re.compile(r"[A-Za-z_]\w*")
+# An identifier not inside a number (the "e" of 2.1e-9 is not a name).
+_NAME_RE = re.compile(r"(?<![\w.])[A-Za-z_][A-Za-z0-9_]*")
 
 
-def _names_in(expr: str) -> set[str]:
+def names_in(expr: str) -> set[str]:
+    """Every identifier an expression mentions. BNGL's own function names (exp, if,
+    Sat, ...) come along, but a caller only follows names the network defines."""
     return set(_NAME_RE.findall(expr))
 
 
@@ -413,15 +421,28 @@ def parse(text: str, overrides: Mapping[str, float] | None = None) -> Network:
     return net
 
 
-_PARAM_LINE_RE = re.compile(r"^(\s*\d+\s+)([A-Za-z_]\w*)(\s+)(\S+)(.*)$")
+# A parameters-block line: index, name, the value or expression as written (up to
+# any comment), then the comment with the spacing before it.
+_PARAM_LINE_RE = re.compile(r"^(\s*\d+\s+)([A-Za-z_]\w*)(\s+)([^#]*?)(\s*(?:#.*)?)$")
 
 
-def with_parameters(text: str, overrides: Mapping[str, float]) -> str:
+def with_parameters(text: str, overrides: Mapping[str, float], *,
+                    allow_derived: bool = False) -> str:
     """The ``.net`` text with each parameter in ``overrides`` set to its value, its
-    number replaced in the parameters block, as a dose is given to an engine that
-    reads the file (run_network). Only a parameter written as a number can be set
-    this way; raises NetFileError for any other, or one the file does not have."""
+    number replaced in the parameters block and every other byte unchanged, as a dose
+    is given to an engine that reads the file (run_network), which re-derives every
+    parameter, rate and initial amount that depends on it.
+
+    Only a parameter written as a number can be set this way unless
+    ``allow_derived``: then a derived parameter's expression is replaced by the
+    number too, and it stops depending on what the expression read (BioNetGen's
+    ``setParameter`` on a derived parameter). Raises NetFileError for a derived
+    parameter otherwise, a value that is not a finite number, or a parameter the file
+    does not have."""
     left = dict(overrides)
+    bad = sorted(k for k, v in left.items() if not math.isfinite(float(v)))
+    if bad:
+        raise NetFileError(f"cannot set {', '.join(bad)} to a value that is not a finite number")
     out, block = [], None
     for line in text.splitlines(keepends=True):
         s = line.strip()
@@ -432,11 +453,12 @@ def with_parameters(text: str, overrides: Mapping[str, float]) -> str:
         elif block == "parameters":
             m = _PARAM_LINE_RE.match(line.rstrip("\n"))
             if m and m.group(2) in left:
-                try:
-                    float(m.group(4))
-                except ValueError:
-                    raise NetFileError(f"parameter {m.group(2)!r} is an expression, "
-                                       f"{m.group(4)!r}, not a number") from None
+                if not allow_derived:
+                    try:
+                        float(m.group(4))
+                    except ValueError:
+                        raise NetFileError(f"parameter {m.group(2)!r} is an expression, "
+                                           f"{m.group(4)!r}, not a number") from None
                 nl = "\n" if line.endswith("\n") else ""
                 line = (f"{m.group(1)}{m.group(2)}{m.group(3)}"
                         f"{float(left.pop(m.group(2)))!r}{m.group(5)}{nl}")
@@ -448,3 +470,186 @@ def with_parameters(text: str, overrides: Mapping[str, float]) -> str:
 
 def read(path: str | Path, overrides: Mapping[str, float] | None = None) -> Network:
     return parse(Path(path).read_text(encoding="utf-8"), overrides)
+
+
+# --------------------------------------------------------------------------- #
+# Structure as written: for choosing and perturbing parameters (sensitivities)
+# --------------------------------------------------------------------------- #
+_NUMBER_RE = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$")
+
+
+@dataclass
+class Structure:
+    """A ``.net`` as written, nothing evaluated: what each parameter, function,
+    rate and initial condition is made of, so a caller can say which parameters a
+    reaction rate or an initial condition depends on, and through what."""
+
+    expressions: dict[str, str] = field(default_factory=dict)  # parameter -> as written
+    functions: dict[str, str] = field(default_factory=dict)  # function -> body
+    rates: list[str] = field(default_factory=list)  # one per reaction
+    initial: list[str] = field(default_factory=list)  # one per species
+    species: list[str] = field(default_factory=list)
+    compartments: dict[str, str] = field(default_factory=dict)  # compartment -> size
+    # observable -> [(0-based species index, weight)]: an observable is a weighted
+    # sum of species, as BioNetGen's groups block writes it.
+    groups: dict[str, list[tuple[int, float]]] = field(default_factory=dict)
+
+    def literal(self, name: str) -> float | None:
+        """The value of a parameter written as a number, else None (a derived one)."""
+        expr = self.expressions.get(name, "").strip()
+        return float(expr) if _NUMBER_RE.match(expr) else None
+
+    def primary(self) -> dict[str, float]:
+        """Every parameter written as a number, in file order: the model's own knobs."""
+        out = {}
+        for name in self.expressions:
+            v = self.literal(name)
+            if v is not None:
+                out[name] = v
+        return out
+
+    def closure(self, roots: set[str]) -> set[str]:
+        """Every parameter and function the names in ``roots`` depend on, through
+        derived parameters and function bodies (the roots included)."""
+        seen: set[str] = set()
+        stack = list(roots)
+        while stack:
+            name = stack.pop()
+            if name in seen:
+                continue
+            seen.add(name)
+            if name in self.expressions:
+                stack.extend(names_in(self.expressions[name]))
+            elif name in self.functions:
+                stack.extend(names_in(self.functions[name]))
+        return seen
+
+    def reaching_rates(self) -> set[str]:
+        """Parameters some reaction rate depends on."""
+        roots = set().union(*(names_in(r) for r in self.rates)) if self.rates else set()
+        return self.closure(roots) & set(self.expressions)
+
+    def reaching_initial(self) -> set[str]:
+        """Parameters some species' initial amount depends on."""
+        roots = set().union(*(names_in(e) for e in self.initial)) if self.initial else set()
+        return self.closure(roots) & set(self.expressions)
+
+    def sizing_compartments(self) -> set[str]:
+        """Parameters a compartment's size depends on."""
+        roots = set().union(*(names_in(e) for e in self.compartments.values())) \
+            if self.compartments else set()
+        return self.closure(roots) & set(self.expressions)
+
+    def reads_clock(self) -> bool:
+        """Whether some reaction rate depends on the time (BNGL's ``time()``), directly
+        or through a function: such a network's dynamics depend on where its clock
+        starts, not only on its state."""
+        roots = set().union(*(names_in(r) for r in self.rates)) if self.rates else set()
+        return "time" in self.closure(roots)
+
+    def observable_weights(self) -> tuple[list[str], np.ndarray]:
+        """The observables' names and their ``(n_observables, n_species)`` weights."""
+        names = list(self.groups)
+        w = np.zeros((len(names), len(self.species)))
+        for row, name in enumerate(names):
+            for i, weight in self.groups[name]:
+                w[row, i] += weight
+        return names, w
+
+
+def _group_entries(text: str) -> list[tuple[int, float]]:
+    out = []
+    for tok in text.split(","):
+        tok = tok.strip()
+        if not tok:
+            continue
+        weight, _, index = tok.rpartition("*")
+        if not index.isdigit():
+            raise NetFileError(f"bad group entry {tok!r}")
+        out.append((int(index) - 1, float(weight) if weight else 1.0))
+    return out
+
+
+def structure(text: str) -> Structure:
+    """Read a ``.net``'s structure as written (``Structure``); nothing is evaluated,
+    so it reads any network ``parse`` can, and more."""
+    blocks = _blocks(text)
+    st = Structure()
+    for line in blocks.get("parameters", []):
+        parts = line.split(None, 2)
+        if len(parts) < 3:
+            raise NetFileError(f"bad parameter line {line!r}")
+        st.expressions[parts[1]] = parts[2].strip()
+    for line in blocks.get("functions", []):
+        parts = line.split(None, 2)
+        if len(parts) >= 3:
+            st.functions[parts[1].split("(", 1)[0]] = parts[2].strip()
+    for line in blocks.get("species", []):
+        parts = line.split(None, 2)
+        if len(parts) < 3:
+            raise NetFileError(f"bad species line {line!r}")
+        st.species.append(parts[1][1:] if parts[1].startswith("$") else parts[1])
+        st.initial.append(parts[2].strip())
+    for line in blocks.get("reactions", []):
+        parts = line.split(None, 3)
+        if len(parts) < 4:
+            raise NetFileError(f"bad reaction line {line!r}")
+        st.rates.append(parts[3].strip())
+    for line in blocks.get("compartments", []):
+        parts = line.split()
+        if len(parts) >= 4:
+            st.compartments[parts[1]] = parts[3]
+    for line in blocks.get("groups", []):
+        parts = line.split(None, 2)
+        if len(parts) == 2:
+            st.groups[parts[1]] = []
+        elif len(parts) == 3:
+            st.groups[parts[1]] = _group_entries(parts[2])
+        else:
+            raise NetFileError(f"bad group line {line!r}")
+        for i, _ in st.groups[parts[1]]:
+            if not 0 <= i < len(st.species):
+                raise NetFileError(f"group {parts[1]} names species {i + 1}, which is not defined")
+    return st
+
+
+def read_structure(path: str | Path) -> Structure:
+    return structure(Path(path).read_text(encoding="utf-8"))
+
+
+# A species-block line: index, name, the initial amount as written (up to any
+# comment), then the comment with the spacing before it.
+_SPECIES_LINE_RE = re.compile(r"^(\s*\d+\s+)(\S+)(\s+)([^#]*?)(\s*(?:#.*)?)$")
+
+
+def with_initial_amounts(text: str, amounts) -> str:
+    """``text`` with every species' initial amount set to the number in ``amounts``
+    (one per species, in file order), every other byte unchanged.
+
+    The way BNG2.pl continues a simulation in a fresh run_network process: the state
+    one run ended in becomes the next run's initial amounts. Raises NetFileError
+    when the count differs from the species block's, or for an amount that is not
+    a finite number.
+    """
+    values = [float(a) for a in amounts]
+    if not all(math.isfinite(v) for v in values):
+        raise NetFileError("an initial amount is not a finite number")
+    out, block, i = [], None, 0
+    for line in text.splitlines(keepends=True):
+        s = line.strip()
+        if _BLOCK_RE.match(line):
+            block = s.split()[1].lower()
+        elif _END_RE.match(line):
+            block = None
+        elif block == "species":
+            m = _SPECIES_LINE_RE.match(line.rstrip("\n"))
+            if m and m.group(4):
+                if i >= len(values):
+                    raise NetFileError(f"more species than the {len(values)} amounts given")
+                nl = "\n" if line.endswith("\n") else ""
+                line = f"{m.group(1)}{m.group(2)}{m.group(3)}{values[i]!r}{m.group(5)}{nl}"
+                i += 1
+        out.append(line)
+    if i != len(values):
+        raise NetFileError(f"{len(values)} amounts given for {i} species")
+    return "".join(out)
