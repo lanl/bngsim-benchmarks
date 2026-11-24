@@ -8,7 +8,9 @@
 # drug with no effect). The doses are 20 of the 27 on the ladder of the record's run_imoto2026.py
 # (RAFi1_0 in nM = dose/Kd, Kd_BRAF_RAFi1 = 1 nM). Every point starts from the seed species, not
 # from the previous dose as run_imoto2026.py does, so each is a full relaxation: the horizon and
-# tolerances are the ode protocol's. Expensive (proposal D6b: kept at 20 doses, its own budget).
+# tolerances are the ode protocol's. Expensive (proposal D6b: kept at 20 doses, its own budget): at
+# RAFi1_0 = 10 one dose took BNGsim's Newton solve 504 s and run_network 707 s (x86 bench node), so
+# each engine gets 6 h instead of the capped hour, and the job needs a 48 h allocation.
 id: ksr1_raf_mek_inhibitor_response_imoto2026
 layer: core
 title: "KSR1-RAF-MEK inhibitor response"
@@ -42,6 +44,7 @@ protocol:
     n_steps: 20
     rtol: 1.0e-8
     atol: 1.0e-8
+    engine_budget_seconds: 21600
     parameters: {fa: 0.005, g1a: 0.044, g2a: 4.346, g3a: 1.0, fKa: 0.025}
     scan:
       parameter: RAFi1_0
