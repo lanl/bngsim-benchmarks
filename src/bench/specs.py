@@ -34,6 +34,7 @@ SUITE_SIZE = 10
 SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ode-net": ("ode", ("bngl",)),  # ODE on the .net generated from published BNGL
     "ode-sbml": ("ode", ("sbml",)),  # ODE on published SBML, read as it is
+    "ss-sbml": ("steady_state", ("sbml",)),  # steady state on published SBML, read as it is
 }
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
