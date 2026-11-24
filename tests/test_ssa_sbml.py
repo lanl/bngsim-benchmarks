@@ -75,6 +75,14 @@ def test_a_moments_table_at_dsmts_size_is_accepted(sbml_spec, write_spec):
     assert ssa.moments_kind(ssa.protocol(p)) == "table"
 
 
+def test_the_ssa_sbml_suite_takes_sbml_members_only(spec_data, write_spec):
+    spec_data["capabilities"] = ["ssa"]
+    spec_data["protocol"] = {"ssa": {"netgen": "generate_network({overwrite=>1})", **PROTOCOL}}
+    spec_data["suites"] = {"ssa-sbml": 1}
+    with pytest.raises(specs.SpecError, match="source.format must be one of sbml"):
+        specs.load(write_spec(spec_data))
+
+
 def test_a_measured_cost_per_trajectory_replaces_the_event_estimate(sbml_spec, write_spec):
     sbml_spec["size"].update(ssa_ms_roadrunner=2000, ssa_ms_run_network=0, ssa_events=10**6)
     p = specs.load(write_spec(sbml_spec))
@@ -88,6 +96,18 @@ def test_a_measured_cost_per_trajectory_replaces_the_event_estimate(sbml_spec, w
         min(ssa.ENSEMBLE_BUDGET_CAP_SECONDS, ssa.TIMEOUT_FACTOR * (10 + 200 * 20.0)))
 
 
+def test_the_committed_ssa_sbml_suite_is_complete():
+    root = Path(__file__).resolve().parents[1] / "problems"
+    members = specs.suite_members(specs.load_all(root))["ssa-sbml"]
+    assert len(members) == specs.SUITE_SIZE
+    for p in members:
+        assert p.source["format"] == "sbml" and p.capabilities == ("ssa",)
+        assert len(ssa.jobs(p)) == 2
+
+
+# --------------------------------------------------------------------------- #
+# The SBML: what is compared, rows left out, jumps
+# --------------------------------------------------------------------------- #
 def _species(sid, amount, *, boundary=False, constant=False):
     return (f'<species id="{sid}" compartment="c" initialAmount="{amount}" '
             f'hasOnlySubstanceUnits="true" boundaryCondition="{str(boundary).lower()}" '

@@ -1,0 +1,50 @@
+# The repressilator (BioModels BIOMD0000000012). A core problem: member 3 of the ssa-sbml suite.
+# Curated deterministically (SBML ODESolver, Fig. 1c, protein numbers per cell, 0-1000 min);
+# the curation notes say the volume was changed so the model can be simulated stochastically,
+# and its amounts are molecule numbers. The horizon is the curation figure's, 1000 (the time
+# unit is the minute). Nine parameters are set by assignment rules (constants of the model).
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (the converter writes the Hill-type transcription laws as flux
+# reactions, the same ODE with other jumps); the harness derives the network and records the
+# reason in every result. size.ssa_ms_run_network is 0 for planning only.
+id: repressilator_elowitz2000
+layer: core
+title: Repressilator
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000012/BIOMD0000000012_url.xml
+  sha256: d0b42d03a855566a434b218a5c9e575677a255e627fda63e7908f8207b02c323
+  format: sbml
+publications:
+- citation: Elowitz MB, Leibler S (2000). A synthetic oscillatory network of transcriptional regulators.
+    Nature 403:335-338.
+  doi: 10.1038/35002125
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000012 curation notes and curation image
+  check: 'BioModels curation: protein numbers per cell as in Fig. 1c, 0-1000 min (deterministic, SBML
+    ODESolver; notes: volume set to 1 um^3 to allow stochastic simulation)'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 1000
+    n_steps: 100
+    replicates: 10000
+    timing_replicates: 100
+    seed: 1
+size:
+  species: 6
+  reactions: 12
+  ssa_events: 386000
+  ssa_ms_bngsim: 466
+  ssa_ms_roadrunner: 386
+  ssa_ms_copasi: 81
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 3
