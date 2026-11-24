@@ -574,7 +574,12 @@ replays the same protocol: BNGsim's session sets them on the live session, and a
 after one with `get_final_state=>0` starts from the seed species again, as BNG2.pl's
 would. Only what every engine can follow is accepted: network-free `simulate` steps,
 `setParameter`, and inert actions (`generate_network`, `writeXML`, ...), which are
-dropped; anything else is refused by name. BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
+dropped; anything else is refused by name. Of NFsim's own flags (`param`), three are
+accepted: `-bscb` and `-cb`, which are the same in NFsim 1.14.3 -- both stop a
+bimolecular rule from binding two molecules of one complex, and one seed gives one
+trajectory under either (measured on `tlbr_yang2008` and `blbr_rings_posner1995`) --
+so either sets BNGsim's `block_same_complex_binding`, as `complex=>1`, BNG2.pl's
+default, does; and `-utl N`, the traversal limit. BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
 so on a host whose glibc is too old the job points BNG2.pl at a mirror of the fetched
 distribution whose `NFsim` launches the unchanged binary under the loader swap.
 

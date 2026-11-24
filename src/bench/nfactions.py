@@ -29,10 +29,17 @@ NF_METHODS = frozenset({"nf", "nfsim"})
 # simulate options every engine can follow (or that do not change the law sampled).
 SIM_OPTIONS = frozenset({
     "method", "t_start", "t_end", "n_steps", "seed", "suffix", "prefix", "gml", "utl",
-    "complex", "get_final_state", "print_functions", "verbose", "n_output_steps",
+    "complex", "get_final_state", "print_functions", "verbose", "n_output_steps", "param",
 })
 # Options that hold for the whole run: an engine is built with them once.
-RUN_OPTIONS = ("gml", "utl", "complex")
+RUN_OPTIONS = ("gml", "utl", "complex", "param")
+# NFsim flags a ``param`` string may pass, which every engine can follow: -bscb
+# (block same-complex binding) and -cb, the same thing in NFsim 1.14.3 (one seed
+# gives one trajectory under -cb, -bscb or both; without either NFsim lets a
+# bimolecular rule bind within one complex), and -utl N, the traversal limit.
+# BNG2.pl appends the string to NFsim's command line as written.
+PARAM_SWITCHES = frozenset({"-bscb", "-cb"})
+PARAM_VALUED = frozenset({"-utl"})
 
 
 class ActionError(ValueError):
@@ -295,8 +302,43 @@ def protocol(text: str) -> Protocol:
             raise ActionError(f"{key} must be a positive integer")
         return int(x)
 
-    return Protocol(tuple(phases), gml=opt_int("gml"), utl=opt_int("utl"),
-                    complex=_flag(run_opts.get("complex"), True), dropped=tuple(dropped))
+    utl = opt_int("utl")
+    complex_ = _flag(run_opts.get("complex"), True)
+    flags = _param_flags(run_opts.get("param"))
+    if "-bscb" in flags or "-cb" in flags:
+        complex_ = True
+    if "-utl" in flags:
+        if utl is not None and utl != flags["-utl"]:
+            raise ActionError(f"utl=>{utl} and param -utl {flags['-utl']} disagree")
+        utl = flags["-utl"]
+    return Protocol(tuple(phases), gml=opt_int("gml"), utl=utl, complex=complex_,
+                    dropped=tuple(dropped))
+
+
+def _param_flags(text: str | None) -> dict[str, int | bool]:
+    """The NFsim flags of a ``param`` string, refusing any no other engine can follow."""
+    if text is None:
+        return {}
+    tokens = _unquote(text).split()
+    out: dict[str, int | bool] = {}
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok in PARAM_SWITCHES:
+            out[tok] = True
+            i += 1
+        elif tok in PARAM_VALUED:
+            if i + 1 >= len(tokens):
+                raise ActionError(f"param: {tok} needs a value")
+            v = _number(tokens[i + 1], f"param {tok}")
+            if v != int(v) or v < 1:
+                raise ActionError(f"param: {tok} must be a positive integer")
+            out[tok] = int(v)
+            i += 2
+        else:
+            raise ActionError(f"param: the NFsim flag {tok!r} cannot be followed by every "
+                              f"network-free engine (only {', '.join(sorted(PARAM_SWITCHES | PARAM_VALUED))})")
+    return out
 
 
 def render(proto: Protocol, seeds: list[int], *, suffix: str = "nfp") -> str:
