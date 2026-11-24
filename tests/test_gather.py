@@ -127,6 +127,74 @@ def test_sub_second_times_keep_their_digits():
 
 
 # --------------------------------------------------------------------------- #
+# A timing is shown only beside a current correctness result that lets it run
+# --------------------------------------------------------------------------- #
+FP = {"bngsim": {"version": "0.17.2", "build_commit": "abc"}}
+
+
+def _linked(tmp_path, *, outcome="REFERENCE_FAILED", current=True, correctness=True,
+            timing=True):
+    """The beta_catenin pair, with the timing job requiring the correctness job (as
+    ``jobs_for`` builds them), the correctness record at ``outcome`` and current (or
+    not), either record left out on request; gathered."""
+    from bench.results import freshness_key
+
+    corr = _job(CORRECTNESS)
+    tim = Job(capability="ode", problem=PROBLEM, engines=ENGINES, setting="auto", kind=TIMING,
+              requires=corr.id)
+    results = tmp_path / "results"
+    for job, keep in ((corr, correctness), (tim, timing)):
+        if not keep:
+            continue
+        rec = json.loads((DATA / f"beta_catenin_{job.kind}.json").read_text())
+        if job.kind == CORRECTNESS:
+            rec["outcome"] = outcome
+            rec["key"] = freshness_key(job, FP) if current else "an older key"
+        dest = results / f"{job.id}.json"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(rec))
+    reports = tmp_path / "reports"
+    out = g.gather([corr, tim], results, reports, {CORRECTNESS: FP, TIMING: FP})
+    return out.get("ode-timing", []), (reports / "summary.md").read_text(encoding="utf-8")
+
+
+def test_a_timing_beside_a_reference_failed_correctness_is_shown(tmp_path):
+    rows, summary = _linked(tmp_path)
+    assert rows[0]["outcome"] != g.WITHHELD and "withheld" not in rows[0]
+    assert "0.7154" in summary  # AMICI's sim median
+
+
+@pytest.mark.parametrize("outcome", ["DIFF", "EXCEPTION", "BAD_TEST", "TIMEOUT"])
+def test_a_timing_beside_a_blocking_correctness_is_withheld_without_its_numbers(tmp_path,
+                                                                                 outcome):
+    # Winter 2017 and Smith 2013 were timed while REFERENCE_FAILED; re-scored to DIFF,
+    # their timing records stay current by their own key and must not be reported.
+    rows, summary = _linked(tmp_path, outcome=outcome)
+    (row,) = rows
+    assert row["outcome"] == g.WITHHELD and row["withheld"] == f"correctness {outcome}"
+    assert row["current"] is True and "times" not in row and "presim" not in row
+    assert row["network"]["species"] == 409
+    cells = _row(summary, PROBLEM, "409", "", g.WITHHELD)
+    assert f"withheld: correctness {outcome}" in cells
+    assert "0.7154" not in summary and "220.4" not in summary
+    assert "WITHHELD 1" in summary  # the tally
+
+
+def test_a_timing_beside_a_stale_correctness_is_withheld_until_it_is_current(tmp_path):
+    (row,), summary = _linked(tmp_path, current=False)
+    assert row["withheld"] == "correctness not current" and row["current"] is False
+    assert "0.7154" not in summary
+
+
+def test_a_blocked_member_with_no_timing_record_still_reads_withheld(tmp_path):
+    (row,), _ = _linked(tmp_path, outcome="DIFF", timing=False)
+    assert row["withheld"] == "correctness DIFF"
+    # With no correctness result either, nothing was decided: no row.
+    rows, _ = _linked(tmp_path / "none", correctness=False, timing=False)
+    assert rows == []
+
+
+# --------------------------------------------------------------------------- #
 # SSA: a statistical verdict per comparison, and ensembles as the timed unit
 # --------------------------------------------------------------------------- #
 SSA_ENGINES = "bngsim-vs-run_network-roadrunner-copasi"

@@ -170,20 +170,44 @@ def status(
     want = freshness_key(job, fp)
     if rec is not None and rec.get("key") == want:
         return Status(job, "fresh", outcome=rec.get("outcome"))
-    if job.requires is not None:
-        req = by_id[job.requires]
-        req_rec = read_result(results_dir, req)
-        req_fresh = req_rec is not None and req_rec.get("key") == freshness_key(
-            req, fingerprints[req.kind]
-        )
-        if not req_fresh:
-            return Status(job, "waiting", f"needs a current {req.kind} result")
-        if req_rec.get("outcome") not in _REQUIREMENT_SATISFIED:
-            return Status(job, "blocked", f"its {req.kind} job is {req_rec.get('outcome')}")
+    unmet = unmet_requirement(job, results_dir, fingerprints, by_id)
+    if unmet is not None:
+        return Status(job, *unmet)
     if rec is None:
         return Status(job, "missing")
     reason = ", ".join(_changed(rec.get("key_parts"), key_parts(job, fp)))
     return Status(job, "stale", f"changed: {reason}", outcome=rec.get("outcome"))
+
+
+def unmet_requirement(
+    job: Job,
+    results_dir: str | Path,
+    fingerprints: dict[str, dict[str, Any]],
+    by_id: dict[str, Job],
+) -> tuple[str, str] | None:
+    """Why ``job``'s requirement does not let it run, as ``(state, reason)``, or None
+    when it has no requirement or the requirement is met. ``waiting`` when the
+    requirement has no current result (``"no correctness result"``, ``"correctness
+    not current"``); ``blocked`` when its current result reached an outcome that
+    blocks the job (``"correctness DIFF"``).
+
+    The same test decides whether a dependent job's result may be shown or published
+    at all (``gather``, ``publish``): a timing is reported only beside a current
+    correctness result that lets it run. A timing measured before its correctness was
+    re-scored to DIFF stays current by its own key, and must still not be reported.
+    """
+    if job.requires is None:
+        return None
+    req = by_id.get(job.requires)
+    kind = req.kind if req is not None else CORRECTNESS
+    req_rec = read_result(results_dir, req) if req is not None else None
+    if req_rec is None:
+        return "waiting", f"no {kind} result"
+    if req_rec.get("key") != freshness_key(req, fingerprints[req.kind]):
+        return "waiting", f"{kind} not current"
+    if req_rec.get("outcome") not in _REQUIREMENT_SATISFIED:
+        return "blocked", f"{kind} {req_rec.get('outcome')}"
+    return None
 
 
 def fingerprints_now() -> dict[str, dict[str, Any]]:

@@ -359,6 +359,13 @@ gives each reference a trial run and drops any that crash (recording a
 that survive. Any other correctness outcome (DIFF, EXCEPTION, BAD_TEST, …) blocks
 the timing job.
 
+The same rule decides whether a timing is reported. A timing record can outlive the
+decision that let it run: a correctness result re-scored from REFERENCE_FAILED to
+DIFF leaves the earlier timing current by its own key. So `gather` and `publish` use
+a timing only beside a current correctness result whose outcome lets it run.
+Otherwise the timing reads WITHHELD, with the reason (`correctness DIFF`,
+`correctness not current`) and none of its numbers (§6.3).
+
 ### 5.3 Stochastic verdicts (SSA)
 
 An exact SSA has no single right trajectory: two correct engines sample the same
@@ -748,6 +755,13 @@ trajectories, is left to re-run.
   re-simulation claim of §1 (claim 2) needs both; see §7.3. An engine run as a fresh
   subprocess per solve (run_network) has its load inside every rep, and is labelled
   so rather than split.
+- **A timing is reported only beside a current correctness result that lets it run**
+  (PASS or REFERENCE_FAILED, §5.2). Otherwise its row is WITHHELD, with the reason
+  and no numbers, even where an earlier run left a timing record. A suite still
+  publishes when a member's correctness blocks its timing (DIFF, EXCEPTION,
+  BAD_TEST, TIMEOUT). That member's timing is not demanded and its record is not
+  shipped. It gets one `timing.csv` row reading `withheld`, with the reason
+  ([published_format.md](published_format.md)).
 - **Correctness reads agreed/attempted references** beside the outcome enum:
   `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`, `DIFF 3/4 (roadrunner: diff)`, so one
   broken reference does not hide the others behind a single REFERENCE_FAILED.

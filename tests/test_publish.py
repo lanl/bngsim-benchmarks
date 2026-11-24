@@ -301,3 +301,58 @@ def test_a_diff_names_the_half_of_the_ode_gate_that_failed(suite, tmp_path,
     assert row["status"] == ("ok" if verdict["passed"] else "DIFF")
     assert row["failed_check"] == half
     assert rows[("model_01", "copasi")]["failed_check"] == ""  # timed out: no verdict
+
+
+# --------------------------------------------------------------------------- #
+# A timing its member's correctness does not let run is withheld, not demanded
+# --------------------------------------------------------------------------- #
+def _member_jobs(jobs, problem="model_01"):
+    corr = next(j for j in jobs if j.kind == CORRECTNESS and j.problem == problem)
+    tim = next(j for j in jobs if j.kind == TIMING and j.problem == problem)
+    return corr, tim
+
+
+@pytest.mark.parametrize("outcome", ["DIFF", "EXCEPTION", "BAD_TEST", "TIMEOUT"])
+def test_a_timing_beside_a_blocking_correctness_is_published_as_withheld(suite, tmp_path,
+                                                                         outcome):
+    problems, jobs = suite
+    results = tmp_path / "results"
+    _write_all(jobs, results)
+    corr, tim = _member_jobs(jobs)
+    _edit(results, corr, outcome=outcome)
+    # A timing left from before the correctness became DIFF -- even one measured on
+    # another node -- is neither shipped nor allowed to block the snapshot.
+    _edit(results, tim, environment={**_env(), "node_type": "Another CPU | x86_64 | Linux"})
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    with open(dest / "timing.csv", encoding="utf-8") as fh:
+        rows = [r for r in csv.DictReader(fh) if r["problem"] == "model_01"]
+    (row,) = rows
+    assert (row["outcome"], row["status"], row["error"]) == (
+        "WITHHELD", "withheld", f"correctness {outcome}")
+    assert row["engine"] == "" and row["sim_median_seconds"] == "" and row["species"] == "9"
+    assert not (dest / "jobs" / f"{tim.id}.json").exists()
+    assert (dest / "jobs" / f"{corr.id}.json").exists()
+    manifest = json.loads((dest / "manifest.json").read_text())
+    entry = next(e for e in manifest["jobs"] if e["job_id"] == tim.id)
+    assert entry == {"job_id": tim.id, "problem": "model_01", "kind": TIMING,
+                     "outcome": "WITHHELD", "withheld": f"correctness {outcome}"}
+    assert manifest["node_type"] == NODE
+    with open(dest / "correctness.csv", encoding="utf-8") as fh:
+        assert {r["outcome"] for r in csv.DictReader(fh) if r["problem"] == "model_01"} \
+            == {outcome}
+
+
+def test_a_diff_member_needs_no_timing_result_but_a_passing_one_does(suite, tmp_path):
+    problems, jobs = suite
+    results = tmp_path / "results"
+    corr, tim = _member_jobs(jobs)
+    _write_all(jobs, results, skip=tim.id)
+    with pytest.raises(PublishError, match="no result"):
+        publish("ode-net", problems, jobs, results, tmp_path / "published", FPS, root=tmp_path)
+    _edit(results, corr, outcome="DIFF")
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    with open(dest / "timing.csv", encoding="utf-8") as fh:
+        (row,) = [r for r in csv.DictReader(fh) if r["problem"] == "model_01"]
+    assert row["status"] == "withheld" and row["error"] == "correctness DIFF"
