@@ -66,8 +66,8 @@ def test_reference_versions_key_only_this_capability(ss_spec, write_spec, monkey
         "roadrunner": "9.9.9", "copasi": "4.48.311", "amici": "1.1.0"}
 
 
-def test_non_bngl_source_gets_no_jobs(ss_spec, write_spec):
-    ss_spec["source"]["format"] = "sbml"
+def test_a_net_source_gets_no_jobs(ss_spec, write_spec):
+    ss_spec["source"]["format"] = "net"
     assert steady.jobs(specs.load(write_spec(ss_spec))) == []
 
 
