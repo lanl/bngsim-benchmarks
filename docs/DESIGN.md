@@ -729,7 +729,12 @@ file holds:
 - provenance:
   - the BNGsim version and compiled build commit;
   - the reference engines' versions;
-  - this repository's commit;
+  - this repository's commit, whether its tracked files had local changes, and the
+    sha256 of its Python source, all read as the job started, before its code loaded
+    (a long job's result is written hours later, when the checkout may have moved
+    on). The worker loads every module a job could import at that moment, so the job
+    runs that code throughout. A TIMEOUT record names the source as the runner
+    launched the worker, and a stored part of a split job names its own;
   - the environment lock or container digest;
   - the node name and hardware (section 7);
   - start and end time;

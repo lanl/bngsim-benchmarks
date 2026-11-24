@@ -72,3 +72,61 @@ def test_forced_settings_are_part_of_the_freshness_key(timing):
     # Changing a forced setting must make every old result stale.
     assert env.fingerprint(timing=timing)["harness"]["forced_env"] == {
         "BNGSIM_CODEGEN_STRICT": "1"}
+
+
+def test_result_names_the_code_the_job_started_on(one_job, monkeypatch):
+    # The checkout moves on while the job runs (a commit lands, a file changes):
+    # the result still names the code the job loaded, read as it started.
+    job, args, _, results = one_job
+    checkout = {"commit": "a" * 40, "dirty": False, "source_sha256": "1" * 64}
+    monkeypatch.setattr(env, "read_harness_source", lambda: dict(checkout))
+    monkeypatch.setattr(env, "_HARNESS_SOURCE", None)
+    monkeypatch.setattr(env, "environment", lambda: {"harness_source": env.harness_source()})
+
+    def run(job, problem, ctx):
+        checkout.update(commit="b" * 40, source_sha256="2" * 64)
+        return {"outcome": "PASS"}
+
+    monkeypatch.setattr(CAPABILITIES[job.capability], "run", run)
+    assert worker.main(args) == 0
+    record = json.loads(result_path(results, job).read_text())
+    assert record["environment"]["harness_source"] == {
+        "commit": "a" * 40, "dirty": False, "source_sha256": "1" * 64}
+
+
+def test_the_worker_loads_every_module_a_job_could_import(monkeypatch):
+    # A module a capability imports only when it needs it is loaded at job start,
+    # so a long job never reads a later commit's copy of it.
+    import importlib
+    import pkgutil
+    import sys
+
+    import bench
+
+    worker._load_harness()
+    names = [m.name for m in pkgutil.walk_packages(bench.__path__, "bench.")]
+    assert "bench.capabilities.ssa_sbml" in names and "bench.results" in names
+    for name in names:
+        if name.split(".")[1] not in worker._FRONT_END:
+            assert name in sys.modules, name
+    assert importlib.import_module("bench.capabilities.ssa_sbml")
+
+
+def test_harness_source_is_read_once_and_kept(monkeypatch):
+    calls = []
+    monkeypatch.setattr(env, "read_harness_source",
+                        lambda: calls.append(1) or {"commit": str(len(calls))})
+    monkeypatch.setattr(env, "_HARNESS_SOURCE", None)
+    assert env.harness_source() == {"commit": "1"}
+    assert env.harness_source() == {"commit": "1"} and len(calls) == 1
+    # A worker re-captures it as its job starts.
+    assert env.capture_harness_source() == {"commit": "2"}
+    assert env.harness_source() == {"commit": "2"}
+
+
+def test_the_source_digest_names_the_package_source():
+    src = env.read_harness_source()
+    digest = env.source_digest()
+    assert len(digest) == 64 and digest == env.source_digest()
+    if src:  # in a git checkout
+        assert src["source_sha256"] == digest and len(src["commit"]) == 40

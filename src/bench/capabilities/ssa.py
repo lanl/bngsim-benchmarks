@@ -817,14 +817,17 @@ def _engine_run(name: str, prep: dict[str, Any], n: int, seed: int, workdir: Pat
     return {**out, **extra}
 
 
-# What a stored part keeps of ``_engine_run``'s output besides the ensemble.
-_PART_FIELDS = ("config", "error", "seconds", "not_applicable", "derived_network")
+# What a stored part keeps of ``_engine_run``'s output besides the ensemble, and
+# the harness source its task ran (provenance: the job's record names its own).
+_PART_FIELDS = ("config", "error", "seconds", "not_applicable", "derived_network",
+                "harness_source")
 
 
 def _store_part(job: Job, name: str, out: dict[str, Any], ctx: dict[str, Any]) -> None:
     from ..results import write_part
 
     record = {k: out[k] for k in _PART_FIELDS if k in out}
+    record["harness_source"] = env.harness_source()
     arrays = {"trajectory": out["trajectory"]} if "trajectory" in out else None
     write_part(ctx["results_dir"], job, name, ctx["key"], record, arrays)
 
@@ -875,6 +878,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     from_parts = [name for name, o in outs.items() if o.get("from_part")]
     if from_parts:
         info["from_parts"] = from_parts
+        info["part_sources"] = {name: outs[name].get("harness_source") for name in from_parts}
 
     bn = None
     bn_error = outs["bngsim"].get("error")
