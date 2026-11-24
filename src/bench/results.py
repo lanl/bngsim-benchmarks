@@ -99,6 +99,86 @@ def drop_trajectories(results_dir: str | Path, job: Job) -> None:
     trajectories_path(results_dir, job).unlink(missing_ok=True)
 
 
+def parts_dir(results_dir: str | Path, job: Job | str) -> Path:
+    """Where the parts of a job split across tasks (``Job.parts``) keep what they
+    computed: a directory beside the job's record."""
+    return result_path(results_dir, job).with_suffix(".parts")
+
+
+def _atomic_write(path: Path, write, suffix: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-", suffix=suffix)
+    try:
+        with os.fdopen(fd, "wb") as f:
+            write(f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
+def write_part(results_dir: str | Path, job: Job, part: str, key: str,
+               record: dict[str, Any], arrays: dict[str, Any] | None = None) -> Path:
+    """Store what one part of ``job`` computed: ``record`` (JSON) and ``arrays``
+    (one ``.npz``), under the job's freshness key ``key``. The arrays are written
+    first and the record names their sha256, so a reader that finds the record
+    finds the arrays it describes."""
+    import numpy as np
+
+    d = parts_dir(results_dir, job)
+    rec = {"schema": SCHEMA, "job_id": job.id, "part": part, "key": key, **record}
+    npz = d / f"{part}.npz"
+    if arrays:
+        _atomic_write(npz, lambda f: np.savez_compressed(
+            f, **{k: np.asarray(v) for k, v in arrays.items()}), ".npz")
+        rec["arrays"] = {"file": npz.name, "sha256": _sha256(npz), "names": sorted(arrays)}
+    else:
+        npz.unlink(missing_ok=True)
+    path = d / f"{part}.json"
+    _atomic_write(path, lambda f: f.write(
+        (json.dumps(rec, indent=2, sort_keys=True, default=str) + "\n").encode()), ".json")
+    return path
+
+
+def read_part(results_dir: str | Path, job: Job | str, part: str,
+              key: str) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    """A part's record and arrays, when it was computed under ``key`` (the job's
+    current freshness key) and its arrays are the ones it names; else None."""
+    import numpy as np
+
+    d = parts_dir(results_dir, job)
+    try:
+        rec = json.loads((d / f"{part}.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if rec.get("key") != key:
+        return None
+    arrays: dict[str, Any] = {}
+    meta = rec.get("arrays")
+    if meta:
+        npz = d / meta["file"]
+        try:
+            if _sha256(npz) != meta.get("sha256"):
+                return None
+            with np.load(npz, allow_pickle=False) as z:
+                arrays = {k: z[k] for k in z.files}
+        except (OSError, ValueError):
+            return None
+    return rec, arrays
+
+
+def part_fresh(results_dir: str | Path, job: Job, part: str, fingerprint: dict[str, Any]) -> bool:
+    """Whether part ``part`` of ``job`` has a stored result under its current key."""
+    d = parts_dir(results_dir, job)
+    try:
+        rec = json.loads((d / f"{part}.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return rec.get("key") == freshness_key(job.whole(), fingerprint)
+
+
 def key_parts(job: Job, fingerprint: dict[str, Any]) -> dict[str, Any]:
     return {"job": json.loads(job.canonical()), "environment": fingerprint}
 

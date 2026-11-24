@@ -186,6 +186,60 @@ covers the pinned file.
 - **Koo 2013:** its SED-ML is named for the no-shear-stress condition, but it runs the
   file unchanged, which by the curation notes gives the shear-stress curve of Fig. 6.
 
+## ssa-sbml: exact SSA on published SBML, amounts as molecule counts
+
+Ten SBML models whose amounts are molecule counts, run with each engine's exact SSA:
+BNGsim, libRoadRunner (gillespie) and COPASI (direct method) read the pinned file;
+run_network reads a network derived from it where that network has the SBML's jumps
+(DESIGN §5.3). Ordered by species, then reactions. Horizons are the published ones
+(the curation figures, or DSMTS's settings), never a placeholder SED-ML's. Pins: the
+SBML Test Suite at `sbmlteam/sbml-test-suite` 473e119d for DSMTS, `sys-bio/temp-biomodels`
+6a09daf4 for the BioModels.
+
+| # | problem | source | species / reactions | events | horizon, steps | replicates | references | evidence |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `dimerisation_dsmts_003_01` | DSMTS 003-01 | 2 / 2 | none | 50, 50 | 10^4 | rr, COPASI, exact moments (table); run_network n/a | `theory` |
+| 2 | `abeta_dimer_aggregation_proctor2012` | BIOMD0000000462 | 6 / 8 | none | 100 y, 100 | 5000 | rr, COPASI; run_network n/a | `author_file`: Figs 5A, 5B (COPASI stochastic) |
+| 3 | `repressilator_elowitz2000` | BIOMD0000000012 | 6 / 12 | none | 1000 min, 100 | 10^4 | rr, COPASI; run_network n/a | `author_file`: Fig. 1c |
+| 4 | `mirna_positive_feedback_osteoarthritis_proctor2017` | BIOMD0000000862 | 9 / 11 | 2 (t = 3600, 7200 s) | 8 h, 100 | 10^4 | rr (time-event warning), COPASI; run_network n/a | `author_file`: Suppl. Fig. A(i) |
+| 5 | `noise_resistant_circadian_oscillator_vilar2002_sbml` | BIOMD0000000035 | 10 / 16 | none | 400 h, 200 | 10^4 | run_network (derived), rr, COPASI | `author_file`: Fig. 2AB |
+| 6 | `p21_ros_senescence_passos2010` | BIOMD0000000287 | 23 / 37 | 3 (t = 172800, 172860, 691200 s) | 10 d, 100 | 100 | rr (time-event warning), COPASI; run_network n/a | `author_file`: Fig. S17 (Fig. 3B stochastic) |
+| 7 | `ras_camp_pka_oscillations_besozzi2012` | BIOMD0000000478 | 33 / 39 | none | 1400 a.u., 140 | 200 | rr, COPASI; run_network n/a | `author_file`: Fig. 6 (COPASI stochastic) |
+| 8 | `ubiquitin_proteasome_system_proctor2007` | BIOMD0000000105 | 39 / 94 | none | 20 h, 100 | 10^4 | rr, COPASI; run_network n/a | `author_file`: Fig. 3 (Gillespie2) |
+| 9 | `telomere_uncapping_checkpoint_proctor2007` | BIOMD0000000087 | 55 / 43 | 9 state-triggered | 12 h, 100 | 4000 | rr, COPASI; run_network n/a (state events) | `author_file`: Fig. 5 (Gillespie 2.0) |
+| 10 | `uchl1_protein_aggregation_proctor2010` | BIOMD0000000293 | 136 / 316 | none | 20 h, 100 | 200 | rr, COPASI; run_network n/a | `author_file`: Fig. 2 (COPASI stochastic) |
+
+run_network n/a: the network `bngsim.convert.sbml_to_bngl` derives keeps the ODE but
+writes each law that is not mass action as per-species flux reactions, so its jumps
+are not the SBML's (members 1-4, 7, 8, 10); it refuses state-triggered events (9);
+and on 6 it would set a parameter it promotes to a species to 0.6, which run_network's
+SSA rounds to 1. Each result records the reason.
+
+### What the suite spans (DESIGN §3.2, SSA)
+
+| axis | members |
+|---|---|
+| size | 2 to 136 species, 2 to 316 reactions |
+| exact moments | 1 (the DSMTS tables) |
+| repeated reactants, written `k*X*(X-1)/2` | 1, 2, 7, 8, 10 |
+| time-triggered events | 4, 6 (rows at an event instant left out) |
+| state-triggered events | 9 |
+| cost per trajectory | 1 ms (1) to minutes (6: about 1.35e8 events) |
+
+### Membership decisions
+
+- Members, horizons and pins are those of the stochastic-suites proposal (§2.2 and
+  Appendix B), accepted 2026-11-23, with 287 and 105 in for the proposal's S07/S08 and
+  087 for 344.
+- **Ensemble sizes** below the 10^4 default (462: 5000, 087: 4000, 478, 293: 200,
+  287: 100) are a cost decision (2026-11-24); each verdict records its replicates.
+  287's correctness job runs each engine as its own array task (its parts).
+- **libRoadRunner on time-triggered events** (4, 6) is run, not screened out: 2.11
+  fires them, at its first reaction event after the trigger, and warns that this is
+  not precise; the warning is in its configuration.
+- **COPASI on 087** looked wrong in a wave-1 probe (n = 10); a DIFF it causes is
+  recorded, not worked around.
+
 ## ss-net: steady state on the `.net` generated from published BNGL
 
 Members are ordered by network size. Each runs a dose-response: a scan of one
