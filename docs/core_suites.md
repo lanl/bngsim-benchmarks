@@ -259,4 +259,19 @@ scan member runs.
 - Each member's network-free check of the exact file, not run through BNGsim, is the
   upstream work of suites-stochastic.md §3.2 items 1–3, one BNGL-Models branch per
   record. A spec names its branch under `verification.pending` until it is merged and
-  pinned.
+  pinned. No branch changes a `.bngl`, so every member's source pin stays 7d6d366.
+
+### Evidence (BNG2.pl NFsim 1.14.3 or exact SSA, never BNGsim)
+
+| # | BNGL-Models branch @ commit | what is asserted | result |
+|---|---|---|---|
+| 1 | `verify-blbr_heterogeneity_goldstein1980-asserts` @ 168a072 | 18 doses x 64 seeds against Eqs. 13–14, 4.32 SE + 0.01 | worst 0.41 of the tolerance |
+| 2 | — (ssa-net's check) | SSA against Fig. 2's saturated levels, < 5% of full scale | 3.91% |
+| 3 | — (pilot) | ODE against Fig. 1b Source Data | as the pilot |
+| 4 | `verify-tlbr_solution_macken1982-asserts` @ 0c3b431 | 3 doses x 200 seeds against Eq. 11 kinetics and Eq. 21 | max \|z\| 3.76 of 5.33; Eq. 21 within 2.0% |
+| 5 | `verify-tlbr_yang2008-seeds-bscb` @ d4cceef | 200 seeds against the mean-field bond ODE; Fig. 3 caption's rejected fractions | bonds 293.13 ± 0.17 vs 293.21 |
+| 6 | `verify-blbr_dembo1978-execute-asserts` @ 05f6bb4 | 3 doses x 20 seeds against the exact chain theory and Perelson–DeLisi kinetics | max \|z\| 1.66 and 2.16 |
+| 7 | `verify-blbr_rings_posner1995-asserts` @ 78d7f9a | a measured ring identity, equilibrium and kinetics against Eqs. 14a–i, 60 seeds | max \|z\| 1.20, 1.58, 2.37 |
+| 8 | `verify-tlbr_steric_monine2010-replicates` @ 936660b | 24 fresh scans against Fig. 2a, RMS λ < 0.02 | 0.0153 ± 0.0005 |
+| 9 | `verify-blbr_cooperativity_posner2004-seeds-bscb` @ 2cd5a16 | 120 seeds x 20 doses against Wofsy–Goldstein | max \|q − theory\| 0.0016 |
+| 10 | `verify-egfr_oligomerization_mitra2019-replicates` @ 5b8ebb1 | Kozer 2013 data, χ² < 30 | 13.90 ± 0.50 |
