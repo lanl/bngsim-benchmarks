@@ -295,10 +295,12 @@ SPLIT_FRACTION = 0.5
 def split_unit(unit: list[Job], done_parts: dict[str, set[str]] | None = None
                ) -> list[list[Job]] | None:
     """A unit whose correctness job has parts (``Job.parts``), as one unit per part
-    not yet stored -- each that part's copy of the job and the unit's timing jobs,
-    so the task that stores the last part scores the job and then times it -- or,
-    when every part is stored, the unit with the job planned at its remaining
-    cost. None for a unit whose job has no parts."""
+    not yet stored, each that part's copy of the job -- the longest part's with
+    the unit's timing jobs too, so a job is timed once, by the task likely to store
+    its last part, which scores the job and then times it (if another task stores
+    the last part, the timing job waits for the next run) -- or, when every part
+    is stored, the unit with the job planned at its remaining cost. None for a
+    unit whose job has no parts."""
     corr = next((j for j in unit if j.kind != TIMING and j.parts and j.part is None), None)
     if corr is None:
         return None
@@ -307,7 +309,8 @@ def split_unit(unit: list[Job], done_parts: dict[str, set[str]] | None = None
     todo = [p for p in corr.parts if p not in done]
     if not todo:
         return [[dataclasses.replace(corr, est_seconds=corr.remainder_seconds), *rest]]
-    return [[corr.as_part(p), *rest] for p in todo]
+    longest = max(todo, key=lambda p: corr.parts[p])
+    return [[corr.as_part(p), *(rest if p == longest else [])] for p in todo]
 
 
 def pack(jobs: list[Job], cfg: SlurmConfig,

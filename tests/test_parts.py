@@ -48,15 +48,17 @@ def test_a_unit_over_half_an_allocation_is_split_and_its_parts_share_a_task():
                                   "margin_seconds": 100, "startup_seconds": 100})
     (task,) = slurm.pack([c, t], wide).tasks  # 1050 s > half of 1900 s
     assert sorted(j.task_id for j in task.jobs) == sorted(
-        [c.id + "#bngsim", c.id + "#copasi", t.id, t.id])
+        [c.id + "#bngsim", c.id + "#copasi", t.id])
 
 
 def test_a_unit_too_long_for_one_task_is_split_into_its_parts():
     c, t = split_pair()  # 950 s + 100 s of timing > 1000 s of capacity
     packing = slurm.pack([c, t], cfg())
     assert not packing.long
-    assert sorted(j.task_id for task in packing.tasks for j in task.jobs) == sorted(
-        [c.id + "#bngsim", c.id + "#copasi", t.id, t.id])
+    tasks = [[j.task_id for j in task.jobs] for task in packing.tasks]
+    assert sorted(sum(tasks, [])) == sorted([c.id + "#bngsim", c.id + "#copasi", t.id])
+    # the timing job rides with the longest part only, so it is timed once
+    assert [c.id + "#bngsim", t.id] in tasks
     for task in packing.tasks:
         assert task.bound(cfg()) <= cfg().capacity_seconds
 
