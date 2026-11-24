@@ -95,6 +95,20 @@ to the model. That is recorded with its reason, and it is left out of the count
 of references, not counted as a failure. A run_network failure after a faithful
 derivation is a reference failure like any other.
 
+**Antimony models** (the ode-antimony suite) are converted at job time from a
+member of the other two ODE suites (a spec's ``derived`` block): a BNGL member
+through its ``.net`` and the SBML exported from it, an SBML member from the pinned
+file, each to Antimony with libantimony. The conversion is model preparation,
+charged to no engine, and the ``.ant``'s sha256 is recorded in every result.
+BNGsim reads the ``.ant`` (``Model.from_antimony``); libRoadRunner, COPASI and
+AMICI, which read only SBML, read it through libantimony's SBML (what tellurium's
+``loada`` and AMICI's ``antimony2sbml`` do), converted in each engine's own build
+and charged to its load. run_network reads no Antimony and takes no part. What
+is compared is the source's state species, by SBML id, as on the SBML path. A
+second correctness job, the **cross-format check**, compares BNGsim on the
+``.ant`` with BNGsim on the source (the ``.net``, or the pinned SBML) under the
+same tolerances, as its own result.
+
 The reference for correctness is run_network with its default (dense) linear
 solver, as in bngsim's own parity checks. A model's ``sparse`` option (BNG2.pl's
 ``sparse=>1``, run_network ``-b``, an iterative Krylov solver) is not trusted as
@@ -157,6 +171,8 @@ HARNESS_VERSION = "5"
 # The SBML path's own version, a key only SBML jobs carry, so it moves without
 # restaling a .net result (and HARNESS_VERSION moves both).
 SBML_HARNESS_VERSION = "1"
+# The Antimony path's own version, a key only Antimony jobs carry.
+ANTIMONY_HARNESS_VERSION = "1"
 
 TIMING_PROTOCOL = {"warmup_rounds": 1, "min_rounds": 5, "max_rounds": 20, "budget_seconds": 120.0}
 
@@ -246,6 +262,8 @@ def jobs(problem: Problem) -> list[Job]:
     fmt = problem.source.get("format")
     if fmt not in ("bngl", "sbml"):
         return []
+    if problem.input_format == "antimony":
+        return antimony_jobs(problem)
     proto = protocol(problem)
     engines = engines_id()
     base = {
@@ -1385,9 +1403,410 @@ SBML_REFERENCE_ENGINES: dict[str, type] = {
 }
 
 
+# --------------------------------------------------------------------------- #
+# Antimony models: a member of ode-net or ode-sbml, converted at job time
+# --------------------------------------------------------------------------- #
+# The cross-format check's reference: BNGsim on the source the .ant came from.
+CROSS_FORMAT_ENGINES = {"bngl": "bngsim_net", "sbml": "bngsim_sbml"}
+
+
+def _sha256_text(text: str) -> str:
+    import hashlib
+
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def sbml_to_antimony(sbml: Path) -> str:
+    """libantimony's Antimony for an SBML file (its main module)."""
+    import antimony
+
+    antimony.clearPreviousLoads()
+    if antimony.loadSBMLFile(str(sbml)) < 0:
+        raise RuntimeError(f"libantimony cannot read {Path(sbml).name}: "
+                           f"{(antimony.getLastError() or '').strip()[:300]}")
+    text = antimony.getAntimonyString(antimony.getMainModuleName())
+    if not text:
+        raise RuntimeError(f"libantimony wrote no Antimony for {Path(sbml).name}")
+    return text
+
+
+def antimony_to_sbml(ant: Path) -> str:
+    """The SBML libantimony writes for an Antimony file's main module: what
+    tellurium's ``loada`` hands libRoadRunner, what AMICI's ``antimony2sbml``
+    hands its SBML importer, and what ``Model.from_antimony`` reads internally."""
+    import antimony
+
+    antimony.clearPreviousLoads()
+    if antimony.loadAntimonyFile(str(ant)) < 0:
+        raise RuntimeError(f"libantimony cannot read {Path(ant).name}: "
+                           f"{(antimony.getLastError() or '').strip()[:300]}")
+    text = antimony.getSBMLString(antimony.getMainModuleName())
+    if not text:
+        raise RuntimeError(f"libantimony wrote no SBML for {Path(ant).name}")
+    return text
+
+
+class BngsimAntimony(BngsimSBML):
+    """BNGsim reading the ``.ant`` (``Model.from_antimony``: libantimony, then its
+    SBML loader), reporting the compared species by SBML id. Its load is the
+    whole read, the conversion included; ``atol`` is a plain float, as on the SBML
+    path."""
+
+    def __init__(self, ant: Path, species_ids: list[str], proto: dict[str, Any]):
+        import bngsim
+
+        self.proto = proto
+        self.species_ids = list(species_ids)
+        self.lead = _leading_rows(proto)
+        self.columns: list[int] | None = None
+        t0 = time.perf_counter()
+        self.model = bngsim.Model.from_antimony(str(ant))
+        self.load_seconds = time.perf_counter() - t0
+        self.sim = bngsim.Simulator(self.model, method="ode")
+        self.atol = float(proto["atol"])
+
+    def config(self, result) -> dict[str, Any]:
+        return {**BngsimODE.config(self, result), "input": "antimony (Model.from_antimony)",
+                "atol": "float (per-species ceiling)"}
+
+
+class _ReadsAntimony:
+    """An SBML-reading reference given the ``.ant``: it converts it with
+    libantimony (``antimony_to_sbml``) inside its own build, into its own
+    directory, and reads that SBML. The conversion is part of its load, as it is
+    of BNGsim's, and is also recorded alone (``antimony_seconds``)."""
+
+    INPUT = "antimony"
+
+    def __init__(self, ant: Path, species_ids: list[str], proto: dict[str, Any],
+                 workdir: Path):
+        t0 = time.perf_counter()
+        text = antimony_to_sbml(Path(ant))
+        self.antimony_seconds = time.perf_counter() - t0
+        workdir = Path(workdir)
+        workdir.mkdir(parents=True, exist_ok=True)
+        sbml = workdir / "model.xml"
+        sbml.write_text(text, encoding="utf-8")
+        self.sbml_sha256 = _sha256_text(text)
+        super().__init__(sbml, species_ids, proto)
+        self.load_seconds += self.antimony_seconds
+
+    def config(self) -> dict[str, Any]:
+        return {**super().config(), "input": "antimony -> SBML (libantimony)",
+                "antimony_seconds": self.antimony_seconds, "sbml_sha256": self.sbml_sha256}
+
+
+class RoadRunnerAntimony(_ReadsAntimony, RoadRunnerSBML):
+    """libRoadRunner on the ``.ant``, through libantimony's SBML."""
+
+
+class CopasiAntimony(_ReadsAntimony, CopasiSBML):
+    """COPASI on the ``.ant``, through libantimony's SBML."""
+
+
+class AmiciAntimony(_ReadsAntimony, AmiciSBML):
+    """AMICI on the ``.ant``, through libantimony's SBML (its own
+    ``antimony2sbml`` makes the same two calls); compiled beside it."""
+
+
+# The references of an Antimony model: every reference that reads SBML, given the
+# .ant. run_network reads no Antimony; the cross-format check covers the .net.
+ANTIMONY_REFERENCE_ENGINES: dict[str, type] = {
+    RoadRunnerAntimony.NAME: RoadRunnerAntimony,
+    CopasiAntimony.NAME: CopasiAntimony,
+    AmiciAntimony.NAME: AmiciAntimony,
+}
+
+
+class BngsimSourceNet(BngsimODE):
+    """The cross-format check's reference for a ``.net`` member: BNGsim on the
+    ``.net`` the ``.ant`` came from, at the same rtol and the same float atol as
+    BNGsim on the ``.ant`` (so only the reader differs), its columns the compared
+    SBML ids through the export's name map. The exported SBML has one compartment
+    of volume 1, so an amount is a concentration."""
+
+    NAME = CROSS_FORMAT_ENGINES["bngl"]
+
+    def __init__(self, net: Path, species_names: list[str], name_to_id: dict[str, str],
+                 species_ids: list[str], proto: dict[str, Any]):
+        super().__init__(net, proto)
+        self.atol = float(proto["atol"])
+        pos = {name_to_id[n]: i for i, n in enumerate(species_names) if n in name_to_id}
+        missing = [sid for sid in species_ids if sid not in pos]
+        if missing:
+            raise RuntimeError(f"cannot place {len(missing)} compared species in the .net "
+                               f"(e.g. {missing[:3]}); the export's name map is wrong")
+        self.columns = [pos[sid] for sid in species_ids]
+
+    def trajectory(self, result) -> np.ndarray:
+        return np.array(result.species)[:, self.columns]
+
+    @staticmethod
+    def times(result) -> np.ndarray:
+        return np.asarray(result.time)
+
+    def config(self, result) -> dict[str, Any]:
+        return {**super().config(result), "input": ".net (Model.from_net)",
+                "atol": "float (per-species ceiling)"}
+
+
+def _registry(prep: dict[str, Any]) -> dict[str, type]:
+    """The reference engines of a prepared model, by its format."""
+    if prep.get("format") == "antimony":
+        return ANTIMONY_REFERENCE_ENGINES
+    return REFERENCE_ENGINES
+
+
+def is_cross_format(job: Job) -> bool:
+    """Whether ``job`` is an Antimony member's cross-format check."""
+    engines = getattr(job, "engines", None)
+    return engines in {f"bngsim-vs-{n}" for n in CROSS_FORMAT_ENGINES.values()}
+
+
+def job_references(job: Job) -> tuple[str, ...]:
+    """The reference engines a job compares BNGsim against, by name."""
+    if is_cross_format(job):
+        return (job.engines.split("-vs-", 1)[1],)
+    if ((getattr(job, "definition", None) or {}).get("input") or {}).get("format") == "antimony":
+        return tuple(ANTIMONY_REFERENCE_ENGINES)
+    return tuple(REFERENCE_ENGINES)
+
+
+def antimony_engines_id() -> str:
+    """The ``engines`` id segment of an Antimony member's correctness and timing."""
+    return "bngsim-vs-" + "-".join(ANTIMONY_REFERENCE_ENGINES)
+
+
+def antimony_jobs(problem: Problem) -> list[Job]:
+    """An Antimony member's jobs: correctness against the references and timing,
+    as for any ODE model, and the cross-format check (BNGsim on the ``.ant``
+    against BNGsim on its source), a correctness job of its own."""
+    fmt = problem.source["format"]
+    proto = protocol(problem)
+    engines = antimony_engines_id()
+    # The conversion is part of what the job computes: a new libantimony restales it
+    # (bngsim's own SBML export, on the .net path, rides bngsim's fingerprint).
+    conversion = {"format": "antimony", "from": fmt, "harness": ANTIMONY_HARNESS_VERSION,
+                  "antimony": env.antimony_identity().get("version")}
+    base = {
+        "harness": f"{CAPABILITY}/{engines}/{HARNESS_VERSION}",
+        "source_sha256": problem.source["sha256"],
+        "protocol": proto,
+        "setting": {"solver": "auto", "codegen": "auto"},
+        "reference_versions": {
+            "roadrunner": env.roadrunner_identity().get("version"),
+            "copasi": env.copasi_identity().get("version"),
+            "amici": env.amici_identity().get("version"),
+        },
+        "input": conversion,
+    }
+    est_c, est_t = planning_seconds(problem)
+    budget = engine_budget_seconds(problem)
+    backstop = (len(ANTIMONY_REFERENCE_ENGINES) + 2) * budget
+    correctness = Job(
+        CAPABILITY, problem.id, engines, "auto", CORRECTNESS,
+        definition={**base, "verdict": VERDICT_VERSION},
+        est_seconds=est_c,
+        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_c, backstop),
+    )
+    timing = Job(
+        CAPABILITY, problem.id, engines, "auto", TIMING,
+        definition={**base, "timing": TIMING_PROTOCOL, "timing_check": REPRO_CHECK_VERSION},
+        est_seconds=est_t,
+        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_t),
+        requires=correctness.id,
+    )
+    xf = f"bngsim-vs-{CROSS_FORMAT_ENGINES[fmt]}"
+    est_x = cross_format_seconds(problem)
+    cross = Job(
+        CAPABILITY, problem.id, xf, "auto", CORRECTNESS,
+        definition={"harness": f"{CAPABILITY}/{xf}/{HARNESS_VERSION}",
+                    "source_sha256": problem.source["sha256"], "protocol": proto,
+                    "setting": {"solver": "auto", "codegen": "auto"},
+                    "input": conversion, "verdict": VERDICT_VERSION},
+        est_seconds=est_x,
+        timeout_seconds=max(MIN_TIMEOUT_SECONDS, TIMEOUT_FACTOR * est_x, 3 * budget),
+    )
+    return [correctness, timing, cross]
+
+
+def cross_format_seconds(problem: Problem) -> float:
+    """Planning only: the cross-format check is two BNGsim solves and the
+    conversion, a fraction of a correctness job."""
+    est_c, _ = planning_seconds(problem)
+    return 60.0 + 0.25 * est_c
+
+
+def _prepare_antimony(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
+    """The ``.ant`` of a derived member, written in the job's own scratch, and
+    what the engines compare. Model preparation, charged to no engine.
+
+    A ``.net`` member's SBML is the one ode-net's references read (the ``.net``
+    BNG2.pl generates, written by ``bngsim.convert.write_sbml``), and every
+    ``.net`` species is compared, in BNGsim's order, by its SBML id. An SBML
+    member's is the pinned file, and its state species are compared, as on the
+    SBML path. libantimony converts that SBML to the ``.ant``; the ``.ant`` is then
+    read back once here, to check that it keeps every compared species (a
+    conversion that loses one is a bad test input, not an engine's failure)."""
+    fmt = problem.source["format"]
+    proto = protocol(problem)
+    workdir = Path(ctx["workdir"])
+    prep: dict[str, Any] = {"format": "antimony", "source_format": fmt, "proto": proto}
+    if fmt == "bngl":
+        net = prepare_network(problem, ctx, proto["netgen"])
+        info = net["info"]
+        source_sbml = Path(net["sbml"])
+        missing = [n for n in net["species_names"] if n not in net["name_to_id"]]
+        if missing:
+            raise RuntimeError(f"the SBML export names no id for {len(missing)} species "
+                               f"(e.g. {missing[:3]})")
+        species_ids = [net["name_to_id"][n] for n in net["species_names"]]
+        prep.update(net=net["net"], species_names=net["species_names"],
+                    name_to_id=net["name_to_id"])
+        _, census = sbml_species(source_sbml)
+    else:
+        pinned = fetch.model_file(problem.source, ctx["cache_dir"])
+        (workdir / "sbml").mkdir(parents=True, exist_ok=True)
+        source_sbml = workdir / "sbml" / pinned.name
+        shutil.copyfile(pinned, source_sbml)
+        species_ids, census = sbml_species(source_sbml)
+        size = {"species": census["species"], "reactions": census["reactions"]}
+        info = {"network": size, "sbml": census}
+        if problem.size.get("reactions") not in (None, size["reactions"]):
+            info["size_mismatch"] = {"spec": problem.size, "sbml": size}
+
+    t0 = time.perf_counter()
+    text = sbml_to_antimony(source_sbml)
+    seconds = time.perf_counter() - t0
+    (workdir / "antimony").mkdir(parents=True, exist_ok=True)
+    ant = workdir / "antimony" / "model.ant"
+    ant.write_text(text, encoding="utf-8")
+    source_text = source_sbml.read_bytes()
+    conversion: dict[str, Any] = {
+        "from": fmt,
+        "via": ("BNGL -> .net (BNG2.pl) -> SBML (bngsim.convert.write_sbml) -> Antimony"
+                if fmt == "bngl" else "pinned SBML -> Antimony"),
+        "antimony": env.antimony_identity().get("version"),
+        "sbml_sha256": __import__("hashlib").sha256(source_text).hexdigest(),
+        "ant_sha256": _sha256_text(text),
+        "ant_bytes": len(text.encode("utf-8")),
+        "conversion_seconds": seconds,
+        "compared_species": len(species_ids),
+    }
+    # Read the .ant back once: every compared species must survive the conversion.
+    t0 = time.perf_counter()
+    back = workdir / "antimony" / "readback.xml"
+    back.write_text(antimony_to_sbml(ant), encoding="utf-8")
+    conversion["readback_seconds"] = time.perf_counter() - t0
+    import libsbml
+
+    model = libsbml.readSBMLFromFile(str(back)).getModel()
+    have = {model.getSpecies(i).getId() for i in range(model.getNumSpecies())} if model else set()
+    lost = [sid for sid in species_ids if sid not in have]
+    if lost:
+        raise RuntimeError(f"the .ant loses {len(lost)} compared species "
+                           f"(e.g. {lost[:3]}): libantimony's conversion is not faithful")
+    if model is not None:
+        _, back_census = sbml_species(back)
+        conversion["readback"] = {k: back_census[k] for k in
+                                  ("species", "reactions", "events", "compared_species")}
+    info["antimony"] = conversion
+    prep.update(ant=ant, source_sbml=source_sbml, species_ids=species_ids, info=info)
+    prep["info"].setdefault("sbml", census)
+    return prep
+
+
+def _compared_species(prep: dict[str, Any]) -> list[str] | None:
+    """The compared species: SBML ids on the SBML and Antimony paths, BNGsim's
+    species names on the ``.net`` path."""
+    if prep.get("format") in ("sbml", "antimony"):
+        return prep.get("species_ids")
+    return prep.get("species_names")
+
+
+def _cold_bngsim_source(prep: dict[str, Any]):
+    """The cross-format check's reference, cold: BNGsim on the source format."""
+    def fn(stage):
+        t0 = time.perf_counter()
+        stage(BUILD_STAGE["bngsim"])
+        proto = prep["proto"]
+        if prep["source_format"] == "bngl":
+            engine = BngsimSourceNet(prep["net"], prep["species_names"], prep["name_to_id"],
+                                     prep["species_ids"], proto)
+        else:
+            engine = BngsimSBML(prep["source_sbml"], prep["species_ids"], proto)
+        stage("first solve")
+        result = engine.run()
+        check_times(engine.times(result), proto)
+        return (engine.trajectory(result),
+                {**engine.config(result), "cold_seconds": time.perf_counter() - t0})
+    return fn
+
+
+def run_cross_format(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
+    """The cross-format check: BNGsim on the ``.ant`` against BNGsim on the source
+    it came from, scored by the ODE gate (vendored verdict AND per-species check).
+    Each BNGsim read builds and solves cold in its own fork, under the per-engine
+    budget, as in the correctness job."""
+    try:
+        prep = _prepare(problem, ctx)
+    except Exception as exc:  # noqa: BLE001
+        return {"outcome": "BAD_TEST", "error": f"{type(exc).__name__}: {exc}"}
+    proto, info = prep["proto"], prep["info"]
+    workdir = Path(ctx["workdir"])
+    budget = float(ctx.get("engine_budget_seconds") or engine_budget_seconds(problem))
+    info["engine_budget_seconds"] = budget
+    source = CROSS_FORMAT_ENGINES[prep["source_format"]]
+
+    def isolated(name: str, fn) -> dict[str, Any]:
+        _progress(f"{name}: start (budget {budget:g} s; {_threads()} threads in the worker)")
+        out = run_isolated(fn, budget, workdir / "isolated" / name)
+        _progress(f"{name}: {out.get('error') or 'done'} after {out['seconds']:.1f} s")
+        return out
+
+    bn, bn_error = None, None
+    out = isolated("bngsim", _cold_bngsim(prep))
+    if "error" in out:
+        bn_error = out["error"]
+    else:
+        info["bngsim"] = out["config"]
+        bn = out["trajectory"]
+    refs: dict[str, np.ndarray] = {}
+    ref_errors: dict[str, str] = {}
+    references: dict[str, Any] = {}
+    out = isolated(source, _cold_bngsim_source(prep))
+    if "error" in out:
+        ref_errors[source] = out["error"]
+    else:
+        refs[source] = out["trajectory"]
+        references[source] = out["config"]
+    info["references"] = references
+    verdicts, outcome = _score(bn, refs, references, proto, species=prep["species_ids"],
+                               bn_error=bn_error, ref_errors=ref_errors, not_applicable={},
+                               registry=(source,))
+    rec: dict[str, Any] = {"outcome": outcome, "measurements": info,
+                           "cross_format": {"source_format": prep["source_format"],
+                                            "reference": source}}
+    if verdicts:
+        rec["verdicts"] = verdicts
+        rec["cross_format"]["passed"] = bool(verdicts[source].get("passed")) \
+            if source in verdicts else None
+    if bn_error:
+        rec["bngsim_error"] = bn_error
+    for name, err in ref_errors.items():
+        rec[f"{name}_error"] = err
+    stored = stored_trajectories(prep, bn, refs, {})
+    if stored:
+        rec["_trajectories"] = stored
+    return rec
+
+
 def _build_reference(name: str, prep: dict[str, Any], *, sparse: bool,
                      out_prefix: Path, timeout: float):
     """Construct one reference engine from the prepared artifacts."""
+    if prep.get("format") == "antimony":
+        cls = ANTIMONY_REFERENCE_ENGINES[name]
+        return cls(prep["ant"], prep["species_ids"], prep["proto"], out_prefix)
     if prep.get("format") == "sbml":
         cls = SBML_REFERENCE_ENGINES[name]
         if cls.INPUT == "derived":
@@ -1417,7 +1836,10 @@ def _progress(msg: str) -> None:
 
 
 def _build_bngsim(prep: dict[str, Any]):
-    """The system under test, from the ``.net`` or, for an SBML model, the SBML."""
+    """The system under test, from the ``.net`` or, for an SBML model, the SBML
+    (for an Antimony model, the ``.ant``)."""
+    if prep.get("format") == "antimony":
+        return BngsimAntimony(prep["ant"], prep["species_ids"], prep["proto"])
     if prep.get("format") == "sbml":
         return BngsimSBML(prep["sbml"], prep["species_ids"], prep["proto"])
     return BngsimODE(prep["net"], prep["proto"])
@@ -1426,7 +1848,7 @@ def _build_bngsim(prep: dict[str, Any]):
 def _checked_trajectory(engine, result, prep: dict[str, Any]) -> np.ndarray:
     """An engine's trajectory; for an SBML model, only once its output is at the
     protocol's times (a ``.net`` engine's grid is the one it was asked for)."""
-    if prep.get("format") == "sbml":
+    if prep.get("format") in ("sbml", "antimony"):
         check_times(engine.times(result), prep["proto"])
     return engine.trajectory(result)
 
@@ -1481,6 +1903,8 @@ def _derive_isolated(prep: dict[str, Any], workdir: Path, budget: float, timeout
 # Verdict and reproducibility
 # --------------------------------------------------------------------------- #
 def _prepare(problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
+    if problem.input_format == "antimony":
+        return _prepare_antimony(problem, ctx)
     if problem.source.get("format") == "sbml":
         return _prepare_sbml(problem, ctx)
     proto = protocol(problem)
@@ -1680,7 +2104,8 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     references: dict[str, Any] = {}
     ref_trajectories: dict[str, np.ndarray] = {}
     ref_errors: dict[str, str] = {}
-    for name in REFERENCE_ENGINES:
+    registry = _registry(prep)
+    for name in registry:
         if name in not_applicable:
             continue
         out = isolated(name, _cold_reference(name, prep, workdir / name, timeout))
@@ -1699,10 +2124,10 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         if check is not None:
             info["sparse_reference"] = check
 
-    species = prep.get("species_ids") if prep.get("format") == "sbml" else prep.get("species_names")
+    species = _compared_species(prep)
     verdicts, outcome = _score(bn, ref_trajectories, references, proto, species=species,
                                bn_error=bn_error, ref_errors=ref_errors,
-                               not_applicable=not_applicable)
+                               not_applicable=not_applicable, registry=registry)
     if "run_network_sparse" in sparse_traj and "sparse_reference" in info:
         info["sparse_reference"]["species_check"] = _sparse_species_check(
             sparse_traj["run_network_sparse"], ref_trajectories["run_network"], proto, species)
@@ -1734,7 +2159,7 @@ def stored_trajectories(prep: dict[str, Any], bn: np.ndarray | None,
     engines = {**({"bngsim": bn} if bn is not None else {}), **refs, **sparse}
     if not engines:
         return {}
-    species = prep.get("species_ids") if prep.get("format") == "sbml" else prep.get("species_names")
+    species = _compared_species(prep)
     out: dict[str, np.ndarray] = {
         "time": output_times(prep["proto"]),
         "species": np.asarray([str(s) for s in species or []], dtype=str),
@@ -1781,8 +2206,8 @@ def _reference_verdict(bn: np.ndarray, ref: np.ndarray, atol: float, config: dic
 
 def _score(bn: np.ndarray | None, refs: dict[str, np.ndarray], configs: dict[str, Any],
            proto: dict[str, Any], *, species: list[str] | None, bn_error: str | None,
-           ref_errors: dict[str, str], not_applicable: dict[str, str]
-           ) -> tuple[dict[str, Any], str]:
+           ref_errors: dict[str, str], not_applicable: dict[str, str],
+           registry=None) -> tuple[dict[str, Any], str]:
     """The verdict of BNGsim against each reference that ran, and the job's
     outcome. The one place both are computed, from a run (``run_correctness``)
     or from its stored trajectories (``rescore``), so the two cannot drift."""
@@ -1792,7 +2217,8 @@ def _score(bn: np.ndarray | None, refs: dict[str, np.ndarray], configs: dict[str
         for name, traj in refs.items():
             verdicts[name] = _reference_verdict(bn, traj, atol, configs.get(name) or {}, proto,
                                                 species)
-    outcome = _outcome(bn_error, ref_errors, len(REFERENCE_ENGINES) - len(not_applicable),
+    registry = REFERENCE_ENGINES if registry is None else registry
+    outcome = _outcome(bn_error, ref_errors, len(registry) - len(not_applicable),
                        all_passed(verdicts))
     if bn_error and bn_error.startswith("TIMEOUT") and outcome == "EXCEPTION":
         outcome = "TIMEOUT"  # BNGsim, not a reference, ran out of time
@@ -1822,14 +2248,16 @@ def rescore(job: Job, record: dict[str, Any], arrays: dict[str, np.ndarray]) -> 
     configurations and not-applicable references are the record's own."""
     proto = job.definition["protocol"]
     species = [str(s) for s in arrays["species"]] if "species" in arrays else None
-    refs = {name: arrays[name] for name in REFERENCE_ENGINES if name in arrays}
-    ref_errors = {name: str(record[f"{name}_error"]) for name in REFERENCE_ENGINES
+    registry = job_references(job)
+    refs = {name: arrays[name] for name in registry if name in arrays}
+    ref_errors = {name: str(record[f"{name}_error"]) for name in registry
                   if record.get(f"{name}_error")}
     m = record.get("measurements") or {}
     verdicts, outcome = _score(arrays.get("bngsim"), refs, m.get("references") or {}, proto,
                                species=species, bn_error=record.get("bngsim_error"),
                                ref_errors=ref_errors,
-                               not_applicable=record.get("not_applicable") or {})
+                               not_applicable=record.get("not_applicable") or {},
+                               registry=registry)
     update: dict[str, Any] = {"outcome": outcome}
     if verdicts:
         update["verdicts"] = verdicts
@@ -1844,7 +2272,7 @@ def rescore(job: Job, record: dict[str, Any], arrays: dict[str, np.ndarray]) -> 
 
 def _correctness_timeouts(job: Job, ctx: dict[str, Any]) -> dict[str, str]:
     """References recorded as timed out by this timing job's correctness job."""
-    return correctness_timeouts(job, ctx, REFERENCE_ENGINES)
+    return correctness_timeouts(job, ctx, job_references(job))
 
 
 def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
@@ -1895,7 +2323,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
     # A reference that ran out of its budget in the correctness job would only do
     # so again here, in-process and unbounded: record it and time the rest.
     timed_out = _correctness_timeouts(job, ctx)
-    for name in REFERENCE_ENGINES:
+    for name in _registry(prep):
         if name in not_applicable:
             continue
         if name in timed_out:
@@ -1904,7 +2332,7 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
             continue
         _progress(f"{name}: build + trial run")
         try:
-            if name == "run_network" and prep.get("format") != "sbml":
+            if name == "run_network" and prep.get("format") not in ("sbml", "antimony"):
                 dense_engine = RunNetworkODE(prep["net"], proto, workdir / "rn_dense",
                                              sparse=False, timeout=timeout)
                 dense = RunNetworkODE.trajectory(dense_engine.run())
@@ -1973,6 +2401,8 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
 
 
 def run(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
+    if job.kind == CORRECTNESS and is_cross_format(job):
+        return run_cross_format(job, problem, ctx)
     if job.kind == CORRECTNESS:
         return run_correctness(job, problem, ctx)
     if job.kind == TIMING:

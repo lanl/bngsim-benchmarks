@@ -218,6 +218,91 @@ below rests on evidence that does not depend on BNGsim.
 - **Koo 2013:** its SED-ML is named for the no-shear-stress condition, but it runs the
   file unchanged, which by the curation notes gives the shear-stress curve of Fig. 6.
 
+## ode-antimony: ODE on Antimony, converted from the other two ODE suites
+
+A derived suite (DESIGN §3.2): no published Antimony set reaches the sizes of the other
+two, so it interleaves them. Positions 1, 3, 5, 7 and 9 are ode-net's members at those
+positions, positions 2, 4, 6, 8 and 10 ode-sbml's. Each member's spec is
+`<source member>_antimony`, with a `derived:` block naming the member it is converted
+from; its source pin, evidence and ODE protocol are that member's, and `bench` refuses
+a spec whose source or protocol has moved away from it. A derived member is as
+published and verified as the model it came from.
+
+| # | problem | from | species / reactions | events | how it is converted |
+|---|---|---|---|---|---|
+| 1 | `noise_resistant_circadian_oscillator_vilar2002_antimony` | ode-net 1 | 9 / 16 | none | `.net` -> SBML -> Antimony |
+| 2 | `map3k8_vemurafenib_resistance_giani2019_antimony` | ode-sbml 2 | 75 / 85 | none | SBML -> Antimony |
+| 3 | `cell_cycle_oscillator_lang2024_antimony` (`_fitted`) | ode-net 3 | 73 / 332 | none | `.net` -> SBML -> Antimony |
+| 4 | `glucose_phosphotransferase_system_nishio2008_antimony` | ode-sbml 4 | 76 / 92 | 1 (t=500) | SBML -> Antimony |
+| 5 | `shp2_regulation_and_function_barua2007_antimony` | ode-net 5 | 149 / 1032 | none | `.net` -> SBML -> Antimony |
+| 6 | `shear_stress_nitric_oxide_koo2013_antimony` | ode-sbml 6 | 79 / 74 | none | SBML -> Antimony |
+| 7 | `beta_catenin_destruction_complex_barua2013_antimony` | ode-net 7 | 409 / 2737 | none | `.net` -> SBML -> Antimony |
+| 8 | `mapk_signalling_control_hornberg2005_antimony` | ode-sbml 8 | 103 / 148 | none | SBML -> Antimony |
+| 9 | `mapk_adaptive_resistance_frohlich2023_antimony` (`_preeq`) | ode-net 9 | 1612 / 17516 | none | `.net` -> SBML -> Antimony |
+| 10 | `segment_polarity_network_vondassow2000_antimony` | ode-sbml 10 | 148 / 480 | none | SBML -> Antimony |
+
+### Conversion
+
+- **At job time**, as the `.net` is: a BNGL member's `.net` (BNG2.pl, the protocol's
+  `netgen`) is written to SBML by `bngsim.convert.write_sbml`, the same SBML ode-net's
+  references read; an SBML member's pinned file is used as it is. libantimony (the
+  `antimony` package, pinned in the lock at 3.3.0) converts that SBML to Antimony. The
+  conversion is model preparation, charged to no engine. Every result records the
+  `.ant`'s sha256 and the sha256 of the SBML it came from (`measurements.antimony`), and
+  every job's definition the libantimony version, so a new converter re-runs the suite.
+- **Why not a pinned `.ant`:** everything the conversion reads is already pinned (the
+  source's sha256, BioNetGen, bngsim and libantimony are all in the job's key), and it is
+  deterministic: libantimony writes no date into the file, and converting each member
+  twice gives the same bytes. A pinned `.ant` would add a second copy of each model, in a
+  repository of its own, that could drift from the model it claims to be.
+- The `.ant` is read back once, before any engine runs, and must keep every compared
+  species; a conversion that loses one is a bad test input, not an engine's failure.
+- libantimony is not cheap on two members: von Dassow 2000 takes it about a minute each
+  way, Fröhlich 2023 about 1.5 min. It is charged to no engine at preparation, and to the
+  engine that reads the `.ant` at its load.
+- The round trip does not keep every flag: a species that the source declares both
+  `constant` and a boundary condition comes back a boundary species that is not
+  `constant` (12 of Giani 2019's, 17 of Nishio 2008's, 4 of von Dassow 2000's and
+  Fröhlich 2023's 2 fixed species). Their values do not move either way. This is why the
+  compared species are taken from the source, not from the `.ant`.
+
+### Engines and comparison
+
+- **BNGsim** reads the `.ant` with `Model.from_antimony` (libantimony, then its SBML
+  loader). `atol` is a plain float, as on the SBML path.
+- **libRoadRunner, COPASI and AMICI** read only SBML (libRoadRunner's own API too;
+  tellurium's `loada` is libantimony in front of it). Each converts the `.ant` to SBML
+  with libantimony inside its own build, with the calls tellurium's `loada` and AMICI's
+  `antimony2sbml` make, and reads that. The conversion is part of its load, as it is of
+  BNGsim's, and is recorded alone beside it (`antimony_seconds`, and the SBML's sha256).
+- **run_network** reads no Antimony and takes no part; the cross-format check below
+  compares BNGsim on the `.ant` with BNGsim on the `.net`.
+- What is compared is each `.net` species, for a member from ode-net (in BNGsim's
+  order, by the SBML id the export gave it), and each state species of the source
+  SBML, for a member from ode-sbml, as ode-sbml compares it. The verdict is the ODE
+  capability's: bngsim's vendored verdict and the per-species check.
+
+### Cross-format check
+
+Each member has a second correctness job,
+`ode/<member>/bngsim-vs-bngsim_net/auto/correctness` (or `bngsim_sbml`): BNGsim on the
+`.ant` against BNGsim on the source the `.ant` came from (`Model.from_net` on the
+`.net`, `Model.from_sbml` on the pinned SBML), under the ODE gate. Both reads run at the
+protocol's `rtol` and the same float `atol`, so only the reader differs; on the `.net`
+side this is not ode-net's exact `atol`. It is reported as its own result, beside the
+references' verdict.
+
+### What the suite spans (DESIGN §3.2, ODE)
+
+| axis | members |
+|---|---|
+| size | 9 to 1612 species and 16 to 17516 reactions, the range of both source suites up to ode-net's 9 |
+| oscillator | 1, 3 |
+| relaxation to steady state | 5, 7 |
+| events | 4 (one, at t=500) |
+| linear-solver policy | dense (1, 3) and KLU (the rest), as bngsim's automatic policy chooses |
+| conversion paths | both: `.net` -> SBML -> Antimony (odd), SBML -> Antimony (even) |
+
 ## ssa-sbml: exact SSA on published SBML, amounts as molecule counts
 
 Ten SBML models whose amounts are molecule counts, run with each engine's exact SSA:
