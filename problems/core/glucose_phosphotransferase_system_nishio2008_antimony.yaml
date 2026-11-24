@@ -1,0 +1,45 @@
+# Phosphotransferase system for glucose uptake in E. coli, read as Antimony. A core problem: member
+# 4 of the ode-antimony suite (docs/DESIGN.md §3.2, docs/core_suites.md), derived from member 4 of
+# ode-sbml (glucose_phosphotransferase_system_nishio2008). The model, its pin, its evidence and its
+# ODE protocol are that member's (bench checks that they stay equal); the .ant is converted from it
+# at job time, and its sha256 is recorded in every result.
+id: glucose_phosphotransferase_system_nishio2008_antimony
+layer: core
+title: Phosphotransferase system for glucose uptake in E. coli (Antimony)
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000571/BIOMD0000000571_url.xml
+  sha256: 9410de3b8aff1ec7826b0fd9ff5cbc16647d9709aa5097ddc3a5b14ebeaf5cf5
+  format: sbml
+derived:
+  from: glucose_phosphotransferase_system_nishio2008
+  suite: ode-sbml
+  position: 4
+  format: antimony
+  conversion: pinned SBML -> Antimony (libantimony), at job time
+publications:
+- citation: Nishio Y, Usuda Y, Matsui K, Kurata H (2008). Computer-aided rational design of the phosphotransferase
+    system for enhanced glucose uptake in Escherichia coli. Mol Syst Biol 4:160.
+  doi: 10.1038/msb4100201
+verification:
+  kind: author_file
+  evidence: 'BioModels BIOMD0000000571: its curation figure and curation notes, and final/BIOMD0000000571/Nishio2008.sedml
+    at the pinned commit'
+  check: 'BioModels curation: the curators reproduced Fig. 3A of the paper in COPASI, the IIAGlc time
+    course in response to glucose depletion over 1000 min; the SED-ML beside it at the pinned commit names
+    Fig. 3a-d and runs exactly this file'
+  result: curated; the curation figure reproduces Fig. 3A
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 1000
+    n_steps: 1000
+    rtol: 1.0e-06
+    atol: 1.0e-15
+size:
+  species: 76
+  reactions: 92
+suites:
+  ode-antimony: 4

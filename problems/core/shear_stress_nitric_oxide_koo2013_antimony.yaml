@@ -1,0 +1,46 @@
+# Shear-stress-induced nitric oxide production in endothelial cells, read as Antimony. A core
+# problem: member 6 of the ode-antimony suite (docs/DESIGN.md §3.2, docs/core_suites.md), derived
+# from member 6 of ode-sbml (shear_stress_nitric_oxide_koo2013). The model, its pin, its evidence
+# and its ODE protocol are that member's (bench checks that they stay equal); the .ant is converted
+# from it at job time, and its sha256 is recorded in every result.
+id: shear_stress_nitric_oxide_koo2013_antimony
+layer: core
+title: Shear-stress-induced nitric oxide production in endothelial cells (Antimony)
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000468/BIOMD0000000468_url.xml
+  sha256: e1d8e43b2cd8f373ff3646acf852c0cb59adbdf75c6bbe705ff3eac4734d0028
+  format: sbml
+derived:
+  from: shear_stress_nitric_oxide_koo2013
+  suite: ode-sbml
+  position: 6
+  format: antimony
+  conversion: pinned SBML -> Antimony (libantimony), at job time
+publications:
+- citation: Koo A, Nordsletten D, Umeton R, Yankama B, Ayyadurai S, García-Cardeña G, Dewey CF Jr (2013).
+    In silico modeling of shear-stress-induced nitric oxide production in endothelial cells through systems
+    biology. Biophys J 104:2295-2306.
+  doi: 10.1016/j.bpj.2013.03.052
+verification:
+  kind: author_file
+  evidence: 'BioModels BIOMD0000000468: its curation figure and curation notes, and final/BIOMD0000000468/Integratedmodel_noshearstress.sedml
+    at the pinned commit'
+  check: 'BioModels curation: the curators reproduced Fig. 6 of the paper; by their note this file as
+    it is gives the shear-stress curve (the no-shear curve needs four reactions removed). The SED-ML beside
+    it at the pinned commit names Fig. 6 and, despite its file name, runs exactly this file, unchanged'
+  result: curated; the curation figure reproduces the shear-stress curve of Fig. 6
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 12000
+    n_steps: 1000
+    rtol: 1.0e-06
+    atol: 1.0e-09
+size:
+  species: 79
+  reactions: 74
+suites:
+  ode-antimony: 6

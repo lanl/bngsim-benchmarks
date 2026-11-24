@@ -1,0 +1,44 @@
+# Control of MAPK signalling, read as Antimony. A core problem: member 8 of the ode-antimony suite
+# (docs/DESIGN.md §3.2, docs/core_suites.md), derived from member 8 of ode-sbml
+# (mapk_signalling_control_hornberg2005). The model, its pin, its evidence and its ODE protocol are
+# that member's (bench checks that they stay equal); the .ant is converted from it at job time, and
+# its sha256 is recorded in every result.
+id: mapk_signalling_control_hornberg2005_antimony
+layer: core
+title: Control of MAPK signalling (Antimony)
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000667/BIOMD0000000667_url.xml
+  sha256: 28ec3a680a51e96bbe943e33271530b031b17bf372f7914c4003c87f0994d4db
+  format: sbml
+derived:
+  from: mapk_signalling_control_hornberg2005
+  suite: ode-sbml
+  position: 8
+  format: antimony
+  conversion: pinned SBML -> Antimony (libantimony), at job time
+publications:
+- citation: 'Hornberg JJ, Binder B, Bruggeman FJ, Schoeberl B, Heinrich R, Westerhoff HV (2005). Control
+    of MAPK signalling: from complexity to what really matters. Oncogene 24:5533-5542.'
+  doi: 10.1038/sj.onc.1208817
+verification:
+  kind: author_file
+  evidence: 'BioModels BIOMD0000000667: its curation figure and curation notes, and final/BIOMD0000000667/MODEL0848279215.sedml
+    at the pinned commit'
+  check: 'BioModels curation: the curators reproduced Fig. 2 of the paper in COPASI; the SED-ML beside
+    it at the pinned commit names Fig. 2 and runs exactly this file'
+  result: curated; the curation figure reproduces Fig. 2
+capabilities: [ode]
+protocol:
+  ode:
+    t_start: 0
+    t_end: 6000
+    n_steps: 100
+    rtol: 1.0e-06
+    atol: 1.0e-09
+size:
+  species: 103
+  reactions: 148
+suites:
+  ode-antimony: 8

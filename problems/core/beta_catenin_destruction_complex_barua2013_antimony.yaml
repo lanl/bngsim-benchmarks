@@ -1,0 +1,46 @@
+# Beta-catenin destruction complex, read as Antimony. A core problem: member 7 of the ode-antimony
+# suite (docs/DESIGN.md §3.2, docs/core_suites.md), derived from member 7 of ode-net
+# (beta_catenin_destruction_complex_barua2013). The model, its pin, its evidence and its ODE
+# protocol are that member's (bench checks that they stay equal); the .ant is converted from it at
+# job time, and its sha256 is recorded in every result.
+id: beta_catenin_destruction_complex_barua2013_antimony
+layer: core
+title: Beta-catenin destruction complex (Antimony)
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  path: models/beta_catenin_destruction_complex_barua2013/beta_catenin_destruction_complex_barua2013.bngl
+  sha256: cf61ed161abb4efddb5cccd423b278f984aa63777996095f1f041005ec8deb97
+  format: bngl
+derived:
+  from: beta_catenin_destruction_complex_barua2013
+  suite: ode-net
+  position: 7
+  format: antimony
+  conversion: BNGL -> .net (BNG2.pl, the protocol's netgen) -> SBML (bngsim.convert.write_sbml, as the
+    ode-net references read it) -> Antimony (libantimony), at job time
+publications:
+- citation: Barua D, Hlavacek WS (2013). Modeling the effect of APC truncation on destruction complex
+    function in colorectal cancer cells. PLoS Comput Biol 9(9):e1003217.
+  doi: 10.1371/journal.pcbi.1003217
+verification:
+  kind: data
+  evidence: models/beta_catenin_destruction_complex_barua2013/verify_barua2013.ipynb
+  check: digitized Fig. 5A dose response vs the generated network, point-wise relative error < 6% asserted
+  result: max 0.018, median 0.007
+  supporting: nominal steady state 35.89 nM vs the paper's 35 nM (printed, not asserted)
+capabilities: [ode]
+protocol:
+  ode:
+    netgen: generate_network({overwrite=>1,max_stoich=>{APC=>1,AXIN=>1,bCat=>1}})
+    t_start: 0
+    t_end: 250000
+    n_steps: 1000
+    rtol: 1.0e-08
+    atol: 1.0e-08
+    sparse: true
+size:
+  species: 409
+  reactions: 2737
+suites:
+  ode-antimony: 7

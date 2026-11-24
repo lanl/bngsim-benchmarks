@@ -40,7 +40,15 @@ SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ssa-net": ("ssa", ("bngl",)),  # exact SSA on the .net generated from published BNGL
     "psa-net": ("psa", ("bngl",)),  # partial scaling (PSA) on the .net from published BNGL
     "sens-net": ("sens", ("bngl",)),  # forward sensitivities on the .net from published BNGL
+    # ODE on Antimony converted at job time from ode-net and ode-sbml members (``derived``)
+    "ode-antimony": ("ode", ("antimony",)),
 }
+
+# Formats a member may be converted to from its pinned source (a spec's ``derived``
+# block), and the capabilities that read each. A derived member is the model of
+# another suite's member, converted at job time and read in the new format; its
+# source and protocol are that member's (``check_derived``).
+DERIVED_FORMATS: dict[str, tuple[str, ...]] = {"antimony": ("ode",)}
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -70,9 +78,17 @@ class Problem:
     size: dict[str, int] = field(default_factory=dict)
     suites: dict[str, int] = field(default_factory=dict)
     path: str = ""
+    # A member converted from another suite's member: {from, suite, position, format}.
+    derived: dict[str, Any] = field(default_factory=dict)
 
     def protocol_for(self, capability: str) -> dict[str, Any]:
         return self.protocol[capability]
+
+    @property
+    def input_format(self) -> str | None:
+        """The format the engines read: the source's, or the format a derived
+        member is converted to."""
+        return self.derived.get("format") or self.source.get("format")
 
 
 def _validate_ode_protocol(p: Any, where: str, errs: list[str],
@@ -612,6 +628,36 @@ PROTOCOL_VALIDATORS = {
 }
 
 
+def _validate_derived(d: Any, caps: Any, errs: list[str]) -> None:
+    """A derived member's ``derived`` block: the member it is converted from
+    (``from``, the problem id, and that member's ``suite`` and ``position``) and
+    the ``format`` it is converted to. Only a capability that reads that format
+    may be listed, so the member has no jobs that would repeat its source's."""
+    if d == {}:
+        return
+    if not isinstance(d, dict):
+        errs.append("derived: a mapping (from, suite, position, format)")
+        return
+    for k in sorted(set(d) - {"from", "suite", "position", "format", "conversion"}):
+        errs.append(f"derived: unknown key {k!r}")
+    if not isinstance(d.get("from"), str) or not _ID_RE.match(d.get("from") or ""):
+        errs.append("derived.from: the id of the problem it is converted from")
+    if d.get("suite") not in SUITES:
+        errs.append(f"derived.suite: the source member's suite (one of {', '.join(SUITES)})")
+    pos = d.get("position")
+    if not isinstance(pos, int) or isinstance(pos, bool) or not 1 <= pos <= SUITE_SIZE:
+        errs.append(f"derived.position: an integer from 1 to {SUITE_SIZE}")
+    fmt = d.get("format")
+    if fmt not in DERIVED_FORMATS:
+        errs.append(f"derived.format: one of {', '.join(DERIVED_FORMATS)}")
+    elif isinstance(caps, list):
+        for cap in caps:
+            if cap not in DERIVED_FORMATS[fmt]:
+                errs.append(f"derived: capability {cap!r} does not read {fmt}")
+    if "conversion" in d and not (isinstance(d["conversion"], str) and d["conversion"].strip()):
+        errs.append("derived.conversion: a description of the conversion")
+
+
 def validate(data: Any, path: Path | str = "<spec>") -> Problem:
     errs: list[str] = []
     if not isinstance(data, dict):
@@ -619,7 +665,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
 
     allowed = {
         "id", "layer", "title", "source", "publications", "verification",
-        "capabilities", "protocol", "size", "suites",
+        "capabilities", "protocol", "size", "suites", "derived",
     }
     for k in sorted(set(data) - allowed):
         errs.append(f"unknown key {k!r}")
@@ -706,6 +752,9 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         errs.append("size: a mapping of non-negative integers")
         size = {}
 
+    derived = data.get("derived", {})
+    _validate_derived(derived, caps, errs)
+
     suites = data.get("suites", {})
     if not isinstance(suites, dict):
         errs.append("suites: a mapping of suite name to position")
@@ -719,7 +768,11 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
             errs.append(f"suites.{name}: only a core problem may belong to a suite")
         if cap not in caps:
             errs.append(f"suites.{name}: a member must list capability {cap!r}")
-        if isinstance(source, dict) and source.get("format") not in formats:
+        if isinstance(derived, dict) and derived.get("format"):
+            if derived.get("format") not in formats:
+                errs.append(f"suites.{name}: a derived member's format must be one of "
+                            f"{', '.join(formats)}")
+        elif isinstance(source, dict) and source.get("format") not in formats:
             errs.append(f"suites.{name}: source.format must be one of {', '.join(formats)}")
         if not isinstance(pos, int) or isinstance(pos, bool) or not 1 <= pos <= SUITE_SIZE:
             errs.append(f"suites.{name}: position must be an integer from 1 to {SUITE_SIZE}")
@@ -738,6 +791,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         size=dict(size),
         suites=dict(suites),
         path=str(path),
+        derived=dict(derived) if isinstance(derived, dict) else {},
     )
 
 
@@ -771,7 +825,7 @@ def load_all(root: str | Path) -> list[Problem]:
         seen[p.id] = p.path
     if dups:
         raise SpecError(root, dups)
-    suite_errs = check_suites(problems)
+    suite_errs = check_suites(problems) + check_derived(problems)
     if suite_errs:
         raise SpecError(root, suite_errs)
     return sorted(problems, key=lambda p: p.id)
@@ -801,4 +855,31 @@ def check_suites(problems: list[Problem]) -> list[str]:
         if missing:
             errs.append(f"suite {name!r}: {len(members)} of {SUITE_SIZE} members; "
                         f"no member at position {', '.join(map(str, missing))}")
+    return errs
+
+
+def check_derived(problems: list[Problem]) -> list[str]:
+    """Every derived member names a problem that holds the named position of the
+    named suite, and has that problem's source and, for each capability it
+    lists, that problem's protocol: a derived member is the same model run the
+    same way, only read in another format."""
+    by_id = {p.id: p for p in problems}
+    errs: list[str] = []
+    for p in problems:
+        if not p.derived:
+            continue
+        src = by_id.get(p.derived.get("from"))
+        if src is None:
+            errs.append(f"{p.id}: derived from {p.derived.get('from')!r}, which no spec defines")
+            continue
+        if src.derived:
+            errs.append(f"{p.id}: derived from {src.id}, which is itself derived")
+        suite, pos = p.derived.get("suite"), p.derived.get("position")
+        if src.suites.get(suite) != pos:
+            errs.append(f"{p.id}: {src.id} is not member {pos} of {suite}")
+        if dict(src.source) != dict(p.source):
+            errs.append(f"{p.id}: its source is not {src.id}'s")
+        for cap in p.capabilities:
+            if src.protocol.get(cap) != p.protocol.get(cap):
+                errs.append(f"{p.id}: its {cap} protocol is not {src.id}'s")
     return errs

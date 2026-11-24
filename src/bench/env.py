@@ -191,6 +191,21 @@ def amici_identity() -> dict[str, Any]:
     return ident
 
 
+@lru_cache(maxsize=1)
+def antimony_identity() -> dict[str, Any]:
+    """Version of libantimony (the ``antimony`` package), which converts an
+    ode-antimony member to Antimony at job time and back to SBML for the engines
+    that read only SBML. Read from package metadata, without the import.
+    ``{version: None, error}`` when absent."""
+    try:
+        from importlib.metadata import version
+
+        ident: dict[str, Any] = {"version": version("antimony")}
+    except Exception as exc:  # noqa: BLE001 - any failure means "absent/unreadable"
+        ident = {"version": None, "error": f"{type(exc).__name__}: {exc}"}
+    return ident
+
+
 def _preload_libpython() -> None:
     """Make this interpreter's ``libpython`` findable by extensions that need it.
 
