@@ -58,6 +58,11 @@ bngsim = "==0.17.2"
 # leaving this pin untouched. See docs/BUILD_NOTES.md; the ARM leg is the
 # cross-platform gate's (docs/DESIGN.md section 9.1).
 libroadrunner = "==2.11.0"
+# Antimony, the third ODE input format (the ode-antimony suite): bngsim reads it
+# through libantimony (bngsim's own `antimony` extra asks for >= 3.1.3), and the
+# suite converts its SBML members with it. 3.3.0 ships py3-none wheels for both
+# platforms of this lock (manylinux_2_28 x86_64, macosx_14_0_arm64).
+antimony = "==3.3.0"
 # COPASI, a third reference ODE engine, driven through BASICO (`copasi-basico`,
 # imported as `basico`), a pure-Python wrapper over the SWIG bindings. basico 0.92
 # is `py3-none-any`; the native code lives in `python-copasi`, pinned explicitly so
