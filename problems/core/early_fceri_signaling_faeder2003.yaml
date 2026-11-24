@@ -6,11 +6,13 @@
 # protocol is the file's own condition (its commented SSA action beside the active ODE one:
 # 10 nM IgE dimer from the scaled initial state) over its first 2 min rather than 10, output
 # every 2 s. A cost decision: COPASI's direct method takes about 22 s a trajectory on this
-# network whatever the horizon (24 s at 2 min; the task's initialisation, which each trajectory
-# repeats to take its own seed), so 100 of them fill most of the one-hour budget per engine, and
-# libRoadRunner's gillespie takes about 25 s per 10-min trajectory. The verified figure is Fig.
-# 3 (1.6 nM, 70 min), reproduced by the same model block at Lig_tot = 963.5; the file's own
-# condition is that of Figs. 4 and 7.
+# network whatever the horizon (24 s at 2 min), so 100 of them fill most of the one-hour budget
+# per engine, and libRoadRunner's gillespie takes about 25 s per 10-min trajectory. Most of
+# COPASI's is CStochDirectMethod::start(), 17-20 s here, which rebuilds one update sequence per
+# reaction at the start of every run, its own Scan repeats included (21.8 s a repeat); the
+# simulation over 2 min is about 2.5 s (ssa.CopasiSSA, docs/DESIGN.md §5.3). The verified
+# figure is Fig. 3 (1.6 nM, 70 min), reproduced by the same model block at Lig_tot = 963.5; the
+# file's own condition is that of Figs. 4 and 7.
 # PSA: the same protocol, so its exact-SSA ensembles are the SSA job's BNGsim and run_network
 # ones. Every reaction has a low-copy participant, so in the probe and the smoke run nothing
 # scaled at any N_c: every N_c is gated as exact SSA.

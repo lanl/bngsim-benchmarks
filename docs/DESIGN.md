@@ -481,6 +481,18 @@ cost before sampling -- BNGsim's load and propensity compile, libRoadRunner's SB
 load and JIT, COPASI's import -- is measured once, cold, beside it (§6.3);
 run_network loads the `.net` in every trajectory, so its load is inside its time.
 
+COPASI has a fixed cost inside every trajectory as well. Each trajectory is one run
+of its time-course task, with its own seed. COPASI calls the direct method's
+`start()` at the start of every run, including each repeat of its own Scan task.
+`start()` reads the seed, resets the method's propensity search order and rebuilds
+one dependency update sequence per reaction. COPASI's API has no cheaper way to
+start a trajectory from a seed, so this cost is COPASI's own and is timed as part
+of its trajectories, not worked around. It is 0.1-0.3 ms on 2-6 reactions, 0.2 s
+on Dushek 2011's 284 and 17-20 s on Faeder 2003's 3680, where the 2-minute
+simulation itself takes about 2.5 s. COPASI's configuration records `start_seconds`: one `start()`, timed once
+after the build, so a reader can see how much of COPASI's per-trajectory time it
+is.
+
 ### 5.4 Partial scaling (PSA)
 
 PSA (Lin, Feng & Hlavacek 2019, *J Chem Phys* 150:244101, doi:10.1063/1.5096774)

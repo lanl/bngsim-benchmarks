@@ -532,8 +532,20 @@ class CopasiSSA:
       long trajectory is never cut short by COPASI's default cap on events per
       output interval; the per-engine wall budget bounds it instead.
 
-    The seed is read when the task initialises, so each trajectory sets its seed
-    and initialises before it runs (about 30 us).
+    A trajectory is one run of the task: its seed set, ``initializeRaw`` (which
+    resets the time series; about 0.02 s at 3680 reactions) and ``processRaw``.
+    The seed is read when the run starts, in ``CStochDirectMethod::start()``,
+    which COPASI calls at the start of every run of a time course -- as each
+    repeat of its own Scan task does -- and which also resets the method's
+    propensity search order and rebuilds one dependency update sequence per
+    reaction. That rebuild is COPASI's own fixed cost of a run; COPASI's API has
+    no cheaper way to start a trajectory (the search order and the
+    direct-method state can be reset only there). It grows with the network:
+    0.1-0.3 ms on 2-6 reactions, 0.2 s on Dushek 2011's 284, 17-20 s on Faeder
+    2003's 3680, where the simulation itself takes about 2.5 s over 2 min
+    (bench node, E5-2695 v4). ``start_seconds`` is it,
+    timed once after the build, as ``load_seconds`` is the import; it is inside
+    every trajectory COPASI runs, so the per-trajectory times include it.
     """
 
     NAME = "copasi"
@@ -569,6 +581,19 @@ class CopasiSSA:
         self.method.getParameter("Use Random Seed").setBoolValue(True)
         self.load_seconds = time.perf_counter() - t0
         self._columns: list[int] | None = None
+        self.start_seconds = self._time_start()
+
+    def _time_start(self) -> float:
+        """One ``CStochDirectMethod::start()``, timed: the fixed cost every run
+        pays before its first event. Every trajectory starts its own run, which
+        reseeds and resets what this one set, so it leaves no trace in them."""
+        cp = self._copasi
+        before = cp.CCopasiMessage.size()
+        if not self.task.initializeRaw(cp.CCopasiTask.OUTPUT_UI):
+            self._fail("task initialisation", before)
+        t0 = time.perf_counter()
+        self.method.start()
+        return time.perf_counter() - t0
 
     def _fail(self, what: str, before: int):
         msgs = self._copasi.CCopasiMessage.getAllMessageText() \
@@ -605,7 +630,9 @@ class CopasiSSA:
                 "version": env.copasi_identity().get("version"),
                 "output": "particle number",
                 "quantity_unit": f"# (imported as {self.imported_quantity_unit})",
-                "load_seconds": self.load_seconds}
+                "load_seconds": self.load_seconds,
+                # Inside every trajectory's time, not apart from it (the docstring).
+                "start_seconds": self.start_seconds}
 
 
 # The reference engines BNGsim is compared against, in a fixed order.

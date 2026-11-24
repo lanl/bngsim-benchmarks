@@ -557,3 +557,75 @@ def test_timing_drops_a_crashing_or_timed_out_reference_and_times_the_rest(
     assert rec["run_network_error"].startswith("TIMEOUT in the correctness job")
     assert rec["roadrunner_error"].startswith("RuntimeError")
     assert rec["outcome"] == "PASS"
+
+
+# --------------------------------------------------------------------------- #
+# COPASI's direct method, for real (python-copasi is in the environment)
+# --------------------------------------------------------------------------- #
+_SBML = """<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model id="dimer">
+    <listOfCompartments>
+      <compartment id="c" size="1" constant="true" spatialDimensions="3"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="A" compartment="c" initialAmount="40" hasOnlySubstanceUnits="true"
+               boundaryCondition="false" constant="false"/>
+      <species id="B" compartment="c" initialAmount="0" hasOnlySubstanceUnits="true"
+               boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="kf" value="0.5" constant="true"/>
+      <parameter id="kr" value="1" constant="true"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="bind" reversible="false">
+        <listOfReactants><speciesReference species="A" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts><speciesReference species="B" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw><math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply><times/><ci>kf</ci><ci>A</ci></apply></math></kineticLaw>
+      </reaction>
+      <reaction id="unbind" reversible="false">
+        <listOfReactants><speciesReference species="B" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts><speciesReference species="A" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw><math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply><times/><ci>kr</ci><ci>B</ci></apply></math></kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
+"""
+
+
+def _copasi(tmp_path):
+    pytest.importorskip("basico")
+    sbml = tmp_path / "dimer.xml"
+    sbml.write_text(_SBML)
+    proto = {"t_end": 5.0, "n_steps": 10}
+    return ssa.CopasiSSA(sbml, ["A", "B"], {"A": "A", "B": "B"}, proto)
+
+
+def test_copasi_trajectories_are_each_a_function_of_their_own_seed(tmp_path):
+    # Each trajectory is its own COPASI run, whose start() reseeds and resets the
+    # direct method (its propensity search order too), so a trajectory does not
+    # depend on the trajectories before it.
+    eng = _copasi(tmp_path)
+    forward = [eng.trajectory(s) for s in (11, 12, 13)]
+    backward = [eng.trajectory(s) for s in (13, 12, 11)][::-1]
+    for a, b in zip(forward, backward):
+        np.testing.assert_array_equal(a, b)
+    assert a.shape == (11, 2) and (a.sum(axis=1) == 40).all()
+    assert not np.array_equal(forward[0], forward[1])
+
+
+def test_copasi_times_its_per_run_start_once_and_it_leaves_no_trace(tmp_path, monkeypatch):
+    eng = _copasi(tmp_path)
+    start = eng.config()["start_seconds"]
+    assert isinstance(start, float) and 0.0 <= start < 1.0
+    got = eng.ensemble(3, 7)
+    monkeypatch.setattr(ssa.CopasiSSA, "_time_start", lambda self: None)
+    np.testing.assert_array_equal(_copasi(tmp_path).ensemble(3, 7), got)
