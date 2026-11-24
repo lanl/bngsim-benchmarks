@@ -326,3 +326,39 @@ def test_the_committed_suite_interleaves_ode_net_and_ode_sbml():
         assert src.suites[want] == pos
         assert m.capabilities == ("ode",)
         assert m.id == f"{src.id}_antimony"
+
+
+# --------------------------------------------------------------------------- #
+# The correctness and timing paths, for real with BNGsim and libRoadRunner only
+# --------------------------------------------------------------------------- #
+@pytest.fixture
+def rr_only(monkeypatch):
+    monkeypatch.setattr(ode, "ANTIMONY_REFERENCE_ENGINES",
+                        {"roadrunner": ode.RoadRunnerAntimony})
+
+
+def test_correctness_reads_the_ant_in_bngsim_and_roadrunner(toy_member, tmp_path, rr_only):
+    corr = ode.jobs(toy_member)[0]
+    rec = ode.run(corr, toy_member, _ctx(tmp_path))
+    assert rec["outcome"] == "PASS", rec
+    assert set(rec["verdicts"]) == {"roadrunner"}
+    ref = rec["measurements"]["references"]["roadrunner"]
+    assert ref["input"].startswith("antimony") and ref["antimony_seconds"] >= 0
+    assert "not_applicable" not in rec and "run_network_error" not in rec
+    assert set(rec["_trajectories"]) == {"time", "species", "bngsim", "roadrunner"}
+
+
+def test_timing_times_bngsim_and_the_references_on_the_ant(toy_member, tmp_path, rr_only):
+    import dataclasses
+
+    timing = ode.jobs(toy_member)[1]
+    timing = dataclasses.replace(timing, definition={
+        **timing.definition,
+        "timing": {"warmup_rounds": 1, "min_rounds": 2, "max_rounds": 2, "budget_seconds": 0.0}})
+    rec = ode.run(timing, toy_member, _ctx(tmp_path))
+    m = rec["measurements"]
+    assert rec["outcome"] == "PASS", rec
+    assert set(m["times"]) == {"bngsim", "roadrunner"}
+    assert m["bngsim"]["input"].startswith("antimony")
+    assert m["antimony"]["ant_sha256"]
+    assert all(r["passed"] for r in m["reproducibility"].values())
