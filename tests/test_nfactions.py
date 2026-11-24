@@ -69,6 +69,21 @@ def test_render_replaces_each_steps_seed_and_suffix_and_keeps_the_rest():
     assert again.describe() == {**proto.describe(), "dropped": []}
 
 
+def test_the_last_step_need_not_be_read_back_and_earlier_ones_keep_their_choice():
+    proto = nfactions.protocol(TWO_PHASE.replace("gml=>500})  # equilibrate",
+                                                 "gml=>500,get_final_state=>1})"))
+    lines = nfactions.render(proto, [11, 22], read_back_last=False).strip().splitlines()
+    assert "get_final_state=>1" in lines[1]
+    assert lines[3].endswith('suffix=>"nfp1",seed=>22,get_final_state=>0})')
+    # Only BNG2.pl's output changes: the protocol read back is the same but for it.
+    again = nfactions.protocol("\n".join(lines))
+    assert [p.duration for p in again.phases] == [p.duration for p in proto.phases]
+    assert again.phases[0].get_final_state and not again.phases[1].get_final_state
+    single = nfactions.protocol(CAMKII.split("begin actions")[1].split("end actions")[0])
+    text = nfactions.render(single, [5], read_back_last=False)
+    assert text.count("get_final_state") == 1 and "get_final_state=>0" in text
+
+
 def test_an_expression_value_is_quoted_for_bngl():
     step = nfactions.SetParameter("f", "2*k")
     assert step.render() == 'setParameter("f","2*k")'

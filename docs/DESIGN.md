@@ -587,7 +587,10 @@ distribution whose `NFsim` launches the unchanged binary under the loader swap.
 
 - `nfsim`: BNG2.pl and NFsim 1.14.3 (BioNetGen 2.9.3), one BNG2.pl process per
   trajectory, each step's seed replaced. Its NaN stop on a rate law that divides by a
-  single-copy count (RuleWorld/nfsim#115) is recorded as such.
+  single-copy count (RuleWorld/nfsim#115) is recorded as such. The protocol's last step
+  runs with `get_final_state=>0`: no step follows it to use NFsim's final state, and
+  BNG2.pl reading that species file back took it over three minutes per trajectory on
+  `blbr_dembo1978`'s chains, against NFsim's 3 s. The trajectory is the same.
 - `rulemonkey`: RuleMonkey's `rm_driver` v3.13.0, built from its pinned source with
   the environment's compiler (`bench fetch-rulemonkey`), one process per trajectory on
   the same XML. It is the **same code lineage** as BNGsim's `nf_exact` engine (bngsim

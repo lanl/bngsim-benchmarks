@@ -71,10 +71,15 @@ class SimulateNF:
                 return v
         return default
 
-    def render(self, *, seed: int, suffix: str) -> str:
-        """The step for BNG2.pl, its seed and output suffix replaced."""
-        opts = [(k, v) for k, v in self.options if k not in ("seed", "suffix", "prefix")]
+    def render(self, *, seed: int, suffix: str, get_final_state: bool | None = None) -> str:
+        """The step for BNG2.pl, its seed and output suffix replaced (and, if
+        given, whether BNG2.pl reads NFsim's final state back)."""
+        drop = {"seed", "suffix", "prefix"} | ({"get_final_state"} if get_final_state is not None
+                                              else set())
+        opts = [(k, v) for k, v in self.options if k not in drop]
         opts += [("suffix", f'"{suffix}"'), ("seed", str(int(seed)))]
+        if get_final_state is not None:
+            opts.append(("get_final_state", "1" if get_final_state else "0"))
         return f"{self.action}({{" + ",".join(f"{k}=>{v}" for k, v in opts) + "})"
 
 
@@ -341,12 +346,20 @@ def _param_flags(text: str | None) -> dict[str, int | bool]:
     return out
 
 
-def render(proto: Protocol, seeds: list[int], *, suffix: str = "nfp") -> str:
+def render(proto: Protocol, seeds: list[int], *, suffix: str = "nfp",
+           read_back_last: bool = True) -> str:
     """The protocol as BNG2.pl actions: every ``setParameter`` as written and
     every network-free step with ``seeds[k]`` and the output suffix
-    ``<suffix><k>``, so each phase writes its own ``.gdat``."""
+    ``<suffix><k>``, so each phase writes its own ``.gdat``. With
+    ``read_back_last`` false the last step runs with ``get_final_state=>0``:
+    no step follows it to use its final state, so BNG2.pl need not read NFsim's
+    species file back -- which, for a model of many large complexes, takes BNG2.pl
+    far longer than NFsim took to simulate. The trajectory is unchanged."""
     lines = []
+    last = len(proto.phases) - 1
     for p in proto.phases:
         lines += [s.render() for s in p.sets]
-        lines.append(p.step.render(seed=seeds[p.index], suffix=f"{suffix}{p.index}"))
+        keep = None if read_back_last or p.index != last else False
+        lines.append(p.step.render(seed=seeds[p.index], suffix=f"{suffix}{p.index}",
+                                   get_final_state=keep))
     return "\n".join(lines) + "\n"

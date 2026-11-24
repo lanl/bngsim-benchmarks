@@ -103,7 +103,7 @@ from .ssa import VERDICT as SSA_VERDICT
 
 CAPABILITY = "nf"
 # Bump when this module's computation changes; every result it wrote goes stale.
-HARNESS_VERSION = "1"
+HARNESS_VERSION = "2"
 # BNGsim's two network-free engines: each is the system under test of one setting.
 SETTINGS = ("nf_reject", "nf_exact")
 SESSION = {"nf_reject": "NfsimSession", "nf_exact": "RuleMonkeySession"}
@@ -449,7 +449,10 @@ class NfsimBNG2:
 
     Each trajectory is one BNG2.pl process on the model with the protocol's steps
     appended, every network-free step given its seed (``phase_seed``) and its own
-    output suffix; each step's ``.gdat`` is read back. BNG2.pl writes the XML and
+    output suffix; each step's ``.gdat`` is read back. The last step runs with
+    ``get_final_state=>0``: nothing follows it, and BNG2.pl reading NFsim's final
+    species back (minutes per trajectory on blbr_dembo1978's chains) is no part of
+    the simulation. BNG2.pl writes the XML and
     starts NFsim with its own flags (``-cb`` by default), so the run is what a user
     of BioNetGen gets. On an old-glibc host BNG2.pl is pointed at a mirror of the
     distribution whose ``bin/NFsim`` launches the unchanged binary under the
@@ -474,7 +477,8 @@ class NfsimBNG2:
 
     def trajectory(self, seed: int) -> np.ndarray:
         seeds = [phase_seed(seed, k) for k in range(len(self.nf.phases))]
-        bngl = netgen_bngl(self.prep["text"], nfactions.render(self.nf, seeds, suffix="nfp"))
+        bngl = netgen_bngl(self.prep["text"], nfactions.render(self.nf, seeds, suffix="nfp",
+                                                               read_back_last=False))
         for old in self.dir.glob("model_nfp*"):
             old.unlink()
         proc = _bng2(bngl, self.dir, timeout=self.timeout, bngpath=self.tree)
