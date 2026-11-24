@@ -432,7 +432,10 @@ comparisons, so a correct BNGsim fails it with probability at most 4 x 10^-3, an
 ten-problem suite at most 0.04. A reference that cannot simulate a model's exact
 SSA at all is recorded as `UNSUPPORTED` and not run: libRoadRunner's gillespie fires
 the SBML rate law as the propensity, which for a repeated reactant (`A + A`) is
-`k A^2` where the exact propensity is `k A (A - 1)`.
+`k A^2` where the exact propensity is `k A (A - 1)`; and it starts from an initial
+amount as written, where the other engines start from whole molecules, so it is not
+run on a network with a non-integer initial count either (Munsky 2012's
+24.999999999999996).
 
 bngsim's own parity suites judge ensembles by a K-sigma test on the means that
 passes when 99% of cells pass (`parity_core.differ.ensemble_verdict`). It has no

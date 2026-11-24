@@ -210,6 +210,29 @@ def test_roadrunner_is_not_run_on_a_repeated_reactant():
     assert ssa.RoadRunnerSSA.unsupported(None) is None
 
 
+def test_roadrunner_is_not_run_from_a_non_integer_count():
+    # Munsky 2012's m_avg_reg evaluates to 24.999999999999996: the other engines start
+    # from 25 molecules, libRoadRunner's gillespie from the amount as it is.
+    net = netfile.parse("""begin parameters
+ 1 k 100/300
+ 2 g 1/300
+ 3 m k/g*0.25
+end parameters
+begin species
+ 1 A() m
+ 2 B() 3
+end species
+begin reactions
+ 1 1 0 g #R_clear
+end reactions
+""")
+    reason = ssa.RoadRunnerSSA.unsupported(net)
+    assert reason.startswith("UNSUPPORTED: 1 species start at a non-integer count")
+    assert "A() = 24.999999999999996" in reason
+    whole = netfile.parse("begin species\n 1 A() 25\n 2 B() 0\nend species\n")
+    assert ssa.RoadRunnerSSA.unsupported(whole) is None
+
+
 # --------------------------------------------------------------------------- #
 # Correctness and timing, with fake engines
 # --------------------------------------------------------------------------- #

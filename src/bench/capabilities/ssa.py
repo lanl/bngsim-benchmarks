@@ -35,7 +35,10 @@ out of time). A reference that cannot simulate this model's exact SSA at all is
 recorded the same way, with an error starting ``UNSUPPORTED`` and without being run:
 libRoadRunner's gillespie fires the SBML rate law as the propensity, so on a
 reaction with a repeated reactant (``A + A``) it uses ``k*A*A`` where the exact
-propensity is ``k*A*(A-1)`` (and since 2.9.3 can fire without end once ``A`` is 0).
+propensity is ``k*A*(A-1)`` (and since 2.9.3 can fire without end once ``A`` is 0);
+and it starts from an initial amount as written, so a count that is not a whole
+number (one that evaluates to 24.999999999999996) is not the state the other
+engines start from.
 
 **Timing.** Each engine's timed unit is one ensemble of ``timing_replicates``
 trajectories with the same seeds every round, interleaved round-robin with the
@@ -56,6 +59,7 @@ inputs, and ``jobs`` is where such a suite would be admitted.
 
 from __future__ import annotations
 
+import math
 import subprocess
 import time
 from pathlib import Path
@@ -423,13 +427,25 @@ class RoadRunnerSSA:
         if network is None:
             return None
         reps = network.repeated_reactants()
-        if not reps:
-            return None
-        r = reps[0]
-        return (f"UNSUPPORTED: {len(reps)} reaction(s) consume one species twice (first: "
-                f"reaction {r.index}{' ' + r.label if r.label else ''}); libRoadRunner's "
-                "gillespie fires the SBML rate law k*A*A as the propensity, where exact SSA "
-                "uses k*A*(A-1), and can fire without end once A reaches 0")
+        if reps:
+            r = reps[0]
+            return (f"UNSUPPORTED: {len(reps)} reaction(s) consume one species twice (first: "
+                    f"reaction {r.index}{' ' + r.label if r.label else ''}); libRoadRunner's "
+                    "gillespie fires the SBML rate law k*A*A as the propensity, where exact SSA "
+                    "uses k*A*(A-1), and can fire without end once A reaches 0")
+        # libRoadRunner's gillespie starts from the SBML amount as it is, where the other
+        # engines start from whole molecules: a count that evaluates to 24.999999999999996
+        # (Munsky 2012's m_avg_reg) stays that, every trajectory then differs from the
+        # integer state at t = 0, and the ensembles cannot be compared.
+        frac = [(name, x) for name, x in zip(network.species, network.initial)
+                if math.isfinite(x) and x != round(x)]
+        if frac:
+            name, x = frac[0]
+            return (f"UNSUPPORTED: {len(frac)} species start at a non-integer count (first: "
+                    f"{name} = {x!r}); libRoadRunner's gillespie does not round it, so it "
+                    "samples from another initial state than the integer one the other "
+                    "engines start from")
+        return None
 
     def __init__(self, sbml: Path, species_names: list[str], name_to_id: dict[str, str],
                  proto: dict[str, Any]):
