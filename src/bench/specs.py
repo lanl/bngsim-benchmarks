@@ -36,6 +36,7 @@ SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ode-sbml": ("ode", ("sbml",)),  # ODE on published SBML, read as it is
     "ssa-sbml": ("ssa", ("sbml",)),  # exact SSA on published SBML, amounts as molecule counts
     "ss-net": ("steady_state", ("bngl",)),  # steady state on the .net generated from published BNGL
+    "ss-sbml": ("steady_state", ("sbml",)),  # steady state on published SBML, read as it is
 }
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
@@ -248,15 +249,20 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
     ``atol``, parameters set for every point (``parameters``), and optionally a
     dose-response ``scan`` of one parameter -- explicit ``values``, or ``min``,
     ``max`` and ``points``, spaced on a ``log`` scale or linearly -- and the
-    problem's own per-engine wall budget (``engine_budget_seconds``, planning only)."""
+    problem's own per-engine wall budget (``engine_budget_seconds``, planning only).
+
+    An SBML model (the ss-sbml suite) has no ``netgen``; it may set species'
+    initial concentrations for every point (``species``, SBML ids), and its scan
+    may set one (``scan.species``) instead of a parameter."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "scan",
-               "engine_budget_seconds"}
+    sbml = source_format == "sbml"
+    allowed = {"t_end", "n_steps", "rtol", "atol", "parameters", "scan", "engine_budget_seconds"}
+    allowed.add("species" if sbml else "netgen")
     for k in sorted(set(p) - allowed):
         errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "rtol", "atol"):
+    for k in ("t_end", "rtol", "atol") if sbml else ("netgen", "t_end", "rtol", "atol"):
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
     netgen = p.get("netgen")
@@ -282,19 +288,35 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
             errs.append(f"{where}.parameters: {name!r} is not a parameter name")
         if not _number(v):
             errs.append(f"{where}.parameters.{name}: must be a number")
+    species = p.get("species", {})
+    if not isinstance(species, dict):
+        errs.append(f"{where}.species: a mapping of species id to initial concentration")
+        species = {}
+    for name, v in species.items():
+        if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
+            errs.append(f"{where}.species: {name!r} is not an SBML id")
+        elif name in params:
+            errs.append(f"{where}.species: {name!r} is also set in parameters")
+        if not (_number(v) and v >= 0):
+            errs.append(f"{where}.species.{name}: must be a non-negative number")
+    params = {**params, **species}
     scan = p.get("scan")
     if scan is None:
         return
     if not isinstance(scan, dict):
         errs.append(f"{where}.scan: a mapping (parameter, and values or min/max/points)")
         return
-    for k in sorted(set(scan) - {"parameter", "values", "min", "max", "points", "log"}):
+    target_keys = {"parameter", "species"} if sbml else {"parameter"}
+    for k in sorted(set(scan) - target_keys - {"values", "min", "max", "points", "log"}):
         errs.append(f"{where}.scan: unknown key {k!r}")
-    name = scan.get("parameter")
+    target = "species" if sbml and "species" in scan else "parameter"
+    if sbml and "species" in scan and "parameter" in scan:
+        errs.append(f"{where}.scan: a parameter or a species, not both")
+    name = scan.get(target)
     if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
-        errs.append(f"{where}.scan.parameter: the name of the parameter scanned")
+        errs.append(f"{where}.scan.{target}: the name of the {target} scanned")
     elif name in params:
-        errs.append(f"{where}.scan.parameter: {name!r} is also set in parameters")
+        errs.append(f"{where}.scan.{target}: {name!r} is also set in parameters")
     if "values" in scan:
         if any(k in scan for k in ("min", "max", "points", "log")):
             errs.append(f"{where}.scan: values, or min/max/points/log, not both")

@@ -1,0 +1,45 @@
+# Dynamic rerouting of the carbohydrate flux under oxidative stress (glycolysis and pentose
+# phosphate pathway) (BioModels BIOMD0000000247). A core problem: member 10 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000247/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# Glycolysis and the pentose phosphate pathway in two compartments (24 dynamic species). The
+# scan is the relative TPI activity k_rel_TPI. At 0.1 BNGsim finds no steady state within
+# 1e6 (DHAP still growing, past 4e6) while 0.2 converges, so the grid stops at 0.25.
+id: carbohydrate_flux_oxidative_stress_ralser2007
+layer: core
+title: "Dynamic rerouting of the carbohydrate flux under oxidative stress (glycolysis and pentose phosphate pathway)"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000247/BIOMD0000000247_url.xml
+  sha256: 9f1e5e655540d7d3fde9d023235478ef85f351a3490e2d678d60edb3d9b0fa57
+  format: sbml
+publications:
+  - citation: "Ralser M, Wamelink MM, Kowald A, Gerisch B, Heeren G, Struys EA, Klipp E, Jakobs C, Breitenbach M, Lehrach H, Krobitsch S (2007). Dynamic rerouting of the carbohydrate flux is key to counteracting oxidative stress. J Biol 6:10."
+    doi: 10.1186/jbiol61
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000247: its curation figure and curation notes (final/BIOMD0000000247/curation_notes.txt at the pinned commit): 'Reproduction of figure 5 a of the original publication. Parameter scans over k_rel_TPI and k_rel_GAPDH with a subsequent steady state analysis were performed using Copasi 4.5.31.'"
+  check: "BioModels curation: the curators reproduced Fig. 5a of the paper from this file in COPASI 4.5.31, steady states over the relative TPI and GAPDH activities (k_rel_TPI, k_rel_GAPDH)"
+  result: "curated; the curation figure reproduces Fig. 5a"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      parameter: k_rel_TPI
+      min: 0.25
+      max: 1
+      points: 20
+      log: false
+size:
+  species: 31
+  reactions: 25
+suites:
+  ss-sbml: 10

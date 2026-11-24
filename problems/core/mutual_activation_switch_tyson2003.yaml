@@ -1,0 +1,45 @@
+# Mutual activation: a one-way switch (sniffers, buzzers, toggles and blinkers) (BioModels
+# BIOMD0000000311). A core problem: member 3 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000311/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# R and the boundary signal S, with E and Ep set by assignment rules (a Goldbeter-Koshland
+# function). The scan is the signal S, read as its initial concentration (a boundary
+# species nothing changes).
+id: mutual_activation_switch_tyson2003
+layer: core
+title: "Mutual activation: a one-way switch (sniffers, buzzers, toggles and blinkers)"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000311/BIOMD0000000311_url.xml
+  sha256: 5d9680d4cf829783cff525f859b6a9da80b412db80402a73a26ab690fbb9a6db
+  format: sbml
+publications:
+  - citation: "Tyson JJ, Chen KC, Novak B (2003). Sniffers, buzzers, toggles and blinkers: dynamics of regulatory and signaling pathways in the cell. Curr Opin Cell Biol 15:221-231."
+    doi: 10.1016/s0955-0674(03)00017-6
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000311: its curation figure and curation notes (final/BIOMD0000000311/curation_notes.txt at the pinned commit): 'Bifurcation diagram showing the stable (thick line) and instable (thin line) of R for varying values of S, as in figure 1 e of the original publication. The diagram was produced using auto with XPP and the BioModels.net xpp converter.'"
+  check: "BioModels curation: the curators drew the bifurcation diagram of R against S of Fig. 1e of the paper from this file (AUTO in XPP), stable and unstable branches"
+  result: "curated; the curation figure reproduces Fig. 1e"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      species: S
+      min: 0
+      max: 20
+      points: 20
+      log: false
+size:
+  species: 4
+  reactions: 5
+suites:
+  ss-sbml: 3

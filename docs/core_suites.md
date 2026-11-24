@@ -312,3 +312,88 @@ otherwise it is the verification's.
   members, `steady_states()` multistart root counts, the file's `parameter_scan`
   replayed by `run_bngl`, and steady-state sensitivities. The capability solves each
   point from the seed only; these are settings to add.
+
+## ss-sbml: steady state on published SBML, read as it is
+
+Every member but one is a curated BioModels file, pinned at `sys-bio/temp-biomodels`
+`6a09daf4` (the commit ode-sbml pins), whose curation note names a published
+*steady-state* figure: a dose-response curve or a bifurcation diagram. Member 8 is a
+PEtab benchmark problem whose measurements are all at steady state, pinned at
+`Benchmarking-Initiative/Benchmark-Models-PEtab` `4d20850`. Members are ordered by SBML
+species count (dynamic species in parentheses). The suite's design is
+`suites-deterministic.md` §2.4 (decision D5).
+
+| # | problem | source | species / reactions | laws | dose (points) | roots at the file's own parameters | evidence |
+|---|---|---|---|---|---|---|---|
+| 1 | `inflammation_rheumatoid_arthritis_baker2013` | BIOMD0000000550 | 2 (rate rules) / 0 | 0 | alpha2 (`parameter_2`), 1–25 linear (20) | 1 stable; bistable for ~7.5 < alpha2 < ~15.5 | `author_file`: Fig. 3a |
+| 2 | `smallest_bistable_reaction_wilhelm2009` | BIOMD0000000233 | 4 (2) / 4 | 0 | the constant species S, 0.1–2 linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 1 |
+| 3 | `mutual_activation_switch_tyson2003` | BIOMD0000000311 | 4 (1) / 5 | 0 | the boundary signal S, 0–20 linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 1e |
+| 4 | `mapk_double_phosphorylation_ordered_markevich2004` | BIOMD0000000027 | 5 (3) / 4 | 1 | the constant kinase MAPKK, 5–100 nM linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 3 |
+| 5 | `tunable_reversible_receptor_switch_palani2011` | BIOMD0000000325 | 6 (5) / 10 | 0 | the ligand L, 1e-3–10 log (20) | 1 stable | `author_file`: Fig. 1B |
+| 6 | `embryonic_stem_cell_switch_chickarmane2006` | BIOMD0000000204 | 12 (5) / 10 | 0 | the signal A, 0–100 linear (20) | 2 stable + 1 saddle | `author_file`: Fig. 10 |
+| 7 | `mapk_double_phosphorylation_random_markevich2004` | BIOMD0000000028 | 16 / 17 | 3 | MEK, 300–400 nM linear (20), at ERK 1000 nM and MKP3 180 nM | 1 stable | `author_file`: Fig. 5 |
+| 8 | `histone_h4_acetylation_motifs_blasi2016` | PEtab `Blasi_CellSystems2016` | 16 / 32 | 1 | none: one point, the PEtab nominal parameters | 1 stable | `author_file`: the PEtab problem, 252 measurements at t = inf |
+| 9 | `aspartate_metabolism_curien2009` | BIOMD0000000212 | 31 (8) / 18 | 1 | V_max of the tRNA synthetases (`V_AA_RS`), 0.15–2 uM/s linear (20) | 1 stable | `author_file`: Fig. 7c |
+| 10 | `carbohydrate_flux_oxidative_stress_ralser2007` | BIOMD0000000247 | 31 (24) / 25 | 2 | relative TPI activity (`k_rel_TPI`), 0.25–1 linear (20) | 1 stable | `author_file`: Fig. 5a |
+
+Laws: conservation laws among the dynamic species, from the SBML's stoichiometry.
+Roots: `steady_states(n_starts=200)` at the file's own parameters (the proposal's
+probe). Each `author_file` row quotes its curation note in the spec's evidence; the
+curation figure is the curators' re-simulation, not a numeric oracle, so the suite's
+numeric correctness rests on the engines agreeing with each other, with long-time
+integration and with the engine-free checks.
+
+### Protocol and comparison
+
+- Each point starts from the file's initial state at that point's doses (BNG
+  `parameter_scan` with `reset_conc`), as on the `.net` path. A dose is an SBML global
+  parameter or, for members 2–7, a species' initial concentration (`scan.species`).
+  Member 7 also sets ERK and MKP3 at every point (`species`), to the totals the
+  curation note gives for its MEK scan; the file's own values are 800 and 100 nM.
+- `rtol` 1e-8, `atol` 1e-10 on every member; the horizon is 1e6, and 1e8 for Curien
+  2009, whose threonine pool takes about 1e7 s to settle at the low end of its scan.
+- The compared species are the SBML's state species, by id, as concentrations.
+  run_network integrates each point's network derived from the SBML
+  (`ode.derive_network`, its faithfulness check included) to the horizon; it applies to
+  all ten members.
+- The engine-free checks read the derived network for the residual, and the SBML's own
+  stoichiometry for the conservation laws (the converter writes each reaction as
+  signed per-species fluxes, so the derived network's stoichiometry carries no laws).
+  Three refinements over the `.net` verdict, each found on these members: the
+  residual's floor also scales with the flux at the point's initial state (Wilhelm
+  2009's off state is the origin); species moved by a rate rule are left out of the
+  residual (Baker 2013 has only those); a law passes within 10 atol absolute
+  (Chickarmane 2006's genes are held at 0).
+- **Continuation is not yet run.** The design asks for both branches of the bistable
+  members (each point seeded from the last, or from the seeds the curation notes name:
+  X(0) = 1 and 4 for Wilhelm 2009, L = 0.001 and 0.2 for Palani 2011); every point here
+  starts from the file's initial state, so each dose-response follows the branch that
+  state reaches.
+
+### What the suite spans
+
+| axis | members |
+|---|---|
+| size | 2 to 31 species (at most 24 dynamic): curated BioModels with a steady-state curation are small, and the larger PEtab pre-equilibration problems read the clock, which `steady_state()` refuses (proposal §2.4) |
+| bistable at the file's parameters | 2, 3, 4, 6 |
+| a switch crossed by the dose from the initial state | 1, 2, 3, 5, 6 |
+| conservation laws (a singular full Jacobian) | 4, 7, 8, 9, 10 |
+| rate rules only | 1 |
+| species doses (constant or boundary species) | 2, 3, 4, 5, 6, 7 |
+| assignment rules | 3, 8, 9, 10 |
+| two compartments | 10 |
+| steady-state data | 8 |
+
+### Membership decisions
+
+- **Criterion** (D5): curated BioModels whose curation reproduces a published
+  steady-state curve or bifurcation diagram, that `steady_state()` accepts (no events,
+  no clock), plus Blasi 2016 from PEtab for steady-state data; ordered by species count.
+- **Blasi 2016** replaces BIOMD0000000210 (Chickarmane, Peterson 2008), the first
+  alternate. It runs at the PEtab problem's nominal parameters, which the SBML holds
+  rounded to 3–4 digits.
+- **Dose grids** follow the curation notes' ranges where they give one (1, 2, 4, 7, 9),
+  at 20 points. Where they do not (3, 5, 6, 10), the grid was chosen to cross the
+  curated figure's response from the file's initial state: Ralser 2007 stops at
+  `k_rel_TPI` = 0.25 because at 0.1 BNGsim finds no steady state within 1e6 (DHAP is
+  still growing, past 4e6), while 0.2 converges.
