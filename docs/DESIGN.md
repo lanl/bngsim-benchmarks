@@ -461,7 +461,10 @@ under test is BNGsim's `Simulator(method="psa", poplevel=N_c)`.
 **Protocol fields** (`protocol.psa`, validated in `specs.py`): those of the SSA
 protocol (§5.3) except `moments`, plus `poplevels`, the N_c grid -- a strictly
 increasing list of up to 10 numbers above 1, by default 10, 30, 100, 300 and 1000,
-as in bngsim's `psa` suite and Lin et al. `size.psa_events`, the exact-SSA events per
+as in bngsim's `psa` suite and Lin et al. Optionally `exact_replicates` (at least 20, at
+most `replicates`) sizes the two exact-SSA ensembles alone, for a model whose exact
+trajectory costs minutes where a scaled one costs seconds; the permutation tests take
+unequal ensembles, so only their power changes. `size.psa_events`, the exact-SSA events per
 trajectory under this protocol, is a planning estimate (else `size.ssa_events`).
 
 **Ensembles.** A job draws `2 (K + 1)` ensembles of `replicates` trajectories: BNGsim
