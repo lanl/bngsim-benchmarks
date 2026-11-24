@@ -130,8 +130,8 @@ def test_the_ssa_net_suite_loads_and_declares_what_it_tests():
     for p in members:
         assert p.layer == "core" and p.source["format"] == "bngl", p.id
         assert [j.kind for j in ssa.jobs(p)] == ["correctness", "timing"], p.id
-        # Each ensemble's planned cost stays inside the per-engine budget's cap.
-        assert ssa.engine_budget_seconds(p) <= ssa.ENGINE_BUDGET_CAP_SECONDS
+        # Each ensemble's planned cost stays inside the cap the per-engine budget applies.
+        assert ssa.engine_budget_seconds(p) <= ssa.ENSEMBLE_BUDGET_CAP_SECONDS
 
 
 # --------------------------------------------------------------------------- #
