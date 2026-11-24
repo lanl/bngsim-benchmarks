@@ -28,12 +28,9 @@ capabilities: [sens]
 protocol:
   sens:
     netgen: "generate_network({overwrite=>1})"
-    preequilibration:
-      duration: 20000
-      set: {Stim: 0}
-    stimulus: {Stim: 1}
-    t_end: 2466
-    n_steps: 18
+    phases:
+      - {duration: 20000, set: {Stim: 0}}
+      - {duration: 2466, n_steps: 18, set: {Stim: 1}}
     rtol: 1.0e-8
     atol: 1.0e-8
     parameters: independent

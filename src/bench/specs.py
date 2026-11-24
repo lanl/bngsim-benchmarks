@@ -399,22 +399,28 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     The measured grid ``0..t_end`` in ``n_steps`` and the solves' tolerances; which
     ``parameters`` to differentiate -- a convention or a list -- with the problem's
     ``fitted`` set beside it; a scale for any parameter whose value is zero
-    (``parameter_scales``); the finite differences' step and tolerances; and,
-    optionally, a two-phase protocol: a ``preequilibration`` phase of a given
-    ``duration`` (with parameter values of its own, ``set``) before t = 0, and the
-    ``stimulus``, the parameter values from t = 0 on. The capability builds its jobs
-    from BNGL only, so the source format changes nothing here."""
+    (``parameter_scales``); the finite differences' step and tolerances; and the
+    protocol: one measured phase of ``t_end`` in ``n_steps``, or an ordered list of
+    ``phases``, each of a ``duration``, measured on ``n_steps`` or not at all, with
+    parameter values it ``set``s and species it ``reset``s (to a number or an
+    expression of the parameters) as it starts. The capability builds its jobs from
+    BNGL only, so the source format changes nothing here."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
     allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "fitted",
-               "parameter_scales", "preequilibration", "stimulus",
-               "fd_step", "fd_rtol", "fd_atol"}
+               "parameter_scales", "phases", "fd_step", "fd_rtol", "fd_atol"}
     for k in sorted(set(p) - allowed):
         errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "n_steps", "rtol", "atol", "parameters"):
+    phased = "phases" in p
+    for k in ("netgen", "rtol", "atol", "parameters", *(() if phased else ("t_end", "n_steps"))):
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
+    if phased:
+        for k in ("t_end", "n_steps"):
+            if k in p:
+                errs.append(f"{where}.{k}: the phases give the grid (each measured phase its "
+                            "own duration and n_steps)")
     netgen = p.get("netgen")
     if netgen is not None and not (
         isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
@@ -456,23 +462,56 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     if "parameter_scales" in p:
         _values(p["parameter_scales"], f"{where}.parameter_scales", errs, positive=True)
 
-    pre, stim = p.get("preequilibration"), p.get("stimulus")
-    if (pre is None) != (stim is None):
-        errs.append(f"{where}: preequilibration and stimulus come together (a two-phase "
-                    "protocol)")
-    if pre is not None:
-        if not isinstance(pre, dict):
-            errs.append(f"{where}.preequilibration: a mapping (duration, set)")
-        else:
-            for k in sorted(set(pre) - {"duration", "set"}):
-                errs.append(f"{where}.preequilibration: unknown key {k!r}")
-            if not _positive(pre.get("duration")):
-                errs.append(f"{where}.preequilibration.duration: a positive time, the "
-                            "length of the phase before t = 0")
-            if "set" in pre:
-                _values(pre["set"], f"{where}.preequilibration.set", errs)
-    if stim is not None:
-        _values(stim, f"{where}.stimulus", errs)
+    if phased:
+        _validate_sens_phases(p["phases"], f"{where}.phases", errs)
+
+
+# A species as a reset names it: a BioNetGen species string, as the .net writes it.
+_SPECIES_NAME_RE = re.compile(r"^\$?[A-Za-z_][^\s#]*$")
+# A reset's expression: parameter names, numbers and arithmetic, no spaces or comments.
+_RESET_EXPR_RE = re.compile(r"^[A-Za-z0-9_.+\-*/^()]+$")
+
+
+def _validate_sens_phases(phases: Any, where: str, errs: list[str]) -> None:
+    """An ordered list of finite phases, run back to back: each a ``duration``,
+    ``n_steps`` when it is measured, the parameters it ``set``s and the species it
+    ``reset``s as it starts. At least one is measured."""
+    if not isinstance(phases, list) or not phases:
+        errs.append(f"{where}: a non-empty list of phases")
+        return
+    measured = 0
+    for i, ph in enumerate(phases):
+        at = f"{where}[{i}]"
+        if not isinstance(ph, dict):
+            errs.append(f"{at}: a mapping (duration, n_steps, set, reset)")
+            continue
+        for k in sorted(set(ph) - {"duration", "n_steps", "set", "reset"}):
+            errs.append(f"{at}: unknown key {k!r}"
+                        + (" (a steady-state phase is not supported yet: give a duration)"
+                           if k == "steady_state" else ""))
+        if not _positive(ph.get("duration")):
+            errs.append(f"{at}.duration: a positive time")
+        if "n_steps" in ph:
+            measured += 1
+            if not _int_in(ph["n_steps"], 1, 10**5):
+                errs.append(f"{at}.n_steps: an integer from 1 to 100000")
+        if "set" in ph:
+            _values(ph["set"], f"{at}.set", errs)
+        reset = ph.get("reset")
+        if reset is None:
+            continue
+        if not isinstance(reset, dict) or not reset:
+            errs.append(f"{at}.reset: a non-empty mapping of species to a number or an "
+                        "expression of the parameters")
+            continue
+        for name, v in reset.items():
+            if not (isinstance(name, str) and _SPECIES_NAME_RE.match(name)):
+                errs.append(f"{at}.reset: {name!r} is not a species name")
+            elif not (_finite(v) or (isinstance(v, str) and _RESET_EXPR_RE.match(v))):
+                errs.append(f"{at}.reset.{name}: a finite number or an expression of the "
+                            "parameters")
+    if not measured:
+        errs.append(f"{where}: no phase is measured (give one an n_steps)")
 
 
 # One validator per capability's protocol. A capability without one cannot be
