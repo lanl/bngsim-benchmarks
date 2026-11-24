@@ -34,6 +34,25 @@ def _pin_to_cpu() -> int | None:
         return None
 
 
+# The front end's modules, which no job imports.
+_FRONT_END = frozenset({"cli", "gather", "publish", "rescore", "runner", "slurm", "worker"})
+
+
+def _load_harness() -> None:
+    """Import every module of the harness a job could import, now, so the job
+    runs the code of the moment its source was captured: a module a capability
+    imports only when it needs it (``ssa_sbml``, ``results``) would otherwise be
+    read from the checkout as it is then, which may be a later commit."""
+    import importlib
+    import pkgutil
+
+    import bench
+
+    for mod in pkgutil.walk_packages(bench.__path__, "bench."):
+        if mod.name.split(".")[1] not in _FRONT_END:
+            importlib.import_module(mod.name)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="bench.worker")
     ap.add_argument("--job", required=True)
@@ -55,10 +74,18 @@ def main(argv: list[str] | None = None) -> int:
     # and no two jobs share compiled code through the filesystem.
     os.environ["BNGSIM_CODEGEN_CACHE_DIR"] = str(scratch / "codegen")
 
-    from . import env, jobs, specs
+    from . import env
+
+    # The code this job runs: the checkout as it is now, read before the job's
+    # code loads and recorded with its result, which is written when the job
+    # ends -- hours later for a long one, when the checkout may have moved on.
+    env.capture_harness_source()
+    from . import jobs, specs
     from .capabilities import CAPABILITIES
     from .results import (drop_trajectories, freshness_key, key_parts, write_result,
                           write_trajectories)
+
+    _load_harness()
 
     problems = specs.load_all(args.problems)
     all_jobs = {j.id: j for j in jobs.jobs_for(problems)}

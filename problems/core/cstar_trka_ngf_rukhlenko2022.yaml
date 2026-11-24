@@ -1,0 +1,59 @@
+# cSTAR core signalling network, TrkA (NGF) arm. A core problem: member 7 of the sens-net suite
+# (docs/DESIGN.md §3.2; docs/core_suites.md). The PyBNF job's file (cstar_trka), the authors'
+# TrkA_S_model.bngl in edition-2 form: ligand binding gated by the parameter Lig_on (0 while the
+# authors set the free ligand to 0, 1 when they add NGF), every inhibitor at 0 (the DMSO arm), and
+# the DPD phenotype coordinate S whose force is an if() piecewise function of the state. The
+# protocol is the authors' published one (their actions block, which the upstream check runs
+# verbatim): 50000 s without ligand, S reset to 2*S0, another 50000 s, then NGF (Lig_on = 1) for
+# 2700 s. Neither equilibration is a steady state (from the seeds the steady state lies in another
+# basin of S), so the phases are finite and the reset is part of the protocol: the species S()
+# starts the second phase at 2*S0, its sensitivity row the derivative of that expression (2 for
+# S0, 0 otherwise). The measured phase is on a 10 s grid (271 points, the data's 0, 600 and 2700 s
+# among them) rather than the authors' 1 s output grid, which would hold about 2701 x 82 x 88
+# sensitivities per engine. Every independent parameter is differentiated (88; the fitted set has
+# 8, D3c), with the fitted eight kept as a setting; Lig_on is the protocol's, and the two zero
+# degradation rates and the seven inhibitor doses (all 0, not part of this arm) are left out.
+# Tight tolerances: BNG's defaults (1e-8) err up to 1.8e-3 of a species' peak on this network
+# against 1e-12 (upstream check), so the engines run at 1e-10 / 1e-12 and the finite differences
+# at 1e-12 / 1e-14.
+id: cstar_trka_ngf_rukhlenko2022
+layer: core
+title: "cSTAR core signalling network, TrkA (NGF), DMSO arm"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: pybnf-jobs/Rukhlenko-2022/cstar_trka/cstar_trka.bngl
+  sha256: 1f5d6fbbba78a165a6068f3b2e0f1fa8066697856fd8be7f71fd1c550ef59def
+  format: bngl
+publications:
+  - citation: "Rukhlenko OS, Halasz M, Rauch N, Zhernovkov V, Prince T, Wynne K, Maher S, Kashdan E, MacLeod K, Carragher NO, Kolch W, Kholodenko BN (2022). Control of cell state transitions. Nature 609:975-985."
+    doi: 10.1038/s41586-022-05194-y
+verification:
+  kind: author_file
+  evidence: pybnf-jobs/Rukhlenko-2022/cstar_trka/compare_upstream.py
+  check: "BNG2.pl / run_network only (upstream_comparison.json): the authors' Trk_AB_models/TrkA_S_model.bngl (OleksiiR/cSTAR_Nature @ bfb092f2, pinned by raw URL and sha256 1d19402b... in upstream.json; not vendored, the repository grants no licence) and the job file: species and reaction bijections (82 / 405, same order); rate coefficients, dy/dt, functions and observables at 32 sampled states, with Lig_on = 1 and with the authors' TRKl = 0 against the job's TRKl = 10 and Lig_on = 0, tolerance 1e-12; the authors' actions block run verbatim vs the job file with mechanically translated actions, every species, observable and function of every phase, tolerance 1e-9 of max(peak, 1e-8)"
+  result: "0 at every sampled state; all 9 phases bit-identical"
+capabilities: [sens]
+protocol:
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    phases:
+      - duration: 50000
+        set: {Lig_on: 0}
+      - duration: 50000
+        reset: {"S()": "2*S0"}
+      - duration: 2700
+        n_steps: 270
+        set: {Lig_on: 1}
+    rtol: 1.0e-10
+    atol: 1.0e-12
+    fd_rtol: 1.0e-12
+    fd_atol: 1.0e-14
+    parameters: independent
+    fitted: [vpTRK, vpRTK, g_A_TRKERK, vpERK, g_A_TRKAKT, vpAKT, kpRSKA, g_A_AKTS6K]
+size:
+  species: 82
+  reactions: 405
+  sens_parameters: 88
+suites:
+  sens-net: 7

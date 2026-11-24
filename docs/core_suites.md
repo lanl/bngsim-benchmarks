@@ -545,3 +545,92 @@ Every correctness job draws BNGsim's and run_network's ensembles at exact SSA an
   with populations spanning two to three orders and exact SSA feasible as the N_c = ∞
   reference: Lin 2016, Samoilov `_unordered_pair`, Vilar 2002, Rohrs 2018, Kocieniewski 2012,
   Faeder 2003 and Blinov 2006.
+
+## sens-net: forward sensitivities on the `.net` generated from published BNGL
+
+BNGsim's CVODES forward sensitivities `dx/dp` against AMICI's, central finite
+differences from `run_network` and COPASI's (DESIGN §5.6). Every new member is pinned at
+`wshlavacek/BNGL-Models` `7d6d366`, where the upstream checks of #60–#66 are merged;
+members 6, 9 and 10 keep their `ode-net` pins (the same files). Each protocol is the
+member's published experiment: one measured phase from the network's seeds, or an
+ordered list of finite phases (`phases`: a duration, the parameters each sets, the
+species each resets; D3b). Members are ordered by N x N_p as the proposal counted it
+(`suites-deterministic.md` §2.1); with the parameter counts the harness takes from the
+generated networks, 4 and 5 swap (1800 against 1760).
+
+| # | problem | species / reactions | N_p (convention) | protocol | evidence | how it entered |
+|---|---|---|---|---|---|---|
+| 1 | `nfkb_reduced_onoff_jaruszewiczblonska2023` | 7 / 15 | 13 (fitted) | one phase, 0–43200 s, 144 steps; TNF on for 0–7200 s through a clock-gated rate | `author_file`: the authors' S1 Code file, 7.7e-7 of peak | paper seed (B22) |
+| 2 | `igf1r_ligand_binding_erickson2019` | 27 / 96 | 11 (independent; the fitted 7 a setting) | one phase, 0–14400 s, 48 | `author_file`: the authors' `IGF1R_fit.bngl` at Table 1, 1.2e-7 of peak | paper seed (B21), the curated record's file |
+| 3 | `atf2_phosphoswitch_kirsch2020` | 48 / 152 | 21 (independent; the fitted 4 a setting) | 20000 s at Stim = 0, then Stim = 1 over 0–2466 s, 18 | `author_file`: the authors' Supplementary Software 1, difference 0 | paper seed (B23), at its stimulated protocol |
+| 4 | `multisite_egfr_phosphorylation_salazarcavazos2020` | 75 / 618 | 24 (independent; the fitted 6 a setting) | one phase, 25 nM EGF, 0–300 s, 300 | `data`: the PEtab collection's published fit, 1/2 chi^2 within 4.2e-6 | paper seed (B27), the curated record's file |
+| 5 | `cstar_skmel133_melanoma_rukhlenko2022` | 44 / 56 | 40 (fitted, less 3 derived) | 86400 s without inhibitors, then the ERK inhibitor at dose 1 over 0–86400 s, 864 | `author_file`: the authors' `SKMEL-133-3.bngl`, 15 of 16 phases bit-identical, 1 at 2.7e-14 | paper seed (B41), at its published protocol |
+| 6 | `shp2_regulation_and_function_barua2007` | 149 / 1032 | 22 (independent) | one phase, 0–1000 s, 200 | `data` + `structure` (`ode-net` 5) | paper seed (B03) |
+| 7 | `cstar_trka_ngf_rukhlenko2022` | 82 / 405 | 88 (independent; the fitted 8 a setting) | 50000 s, S reset to 2*S0, 50000 s, then Lig_on = 1 over 0–2700 s, 270 | `author_file`: the authors' `TrkA_S_model.bngl`, all 9 phases bit-identical | paper seed (B39), at its published protocol |
+| 8 | `cstar_trkb_bdnf_rukhlenko2022` | 114 / 645 | 91 (independent; the fitted 8 a setting) | as 7 | `author_file`: the authors' `TrkB_S_model.bngl`, all 9 phases bit-identical | paper seed (B40), at its published protocol |
+| 9 | `cell_cycle_oscillator_lang2024` (`_fitted`) | 73 / 332 | 158 (fitted: 114 rate constants and 47 initial values, less 3 at zero) | one phase, 0–136471.6 s, 300 | `author_file` + `equations` (`ode-net` 3) | paper seed (B38), `_fitted` in place of `v3_2_0` |
+| 10 | `combinatorial_egfr_signaling_blinov2006` | 356 / 3749 | 43 (independent) | one phase, 0–120 s, 120 | `data` (`ode-net` 6) | paper seed (B04) |
+
+N_p is the number of parameters differentiated, as the harness selects them from the
+generated `.net` (`sens.select_parameters`): `independent` is every parameter written as a
+number that reaches a rate or an initial amount, less one the protocol sets, one that sizes
+a compartment, and one whose value is zero without a `parameter_scales` entry; `fitted` is
+the problem's fitted set. Where the fitted set is below 10, every independent parameter is
+differentiated and the fitted set is a job setting of its own (D3c).
+
+### What the suite spans (DESIGN §3.2, sensitivities)
+
+| axis | members |
+|---|---|
+| size | 7 to 356 species; N_p 11 to 158; N x N_p 91 to 15.3k |
+| multi-phase protocol, sensitivities carried across | 3 and 5 (a parameter changed between phases), 7 and 8 (and a species reset: S := 2*S0) |
+| derived-parameter chains to rates and initial amounts | 2, 4; initial values differentiated in 2, 3, 4, 6, 7, 8, 9, 10 |
+| rates that switch during a run | 1 (TNF on, then off, through a clock species) |
+| piecewise `if()` rates of the state | 5, 7, 8 (the phenotype coordinate's force) |
+| oscillator | 9 |
+| N_p above 50 | 7, 8, 9 |
+
+### Membership decisions
+
+- **Seed:** the BNGsim paper's sensitivity table, eleven rows: eight PyBNF-fitted BNGL
+  problems (B21 igf1r, B22 reduced_onoff, B23 p38atf2_binding, B27 egfr_simpull, B38
+  v3_2_0, B39 cstar_trka, B40 cstar_trkb, B41 cstar_skmel133_bmra_exact) and three large
+  networks differentiated over every independent parameter (B03 Barua 2007, B04 Blinov
+  2006, B06 Faeder 2003 `_fyn`). Proposal §2.1, decisions D3, D3b, D3c (§4.2).
+- **B06 Faeder 2003 `_fyn` dropped:** not published (its own header says so), as in
+  `ode-net`. That leaves exactly ten, so there is no top-up (§4.1).
+- **B38 `v3_2_0` replaced by `cell_cycle_oscillator_lang2024_fitted`:** `v3_2_0` is the
+  `_fused` network at the pre-fit nominal point, where the paper's row ran; `_fitted`
+  (`ode-net` 3) is the same network at the authors' optimum (§4.1).
+- **B21: the curated record's file in place of the job file:** the job ships the
+  Kiselyov et al. 2009 pre-fit point; the record is at Erickson et al.'s Table 1 (§4.1).
+- **B22, B21, B23, B27, B39, B40 and B41 verified upstream** (D3): one BNGL-Models PR
+  each, a pinned author file or published fit and a BNG2.pl check with an asserted
+  tolerance (#63, #64, #65, #66, #60, #61, #62). Every one passed, so no fallback of §2.1
+  was needed. B23's data comparison is reported, not asserted (the Source Data's error
+  bars admit no derived tolerance); its evidence is the authors' own file, which the job
+  file reproduces exactly.
+- **The published protocols, not unstimulated relaxations:** the paper's rows ran B23,
+  B39, B40 and B41 from the seed state without their stimulus. Here B23 equilibrates and
+  then stimulates; B41 equilibrates for the authors' 86400 s and then adds the ERK
+  inhibitor (the job's first experiment and the authors' first 86400 s arm; the job file
+  routes that inhibitor through the parameter `I_ERK_conc`, so the change is a parameter
+  set, and the inhibitor species it seeds takes part in no reaction); B39 and B40 run the
+  authors' 50000 s, S := 2*S0, 50000 s, then ligand. Every equilibration is finite:
+  p38-ATF2 has an absorbing state, and from the seeds the cSTAR Trk networks' steady state
+  lies in another basin of S than the authors' protocol reaches (upstream check).
+- **Parameters:** B41's three force coefficients `beta_SRC`, `beta_mTOR`, `beta_PKC` are
+  fitted but written as derived parameters (`x / phen_scale`), so they cannot be
+  differentiated as parameters: 40 of its 43. Lang's fitted set has three rate constants
+  at zero at the optimum, which have no relative step: 158 of 161. Salazar-Cavazos counts
+  24 independent parameters, the proposal 23.
+- **Grids and tolerances:** the measured grid is coarser than the authors' output grid
+  for 7 and 8 (10 s, not 1 s) and than the `ode-net` protocol for 9 and 10 (every fourth
+  point; 1 s, not 0.2 s), so that one engine's sensitivities stay at tens of MB. The
+  cSTAR members and Lang run at rtol 1e-10 / atol 1e-12 and their finite differences at
+  1e-12 / 1e-14: BioNetGen's defaults err up to 1.45e-2 of a species' peak on TrkB
+  (upstream check).
+- **Expected references that do not apply:** COPASI's time-course sensitivities cannot
+  start from an earlier phase's, so it is `not_applicable` on 3, 5, 7 and 8. BNGsim 0.17.2
+  refuses to carry sensitivities across a species reset (7, 8), which is BNGsim's result
+  to record.

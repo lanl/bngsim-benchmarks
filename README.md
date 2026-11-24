@@ -58,8 +58,10 @@ as a fraction of its peak, within 1e-3. A reference that disagrees with BNGsim w
 another reference agrees with BNGsim is refuted, its own failure, rather than counted
 against BNGsim (see [docs/DESIGN.md](docs/DESIGN.md) §5.6). A problem names its
 parameter convention (`independent`, `rate_constants` or `fitted`), and its fitted
-set also runs as a setting of its own; a protocol may pre-equilibrate for a finite
-time before its stimulus. It runs on two provisional pilot models for now.
+set also runs as a setting of its own; a protocol is an ordered list of finite
+phases (pre-equilibrate, reset a species, stimulate), its sensitivities carried
+across each boundary. Its core suite is `sens-net`: ten published BNGL models,
+7 to 356 species and 11 to 158 parameters ([docs/core_suites.md](docs/core_suites.md)).
 
 ## Goals
 

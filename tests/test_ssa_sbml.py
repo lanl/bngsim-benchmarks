@@ -355,6 +355,8 @@ def test_parts_are_stored_and_the_job_scores_them_without_sampling_again(monkeyp
     monkeypatch.setattr(ssa, "REFERENCE_ENGINES", refs)
     job = _part_job(tmp_path)
     ctx = _ctx(tmp_path / "w", results_dir=str(tmp_path / "res"), key="K1")
+    # Each part's task ran its own checkout of the harness, and says which.
+    monkeypatch.setattr(ssa.env, "harness_source", lambda: {"commit": "p" * 40})
     for name in ("bngsim", "copasi", "roadrunner"):
         assert ssa.run_correctness(job.as_part(name), None, {**ctx, "part": name}) == {
             "outcome": "PART_STORED"}
@@ -364,6 +366,8 @@ def test_parts_are_stored_and_the_job_scores_them_without_sampling_again(monkeyp
     rec = ssa.run_correctness(job, None, ctx)
     assert rec["outcome"] == "PASS", rec
     assert sorted(rec["measurements"]["from_parts"]) == ["bngsim", "copasi", "roadrunner"]
+    assert rec["measurements"]["part_sources"] == {
+        name: {"commit": "p" * 40} for name in ("bngsim", "copasi", "roadrunner")}
     # a part stored under another key is not used
     assert results.read_part(tmp_path / "res", job, "bngsim", "K2") is None
 

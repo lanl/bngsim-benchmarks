@@ -7,6 +7,8 @@ reference that two other engines refute."""
 from __future__ import annotations
 
 import json
+import re
+import sys
 import types
 from pathlib import Path
 
@@ -89,20 +91,27 @@ def test_a_spec_can_carry_ode_and_sens_and_the_ode_jobs_do_not_change(spec_data,
     ({"fd_step": 0.5}, "fd_step: a relative step"),
     ({"fd_rtol": 1e-6}, "fd_rtol: must not be looser than rtol"),
     ({"fd_atol": 1e-6}, "fd_atol: must not be looser than atol"),
-    ({"stimulus": {"Stim": 1}}, "preequilibration and stimulus come together"),
-    ({"preequilibration": {"duration": 100}}, "preequilibration and stimulus come together"),
-    ({"preequilibration": {"duration": 0}, "stimulus": {"Stim": 1}},
-     "preequilibration.duration: a positive time"),
-    ({"preequilibration": {"duration": 9, "t_end": 9}, "stimulus": {"Stim": 1}},
-     "preequilibration: unknown key 't_end'"),
-    ({"preequilibration": {"duration": 9, "set": {"Stim": "off"}}, "stimulus": {"Stim": 1}},
-     "preequilibration.set.Stim: must be a finite number"),
-    ({"preequilibration": {"duration": 9}, "stimulus": {}}, "stimulus: a non-empty mapping"),
+    ({"phases": []}, "phases: a non-empty list of phases"),
+    ({"phases": [{"duration": 5}]}, "no phase is measured"),
+    ({"phases": [{"duration": 0, "n_steps": 4}]}, "phases[0].duration: a positive time"),
+    ({"phases": [{"duration": 5, "n_steps": 0}]}, "phases[0].n_steps: an integer"),
+    ({"phases": [{"duration": 5, "n_steps": 4, "t_end": 9}]}, "phases[0]: unknown key 't_end'"),
+    ({"phases": [{"steady_state": True, "n_steps": 4}]}, "a steady-state phase is not supported"),
+    ({"phases": [{"duration": 9, "set": {"Stim": "off"}}, {"duration": 5, "n_steps": 4}]},
+     "phases[0].set.Stim: must be a finite number"),
+    ({"phases": [{"duration": 9, "reset": {}}, {"duration": 5, "n_steps": 4}]},
+     "phases[0].reset: a non-empty mapping"),
+    ({"phases": [{"duration": 9, "reset": {"S()": "2 * S0"}}, {"duration": 5, "n_steps": 4}]},
+     "phases[0].reset.S(): a finite number or an expression"),
+    ({"phases": [{"duration": 9, "reset": {"1abc": 2}}, {"duration": 5, "n_steps": 4}]},
+     "'1abc' is not a species name"),
+    ({"phases": [{"duration": 5, "n_steps": 4}], "t_end": 10},
+     "t_end: the phases give the grid"),
     ({"netgen": "simulate({})"}, "netgen"),
 ])
 def test_invalid_sens_protocol_is_refused_with_its_name(sens_spec, write_spec, change, message):
     sens_spec["protocol"]["sens"].update(change)
-    with pytest.raises(specs.SpecError, match=message.replace("(", r"\(")):
+    with pytest.raises(specs.SpecError, match=re.escape(message)):
         specs.load(write_spec(sens_spec))
 
 
@@ -151,23 +160,23 @@ def test_planning_grows_with_the_network_and_the_parameters(sens_spec, write_spe
     assert sens.engine_budget_seconds(big) == sens.ENGINE_BUDGET_CAP_SECONDS
 
 
-def test_the_pilot_specs_load_and_declare_what_they_test():
+def test_the_former_pilots_load_and_declare_what_they_test():
     from conftest import REPO
 
     problems = {p.id: p for p in specs.load_all(REPO / "problems")}
     igf1r = problems["igf1r_ligand_binding_erickson2019"]
     atf2 = problems["atf2_phosphoswitch_kirsch2020"]
-    assert igf1r.layer == atf2.layer == "pilot" and not igf1r.suites and not atf2.suites
-    assert igf1r.capabilities == atf2.capabilities == ("sens",)
+    assert igf1r.suites == {"sens-net": 2} and atf2.suites == {"sens-net": 3}
+    assert "sens" in igf1r.capabilities and "sens" in atf2.capabilities
     # Fitted sets below 10: every independent parameter, the fitted set as a setting.
     for p in (igf1r, atf2):
         assert p.protocol_for("sens")["parameters"] == "independent"
         assert sens.settings(p) == ["auto", "fitted"] and len(sens.jobs(p)) == 4
     assert igf1r.protocol_for("sens")["parameter_scales"] == {"IGF1_cold_conc": 7e-12}
-    # atf2 pre-equilibrates at basal activity, then stimulates (D3b).
-    assert atf2.protocol_for("sens")["preequilibration"] == {"duration": 20000,
-                                                             "set": {"Stim": 0}}
-    assert atf2.protocol_for("sens")["stimulus"] == {"Stim": 1}
+    # atf2 equilibrates at basal activity, then stimulates (D3b).
+    assert atf2.protocol_for("sens")["phases"] == [
+        {"duration": 20000, "set": {"Stim": 0}},
+        {"duration": 2466, "n_steps": 18, "set": {"Stim": 1}}]
 
 
 # --------------------------------------------------------------------------- #
@@ -335,7 +344,8 @@ def _prep():
     return {"net": Path("m.net"), "sbml": Path("m.xml"), "proto": proto, "info": {"network": {}},
             "species_names": SPECIES, "name_to_id": {"A()": "A", "B()": "B"},
             "params": PARAMS, "values": np.array([K, A0]), "scales": np.array([K, A0]),
-            "observables": ["total"], "weights": np.array([[1.0, 1.0]])}
+            "observables": ["total"], "weights": np.array([[1.0, 1.0]]),
+            "schedule": sens._plain_schedule(proto)}
 
 
 class _FakeResult(tuple):
@@ -360,7 +370,7 @@ def _nllh_gradient(S, X, data, sigma):
 def _fake_bngsim(shift=None, boom=None, simultaneous_shift=None, own_obs_off=False):
     class FakeBngsim:
         def __init__(self, net, proto, params, *, sensitivity_method="staggered",
-                     two_phase=None):
+                     schedule=None):
             if boom and (boom == "all" or sensitivity_method == boom):
                 raise RuntimeError(f"bngsim {sensitivity_method} broke")
             self.method, self.t = sensitivity_method, sens.times(proto)
@@ -427,7 +437,7 @@ def _fake_fd(shift=None, noise=0.0):
         NAME = sens.FD
 
         def __init__(self, net, proto, params, values, scales, workdir, *, timeout,
-                     two_phase=None):
+                     schedule=None):
             self.t = sens.times(proto)
             self.covered = np.ones(2, bool)
 
@@ -708,57 +718,193 @@ begin functions
     1 kA() k0+Stim*k1
 end functions
 """
-TP_PROTO = {**PROTOCOL, "parameters": "independent", "t_end": 4.0, "n_steps": 8,
-            "preequilibration": {"duration": 3.0, "set": {"Stim": 0}}, "stimulus": {"Stim": 1}}
+TP_PHASES = [{"duration": 3.0, "set": {"Stim": 0}},
+             {"duration": 4.0, "n_steps": 8, "set": {"Stim": 1}}]
+TP_PROTO = {**{k: v for k, v in PROTOCOL.items() if k not in ("t_end", "n_steps")},
+            "parameters": "independent", "phases": TP_PHASES}
+# The same, with a reset between the equilibration and the stimulus: A := 2*A0 after
+# 3 s, then 2 s more at Stim = 0, then the measured 4 s at Stim = 1 (as cSTAR's
+# 50000 s, S = 2*S0, 50000 s, then the ligand).
+RESET_PHASES = [{"duration": 3.0, "set": {"Stim": 0}},
+                {"duration": 2.0, "reset": {"A()": "2*A0"}},
+                {"duration": 4.0, "n_steps": 8, "set": {"Stim": 1}}]
+RESET_PROTO = {**TP_PROTO, "phases": RESET_PHASES}
 
 
-def test_a_two_phase_protocol_names_each_phases_values_and_leaves_its_switch_out():
+def test_a_spec_with_phases_loads_and_its_phases_key_the_jobs(sens_spec, write_spec):
+    sens_spec["protocol"]["sens"] = dict(TP_PROTO)
+    problem = specs.load(write_spec(sens_spec))
+    correctness, _ = sens.jobs(problem)
+    assert correctness.definition["protocol"]["phases"] == TP_PHASES
+    sens_spec["protocol"]["sens"] = dict(RESET_PROTO)
+    assert specs.load(write_spec(sens_spec)).protocol_for("sens")["phases"] == RESET_PHASES
+
+
+def test_the_phases_run_back_to_back_with_t0_at_the_first_measured_one():
+    plan = sens.phase_plan(RESET_PROTO)
+    assert [(ph["start"], ph["duration"], ph["n_steps"]) for ph in plan] == [
+        (-5.0, 3.0, None), (-2.0, 2.0, None), (0.0, 4.0, 8)]
+    np.testing.assert_allclose(sens.times(RESET_PROTO), np.linspace(0.0, 4.0, 9))
+    # Two measured phases: each reports its own grid, its start included.
+    two = {**TP_PROTO, "phases": [{"duration": 1.0, "n_steps": 2},
+                                  {"duration": 2.0, "n_steps": 2, "set": {"Stim": 1}}]}
+    np.testing.assert_allclose(sens.times(two), [0.0, 0.5, 1.0, 1.0, 2.0, 3.0])
+    # No phases: one measured phase from 0.
+    assert sens.phase_plan(PROTOCOL) == [{"start": 0.0, "duration": 10.0, "n_steps": 20,
+                                          "set": {}, "reset": {}}]
+
+
+def test_a_schedule_names_each_phases_values_and_leaves_its_switch_out():
     st = netfile.structure(GATED_NET)
-    tp = sens.two_phase(st, TP_PROTO)
-    assert tp == {"duration": 3.0, "phase1": {"Stim": 0.0}, "phase2": {"Stim": 1.0}}
-    params, excluded = sens.select_parameters(st, "independent", switched=set(tp["phase1"]),
+    sched = sens.schedule(st, TP_PROTO)
+    assert [ph["values"] for ph in sched["phases"]] == [{"Stim": 0.0}, {"Stim": 1.0}]
+    assert sched["switched"] == ["Stim"] and not sched["plain"]
+    params, excluded = sens.select_parameters(st, "independent",
+                                              switched=set(sched["switched"]),
                                               scales={"Stim": 1.0})
     assert params == ["k0", "k1", "A0"]
-    assert excluded == {"Stim": "set by the two-phase protocol"}
-    assert sens.two_phase(st, {**PROTOCOL}) is None
+    assert excluded == {"Stim": "set by the protocol"}
+    assert sens.schedule(st, PROTOCOL)["plain"]
+    # A parameter set in one phase stays in force until another sets it.
+    held = sens.schedule(st, RESET_PROTO)
+    assert [ph["values"] for ph in held["phases"]] == [{"Stim": 0.0}, {"Stim": 0.0},
+                                                       {"Stim": 1.0}]
+    assert held["phases"][1]["resets"] == [(0, "2*A0")]
 
 
-@pytest.mark.parametrize("stimulus, message", [
-    ({"A0": 20}, "A0 reaches an initial amount"),
-    ({"kA": 1}, "kA is not a number in the network"),
-    ({"nope": 1}, "nope is not a number in the network"),
+@pytest.mark.parametrize("phase, message", [
+    ({"set": {"A0": 20}}, "A0 reaches an initial amount"),
+    ({"set": {"kA": 1}}, "kA is not a number in the network"),
+    ({"set": {"nope": 1}}, "nope is not a number in the network"),
+    ({"reset": {"C()": 1.0}}, "a reset of C\\(\\), which is not a species"),
+    ({"reset": {"A()": "2*Z0"}}, "reads Z0, which are not parameters"),
 ])
-def test_a_two_phase_protocol_sets_rate_parameters_only(stimulus, message):
+def test_a_schedule_sets_rate_parameters_and_resets_species_only(phase, message):
+    proto = {**TP_PROTO, "phases": [{"duration": 3.0, **phase}, TP_PHASES[1]]}
     with pytest.raises(ValueError, match=message):
-        sens.two_phase(netfile.structure(GATED_NET), {**TP_PROTO, "stimulus": stimulus})
+        sens.schedule(netfile.structure(GATED_NET), proto)
 
 
-def test_a_two_phase_protocol_refuses_a_network_that_reads_the_clock():
+INERT_NET = GATED_NET.replace("    4 Stim  0  # Constant\n",
+                              "    4 Stim  0  # Constant\n    5 I0    0  # Constant\n"
+                              ).replace("    2 B() 0\n", "    2 B() 0\n    3 $I() I0\n"
+                              ).replace("k0+Stim*k1", "k0+Stim*k1/(1+I0)")
+
+
+def test_a_set_may_seed_an_inert_species_which_it_leaves_where_it_was():
+    st = netfile.structure(INERT_NET)
+    assert st.inert() == {2} and st.reacting == {0, 1}
+    proto = {**TP_PROTO, "phases": [TP_PHASES[0], {**TP_PHASES[1], "set": {"Stim": 1, "I0": 2}}]}
+    sched = sens.schedule(st, proto)
+    assert sched["held"] == {"I0": ["I()"]}
+    assert sched["phases"][1]["values"] == {"Stim": 1.0, "I0": 2.0}
+    # Once I() is read by a rate (through an observable), it is not inert.
+    read = INERT_NET.replace("k0+Stim*k1/(1+I0)", "k0+Stim*k1/(1+I0+Itot)") + \
+        "begin groups\n    1 Itot  3\nend groups\n"
+    with pytest.raises(ValueError, match=r"I0 reaches an initial amount \(of I\(\)\)"):
+        sens.schedule(netfile.structure(read), proto)
+    # A set that seeds an inert species and reaches no rate does nothing at all.
+    idle = INERT_NET.replace("k0+Stim*k1/(1+I0)", "k0+Stim*k1")
+    with pytest.raises(ValueError, match="I0 reaches no reaction rate"):
+        sens.schedule(netfile.structure(idle), proto)
+
+
+def test_a_multi_phase_protocol_refuses_a_network_that_reads_the_clock():
     clocked = GATED_NET.replace("k0+Stim*k1", "k0+Stim*k1*time()")
     with pytest.raises(ValueError, match="read the clock"):
-        sens.two_phase(netfile.structure(clocked), TP_PROTO)
+        sens.schedule(netfile.structure(clocked), TP_PROTO)
+    # One phase from t = 0 is every engine's own clock.
+    assert sens.schedule(netfile.structure(clocked), PROTOCOL)["plain"]
 
 
-def test_bngsim_runs_the_equilibration_then_the_stimulus_carrying_its_sensitivities():
-    calls = []
-    model = types.SimpleNamespace(set_param=lambda k, v: calls.append(("set", k, v)),
-                                  reset=lambda: calls.append(("reset",)))
+def test_a_resets_value_and_gradient_follow_its_expression():
+    st = netfile.structure(GATED_NET)
+    sched = sens.schedule(st, RESET_PROTO)
+    sens.reset_values(GATED_NET, sched, ["k0", "A0"], np.array([0.2, 10.0]))
+    [(i, value, grad)] = sched["phases"][1]["reset_values"]
+    assert (i, value) == (0, 20.0)
+    np.testing.assert_allclose(grad, [0.0, 2.0], atol=1e-8)
+    assert sched["phases"][0]["reset_values"] == sched["phases"][2]["reset_values"] == []
+    info = sens.phases_info(sched, st.species)
+    assert info[1]["resets"] == [{"species": "A()", "expression": "2*A0", "value": 20.0}]
+    assert [ph["start"] for ph in info] == [-5.0, -2.0, 0.0]
+
+
+def test_amici_runs_a_pre_simulation_when_it_can_and_chains_otherwise():
+    st = netfile.structure(GATED_NET)
+    assert sens.amici_mode(sens.schedule(st, PROTOCOL)) == "single"
+    assert sens.amici_mode(sens.schedule(st, TP_PROTO)) == "presimulation"
+    assert sens.amici_mode(sens.schedule(st, RESET_PROTO)) == "chained"
+
+
+class _FakeModel:
+    def __init__(self, calls):
+        self.calls = calls
+
+    def set_param(self, k, v):
+        self.calls.append(("set", k, v))
+
+    def reset(self):
+        self.calls.append(("reset",))
+
+    def set_concentration(self, name, v):
+        self.calls.append(("conc", name, v))
+
+    def declare_ic_sensitivity(self, d):
+        self.calls.append(("ic", d))
+
+
+def _bngsim_protocol(proto, calls, refuse_after_reset=False):
+    st = netfile.structure(GATED_NET)
+    sched = sens.schedule(st, proto)
+    sens.reset_values(GATED_NET, sched, ["k0", "A0"], np.array([0.2, 10.0]))
 
     def run(**kw):
-        calls.append(("run", kw["t_span"], kw.get("carry_sensitivities", False)))
+        carried = kw.get("carry_sensitivities", False)
+        calls.append(("run", kw["t_span"], carried))
+        if refuse_after_reset and carried and any(c[0] == "conc" for c in calls):
+            raise RuntimeError("Simulation failed: carry_sensitivities=True, but no matching "
+                               "forward-sensitivity seed from a prior phase is available.")
         return types.SimpleNamespace(species=np.array([[1.0, 0.0], [0.6, 0.4], [0.5, 0.5]]))
 
     engine = sens._BngsimProtocol()
-    engine.proto, engine.atol = TP_PROTO, 1e-8
-    engine.model, engine.sim = model, types.SimpleNamespace(run=run)
-    engine.two_phase = {"duration": 3.0, "phase1": {"Stim": 0.0}, "phase2": {"Stim": 1.0}}
-    engine._protocol(carry=True)
+    engine.proto, engine.atol, engine.schedule = proto, 1e-8, sched
+    engine.params, engine.species_names = ["k0", "A0"], list(st.species)
+    engine.model, engine.sim = _FakeModel(calls), types.SimpleNamespace(run=run)
+    return engine
+
+
+def test_bngsim_runs_the_phases_on_one_simulator_carrying_its_sensitivities():
+    calls = []
+    engine = _bngsim_protocol(TP_PROTO, calls)
+    measured = engine._protocol(carry=True)
     assert calls == [("set", "Stim", 0.0), ("reset",), ("run", (-3.0, 0.0), False),
                      ("set", "Stim", 1.0), ("run", (0.0, 4.0), True)]
-    assert engine.pre_drift == pytest.approx(0.2)  # 0.1 moved over the second half, of 0.5
+    assert engine.drift == [pytest.approx(0.2)]  # 0.1 moved over the second half, of 0.5
+    assert len(measured.results) == 1
     calls.clear()
     engine._protocol(carry=False)  # a plain solve: the same phases, nothing carried
     assert calls[-1] == ("run", (0.0, 4.0), False)
+
+
+def test_a_first_phase_reset_is_an_initial_condition_bngsim_is_told_the_derivative_of():
+    calls = []
+    proto = {**TP_PROTO, "phases": [{**TP_PHASES[0], "reset": {"A()": "2*A0"}}, TP_PHASES[1]]}
+    _bngsim_protocol(proto, calls)._protocol(carry=True)
+    assert calls[:4] == [("set", "Stim", 0.0), ("reset",), ("conc", "A()", 20.0),
+                         ("ic", {"A()": {"k0": 0.0, "A0": pytest.approx(2.0)}})]
+
+
+def test_bngsim_refusing_to_carry_across_a_later_reset_is_unsupported_in_its_own_words():
+    calls = []
+    engine = _bngsim_protocol(RESET_PROTO, calls, refuse_after_reset=True)
+    with pytest.raises(RuntimeError, match=r"^UNSUPPORTED: .*phase 2 of 3: .*no matching"):
+        engine._protocol(carry=True)
+    # Without sensitivities the reset is just a new state.
+    calls.clear()
+    plain = _bngsim_protocol(RESET_PROTO, calls, refuse_after_reset=True)
+    plain._protocol(carry=False)
+    assert ("conc", "A()", 20.0) in calls
 
 
 def _gated_exact(text, t_end, n_steps):
@@ -772,8 +918,8 @@ def _gated_exact(text, t_end, n_steps):
     return np.stack([a, b0 + a0 - a], axis=1)
 
 
-def test_fd_differentiates_through_both_phases(monkeypatch, tmp_path):
-    proto = {**TP_PROTO, **sens.FD_DEFAULTS}
+def _fd(monkeypatch, tmp_path, proto):
+    proto = {**proto, **sens.FD_DEFAULTS}
     seen = []
 
     def process(self, text, t_end, n_steps):
@@ -783,45 +929,89 @@ def test_fd_differentiates_through_both_phases(monkeypatch, tmp_path):
     monkeypatch.setattr(sens.FdRunNetwork, "_process", process)
     net = tmp_path / "m.net"
     net.write_text(GATED_NET)
-    tp = sens.two_phase(netfile.structure(GATED_NET), proto)
+    sched = sens.schedule(netfile.structure(GATED_NET), proto)
     fd = sens.FdRunNetwork(net, proto, ["k0", "k1", "A0"], np.array([0.2, 0.5, 10.0]),
                            np.array([0.2, 0.5, 10.0]), tmp_path / "fd", timeout=10,
-                           two_phase=tp)
+                           schedule=sched)
     (fine, coarse), X = sens.unpack(fd.run(), 3)
+    return fd, seen, fine, X, sens.times(proto)
+
+
+def test_fd_differentiates_through_both_phases(monkeypatch, tmp_path):
+    fd, seen, fine, X, t = _fd(monkeypatch, tmp_path, TP_PROTO)
     # Every protocol solve is two processes: the equilibration (Stim 0, over its
     # duration), then the measured phase (Stim 1) from the state it ended in.
     assert len(seen) == 2 * (4 * 3 + 1)
     assert seen[:2] == [(0.0, 3.0, 2), (1.0, 4.0, 8)]
-    t = sens.times(proto)
     a = 10.0 * np.exp(-0.2 * 3.0 - 0.7 * t)
     np.testing.assert_allclose(X[:, 0], a, rtol=1e-12)
     np.testing.assert_allclose(fine[:, 0, 0], -(3.0 + t) * a, rtol=1e-6)   # d/dk0
     np.testing.assert_allclose(fine[:, 0, 1], -t * a, rtol=1e-6, atol=1e-12)  # d/dk1
     np.testing.assert_allclose(fine[:, 0, 2], a / 10.0, rtol=1e-6)          # d/dA0
-    assert fd.config()["preequilibration"]["processes_per_solve"] == 2
+    assert fd.config()["phases"]["processes_per_solve"] == 2
 
 
-def test_copasi_does_not_apply_to_a_two_phase_protocol_and_the_rest_still_judge(
+def test_fd_differentiates_through_a_reset_as_the_closed_form_does(monkeypatch, tmp_path):
+    fd, seen, fine, X, t = _fd(monkeypatch, tmp_path, RESET_PROTO)
+    assert len(seen) == 3 * (4 * 3 + 1)
+    # A := 2*A0 at -2 erases the first phase: A = 2 A0 exp(-2 k0 - (k0 + k1) t).
+    a = 20.0 * np.exp(-0.2 * 2.0 - 0.7 * t)
+    np.testing.assert_allclose(X[:, 0], a, rtol=1e-12)
+    np.testing.assert_allclose(fine[:, 0, 0], -(2.0 + t) * a, rtol=1e-6)   # d/dk0
+    np.testing.assert_allclose(fine[:, 0, 1], -t * a, rtol=1e-6, atol=1e-12)  # d/dk1
+    np.testing.assert_allclose(fine[:, 0, 2], a / 10.0, rtol=1e-6)          # d/dA0
+    # B keeps what the first phase made, A0 (1 - exp(-3 k0)), and gains what A loses.
+    b = 10.0 * (1 - np.exp(-0.6)) + 20.0 - a
+    np.testing.assert_allclose(X[:, 1], b, rtol=1e-12)
+    np.testing.assert_allclose(fine[:, 1, 0], 10.0 * 3.0 * np.exp(-0.6) + (2.0 + t) * a,
+                               rtol=1e-6)
+    assert fd.config()["phases"]["processes_per_solve"] == 3
+
+
+def _multi_phase_prep(proto):
+    def prep(problem, ctx, setting):
+        out = _prep()
+        out["schedule"] = sens.schedule(netfile.structure(GATED_NET), proto)
+        return out
+    return prep
+
+
+def test_copasi_does_not_apply_to_a_multi_phase_protocol_and_the_rest_still_judge(
         monkeypatch, tmp_path):
     class Copasi(_fake_reference(name="copasi")):
         not_applicable = staticmethod(sens.CopasiSens.not_applicable)
 
-    def prep(problem, ctx, setting):
-        out = _prep()
-        out["two_phase"] = {"duration": 3.0, "phase1": {"Stim": 0.0}, "phase2": {"Stim": 1.0}}
-        return out
-
     _install(monkeypatch, _refs(copasi=Copasi))
-    monkeypatch.setattr(sens, "_prepare", prep)
+    monkeypatch.setattr(sens, "_prepare", _multi_phase_prep(TP_PROTO))
     rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
     assert rec["outcome"] == "PASS", rec
     assert set(rec["verdicts"]) == {"amici", sens.FD}
-    assert "copasi_error" not in rec and "two-phase" in rec["not_applicable"]["copasi"]
+    assert "copasi_error" not in rec and "multi-phase" in rec["not_applicable"]["copasi"]
     monkeypatch.setattr(sens, "BngsimPlain", _Plain)
     monkeypatch.setattr(sens, "RunNetworkPlain", _Plain)
     timing = sens.run_timing(_timing_job(), None, _ctx(tmp_path))
     assert "copasi" not in timing["measurements"]["times"]
     assert timing["not_applicable"] == rec["not_applicable"]
+
+
+def test_bngsim_refusing_a_protocol_is_unsupported_and_the_references_are_compared(
+        monkeypatch, tmp_path):
+    class Refusing(_fake_bngsim()):
+        def run(self):
+            raise RuntimeError("UNSUPPORTED: bngsim will not carry forward sensitivities "
+                               "across the species reset that starts phase 2 of 3: ...")
+
+    _install(monkeypatch, _refs(), bngsim=Refusing)
+    rec = sens.run_correctness(JOB, None, _ctx(tmp_path))
+    assert rec["outcome"] == "UNSUPPORTED", rec
+    assert "UNSUPPORTED" in rec["bngsim_error"] and "verdicts" not in rec
+    agree = rec["measurements"]["references_agreement"]
+    assert set(agree) == {"amici_vs_run_network_fd", "amici_vs_copasi",
+                          "run_network_fd_vs_copasi"}
+    assert all(v["passed"] for v in agree.values())
+    # Any other bngsim failure stays an EXCEPTION.
+    _install(monkeypatch, _refs(), bngsim=_fake_bngsim(boom="all"))
+    assert sens.run_correctness(JOB, None, _ctx(tmp_path))["outcome"] == "EXCEPTION"
 
 
 # --------------------------------------------------------------------------- #
@@ -874,3 +1064,59 @@ def test_the_trajectory_diagnostic_does_not_read_rounding_noise_as_a_disagreemen
     a = np.array([[0.0, 1.0], [0.0, 2.0]])
     b = np.array([[3e-21, 1.0], [-2e-21, 2.002]])
     assert sens.trajectory_error(a, b, atol=1e-8) == pytest.approx(0.002 / 2.002, rel=1e-9)
+
+
+# --------------------------------------------------------------------------- #
+# Real engines on the gated fixture, against its closed form
+# --------------------------------------------------------------------------- #
+# AMICI's pre-simulation calls cblas_dgemm on an empty matrix with a leading dimension
+# of 0 (LDA=0, M=0), which macOS's Accelerate rejects by exiting the process ("BLAS
+# error: Parameter number 9 passed to cblas_dgemm had an invalid value"); OpenBLAS
+# accepts it. AMICI's failure, recorded here, not worked around.
+_AMICI_PRESIM_MACOS = pytest.mark.xfail(
+    sys.platform == "darwin", strict=False,
+    reason="AMICI pre-simulation: cblas_dgemm with LDA=0 exits the process on macOS Accelerate")
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("phases, mode", [
+    pytest.param(TP_PHASES, "presimulation", marks=_AMICI_PRESIM_MACOS),
+    (RESET_PHASES, "chained")])
+def test_amici_carries_every_sensitivity_across_the_phases(tmp_path, phases, mode):
+    pytest.importorskip("amici")
+    pytest.importorskip("bngsim")
+    from bench.capabilities._common import export_sbml, run_isolated
+
+    net = tmp_path / "m.net"
+    net.write_text(GATED_NET)
+    sbml, names, name_to_id = export_sbml(net, tmp_path / "m.xml")
+    proto = {**TP_PROTO, "phases": phases, "rtol": 1e-10, "atol": 1e-12}
+    params, values = ["k0", "k1", "A0"], np.array([0.2, 0.5, 10.0])
+    sched = sens.schedule(netfile.structure(GATED_NET), proto)
+    sens.reset_values(GATED_NET, sched, params, values)
+
+    # Built and run in a forked child, as a job runs every engine (run_isolated): an
+    # AMICI model left loaded until the test process exits crashes it at exit on macOS.
+    def build_and_run(stage):
+        engine = sens.AmiciSens(sbml, names, name_to_id, proto, params, schedule=sched)
+        S, X = engine.tensors(engine.run())
+        return S, {"mode": engine.mode, "X": np.asarray(X).tolist()}
+
+    out = run_isolated(build_and_run, 1800.0, tmp_path / "amici_child")
+    assert "error" not in out, out.get("error")
+    S, X = out["trajectory"], np.asarray(out["config"]["X"])
+    assert out["config"]["mode"] == mode
+    t = sens.times(proto)
+    if mode == "presimulation":   # A = A0 exp(-3 k0 - (k0 + k1) t)
+        a, pre = 10.0 * np.exp(-0.6 - 0.7 * t), 3.0
+        dB = np.stack([(3.0 + t) * a, t * a, 1.0 - a / 10.0], axis=1)
+    else:                         # A := 2*A0 at -2: A = 2 A0 exp(-2 k0 - (k0 + k1) t)
+        a, pre = 20.0 * np.exp(-0.4 - 0.7 * t), 2.0
+        # B keeps the first phase's A0 (1 - exp(-3 k0)): its derivatives through the
+        # network's initial state, which the chain must carry from the start.
+        dB = np.stack([30.0 * np.exp(-0.6) + (2.0 + t) * a, t * a,
+                       (1.0 - np.exp(-0.6)) + 2.0 - a / 10.0], axis=1)
+    dA = np.stack([-(pre + t) * a, -t * a, a / 10.0], axis=1)
+    np.testing.assert_allclose(X[:, 0], a, rtol=1e-7)
+    np.testing.assert_allclose(S[:, 0, :], dA, rtol=1e-6, atol=1e-8)
+    np.testing.assert_allclose(S[:, 1, :], dB, rtol=1e-6, atol=1e-8)

@@ -1,0 +1,60 @@
+# cSTAR SKMEL-133 melanoma signalling network, ERK inhibitor arm. A core problem: member 5 of the
+# sens-net suite (docs/DESIGN.md §3.2; docs/core_suites.md). The PyBNF job's file
+# (cstar_skmel133_bmra_exact), the authors' SKMEL-133-3.bngl in edition-2 form: the connection
+# coefficients fitted to the single-drug fold changes under the BMRA sign constraints, with the
+# DPD phenotype coordinate S whose force is an if() piecewise function of the state. The protocol
+# is the authors' published one (their actions block, which the upstream check runs verbatim):
+# 86400 s with every inhibitor at 0, then the ERK inhibitor at dose 1 for 86400 s, measured on
+# their 100 s grid; a finite equilibration (the upstream check finds it within 3.0e-5 of the
+# steady state). Dose 1 of the ERK inhibitor is the job's first experiment and the authors' first
+# 86400 s arm. The job routes the ERK, AKT and SRC inhibitors through parameters its rate laws
+# read (I_ERK_conc in the ERK phosphorylation rate), so the arm is a parameter change between
+# phases (its inhibitor species $IERK(ERKBD), seeded by I_ERK_conc, takes part in no reaction).
+# The fitted set (43) is differentiated, less the three DPD force coefficients beta_SRC,
+# beta_mTOR and beta_PKC, which the file writes as derived (x / phen_scale) and so cannot be
+# differentiated as parameters: 40 (the 20 crosstalk strengths g_XY and their 20 K_XY). Tight
+# tolerances, as the upstream check advises for the cSTAR models (BNG's defaults err up to 4.4e-6
+# here, 1.45e-2 on TrkB), and finite differences tighter still.
+id: cstar_skmel133_melanoma_rukhlenko2022
+layer: core
+title: "cSTAR SKMEL-133 melanoma signalling network (ERK inhibitor)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: pybnf-jobs/Rukhlenko-2022/cstar_skmel133_bmra_exact/cstar_skmel133_bmra_exact.bngl
+  sha256: 4098c494a4ee0661455b7b66113695de829198cec3d8ca99d2a90b7aa6f0ae35
+  format: bngl
+publications:
+  - citation: "Rukhlenko OS, Halasz M, Rauch N, Zhernovkov V, Prince T, Wynne K, Maher S, Kashdan E, MacLeod K, Carragher NO, Kolch W, Kholodenko BN (2022). Control of cell state transitions. Nature 609:975-985."
+    doi: 10.1038/s41586-022-05194-y
+verification:
+  kind: author_file
+  evidence: pybnf-jobs/Rukhlenko-2022/cstar_skmel133_bmra_exact/compare_upstream.py
+  check: "BNG2.pl / run_network only (upstream_comparison.json): the authors' SKMEL-133_models/SKMEL-133-3.bngl (OleksiiR/cSTAR_Nature @ bfb092f2, pinned by raw URL and sha256 b2e0ae87... in upstream.json; not vendored, the repository grants no licence) and the job file: species and reaction bijections (44 / 56, same order); rate coefficients, dy/dt, functions and observables at 32 sampled states, tolerance 1e-12; the authors' actions block run verbatim vs the job file with mechanically translated actions, every species, observable and function of every phase, tolerance 1e-9 of max(peak, 1e-8)"
+  result: "0 at every sampled state; 16 phases, 15 bit-identical, 1 at 2.7e-14"
+capabilities: [sens]
+protocol:
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    phases:
+      - duration: 86400
+        set: {I_ERK_conc: 0}
+      - duration: 86400
+        n_steps: 864
+        set: {I_ERK_conc: 1.3122028733013222}
+    rtol: 1.0e-10
+    atol: 1.0e-12
+    fd_rtol: 1.0e-12
+    fd_atol: 1.0e-14
+    parameters: fitted
+    fitted: [g_IRSERK, K_IRSERK, g_mTORERK, K_mTORERK, g_SRCERK, K_SRCERK, g_CDKERK, K_CDKERK,
+             g_ERKAKT, K_ERKAKT, g_PKCAKT, K_PKCAKT, g_CDKAKT, K_CDKAKT, g_IRSAKT, K_IRSAKT,
+             g_MYCAKT, K_MYCAKT, g_ERKSRC, K_ERKSRC, g_PKCSRC, K_PKCSRC, g_MYCSRC, K_MYCSRC,
+             g_ERKCDK, K_ERKCDK, g_mTORCDK, K_mTORCDK, g_MYCCDK, K_MYCCDK, g_AKTmTOR, K_AKTmTOR,
+             g_SRCmTOR, K_SRCmTOR, g_PKCmTOR, K_PKCmTOR, g_CDKmTOR, K_CDKmTOR, g_CDKMYC, K_CDKMYC]
+size:
+  species: 44
+  reactions: 56
+  sens_parameters: 40
+suites:
+  sens-net: 5

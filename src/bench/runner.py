@@ -36,6 +36,9 @@ class Launch:
     timed_out: bool
     seconds: float
     output: str = ""
+    # The harness source as the worker was launched (env.read_harness_source),
+    # which a TIMEOUT record names: the worker that ran the job writes nothing.
+    harness_source: dict[str, Any] | None = None
 
 
 @dataclass
@@ -76,6 +79,9 @@ def subprocess_launcher(job: Job, timeout: float, cpu: int | None, cfg: RunConfi
     ]
     if job.part is not None:
         cmd += ["--part", job.part]
+    from . import env as bench_env
+
+    source = bench_env.read_harness_source()
     env = dict(os.environ)
     if cpu is not None:
         env["BENCH_CPU"] = str(cpu)
@@ -86,14 +92,14 @@ def subprocess_launcher(job: Job, timeout: float, cpu: int | None, cfg: RunConfi
     )
     try:
         out, _ = proc.communicate(timeout=max(timeout, 0.0))
-        return Launch(proc.returncode, False, time.perf_counter() - t0, out or "")
+        return Launch(proc.returncode, False, time.perf_counter() - t0, out or "", source)
     except subprocess.TimeoutExpired:
         try:
             os.killpg(proc.pid, signal.SIGKILL)
         except OSError:
             proc.kill()
         out, _ = proc.communicate()
-        return Launch(None, True, time.perf_counter() - t0, out or "")
+        return Launch(None, True, time.perf_counter() - t0, out or "", source)
 
 
 def _cpu_slots(n: int) -> list[int | None]:
@@ -119,7 +125,10 @@ def _timeout_record(job: Job, fp: dict[str, Any], launch: Launch) -> dict[str, A
         "error": f"stopped after {job.timeout_seconds:g} s",
         "key": freshness_key(job, fp),
         "key_parts": key_parts(job, fp),
-        "environment": env.environment(),
+        # The code the stopped worker was launched on, not this runner's.
+        "environment": {**env.environment(), "harness_source": (
+            launch.harness_source if launch.harness_source is not None
+            else env.read_harness_source())},
         "wall_seconds": launch.seconds,
         # Where the job was when it was stopped: the worker's last progress lines.
         "output_tail": _tail(launch.output),

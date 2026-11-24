@@ -1,0 +1,43 @@
+# Reduced canonical NF-kB pathway, TNF on-off protocol. A core problem: member 1 of the sens-net
+# suite (docs/DESIGN.md §3.2; docs/core_suites.md). The authors' own six-variable reduced model
+# (S1 Code, fitted_reduced_model_on_off_protocol.bngl) in the PyBNF job's edition-2 form: the
+# authors' setParameter("TR") phases are a TNF switch read from an inert clock species
+# (TRfunc() = if(simtime < t_tnf_off, 1, 0)), so the protocol is a single phase from the job's
+# resting seed state (an exact steady state at TR = 0): TNF on for 0-7200 s, off to 43200 s,
+# measured on the 300 s grid of its upstream check (145 points). The smallest member, and the
+# only one whose rates switch mid-run. The 13 parameters fitted in the paper (Table 1) are
+# differentiated (the fitted set is above 10, D3c); the switch time t_tnf_off is the protocol's,
+# not fitted, and not differentiated. Wild type only (the A20-knockout arm is c_deg = 0).
+id: nfkb_reduced_onoff_jaruszewiczblonska2023
+layer: core
+title: "Reduced canonical NF-kB pathway, TNF on-off protocol"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: pybnf-jobs/Jaruszewicz-Blonska-2023/reduced_onoff/reduced_onoff.bngl
+  sha256: 629bd88d72b09fee4bb395d5bb817df7d227020d9f4c657abb473e08113e4228
+  format: bngl
+publications:
+  - citation: "Jaruszewicz-Blonska J, Kosiuk I, Prus W, Lipniacki T (2023). A plausible identifiable model of the canonical NF-kB signaling pathway. PLoS ONE 18(6):e0286416."
+    doi: 10.1371/journal.pone.0286416
+verification:
+  kind: author_file
+  evidence: pybnf-jobs/Jaruszewicz-Blonska-2023/reduced_onoff/check_author_file.py
+  check: "BNG2.pl only: the authors' S1 Code file (vendored as reference/upstream_fitted_reduced_model_on_off_protocol.bngl; the S1 Code zip pinned by URL and sha256 in upstream.json) beside the job file: the authors' TR = 0 hour leaves the seed unchanged (tol 1e-12), the networks are equal bar the clock, and job(t) vs authors(t + 3600) over 6 species x WT/A20KO x 145 points, tolerance 1e-5 of peak, fixed before the run"
+  result: "pre-stimulus change 0; worst 7.7e-7 of peak"
+capabilities: [sens]
+protocol:
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 43200
+    n_steps: 144
+    rtol: 1.0e-8
+    atol: 1.0e-10
+    parameters: fitted
+    fitted: [k_deg, k_1, k_3, k_2, a_3, delta, epsilon, c_deg, c_4a, a_2, c_5a, i_1a, c_3a]
+size:
+  species: 7
+  reactions: 15
+  sens_parameters: 13
+suites:
+  sens-net: 1

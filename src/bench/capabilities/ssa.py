@@ -61,6 +61,10 @@ job's engines are its parts (``Job.parts``): a job too long for one allocation
 runs each engine as its own Slurm array task (``bench submit``), each storing
 its ensemble beside the job's result, and the job then scores the stored
 ensembles instead of sampling them again. The result is the same either way.
+
+**Stored ensembles.** A correctness job stores every ensemble it scored beside
+its record (``stored_ensembles``), so ``bench rescore`` can re-score it with a new
+verdict without sampling again (``rescore``).
 """
 
 from __future__ import annotations
@@ -533,8 +537,20 @@ class CopasiSSA:
       long trajectory is never cut short by COPASI's default cap on events per
       output interval; the per-engine wall budget bounds it instead.
 
-    The seed is read when the task initialises, so each trajectory sets its seed
-    and initialises before it runs (about 30 us).
+    A trajectory is one run of the task: its seed set, ``initializeRaw`` (which
+    resets the time series; about 0.02 s at 3680 reactions) and ``processRaw``.
+    The seed is read when the run starts, in ``CStochDirectMethod::start()``,
+    which COPASI calls at the start of every run of a time course -- as each
+    repeat of its own Scan task does -- and which also resets the method's
+    propensity search order and rebuilds one dependency update sequence per
+    reaction. That rebuild is COPASI's own fixed cost of a run; COPASI's API has
+    no cheaper way to start a trajectory (the search order and the
+    direct-method state can be reset only there). It grows with the network:
+    0.1-0.3 ms on 2-6 reactions, 0.2 s on Dushek 2011's 284, 17-20 s on Faeder
+    2003's 3680, where the simulation itself takes about 2.5 s over 2 min
+    (bench node, E5-2695 v4). ``start_seconds`` is it,
+    timed once after the build, as ``load_seconds`` is the import; it is inside
+    every trajectory COPASI runs, so the per-trajectory times include it.
     """
 
     NAME = "copasi"
@@ -570,6 +586,19 @@ class CopasiSSA:
         self.method.getParameter("Use Random Seed").setBoolValue(True)
         self.load_seconds = time.perf_counter() - t0
         self._columns: list[int] | None = None
+        self.start_seconds = self._time_start()
+
+    def _time_start(self) -> float:
+        """One ``CStochDirectMethod::start()``, timed: the fixed cost every run
+        pays before its first event. Every trajectory starts its own run, which
+        reseeds and resets what this one set, so it leaves no trace in them."""
+        cp = self._copasi
+        before = cp.CCopasiMessage.size()
+        if not self.task.initializeRaw(cp.CCopasiTask.OUTPUT_UI):
+            self._fail("task initialisation", before)
+        t0 = time.perf_counter()
+        self.method.start()
+        return time.perf_counter() - t0
 
     def _fail(self, what: str, before: int):
         msgs = self._copasi.CCopasiMessage.getAllMessageText() \
@@ -606,7 +635,9 @@ class CopasiSSA:
                 "version": env.copasi_identity().get("version"),
                 "output": "particle number",
                 "quantity_unit": f"# (imported as {self.imported_quantity_unit})",
-                "load_seconds": self.load_seconds}
+                "load_seconds": self.load_seconds,
+                # Inside every trajectory's time, not apart from it (the docstring).
+                "start_seconds": self.start_seconds}
 
 
 # The reference engines BNGsim is compared against, in a fixed order.
@@ -822,14 +853,17 @@ def _engine_run(name: str, prep: dict[str, Any], n: int, seed: int, workdir: Pat
     return {**out, **extra}
 
 
-# What a stored part keeps of ``_engine_run``'s output besides the ensemble.
-_PART_FIELDS = ("config", "error", "seconds", "not_applicable", "derived_network")
+# What a stored part keeps of ``_engine_run``'s output besides the ensemble, and
+# the harness source its task ran (provenance: the job's record names its own).
+_PART_FIELDS = ("config", "error", "seconds", "not_applicable", "derived_network",
+                "harness_source")
 
 
 def _store_part(job: Job, name: str, out: dict[str, Any], ctx: dict[str, Any]) -> None:
     from ..results import write_part
 
     record = {k: out[k] for k in _PART_FIELDS if k in out}
+    record["harness_source"] = env.harness_source()
     arrays = {"trajectory": out["trajectory"]} if "trajectory" in out else None
     write_part(ctx["results_dir"], job, name, ctx["key"], record, arrays)
 
@@ -880,6 +914,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     from_parts = [name for name, o in outs.items() if o.get("from_part")]
     if from_parts:
         info["from_parts"] = from_parts
+        info["part_sources"] = {name: outs[name].get("harness_source") for name in from_parts}
 
     bn = None
     bn_error = outs["bngsim"].get("error")
@@ -905,9 +940,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     info["references"] = references
 
     moments = None
-    n_refs = len(REFERENCE_ENGINES) - len(not_applicable)
     if proto.get("moments"):
-        n_refs += 1
         t0 = time.perf_counter()
         try:
             moments = exact_moments(prep)
@@ -915,6 +948,44 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         except Exception as exc:  # noqa: BLE001 - a reference that could not be built
             ref_errors[ANALYTIC] = f"{type(exc).__name__}: {exc}"[:400]
 
+    verdicts, result, vs_analytic = _score(bn, ensembles, moments, prep, bn_error, ref_errors,
+                                           not_applicable)
+    if vs_analytic:
+        info["reference_vs_analytic"] = vs_analytic
+    names = prep["species_names"]
+    info["ensembles"] = {name: _final_moments(stack, names)
+                         for name, stack in (("bngsim", bn), *ensembles.items())
+                         if stack is not None}
+    if moments is not None:
+        info["ensembles"][ANALYTIC] = {
+            "final_mean": dict(zip(names, map(float, moments[0][-1]))),
+            "final_variance": dict(zip(names, map(float, moments[1][-1])))}
+
+    rec: dict[str, Any] = {"outcome": result, "measurements": info}
+    if verdicts:
+        rec["verdicts"] = verdicts
+    if bn_error:
+        rec["bngsim_error"] = bn_error
+    for name, err in ref_errors.items():
+        rec[f"{name}_error"] = err
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
+    stored = stored_ensembles(prep, bn, ensembles, moments)
+    if stored:
+        rec["_trajectories"] = stored
+    return rec
+
+
+def _score(bn: np.ndarray | None, ensembles: dict[str, np.ndarray],
+           moments: tuple[np.ndarray, np.ndarray] | None, prep: dict[str, Any],
+           bn_error: str | None, ref_errors: dict[str, str], not_applicable: dict[str, str]
+           ) -> tuple[dict[str, Any], str, dict[str, Any]]:
+    """BNGsim's verdict against each reference ensemble and the exact moments, the
+    job's outcome, and every reference's ensemble against the exact moments (not
+    scored: it says which side of a disagreement is wrong). The one place these
+    are computed, from a run (``run_correctness``) or from its stored ensembles
+    (``rescore``), so the two cannot drift."""
+    n_refs = len(REFERENCE_ENGINES) - len(not_applicable) + bool(prep["proto"].get("moments"))
     verdicts: dict[str, Any] = {}
     if bn is not None:
         for name, stack in ensembles.items():
@@ -925,36 +996,67 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         if moments is not None:
             verdicts[ANALYTIC] = _analytic(bn, moments, prep)
     passed = all_passed(verdicts)
-
-    # Every engine's ensemble against the exact moments too: not scored, but it
-    # says which side of a disagreement is wrong.
-    if moments is not None and ensembles:
-        info["reference_vs_analytic"] = {
+    vs_analytic: dict[str, Any] = {}
+    if moments is not None:
+        vs_analytic = {
             name: {k: v for k, v in _analytic(stack, moments, prep).items()
                    if k in ("passed", "p_value", "p_min", "z_max", "worst", "n_rejected")}
             for name, stack in ensembles.items()}
-    names = prep["species_names"]
-    info["ensembles"] = {name: _final_moments(stack, names)
-                         for name, stack in (("bngsim", bn), *ensembles.items())
-                         if stack is not None}
-    if moments is not None:
-        info["ensembles"][ANALYTIC] = {
-            "final_mean": dict(zip(names, map(float, moments[0][-1]))),
-            "final_variance": dict(zip(names, map(float, moments[1][-1])))}
-
     result = outcome(bn_error, ref_errors, n_refs, passed)
     if bn_error and bn_error.startswith("TIMEOUT") and result == "EXCEPTION":
         result = "TIMEOUT"
-    rec: dict[str, Any] = {"outcome": result, "measurements": info}
+    return verdicts, result, vs_analytic
+
+
+def stored_ensembles(prep: dict[str, Any], bn: np.ndarray | None,
+                     ensembles: dict[str, np.ndarray],
+                     moments: tuple[np.ndarray, np.ndarray] | None) -> dict[str, np.ndarray]:
+    """What a correctness job stores beside its record (the worker writes it as
+    ``<job id>.npz``): every engine's ensemble as it was scored, ``(replicates,
+    times, species)`` under the engine's name; the output times (``time``), the
+    compared species (``species``), the rows every comparison uses (``keep``) and,
+    where the spec declares them, the exact moments on the grid
+    (``analytic_mean``, ``analytic_variance``). Enough to re-score every verdict
+    (``bench rescore``) without re-sampling; empty when no engine ran."""
+    engines = {**({"bngsim": bn} if bn is not None else {}), **ensembles}
+    if not engines:
+        return {}
+    out: dict[str, np.ndarray] = {
+        "time": times(prep["proto"]),
+        "species": np.asarray([str(s) for s in prep["species_names"]], dtype=str),
+        "keep": np.asarray(_kept(prep), dtype=bool),
+    }
+    for name, stack in engines.items():
+        out[name] = np.asarray(stack, dtype=np.float64)
+    if moments is not None:
+        out["analytic_mean"] = np.asarray(moments[0], dtype=np.float64)
+        out["analytic_variance"] = np.asarray(moments[1], dtype=np.float64)
+    return out
+
+
+def rescore(job: Job, record: dict[str, Any], arrays: dict[str, np.ndarray]) -> dict[str, Any]:
+    """A correctness record re-scored from its stored ensembles with the current
+    verdict: its new ``verdicts`` and ``outcome``, and every reference against the
+    exact moments. Engine failures, configurations and not-applicable references
+    are the record's own."""
+    prep = {"proto": job.definition["protocol"],
+            "species_names": [str(s) for s in arrays["species"]],
+            "keep": np.asarray(arrays["keep"], dtype=bool) if "keep" in arrays else None}
+    ensembles = {name: arrays[name] for name in REFERENCE_ENGINES if name in arrays}
+    moments = ((arrays["analytic_mean"], arrays["analytic_variance"])
+               if "analytic_mean" in arrays else None)
+    ref_errors = {name: str(record[f"{name}_error"]) for name in (*REFERENCE_ENGINES, ANALYTIC)
+                  if record.get(f"{name}_error")}
+    verdicts, result, vs_analytic = _score(
+        arrays.get("bngsim"), ensembles, moments, prep, record.get("bngsim_error"),
+        ref_errors, record.get("not_applicable") or {})
+    update: dict[str, Any] = {"outcome": result}
     if verdicts:
-        rec["verdicts"] = verdicts
-    if bn_error:
-        rec["bngsim_error"] = bn_error
-    for name, err in ref_errors.items():
-        rec[f"{name}_error"] = err
-    if not_applicable:
-        rec["not_applicable"] = not_applicable
-    return rec
+        update["verdicts"] = verdicts
+    if vs_analytic:
+        update["measurements"] = {**(record.get("measurements") or {}),
+                                  "reference_vs_analytic": vs_analytic}
+    return update
 
 
 def _summary(stack: np.ndarray) -> np.ndarray:

@@ -1,0 +1,49 @@
+# The JNK/p38/ATF2 phosphoswitch, p38-ATF2 binding after anisomycin. A core problem: member 3 of
+# the sens-net suite (docs/DESIGN.md §3.2; docs/core_suites.md). A published parameter-estimation
+# problem: the authors' rule-based model, four rate constants fit to the p38-ATF2 NanoBit binding
+# time course (Fig. 4a), the others held at their published values. The protocol is the
+# authors' own: equilibrate at basal MAPK activity (Stim = 0) for 20000 s, then stimulate
+# (Stim = 1) and measure over the data's 0-2466 s on its 137 s grid -- two finite phases, the
+# sensitivities carried across t = 0 (D3b). The equilibration is finite because the network has
+# an absorbing state and never reaches a steady state. The fitted set has four members, so the
+# problem is differentiated over every independent parameter (21: the 18 rate constants and the
+# three protein totals; D3c), with the fitted four kept as a setting. Two rates are functions of
+# the parameters through the Stim gate, which the protocol sets and so is not differentiated.
+id: atf2_phosphoswitch_kirsch2020
+layer: core
+title: "JNK/p38/ATF2 phosphoswitch: p38-ATF2 binding after anisomycin"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: pybnf-jobs/Kirsch-2020/p38atf2_binding/p38atf2_binding.bngl
+  sha256: bedf1d8994fadb26652d56050a0bdd98c3fbdec675bc422a3b4f7e9676e35df0
+  format: bngl
+publications:
+  - citation: "Kirsch K, Zeke A, Tőke O, Sok P, Sethi A, Sebő A, Kumar GS, Egri P, Póti ÁL, Gooley P, Peti W, Bento I, Reményi A, Alexa A (2020). Co-regulation of the transcription controlling ATF2 phosphoswitch by JNK and p38. Nat Commun 11:5769."
+    doi: 10.1038/s41467-020-19582-3
+verification:
+  kind: author_file
+  evidence: pybnf-jobs/Kirsch-2020/p38atf2_binding/check_author_file.py
+  check: "BNG2.pl only: the authors' Supplementary Software 1 Bionetgen_JNK-p38-ATF2_model.bngl (vendored as reference/upstream_Bionetgen_JNK-p38-ATF2_model.bngl; the MOESM4 zip pinned by URL and sha256 in upstream.json) and the job file under the authors' equilibrate-then-stimulate protocol: 48 species / 152 reactions identical, rate laws identical except kstim7/kstim6 -> k7_act()/k6_act(); 4 observables x 2401 points, tolerance 1e-6 of peak"
+  result: "max |difference| 0.0"
+  supporting: "data, reported, not asserted (the Source Data's error bars admit no derived tolerance): Fig. 4a WT CTR 1/2 chi^2 41.6, median 5.8% (max 15.3%), 3/19 points beyond 3 SE"
+capabilities: [sens]
+protocol:
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    phases:
+      - duration: 20000
+        set: {Stim: 0}
+      - duration: 2466
+        n_steps: 18
+        set: {Stim: 1}
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    parameters: independent
+    fitted: [keq6, kstim6, dp2, dp4]
+size:
+  species: 48
+  reactions: 152
+  sens_parameters: 21
+suites:
+  sens-net: 3

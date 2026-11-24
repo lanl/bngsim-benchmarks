@@ -26,9 +26,10 @@ FPS = {
 class FakeLauncher:
     """Records calls; ``outcomes`` maps job id -> outcome, "timeout" or "crash"."""
 
-    def __init__(self, outcomes=None, seconds=1.0):
+    def __init__(self, outcomes=None, seconds=1.0, source=None):
         self.outcomes = outcomes or {}
         self.seconds = seconds
+        self.source = source
         self.calls: list[tuple[str, float]] = []
         self.lock = threading.Lock()
 
@@ -37,7 +38,8 @@ class FakeLauncher:
             self.calls.append((job.id, timeout))
         what = self.outcomes.get(job.id, "PASS")
         if what == "timeout":
-            return Launch(None, True, timeout, "[ode] bngsim: done\n[ode] amici: start")
+            return Launch(None, True, timeout, "[ode] bngsim: done\n[ode] amici: start",
+                          self.source)
         if what == "crash":
             return Launch(1, False, self.seconds, "Traceback ... boom")
         f = FPS[job.kind]
@@ -139,6 +141,18 @@ def test_job_over_its_own_timeout_records_timeout(tmp_path, two_problems):
     # The record keeps where the job was when it was stopped.
     rec = results.read_result(cfg.results_dir, first)
     assert rec["output_tail"][-1] == "[ode] amici: start"
+
+
+def test_a_timeout_names_the_code_its_worker_was_launched_on(tmp_path, two_problems):
+    # The stopped worker writes nothing, so the runner records the harness source
+    # as it was when it launched the worker, not as it is when the timeout hits.
+    first = two_problems[0]
+    launched = {"commit": "c" * 40, "dirty": False, "source_sha256": "d" * 64}
+    cfg = cfg_for(tmp_path)
+    run(two_problems[:1], cfg, fingerprints=FPS,
+        launcher=FakeLauncher({first.id: "timeout"}, source=launched))
+    rec = results.read_result(cfg.results_dir, first)
+    assert rec["environment"]["harness_source"] == launched
 
 
 def test_worker_crash_is_reported_without_a_result(tmp_path, two_problems):
