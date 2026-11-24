@@ -159,14 +159,14 @@ def test_planning_grows_with_the_network_and_the_parameters(sens_spec, write_spe
     assert sens.engine_budget_seconds(big) == sens.ENGINE_BUDGET_CAP_SECONDS
 
 
-def test_the_pilot_specs_load_and_declare_what_they_test():
+def test_the_former_pilots_load_and_declare_what_they_test():
     from conftest import REPO
 
     problems = {p.id: p for p in specs.load_all(REPO / "problems")}
     igf1r = problems["igf1r_ligand_binding_erickson2019"]
     atf2 = problems["atf2_phosphoswitch_kirsch2020"]
-    assert igf1r.layer == atf2.layer == "pilot" and not igf1r.suites and not atf2.suites
-    assert igf1r.capabilities == atf2.capabilities == ("sens",)
+    assert igf1r.suites == {"sens-net": 2} and atf2.suites == {"sens-net": 3}
+    assert "sens" in igf1r.capabilities and "sens" in atf2.capabilities
     # Fitted sets below 10: every independent parameter, the fitted set as a setting.
     for p in (igf1r, atf2):
         assert p.protocol_for("sens")["parameters"] == "independent"

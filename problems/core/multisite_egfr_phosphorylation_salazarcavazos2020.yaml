@@ -1,0 +1,43 @@
+# Multisite EGFR phosphorylation in CHO EGFR-GFP cells. A core problem: member 4 of the sens-net
+# suite (docs/DESIGN.md §3.2; docs/core_suites.md). The curated record's file (its model block is
+# the PyBNF job's), at the authors' PyBioNetFit best fit to the SiMPull data. Its seeds and rate
+# constants are derived parameters (Avogadro's number, the extracellular and cytoplasmic volumes,
+# the subvolume factor f, dose-to-copies conversions), so its sensitivities follow
+# derived-parameter initial amounts as well as rates. The protocol is the record's own 25 nM
+# EGF time course (Fig. 2D: 0-300 s on its 1 s grid), the file's default dose; the Fig. 2C dose
+# scan is not used. The fitted set has six members, so the problem is differentiated over every
+# independent parameter (24, including the record's scan multipliers, all at 1; D3c), with the
+# fitted six kept as a setting. Species are molecule counts per cell (1e5-1e6).
+id: multisite_egfr_phosphorylation_salazarcavazos2020
+layer: core
+title: "Multisite EGFR phosphorylation (25 nM EGF time course)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/multisite_egfr_phosphorylation_salazarcavazos2020/multisite_egfr_phosphorylation_salazarcavazos2020.bngl
+  sha256: d58c5de8868b988e65efd2325cc70ea523bc97126c65de10780e476e457bc7f0
+  format: bngl
+publications:
+  - citation: "Salazar-Cavazos E, Franco Nitta C, Mitra ED, Wilson BS, Lidke KA, Hlavacek WS, Lidke DS (2020). Multisite EGFR phosphorylation is regulated by adaptor protein abundances and dimer lifetimes. Mol Biol Cell 31(7):695-708."
+    doi: 10.1091/mbc.E19-09-0548
+verification:
+  kind: data
+  evidence: models/multisite_egfr_phosphorylation_salazarcavazos2020/verify_salazarcavazos2020.ipynb
+  check: "section 3, BNG2.pl only: the PEtab benchmark collection's SalazarCavazos_MBoC2020 problem (Benchmark-Models-PEtab @ 4d20850; its tables vendored under BSD-3 with their LICENSE and pinned by sha256 in reference/salazarcavazos2020_upstream.json; simulatedData added 2020-03-25, before BNGsim): the 6 fitted values equal the collection's nominal values (= the authors' best-fit file digit for digit); the 18 measurements and SDs equal; the record's 18 simulated values vs the collection's published simulation, tolerance 1e-5 relative; 1/2 chi^2 against the measurements vs the published 359.70568, tolerance 0.05"
+  result: "18 simulated values within 1.8e-8; 1/2 chi^2 359.70568, difference 4.2e-6"
+capabilities: [sens]
+protocol:
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 300
+    n_steps: 300
+    rtol: 1.0e-8
+    atol: 1.0e-8
+    parameters: independent
+    fitted: [GRB2_total_0, SHC1_total_0, kdephosY1068_0, kdephosYN_0, ratio_kpkd_Y1068, ratio_kpkd_YN]
+size:
+  species: 75
+  reactions: 618
+  sens_parameters: 24
+suites:
+  sens-net: 4
