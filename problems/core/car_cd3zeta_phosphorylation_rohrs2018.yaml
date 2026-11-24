@@ -54,3 +54,5 @@ size:
   reactions: 192
   psa_events: 64000
   nf_events: 260000
+suites:
+  nf-xml-signaling: 6

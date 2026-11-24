@@ -275,3 +275,58 @@ scan member runs.
 | 8 | `verify-tlbr_steric_monine2010-replicates` @ 936660b | 24 fresh scans against Fig. 2a, RMS λ < 0.02 | 0.0153 ± 0.0005 |
 | 9 | `verify-blbr_cooperativity_posner2004-seeds-bscb` @ 2cd5a16 | 120 seeds x 20 doses against Wofsy–Goldstein | max \|q − theory\| 0.0016 |
 | 10 | `verify-egfr_oligomerization_mitra2019-replicates` @ 5b8ebb1 | Kozer 2013 data, χ² < 30 | 13.90 ± 0.50 |
+
+## nf-xml-signaling: network-free on BNG-XML, signaling and gene circuits
+
+The rest of the bngsim paper's network-free set -- site-dynamics signaling (B32 Creamer 2012,
+B33 Dolan 2015, B34 Chylek 2014) and the phage-lambda circuits (B36 Arkin 1998 `_exact`, B37
+Cortes 2017 `_pergenome`) -- plus five top-ups: CaMKII `_nfsim`, the one asserted network-free
+check in the corpus that runs without BNGsim, and four finite-network anchors spanning one
+particle to about 1e6 (suites-stochastic.md §2.5). Jobs and references as in nf-xml-aggregation.
+Members are ordered by particle count.
+
+| # | problem | particles | network | protocol (network-free) | replicates | evidence | how it entered |
+|---|---|---|---|---|---:|---|---|
+| 1 | `membrane_anchored_multisite_phosphorylation_dushek2011` | 1 | **finite, 143 / 284** | 0-1000 s, 50 steps (the ssa protocol) | 2000 | `theory`: exact CTMC (shared with ssa-net 9) | top-up: finite anchor |
+| 2 | `lambda_switch_cortes2017` (`_pergenome`) | 1,001 | **finite, 22 / 82** | MOI 3, 0–60 min, 120 steps (the record's Fig. S3 condition) | 1000 | `data`: Fig. S3 by NFsim and by SSA; fails at MOI 1 ‖ | paper seed (B37) |
+| 3 | `lambda_switch_arkin1998` (`_fullcircuit_exact`) | 1,212 | not generable | MOI 6, the first 300 s of the Fig. 6a run, 30 steps | 300 | none admissible ‖ | paper seed (B36) |
+| 4 | `p53_nhej_dolan2015` | 2,341 | unbounded | the first 240 min of the file's run, 24 steps | 100 | `theory`: the paper's baseline, multi-seed (pending) | paper seed (B33) |
+| 5 | `early_fceri_signaling_faeder2003` | 6,828 | **finite, 354 / 3680** | 0-120 s, 60 steps (the ssa protocol) | 800 | `data`: Fig. 3 (shared with ssa-net 10) | top-up: the classic finite anchor |
+| 6 | `car_cd3zeta_phosphorylation_rohrs2018` | ~2.0e4 | **finite, 65 / 192** | 0-60 min, 60 steps (the psa protocol) | 800 | `data`: ODE vs the paper (shared with psa-net 6) | top-up: functional rate laws, a non-integer seed |
+| 7 | `camkii_holoenzyme_activation_michalski2012_nfsim` | 2,509 holoenzymes | not generable (44,368 configurations) | own: 0-6 s, 60 steps | 1000 | `theory` + `data`: BNG2.pl NFsim, cell [17] | top-up: the clean NF check |
+| 8 | `tcr_signaling_chylek2014` | ~8,400 at Fx = 0.0025 (67,042 at the file's 0.02) | unbounded | two-phase, the file's own, at Fx = 0.0025 (on-rates rescaled) | 100 | `data`: Fig. S6 by NFsim | paper seed (B34) |
+| 9 | `erbb_receptor_signaling_creamer2012` | ~4,800 at f = 0.001 (~9.6e4 at the file's 0.02) | unbounded | two-phase, the file's own, at f = 0.001 | 100 | `data`: Fig. 4 by NFsim, on the fixed file ‡ | paper seed (B32) |
+| 10 | `tcr_signaling_bistability_lipniacki2008` | 925,633 | **finite, 37 / 97** | 0-200 s, 20 steps (the first third of the ssa protocol) | 100 | `data`: Fig. 7B by ODE (shared with ode-net 2) | top-up: the high-particle finite anchor |
+
+- ‖ **Open for the user.** Arkin 1998 `_exact` has no admissible check: stock NFsim 1.14.3
+  fires a symmetric functional-rate rule at half the exact rate (the defect bngsim fixed as
+  lanl/bngsim#195; reproducer 500.2 ± 2.0 against 1000.2), the file's dimer dilution rules
+  have that shape, and NFsim's Fig. 6a curve lies above the published one from MOI 4 up
+  (z 4.2–8.6). BNG2.pl also aborts the file's NFsim run after it completes (NFsim notes the
+  `~PLUS` states on stderr), so its `nfsim` reference is REFERENCE_FAILED. Q11's reserves are
+  Blinov 2006 and kinetic proofreading. Cortes 2017 `_pergenome` passes its engine check
+  (NFsim against exact SSA on its finite network) but misses Fig. S3 at MOI 1.
+- ‡ **Creamer 2012's file has a scaling bug**, fixed on an unmerged BNGL-Models branch: ten
+  association constants were not divided by f, so below f = 1 they ran 1/f times too slow
+  (the pre-fix file fails Fig. 4 at z 25.3). The spec pins main's file until the fix is merged,
+  so its results compare the engines on the pre-fix rules.
+
+### Protocol and comparison
+
+- **Finite anchors** (1, 2, 5, 6, 10) add exact SSA on the generated network (run_network and
+  BNGsim) as references; their nf protocol is the ssa or psa one where the file sits in those
+  suites (Lipniacki's cut to its first 200 s: a 600 s network-free trajectory of its 925,633
+  particles costs an engine 42–60 s).
+- **Windows and subvolumes cut for cost**, the same for every engine, so each engine's ensemble
+  fits the hour it has: Arkin (first 300 s of 2100 s; BNGsim's nf_reject spends 140 s on the
+  whole run), Dolan (240 of 2400 min; 400–700 s per whole run), Lipniacki (200 of 600 s), Chylek
+  (Fx 0.02 → 0.0025, its two set on-rates scaled by 0.02/Fx, as the record's own reduced check
+  does) and Creamer (f 0.02 → 0.001).
+- **Two-phase members (8, 9)** replay the file's own `setParameter` between the runs. Neither
+  RuleMonkey can: `rm_driver` is UNSUPPORTED for a multi-step protocol, and BNGsim's
+  `RuleMonkeySession` refuses `set_param` on a live session ("Cannot set_param during active
+  session"), so their `nf_exact` jobs record that refusal (EXCEPTION). `NfsimSession` applies
+  a live change to the rates.
+- **Non-integer seed counts.** BNGsim rounds a non-integer seed count to the nearest integer;
+  NFsim 1.14.3 and `rm_driver` truncate it. Rohrs 2018's LCK (19.703) is the member that tests
+  it on purpose (the aggregation suite's Posner 2004 and Mitra 2019 hit it too).

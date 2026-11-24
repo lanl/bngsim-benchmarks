@@ -37,3 +37,5 @@ protocol:
     seed: 1
 size:
   nf_events: 20000
+suites:
+  nf-xml-signaling: 7

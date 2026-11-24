@@ -1,0 +1,56 @@
+# Phage-lambda lysis-lysogeny switch, per-genome reformulation (Cortes et al. 2017). A core
+# problem: member 2 of the nf-xml-signaling suite (docs/DESIGN.md §3.2, suites-stochastic.md §2.5;
+# the bngsim paper's B37). Each phage genome carries its own operator states, so the decision is
+# made by a handful of DNA molecules among ~1,000 proteins. Its network is finite (22 species,
+# 82 reactions; the file's "network-free only" note notwithstanding), so exact SSA on it is a
+# reference beside the network-free engines. The file's action block only writes the XML; the
+# protocol is the record's own condition for Fig. S3 at MOI 3 (the record's driver): MOI set to 3,
+# then one network-free run of 60 min in 30-s steps. About 1,003 particles at the start and ~2,000
+# at 60 min. The source study was ODE plus fitted Langevin noise; this file is a reformulation
+# whose noise is the chain's own.
+id: lambda_switch_cortes2017_pergenome
+layer: core
+title: "Phage-lambda lysis-lysogeny decision, per-genome operator states"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/lambda_switch_cortes2017/lambda_switch_cortes2017_pergenome.bngl
+  sha256: 0358ed485c75f3b98777d6febe0c1e738daccb6012d49ff8f746a25cf0b93cd5
+  format: bngl
+publications:
+  - citation: "Cortes MG, Trinh JT, Zeng L, Balazsi G (2017). Late-arriving signals contribute less to cell-fate decisions. Biophys J 113:2110-2120."
+    doi: 10.1016/j.bpj.2017.09.012
+verification:
+  kind: data
+  evidence: models/lambda_switch_cortes2017/verify_cortes2017.ipynb
+  check: >-
+    BNG2.pl only, 3 cell sizes x MOI 1-5, 1000 seeds each: the per-genome file by stock NFsim
+    against its own exact SSA (%lysogeny and observable means at 20/40/60 min, family-wise 1%),
+    and against the primary (detailed) file by exact SSA; and the digitized Fig. S3 (%lysogeny vs
+    MOI, error bars as 1 SE), chi^2 <= 30.58 over the 15 points with every |z| <= 3.40, fixed
+    before the sweep; all asserted
+  result: >-
+    NFsim against exact SSA: max |z| 2.09 (of 3.59) on %lysogeny, 2.87 (of 4.12) on the means;
+    per-genome against the primary file 2.03 (of 3.40). Against Fig. S3 the file FAILS at MOI 1
+    (chi^2 49.7 by SSA, 58.3 by NFsim; the paper's own fitted model scores 19.7): MOI 2-5 fit
+    (chi^2 11.3 over 12 points), MOI 1 sits 10-17 points above the data, asserted as a finding
+  pending: >-
+    BNGL-Models branch verify-lambda_switch_cortes2017-pergenome-nfsim @ b63a623 (not merged; the
+    .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO). Admission
+    under Q1 with the MOI 1 miss is an open question for the user
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      setParameter("MOI",3)
+      simulate_nf({suffix=>"nf",t_start=>0,t_end=>60,n_steps=>120,gml=>2147483647})
+    netgen: "generate_network({overwrite=>1})"
+    replicates: 1000
+    timing_replicates: 20
+    seed: 1
+size:
+  species: 22
+  reactions: 82
+  nf_events: 200000
+suites:
+  nf-xml-signaling: 2

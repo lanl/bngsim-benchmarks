@@ -36,6 +36,8 @@ SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ode-sbml": ("ode", ("sbml",)),  # ODE on published SBML, read as it is
     # Network-free on the BNG-XML BNG2.pl writes from published BNGL: multivalent aggregation.
     "nf-xml-aggregation": ("nf", ("bngl",)),
+    # Network-free on BNG-XML from published BNGL: signaling and gene circuits.
+    "nf-xml-signaling": ("nf", ("bngl",)),
 }
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")

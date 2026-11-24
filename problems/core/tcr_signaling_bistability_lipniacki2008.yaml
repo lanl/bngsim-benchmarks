@@ -47,3 +47,4 @@ size:
   nf_events: 2000000
 suites:
   ode-net: 2
+  nf-xml-signaling: 10

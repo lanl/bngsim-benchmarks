@@ -1,0 +1,58 @@
+# Phage-lambda lysis-lysogeny decision, the full circuit, paper-exact variant (after Arkin, Ross
+# and McAdams 1998). A core problem: member 3 of the nf-xml-signaling suite (docs/DESIGN.md §3.2,
+# suites-stochastic.md §2.5; the bngsim paper's B36). A gene circuit with functional rates,
+# elongation counters (loc~PLUS states) and growth dilution; its network cannot be generated
+# (2,284 counter states). The file's action block only writes the XML; the record's Fig. 6a run
+# goes to 2100 s (35 min, the decision time) at the file's default MOI 6, but there one
+# trajectory costs BNGsim's nf_reject 140 s (BNGsim's RuleMonkey 3.8 s; cost probe 2026-11-24),
+# so 100 would outrun the hour each engine has. The protocol is that run's first 300 s at MOI 6
+# (6.8 s a trajectory), in 10-s steps, the same for every engine: the circuit's early transcription
+# and dimerization, not the decision. 1,212 particles at the start.
+# Known reference gaps, recorded, never worked around: stock NFsim 1.14.3 fires a symmetric
+# functional-rate rule at the wrong rate (the bug bngsim fixed as lanl/bngsim#195; a three-species
+# reproducer gives 500.2 +- 2.0 against an exact 1000.2), and the file's dimer dilution rules have
+# that shape; and BNG2.pl's simulate_nf reports the run as failed after it completes, because
+# NFsim writes notes about the ~PLUS states to stderr. So the nfsim reference is REFERENCE_FAILED
+# here, and with RuleMonkey of BNGsim's own lineage this member can neither pass nor be refuted.
+id: lambda_switch_arkin1998_fullcircuit_exact
+layer: core
+title: "Phage-lambda lysis-lysogeny decision, full circuit (paper-exact variant)"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/lambda_switch_arkin1998/lambda_switch_arkin1998_fullcircuit_exact.bngl
+  sha256: 11a14341872f0b91218358cafd824f72486b7070261a52a36e968aa1f92dc4b2
+  format: bngl
+publications:
+  - citation: "Arkin A, Ross J, McAdams HH (1998). Stochastic kinetic analysis of developmental pathway bifurcation in phage lambda-infected Escherichia coli cells. Genetics 149:1633-1648."
+    doi: 10.1093/genetics/149.4.1633
+verification:
+  kind: data
+  evidence: models/lambda_switch_arkin1998/verify_arkin1998.ipynb and run_fullcircuit.py
+  check: >-
+    Fig. 6a (lysis fraction vs MOI, "Full"), digitized from the journal scan
+    (digitize_arkin1998.py), against stock NFsim 1.14.3 run on the file's writeXML() output,
+    200 seeds per MOI at MOI 1-8, 10, 12, |z| <= 3.29 fixed before the run; the symmetric
+    functional-rate defect of stock NFsim asserted on a reproducer
+  result: >-
+    NO ADMISSIBLE CHECK. MOI 1-3 pass (MOI 3 at z 3.22); MOI 4-12 lie above the published curve
+    (z 4.2-8.6), asserted as a finding, and stock NFsim carries the symmetric-dimer defect this
+    file's dilution rules trigger, so it is not a valid reference for it. The values the record
+    quoted as the paper's (0.30/0.55/0.70 at MOI 4/5/6) are not in the paper (digitized:
+    0.171/0.386/0.456)
+  pending: >-
+    BNGL-Models branch verify-lambda_switch_arkin1998-fullcircuit-exact-nfsim @ d36d401 (not
+    merged; the .bngl is unchanged). Whether to keep B36 or swap in a reserve (Blinov 2006,
+    kinetic proofreading; suites-stochastic.md §3.1) is the user's call (Q11)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      simulate_nf({suffix=>"nf",t_start=>0,t_end=>300,n_steps=>30,gml=>2147483647})
+    replicates: 300
+    timing_replicates: 3
+    seed: 1
+size:
+  nf_events: 2000000
+suites:
+  nf-xml-signaling: 3

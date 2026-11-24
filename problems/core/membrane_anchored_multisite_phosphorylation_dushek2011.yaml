@@ -53,3 +53,5 @@ size:
   reactions: 284
   ssa_events: 5000
   nf_events: 30000
+suites:
+  nf-xml-signaling: 1

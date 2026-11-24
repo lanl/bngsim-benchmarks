@@ -71,3 +71,5 @@ size:
   ssa_events: 4500000
   psa_events: 1400000
   nf_events: 300000
+suites:
+  nf-xml-signaling: 5
