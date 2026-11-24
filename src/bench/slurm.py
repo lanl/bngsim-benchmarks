@@ -285,21 +285,56 @@ def to_run(jobs: list[Job], results_dir: Path | str,
     return out
 
 
-def pack(jobs: list[Job], cfg: SlurmConfig) -> Packing:
+# A unit whose correctness job has parts is split once its bound passes this share
+# of an allocation, not only when it would not fit: its parts then run side by
+# side (on one task's workers, or in tasks of their own), and an estimate that is
+# low still leaves the allocation room.
+SPLIT_FRACTION = 0.5
+
+
+def split_unit(unit: list[Job], done_parts: dict[str, set[str]] | None = None
+               ) -> list[list[Job]] | None:
+    """A unit whose correctness job has parts (``Job.parts``), as one unit per part
+    not yet stored, each that part's copy of the job -- the longest part's with
+    the unit's timing jobs too, so a job is timed once, by the task likely to store
+    its last part, which scores the job and then times it (if another task stores
+    the last part, the timing job waits for the next run) -- or, when every part
+    is stored, the unit with the job planned at its remaining cost. None for a
+    unit whose job has no parts."""
+    corr = next((j for j in unit if j.kind != TIMING and j.parts and j.part is None), None)
+    if corr is None:
+        return None
+    rest = [j for j in unit if j is not corr]
+    done = (done_parts or {}).get(corr.id, set())
+    todo = [p for p in corr.parts if p not in done]
+    if not todo:
+        return [[dataclasses.replace(corr, est_seconds=corr.remainder_seconds), *rest]]
+    longest = max(todo, key=lambda p: corr.parts[p])
+    return [[corr.as_part(p), *(rest if p == longest else [])] for p in todo]
+
+
+def pack(jobs: list[Job], cfg: SlurmConfig,
+         done_parts: dict[str, set[str]] | None = None) -> Packing:
     """Pack ``jobs`` (all to be run) into array tasks by first-fit decreasing.
 
     A unit is a correctness job and the timing jobs that require it (or such a
     timing job alone, when its correctness result is already current). Each
     task's bound on its run time stays within ``cfg.capacity_seconds``. A unit
-    whose own bound exceeds it cannot be run in one allocation: it is returned in
-    ``long`` and not packed.
+    longer than ``SPLIT_FRACTION`` of that whose correctness job has parts is
+    split into one unit per part still to run (``split_unit``; ``done_parts``
+    names the parts already stored, by job id). A unit that is still too long cannot be run in one
+    allocation: it is returned in ``long`` and not packed.
     """
-    units: dict[str, list[Job]] = {}
+    grouped: dict[str, list[Job]] = {}
     for j in jobs:
-        units.setdefault(j.requires or j.id, []).append(j)
+        grouped.setdefault(j.requires or j.id, []).append(j)
     cap = cfg.capacity_seconds
-    ordered = sorted(units.values(),
-                     key=lambda u: (-Task().bound_with(u, cfg), u[0].id))
+    units: list[list[Job]] = []
+    for unit in grouped.values():
+        split = (split_unit(unit, done_parts)
+                 if Task().bound_with(unit, cfg) > SPLIT_FRACTION * cap else None)
+        units.extend(split or [unit])
+    ordered = sorted(units, key=lambda u: (-Task().bound_with(u, cfg), u[0].task_id))
     tasks: list[Task] = []
     long: list[list[Job]] = []
     for unit in ordered:
@@ -435,7 +470,11 @@ def submit(
         fingerprints = {**fingerprints,
                         TIMING: {**fingerprints[TIMING], "node_type": cfg.node_type}}
     todo = to_run(jobs, results_dir, fingerprints)
-    packing = pack(todo, cfg)
+    from .results import part_fresh
+
+    done_parts = {j.id: {p for p in j.parts if part_fresh(results_dir, j, p, fingerprints[j.kind])}
+                  for j in todo if j.parts}
+    packing = pack(todo, cfg, done_parts)
     if packing.long and not skip_long:
         names = "\n".join(f"  {u[0].requires or u[0].id}" for u in packing.long)
         raise SubmitError(
@@ -461,7 +500,7 @@ def submit(
     (sub_dir / "logs").mkdir()
     for i, t in enumerate(packing.tasks):
         (sub_dir / "tasks" / f"{i:04d}.txt").write_text(
-            "".join(f"{j.id}\n" for j in t.jobs), encoding="utf-8")
+            "".join(f"{j.task_id}\n" for j in t.jobs), encoding="utf-8")
     script = sub_dir / "submit.sbatch"
     script.write_text(batch_script(
         cfg, n_tasks=len(packing.tasks), sub_dir=sub_dir, root=root.resolve(),
@@ -473,8 +512,8 @@ def submit(
         "config": dataclasses.asdict(cfg),
         "capacity_seconds": cfg.capacity_seconds,
         "tasks": [{"index": i, "est_seconds": round(t.bound(cfg), 1),
-                   "jobs": [j.id for j in t.jobs]} for i, t in enumerate(packing.tasks)],
-        "long": [[j.id for j in u] for u in packing.long],
+                   "jobs": [j.task_id for j in t.jobs]} for i, t in enumerate(packing.tasks)],
+        "long": [[j.task_id for j in u] for u in packing.long],
         "slurm_job_id": None,
     }
     plan_path = sub_dir / "plan.json"

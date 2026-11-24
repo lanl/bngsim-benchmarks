@@ -34,6 +34,7 @@ SUITE_SIZE = 10
 SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ode-net": ("ode", ("bngl",)),  # ODE on the .net generated from published BNGL
     "ode-sbml": ("ode", ("sbml",)),  # ODE on published SBML, read as it is
+    "ssa-sbml": ("ssa", ("sbml",)),  # exact SSA on published SBML, amounts as molecule counts
 }
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
@@ -139,22 +140,30 @@ SSA_MOMENTS_MIN_REPLICATES = 10_000
 
 def _validate_ssa_protocol(p: Any, where: str, errs: list[str],
                            source_format: str | None = None) -> None:
-    """Exact SSA on the generated network: the grid ``0..t_end`` in ``n_steps``, the
-    ensemble size per engine for correctness (``replicates``) and per timed
-    repetition (``timing_replicates``), the base ``seed`` every engine's seeds derive
-    from, and optionally ``moments: linear`` -- exact moments of a first-order network
-    as a further reference (bench.capabilities.ssa)."""
+    """Exact SSA: the grid ``0..t_end`` in ``n_steps``, the ensemble size per engine
+    for correctness (``replicates``) and per timed repetition (``timing_replicates``),
+    the base ``seed`` every engine's seeds derive from, and optionally exact moments
+    as a further reference (bench.capabilities.ssa). A BNGL model names its network
+    generation (``netgen``) and may declare ``moments: linear`` (exact moments of a
+    first-order network); an SBML model is read as it is, and its exact moments, if
+    any, are a pinned table (``moments: {kind: table, ...}``, as DSMTS publishes them)."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_end", "n_steps", "replicates", "timing_replicates", "seed", "moments"}
+    sbml = source_format == "sbml"
+    allowed = {"t_end", "n_steps", "replicates", "timing_replicates", "seed", "moments"}
+    required = ["t_end", "n_steps", "replicates"]
+    if not sbml:
+        allowed.add("netgen")
+        required.insert(0, "netgen")
     for k in sorted(set(p) - allowed):
-        errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "n_steps", "replicates"):
+        errs.append(f"{where}: unknown key {k!r}"
+                    + (" (an SBML model is read as it is)" if sbml and k == "netgen" else ""))
+    for k in required:
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
     netgen = p.get("netgen")
-    if netgen is not None and not (
+    if netgen is not None and not sbml and not (
         isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
     ):
         errs.append(f"{where}.netgen: must be a generate_network(...) call")
@@ -174,11 +183,43 @@ def _validate_ssa_protocol(p: Any, where: str, errs: list[str],
     if "seed" in p and not _int_in(p["seed"], 0, 2**30):
         errs.append(f"{where}.seed: an integer from 0 to 2**30")
     if "moments" in p:
-        if p["moments"] != "linear":
+        before = len(errs)
+        if sbml:
+            _validate_moments_table(p["moments"], f"{where}.moments", errs)
+        elif p["moments"] != "linear":
             errs.append(f"{where}.moments: 'linear' (exact moments of a first-order network)")
-        elif _int_in(p.get("replicates"), 0, SSA_MOMENTS_MIN_REPLICATES - 1):
+        if len(errs) == before and _int_in(p.get("replicates"), 0, SSA_MOMENTS_MIN_REPLICATES - 1):
             errs.append(f"{where}: a test against exact moments needs replicates >= "
                         f"{SSA_MOMENTS_MIN_REPLICATES}")
+
+
+def _validate_moments_table(m: Any, where: str, errs: list[str]) -> None:
+    """A pinned table of exact means and standard deviations (``kind: table``): two
+    CSV files in one GitHub repository at one commit, each sha256-checked, whose
+    first column is the time and whose other columns are species ids (the DSMTS
+    ``-mean.csv`` / ``-sd.csv`` layout)."""
+    if not isinstance(m, dict) or m.get("kind") != "table":
+        errs.append(f"{where}: a mapping with kind: table, repo, commit, mean and sd "
+                    "(an SBML model's exact moments are a pinned table)")
+        return
+    for k in sorted(set(m) - {"kind", "repo", "commit", "mean", "sd"}):
+        errs.append(f"{where}: unknown key {k!r}")
+    if not _REPO_RE.match(str(m.get("repo", ""))):
+        errs.append(f"{where}.repo: GitHub owner/name")
+    if not _SHA1_RE.match(str(m.get("commit", ""))):
+        errs.append(f"{where}.commit: a full 40-character commit hash")
+    for k in ("mean", "sd"):
+        f = m.get(k)
+        if not isinstance(f, dict):
+            errs.append(f"{where}.{k}: a mapping with path and sha256")
+            continue
+        for extra in sorted(set(f) - {"path", "sha256"}):
+            errs.append(f"{where}.{k}: unknown key {extra!r}")
+        fpath = f.get("path")
+        if not isinstance(fpath, str) or not fpath or fpath.startswith("/") or ".." in fpath:
+            errs.append(f"{where}.{k}.path: a relative path inside the repository")
+        if not _SHA256_RE.match(str(f.get("sha256", ""))):
+            errs.append(f"{where}.{k}.sha256: 64 lowercase hex characters")
 
 
 def _number(v: Any) -> bool:
