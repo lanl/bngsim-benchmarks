@@ -818,7 +818,8 @@ ode-sbml correctness jobs.
 
   The known-bad comparisons are past it by 13× or more: AMICI on Smith 2013 (1.0 of
   the insulin's peak, from the dose it never gives), and COPASI (1.0) and
-  libRoadRunner (0.13) on Winter 2017.
+  libRoadRunner (0.13) on Winter 2017, whose integrators step over the model's
+  stimulus (in each case the reference is wrong; see core_suites.md).
 - **10 × atol** is the vendored movement gate's floor. bngsim's own census of
   BioModels found solvers that agree differing by up to 3.8 atol on a species near
   zero. On the suites here, a species of a passing comparison is never further off

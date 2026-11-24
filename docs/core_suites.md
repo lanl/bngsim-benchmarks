@@ -160,6 +160,38 @@ covers the pinned file.
   conversion's convention, before or after the change. Those rows are left out of
   run_network's verdict, and named in it.
 
+### Reference failures and disagreements
+
+A reference's failure is recorded and attributed, never worked around (DESIGN §5.2).
+A disagreement is DIFF even when BNGsim is the one that is right. The attribution
+below rests on evidence that does not depend on BNGsim.
+
+- **Winter 2017: DIFF, and BNGsim is right.** libRoadRunner is 0.13 of a capillary
+  species' peak off (CO2, `species_24`), and COPASI is 1.0 off (GLU). The model sits at
+  steady state until a stimulus that its assignment rules switch on in time, from
+  t ≈ 197. Both integrators step over that onset: libRoadRunner's catches up within
+  about 2 s, and COPASI's steps over the whole 40 s pulse, so none of its species ever
+  moves. Tightening rtol to 1e-10 changes neither result. Capping the internal step at
+  0.1 s brings both within 2e-5 of BNGsim's tight-tolerance run (libRoadRunner 1.6e-5,
+  COPASI 3.2e-6). AMICI 1.1.0 cannot import the model at all: its importer reads the
+  rate-ruled compartment `venous_balloon` with `getValue()`, which a libsbml
+  `Compartment` does not have.
+- **Smith 2013: DIFF, and AMICI is the outlier.** AMICI never gives the first insulin
+  dose. Its trigger, `time > 0`, is false at t = 0 and true from then on, so by SBML's
+  semantics it fires at once. libRoadRunner and run_network give the dose and agree
+  with BNGsim. COPASI fails as on Hornberg 2005 (below).
+- **Koo 2013: COPASI fails.** COPASI's own time series is right, but BASICO 0.92 drops
+  the times. Two species (`s23`, `s39`) are named `Time`, and BASICO treats every
+  column titled `Time` as the time column, so its frame is indexed by row number. The
+  harness refuses output that is not at the protocol's times.
+- **COPASI has no column for a species that no reaction changes** (a `KeyError`, for
+  example `EGF` on Hornberg 2005 and 11 species on Smith 2013). On the `.net` path the
+  same happens to a species that appears on both sides of its reactions, such as `I` on
+  Barua 2013.
+- **von Dassow 2000:** run_network on the derived network stops with CVODE error -4,
+  a convergence failure. AMICI returns status -10 (`AMICI_UNRECOVERABLE_ERROR`).
+  libRoadRunner and COPASI agree with BNGsim to 2e-6.
+
 ### What the suite spans (DESIGN §3.2, ODE)
 
 | axis | members |
