@@ -406,6 +406,102 @@ def test_preparation_failure_is_a_bad_test(monkeypatch, tmp_path):
         assert rec["outcome"] == "BAD_TEST" and "network generation" in rec["error"]
 
 
+# --------------------------------------------------------------------------- #
+# Stored ensembles and re-scoring them
+# --------------------------------------------------------------------------- #
+def _same(a, b) -> bool:
+    """Equal as recorded (NaN-safe: what the JSON record would hold)."""
+    return json.dumps(a, sort_keys=True, default=str) == json.dumps(b, sort_keys=True, default=str)
+
+
+def test_a_correctness_record_stores_every_ensemble_it_scored(monkeypatch, tmp_path):
+    _install(monkeypatch, {"run_network": _fake_reference(), "roadrunner": _fake_reference(boom="x"),
+                           "copasi": _fake_reference()})
+    rec = ssa.run_correctness(None, None, _ctx(tmp_path))
+    arrays = rec["_trajectories"]
+    # Every engine that ran, as scored (a failed one has none), and the grid.
+    assert set(arrays) == {"time", "species", "keep", "bngsim", "run_network", "copasi"}
+    np.testing.assert_array_equal(arrays["time"], ssa.times(_prep()["proto"]))
+    assert list(arrays["species"]) == ["A()", "B()"] and arrays["keep"].all()
+    for name in ("bngsim", "run_network", "copasi"):
+        assert arrays[name].shape == (200, N_T, N_SP) and arrays[name].dtype == np.float64
+    np.testing.assert_array_equal(arrays["bngsim"], _fake_stack(200, ssa.seed_for("bngsim", 1)))
+
+
+def test_a_record_with_no_ensemble_stores_nothing(monkeypatch, tmp_path):
+    _install(monkeypatch, {"copasi": _fake_reference(boom="no")}, bngsim=_fake_bngsim(boom="no"))
+    assert "_trajectories" not in ssa.run_correctness(None, None, _ctx(tmp_path))
+
+
+def _stored_and_read(tmp_path, rec):
+    """The record's ensembles as the worker stores them and a reader gets them back."""
+    from bench import results
+
+    job = "ssa/m/e/auto/correctness"
+    meta = results.write_trajectories(tmp_path / "results", job, rec.pop("_trajectories"))
+    return results.read_trajectories(tmp_path / "results", job, {"trajectories": meta})
+
+
+@pytest.mark.parametrize("case", ["pass", "diff", "reference_failed", "moments", "kept_rows"])
+def test_rescoring_the_stored_ensembles_gives_the_runs_verdicts(monkeypatch, tmp_path, case):
+    refs = {"run_network": _fake_reference(), "copasi": _fake_reference()}
+    bngsim, moments, keep = None, None, None
+    if case == "diff":
+        bngsim = _fake_bngsim(shift=1.5)
+    if case == "reference_failed":
+        refs["copasi"] = _fake_reference(boom="edgepop")
+    if case == "moments":
+        moments = "linear"
+        lam = 5 * np.exp(-np.linspace(0, 1, N_T))[:, None] * np.ones(N_SP)
+        lam_var = lam.copy()
+        lam[0], lam_var[0] = 5.0, 0.0
+        monkeypatch.setattr(ssa, "exact_moments", lambda prep: (lam, lam_var))
+    _install(monkeypatch, refs, bngsim=bngsim, moments=moments)
+    if case == "kept_rows":
+        # An SBML model's time-event rows are left out of every comparison.
+        keep = np.ones(N_T, dtype=bool)
+        keep[4] = False
+        prep = dict(_prep(), keep=keep)
+        monkeypatch.setattr(ssa, "_prepare", lambda problem, ctx: prep)
+    rec = ssa.run_correctness(None, None, _ctx(tmp_path))
+    arrays = _stored_and_read(tmp_path, rec)
+    if keep is not None:
+        np.testing.assert_array_equal(arrays["keep"], keep)
+    if moments:
+        assert {"analytic_mean", "analytic_variance"} <= set(arrays)
+    job = types.SimpleNamespace(definition={"protocol": _prep(moments)["proto"]})
+    update = ssa.rescore(job, json.loads(json.dumps(rec, default=str)), arrays)
+    assert update["outcome"] == rec["outcome"] == {
+        "pass": "PASS", "diff": "DIFF", "reference_failed": "REFERENCE_FAILED",
+        "moments": "PASS", "kept_rows": "PASS"}[case]
+    assert _same(update["verdicts"], rec["verdicts"])
+    if moments:
+        assert _same(update["measurements"]["reference_vs_analytic"],
+                     rec["measurements"]["reference_vs_analytic"])
+
+
+def test_bench_rescore_rescores_a_stored_ssa_result(monkeypatch, tmp_path, ssa_spec, write_spec):
+    # A result stale only in its scoring (another vendored comparison core) is
+    # re-scored from its stored ensembles and is current again, as ode's are.
+    from bench import results
+    from bench.rescore import rescore_one
+
+    job = next(j for j in ssa.jobs(specs.load(write_spec(ssa_spec))) if j.kind == "correctness")
+    fp = {"bngsim": {"version": "0.17.3"}, "harness": {"parity_core": {"commit": "new"}}}
+    old = {**fp, "harness": {"parity_core": {"commit": "old"}}}
+    _install(monkeypatch, {"run_network": _fake_reference(), "copasi": _fake_reference()})
+    rec = ssa.run_correctness(None, None, _ctx(tmp_path))
+    results_dir = tmp_path / "results"
+    rec["trajectories"] = results.write_trajectories(results_dir, job, rec.pop("_trajectories"))
+    rec = json.loads(json.dumps({**rec, "key": results.freshness_key(job, old),
+                                 "key_parts": results.key_parts(job, old)}, default=str))
+    results.write_result(results_dir, job, rec)
+    got = rescore_one(job, results_dir, fp)
+    assert got.state == "rescored" and got.before == got.after == "PASS"
+    new = results.read_result(results_dir, job)
+    assert new["key"] == results.freshness_key(job, fp) and _same(new["verdicts"], rec["verdicts"])
+
+
 def _timing_job(requires=None):
     return types.SimpleNamespace(
         definition={"timing": {"warmup_rounds": 1, "min_rounds": 3, "max_rounds": 3,

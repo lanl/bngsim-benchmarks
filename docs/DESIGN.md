@@ -744,7 +744,24 @@ A correctness job also stores the trajectories its verdict was computed from, be
 its JSON file as `<job id>.npz` (compressed float64): every engine's compared
 trajectory, the output times and the compared species. The JSON file names it, with
 its size and sha256, so an `.npz` left by another run of the job is never read as
-this one's. On the core suites each is a few MB, and none is above about 10 MB.
+this one's. On the ODE core suites each is a few MB, and none is above about 10 MB.
+
+A stochastic job (ssa, nf) stores its ensembles the same way: each engine's
+`(replicates, times, species)` array as scored. An ssa job also stores the rows
+every comparison uses (`keep`) and, where the spec declares them, the exact moments
+on the grid. These files are larger. How well counts compress depends on the
+model: about 4.5 times for the repressilator, 7.7 times for Vilar 2002, 72 times
+for Faeder 2003 and 340 times for Dushek 2011's mostly empty species. Per engine,
+the largest ssa-net and ssa-sbml members are:
+
+- Proctor 2007's ubiquitin-proteasome system (SBML, 10^4 x 101 x 33): 35 MB;
+- Vilar 2002 (SBML, 10^4 x 201 x 9): 19 MB;
+- Munsky 2012 (10^4 x 201 x 10): 13 MB;
+- the repressilator (SBML, 10^4 x 101 x 6): 11 MB.
+
+Every other member is under 10 MB per engine. A job stores one ensemble per engine
+that ran, so the largest file is about 100 MB. The suite snapshot ships them only
+under its size limit (§6.3).
 
 ### 6.2 Freshness
 
@@ -767,9 +784,9 @@ definition, id and key as they were.
 A correctness result can be stale only in how it is scored: the vendored comparison
 core, or the verdict version in its definition (§6.4). Such a result does not need to
 re-run. `bench rescore` recomputes its verdicts and outcome from its stored
-trajectories and rewrites it with the current key, keeping a history of the outcomes
-it replaced. A result that is stale for any other reason, or that stored no
-trajectories, is left to re-run.
+trajectories (ode) or ensembles (ssa, nf) and rewrites it with the current key,
+keeping a history of the outcomes it replaced. A result that is stale for any other
+reason, or that stored no trajectories, is left to re-run.
 
 ### 6.3 Gathering and publishing
 

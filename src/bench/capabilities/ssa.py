@@ -61,6 +61,10 @@ job's engines are its parts (``Job.parts``): a job too long for one allocation
 runs each engine as its own Slurm array task (``bench submit``), each storing
 its ensemble beside the job's result, and the job then scores the stored
 ensembles instead of sampling them again. The result is the same either way.
+
+**Stored ensembles.** A correctness job stores every ensemble it scored beside
+its record (``stored_ensembles``), so ``bench rescore`` can re-score it with a new
+verdict without sampling again (``rescore``).
 """
 
 from __future__ import annotations
@@ -904,9 +908,7 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
     info["references"] = references
 
     moments = None
-    n_refs = len(REFERENCE_ENGINES) - len(not_applicable)
     if proto.get("moments"):
-        n_refs += 1
         t0 = time.perf_counter()
         try:
             moments = exact_moments(prep)
@@ -914,6 +916,44 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         except Exception as exc:  # noqa: BLE001 - a reference that could not be built
             ref_errors[ANALYTIC] = f"{type(exc).__name__}: {exc}"[:400]
 
+    verdicts, result, vs_analytic = _score(bn, ensembles, moments, prep, bn_error, ref_errors,
+                                           not_applicable)
+    if vs_analytic:
+        info["reference_vs_analytic"] = vs_analytic
+    names = prep["species_names"]
+    info["ensembles"] = {name: _final_moments(stack, names)
+                         for name, stack in (("bngsim", bn), *ensembles.items())
+                         if stack is not None}
+    if moments is not None:
+        info["ensembles"][ANALYTIC] = {
+            "final_mean": dict(zip(names, map(float, moments[0][-1]))),
+            "final_variance": dict(zip(names, map(float, moments[1][-1])))}
+
+    rec: dict[str, Any] = {"outcome": result, "measurements": info}
+    if verdicts:
+        rec["verdicts"] = verdicts
+    if bn_error:
+        rec["bngsim_error"] = bn_error
+    for name, err in ref_errors.items():
+        rec[f"{name}_error"] = err
+    if not_applicable:
+        rec["not_applicable"] = not_applicable
+    stored = stored_ensembles(prep, bn, ensembles, moments)
+    if stored:
+        rec["_trajectories"] = stored
+    return rec
+
+
+def _score(bn: np.ndarray | None, ensembles: dict[str, np.ndarray],
+           moments: tuple[np.ndarray, np.ndarray] | None, prep: dict[str, Any],
+           bn_error: str | None, ref_errors: dict[str, str], not_applicable: dict[str, str]
+           ) -> tuple[dict[str, Any], str, dict[str, Any]]:
+    """BNGsim's verdict against each reference ensemble and the exact moments, the
+    job's outcome, and every reference's ensemble against the exact moments (not
+    scored: it says which side of a disagreement is wrong). The one place these
+    are computed, from a run (``run_correctness``) or from its stored ensembles
+    (``rescore``), so the two cannot drift."""
+    n_refs = len(REFERENCE_ENGINES) - len(not_applicable) + bool(prep["proto"].get("moments"))
     verdicts: dict[str, Any] = {}
     if bn is not None:
         for name, stack in ensembles.items():
@@ -924,36 +964,67 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         if moments is not None:
             verdicts[ANALYTIC] = _analytic(bn, moments, prep)
     passed = bool(verdicts) and all(v.get("passed") for v in verdicts.values())
-
-    # Every engine's ensemble against the exact moments too: not scored, but it
-    # says which side of a disagreement is wrong.
-    if moments is not None and ensembles:
-        info["reference_vs_analytic"] = {
+    vs_analytic: dict[str, Any] = {}
+    if moments is not None:
+        vs_analytic = {
             name: {k: v for k, v in _analytic(stack, moments, prep).items()
                    if k in ("passed", "p_value", "p_min", "z_max", "worst", "n_rejected")}
             for name, stack in ensembles.items()}
-    names = prep["species_names"]
-    info["ensembles"] = {name: _final_moments(stack, names)
-                         for name, stack in (("bngsim", bn), *ensembles.items())
-                         if stack is not None}
-    if moments is not None:
-        info["ensembles"][ANALYTIC] = {
-            "final_mean": dict(zip(names, map(float, moments[0][-1]))),
-            "final_variance": dict(zip(names, map(float, moments[1][-1])))}
-
     result = outcome(bn_error, ref_errors, n_refs, passed)
     if bn_error and bn_error.startswith("TIMEOUT") and result == "EXCEPTION":
         result = "TIMEOUT"
-    rec: dict[str, Any] = {"outcome": result, "measurements": info}
+    return verdicts, result, vs_analytic
+
+
+def stored_ensembles(prep: dict[str, Any], bn: np.ndarray | None,
+                     ensembles: dict[str, np.ndarray],
+                     moments: tuple[np.ndarray, np.ndarray] | None) -> dict[str, np.ndarray]:
+    """What a correctness job stores beside its record (the worker writes it as
+    ``<job id>.npz``): every engine's ensemble as it was scored, ``(replicates,
+    times, species)`` under the engine's name; the output times (``time``), the
+    compared species (``species``), the rows every comparison uses (``keep``) and,
+    where the spec declares them, the exact moments on the grid
+    (``analytic_mean``, ``analytic_variance``). Enough to re-score every verdict
+    (``bench rescore``) without re-sampling; empty when no engine ran."""
+    engines = {**({"bngsim": bn} if bn is not None else {}), **ensembles}
+    if not engines:
+        return {}
+    out: dict[str, np.ndarray] = {
+        "time": times(prep["proto"]),
+        "species": np.asarray([str(s) for s in prep["species_names"]], dtype=str),
+        "keep": np.asarray(_kept(prep), dtype=bool),
+    }
+    for name, stack in engines.items():
+        out[name] = np.asarray(stack, dtype=np.float64)
+    if moments is not None:
+        out["analytic_mean"] = np.asarray(moments[0], dtype=np.float64)
+        out["analytic_variance"] = np.asarray(moments[1], dtype=np.float64)
+    return out
+
+
+def rescore(job: Job, record: dict[str, Any], arrays: dict[str, np.ndarray]) -> dict[str, Any]:
+    """A correctness record re-scored from its stored ensembles with the current
+    verdict: its new ``verdicts`` and ``outcome``, and every reference against the
+    exact moments. Engine failures, configurations and not-applicable references
+    are the record's own."""
+    prep = {"proto": job.definition["protocol"],
+            "species_names": [str(s) for s in arrays["species"]],
+            "keep": np.asarray(arrays["keep"], dtype=bool) if "keep" in arrays else None}
+    ensembles = {name: arrays[name] for name in REFERENCE_ENGINES if name in arrays}
+    moments = ((arrays["analytic_mean"], arrays["analytic_variance"])
+               if "analytic_mean" in arrays else None)
+    ref_errors = {name: str(record[f"{name}_error"]) for name in (*REFERENCE_ENGINES, ANALYTIC)
+                  if record.get(f"{name}_error")}
+    verdicts, result, vs_analytic = _score(
+        arrays.get("bngsim"), ensembles, moments, prep, record.get("bngsim_error"),
+        ref_errors, record.get("not_applicable") or {})
+    update: dict[str, Any] = {"outcome": result}
     if verdicts:
-        rec["verdicts"] = verdicts
-    if bn_error:
-        rec["bngsim_error"] = bn_error
-    for name, err in ref_errors.items():
-        rec[f"{name}_error"] = err
-    if not_applicable:
-        rec["not_applicable"] = not_applicable
-    return rec
+        update["verdicts"] = verdicts
+    if vs_analytic:
+        update["measurements"] = {**(record.get("measurements") or {}),
+                                  "reference_vs_analytic": vs_analytic}
+    return update
 
 
 def _summary(stack: np.ndarray) -> np.ndarray:
