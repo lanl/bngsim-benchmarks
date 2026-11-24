@@ -728,6 +728,17 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
     return lines
 
 
+def _sens_references_cell(r: dict[str, Any]) -> str:
+    """``reference_agreement``, or, where BNGsim refused the protocol and so has no
+    verdict, whether the references agree with each other (their worst column)."""
+    agree = r.get("references_agreement")
+    if not agree:
+        return reference_agreement({k: v for k, v in r.items() if k != "bngsim_error"})
+    errs = [v.get("max_error") for v in agree.values() if isinstance(v.get("max_error"), (int, float))]
+    word = "agree" if all(v.get("passed") for v in agree.values()) else "disagree"
+    return f"references {word} with each other" + (f" ({max(errs):.2g})" if errs else "")
+
+
 def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     """One row per problem, as ``_correctness_table`` but for a sensitivity verdict:
     the number of parameters, the worst column error over the references that were
@@ -736,9 +747,9 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     with BNGsim where it does not), or why it did not run; and whether every further
     BNGsim configuration agreed with the default one. *parameters* is their number
     and the problem's convention (``independent``, ``fitted``, ``listed``)."""
-    refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
-                  | {name for r in rows for name in _errored_engines(r)}
-                  | {name for r in rows for name in (r.get("not_applicable") or {})}
+    refs = sorted(({name for r in rows for name in (r.get("verdicts") or {})}
+                   | {name for r in rows for name in _errored_engines(r)}
+                   | {name for r in rows for name in (r.get("not_applicable") or {})})
                   - {"bngsim"})
     header = ["problem", "species", "parameters", "outcome", "references", "max column error",
               *(f"vs {name}" for name in refs), "configurations", "current"]
@@ -767,7 +778,7 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
         n_params = " ".join(filter(None, [_fmt(r.get("parameters"), "d"), r.get("convention")]))
         lines.append("| " + " | ".join([
             _problem_cell(r), _fmt(sp, "d"), n_params, r["outcome"],
-            reference_agreement(r), _fmt(r.get("worst_column_err"), ".2e"), *cells,
+            _sens_references_cell(r), _fmt(r.get("worst_column_err"), ".2e"), *cells,
             ("DIFF (" + ", ".join(bad) + ")") if bad else ("agree" if configs else ""),
             "yes" if r["current"] else "no",
         ]) + " |")
