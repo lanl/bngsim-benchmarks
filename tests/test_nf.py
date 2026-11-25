@@ -198,7 +198,7 @@ def test_run_network_is_answered_as_bng2pl_answers_an_edgepop(monkeypatch, tmp_p
 @pytest.mark.integration
 def test_the_real_run_network_completes_once_its_edgepop_is_answered(tmp_path):
     # Without a reply run_network reads end of file and is killed by signal 11
-    # (stock BioNetGen 2.9.3 and 2.9.4); with BNG2.pl's, it finishes.
+    # (stock BioNetGen 2.9.3 through 2.9.5; bionetgen#361); with BNG2.pl's, it finishes.
     import subprocess
 
     prep = _edge_prep(tmp_path)
@@ -328,7 +328,7 @@ def test_correctness_passes_and_records_cross_setting_and_same_seed(monkeypatch,
 def test_the_reject_setting_checks_its_embedding_against_nfsim(monkeypatch, tmp_path, version,
                                                                 compat):
     # BNGsim's v1.14.3 compatibility mode only where the reference is NFsim 1.14.3
-    # (BioNetGen 2.9.3, a comparison run); against NFsim 2 (2.9.4) BNGsim as it is.
+    # (BioNetGen 2.9.3, a comparison run); against NFsim 2 (2.9.4, 2.9.5) BNGsim as it is.
     _install(monkeypatch, {"nfsim": _fake_reference(), "rulemonkey": _fake_reference()})
     monkeypatch.setattr(nf.env, "nfsim_identity", lambda: {"version": version})
     rec = nf.run_correctness(_job("nf_reject"), None, _ctx(tmp_path))

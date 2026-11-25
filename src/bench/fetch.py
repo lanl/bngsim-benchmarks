@@ -20,19 +20,21 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-BIONETGEN_VERSION = "2.9.4"
+BIONETGEN_VERSION = "2.9.5"
 _BIONETGEN_BASE = (
     "https://github.com/RuleWorld/bionetgen/releases/download/"
     f"BioNetGen-{BIONETGEN_VERSION}/BioNetGen-{BIONETGEN_VERSION}"
 )
 # sha256 of the published release assets (GitHub's own digests of them agree).
-# 2.9.4 is the first release to bundle NFsim 2 (2.0.1); 2.9.3, with NFsim 1.14.3,
-# was: mac 5ddf0ebf76b9573bbfef794bc8335438b46962f704c3fffffff7db425eb8ebf9, linux
+# 2.9.5 bundles NFsim 2.0.1, as 2.9.4 (the first release to bundle NFsim 2) did;
+# 2.9.4 was: mac 712df23d1c64db0b85a4c3f7ae1027f480ddad06e1565828aa88c911c843f00c,
+# linux 8af3bbf86a157b9474664c2bc7a647f0aa624219244bccc2ce5fd8f3c43d4ff1. 2.9.3,
+# with NFsim 1.14.3, was: mac 5ddf0ebf76b9573bbfef794bc8335438b46962f704c3fffffff7db425eb8ebf9, linux
 # b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d (comparison runs
 # only: unpack it and point BNGPATH at it).
 BIONETGEN_SHA256 = {
-    "mac": "712df23d1c64db0b85a4c3f7ae1027f480ddad06e1565828aa88c911c843f00c",
-    "linux": "8af3bbf86a157b9474664c2bc7a647f0aa624219244bccc2ce5fd8f3c43d4ff1",
+    "mac": "fa14035c165e4c0f54e35297178ee477cb41dec0632d345c3024fc9d2f256559",
+    "linux": "857aae078d30e02c47a54db02f1d94c565abb96c0c0b9dc2a582eba91ee2deca",
 }
 # Written into the extracted distribution; what jobs read to record which
 # BioNetGen they ran, and to tell a fetched copy from one found elsewhere.
@@ -119,7 +121,7 @@ def fetch_bionetgen(cache_dir: str | Path) -> Path:
 # --------------------------------------------------------------------------- #
 # A newer glibc, for machines whose own is too old to load run_network
 # --------------------------------------------------------------------------- #
-# BioNetGen's prebuilt Linux run_network and NFsim (2.9.3 and 2.9.4 alike) need
+# BioNetGen's prebuilt Linux run_network and NFsim (2.9.3 through 2.9.5 alike) need
 # glibc >= 2.34 and libstdc++ GLIBCXX_3.4.29; a cluster on an older OS (e.g. RHEL
 # 8 / glibc 2.28) cannot load them. Rather than rebuild them or pin an older
 # BioNetGen, we run the unchanged binaries under a newer loader, extracted (no

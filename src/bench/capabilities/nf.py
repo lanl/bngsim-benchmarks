@@ -12,7 +12,7 @@ Both read the BNG-XML that BNG2.pl's ``writeXML()`` writes from the published
 BNGL, and both are compared with every reference in ``REFERENCE_ENGINES`` on the
 same protocol:
 
-- **nfsim** -- standalone NFsim 2.0.1 (bundled with BioNetGen 2.9.4) as BNG2.pl
+- **nfsim** -- standalone NFsim 2.0.1 (bundled with BioNetGen 2.9.5) as BNG2.pl
   drives it: BNG2.pl runs the protocol's own actions (``bench.nfactions``), writing
   the XML and starting NFsim for each network-free step, with any ``setParameter``
   between steps applied by BNG2.pl, as NFsim's command line cannot change a

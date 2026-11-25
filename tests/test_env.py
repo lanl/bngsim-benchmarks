@@ -199,9 +199,9 @@ def test_the_launch_tree_wraps_nfsim_and_run_network_in_the_loader(tmp_path, mon
     assert "/h/ld.so" in (tree / "bin" / "NFsim").read_text()
 
 
-@pytest.mark.parametrize("bng, nfsim", [("2.9.4", "2.0.1"), ("2.9.3", "1.14.3")])
+@pytest.mark.parametrize("bng, nfsim", [("2.9.5", "2.0.1"), ("2.9.4", "2.0.1"), ("2.9.3", "1.14.3")])
 def test_nfsim_identity_is_the_binary_bioNetGen_bundles(tmp_path, monkeypatch, bng, nfsim):
-    # 2.9.4 is the pinned release (NFsim 2); 2.9.3 (NFsim 1.14.3) is for comparison runs.
+    # 2.9.5 is the pinned release (NFsim 2); 2.9.4 and 2.9.3 (NFsim 1.14.3) are for comparison runs.
     root = _bng_dist(tmp_path / f"BioNetGen-{bng}")
     monkeypatch.setenv("BNGPATH", str(root))
     monkeypatch.setattr(env, "bionetgen_identity", lambda: {"version": bng})
