@@ -1,0 +1,286 @@
+{
+ "amici_error": "TIMEOUT in the correctness job, so not timed (TIMEOUT: no result within the 3600 s per-engine budget (stopped in: SBML import + C++ compile))",
+ "capability": "ode",
+ "copasi_error": "KeyError: \"['cell__RAFi1_raf', 'cell__RAFi2_raf', 'cell__Cobimetinib_mek'] not in index\"",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/ksr1_raf_mek_inhibitor_response_imoto2026/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+ "key": "ea3cc3a6ae191295f86e7b7b6dc9da8f5675bdf33ee2e49251245ff7a4cfd01c",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "protocol": {
+     "atol": 1e-08,
+     "n_steps": 200,
+     "netgen": "generate_network({overwrite=>1})",
+     "rtol": 1e-08,
+     "sparse": false,
+     "t_end": 20000,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "9b0822b831f3082b4a7196a4a24481191b56b5cc8ca00e5b50fd2f23b2602f7f",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "ode/ksr1_raf_mek_inhibitor_response_imoto2026/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 147.40217779704835,
+   "jacobian": "analytical",
+   "jacobian_seconds": 31.96822629403323,
+   "linear_solver": "KLU",
+   "load_seconds": 0.16239823098294437
+  },
+  "bngsim_cold_seconds": 463.7287924569682,
+  "engine_roles": {
+   "bngsim": "warm, in-process (system under test)",
+   "roadrunner": "warm, in-process",
+   "run_network": "fresh subprocess"
+  },
+  "netgen_seconds": 37.21016176097328,
+  "network": {
+   "reactions": 27457,
+   "species": 2709
+  },
+  "references": {
+   "roadrunner": {
+    "integrator": "cvode",
+    "load_seconds": 638.9176375780371,
+    "output": "amount",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "command": [
+     "-o",
+     "$TMPDIR/bench-job-oe2lxv98/rn",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-08",
+     "-r",
+     "1e-08",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "$TMPDIR/bench-job-oe2lxv98/netgen/model.net",
+     "$TMPDIR/bench-job-oe2lxv98/netgen/model.net",
+     "100.0",
+     "200"
+    ],
+    "solver": "dense"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "bngsim": {
+     "seconds": [
+      269.91885308304336,
+      269.91097214102047,
+      269.88243010197766,
+      269.8802099020104,
+      269.8784636670025
+     ]
+    },
+    "roadrunner": {
+     "seconds": [
+      198.79528456600383,
+      198.82400571199832,
+      198.82745265495032,
+      198.81201534497086,
+      198.79511367401574
+     ]
+    },
+    "run_network": {
+     "seconds": [
+      380.87843854998937,
+      381.1017240710207,
+      380.4946365840151,
+      379.98444949201075,
+      380.6265337720397
+     ]
+    }
+   },
+   "order": "bngsim run_network roadrunner",
+   "rounds": 5,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 5,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "roadrunner": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 4,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "run_network": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 4,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "times": {
+   "bngsim": {
+    "ci_high": 269.91885308304336,
+    "ci_low": 269.8784636670025,
+    "confidence": 0.95,
+    "median_seconds": 269.88243010197766,
+    "rounds": 5
+   },
+   "roadrunner": {
+    "ci_high": 198.82745265495032,
+    "ci_low": 198.79511367401574,
+    "confidence": 0.95,
+    "median_seconds": 198.81201534497086,
+    "rounds": 5
+   },
+   "run_network": {
+    "ci_high": 381.1017240710207,
+    "ci_low": 379.98444949201075,
+    "confidence": 0.95,
+    "median_seconds": 380.6265337720397,
+    "rounds": 5
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "ksr1_raf_mek_inhibitor_response_imoto2026",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-23T21:12:09.151255+00:00",
+ "wall_seconds": 9521.902772296977
+}

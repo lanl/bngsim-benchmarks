@@ -1,0 +1,357 @@
+{
+ "capability": "nf",
+ "engines": "bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "5222c720be28c8879a875b4bc6b3666ddfa0fd5b",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+ "key": "4dced53b98d925cc50f5bf194601f724158c1ae7a8ace004e019cea8004632b0",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "nf/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/2",
+    "protocol": {
+     "actions": "simulate({method=>\"nf\",suffix=>\"nf\",t_start=>0,t_end=>1000,n_steps=>50,gml=>2147483647})\n",
+     "netgen": "generate_network({overwrite=>1})",
+     "replicates": 2000,
+     "seed": 1,
+     "timing_replicates": 100
+    },
+    "reference_versions": {
+     "rulemonkey": {
+      "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+      "version": "3.13.0"
+     }
+    },
+    "setting": {
+     "method": "nf_reject",
+     "session": "NfsimSession"
+    },
+    "source_sha256": "a7ae14839044fac6cf2862d9c9d1ce4280a0207efe0a87879f8a34b4bce44126",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "initialize_seconds": 0.6265077284770086,
+   "load_seconds": 0.013763866038061678,
+   "method": "nf_reject",
+   "options": {
+    "block_same_complex_binding": true,
+    "molecule_limit": 2147483647
+   },
+   "session": "NfsimSession",
+   "simulate_seconds": 2.2299886618275195
+  },
+  "bngsim_cold_seconds": 2.8738570959540084,
+  "engine_roles": {
+   "bngsim": "warm, in-process (system under test)",
+   "nfsim": "fresh subprocess",
+   "rulemonkey": "fresh subprocess"
+  },
+  "network": {
+   "reactions": 284,
+   "species": 143
+  },
+  "observables": [
+   "Obs_pY",
+   "Obs_enc_E",
+   "Obs_enc_F",
+   "Obs_bound_E",
+   "Obs_bound_F"
+  ],
+  "protocol": {
+   "complex": true,
+   "dropped": [],
+   "gml": 2147483647,
+   "phases": [
+    {
+     "duration": 1000.0,
+     "get_final_state": true,
+     "n_steps": 50,
+     "sets": []
+    }
+   ],
+   "utl": null
+  },
+  "references": {
+   "nfsim": {
+    "driver": "BNG2.pl, running the protocol's actions",
+    "nfsim_command": "NFsim -xml model_nfp0.xml -o model_nfp0.gdat -sim 1000 -oSteps 50 -gml 2147483647 -seed <seed> -cb",
+    "nfsim_simulate_cpu_seconds": 1.9403090000000003,
+    "nfsim_total_cpu_seconds": 2.5972150000000007,
+    "reactions": 242536,
+    "seeds": "first_seed + i for trajectory i (+ 10**6 per later step)",
+    "version": "1.14.3",
+    "xml_matches_harness": true
+   },
+   "rulemonkey": {
+    "command": [
+     "rm_driver",
+     "model.xml",
+     "1000.0",
+     "50",
+     "<seed>"
+    ],
+    "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+    "lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+    "rm_simulate_seconds": 6.898607,
+    "version": "3.13.0"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "bngsim": {
+     "seconds": [
+      2.8686200480442494,
+      2.8627612380078062,
+      2.8639936360996217,
+      2.8576632289914414,
+      2.872434442047961
+     ]
+    },
+    "nfsim": {
+     "seconds": [
+      27.4126844269922,
+      25.825076146051288,
+      26.017891922965646,
+      25.8769613399636,
+      26.33084124501329
+     ]
+    },
+    "rulemonkey": {
+     "seconds": [
+      7.447082806029357,
+      7.450506133027375,
+      7.469230800983496,
+      7.457291872007772,
+      7.471963502001017
+     ]
+    }
+   },
+   "order": "bngsim nfsim rulemonkey",
+   "rounds": 5,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 5,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "nfsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 4,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "rulemonkey": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 4,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   }
+  },
+  "solve_split": {
+   "bngsim": {
+    "initialize_seconds": 0.6292396590579301,
+    "simulate_seconds": 2.2317840746836737,
+    "solve_seconds": 2.2317840746836737
+   },
+   "nfsim": {
+    "nfsim_simulate_cpu_seconds": 1.9411229999999993,
+    "nfsim_total_cpu_seconds": 2.5977799999999998,
+    "reactions": 242536.0,
+    "solve_seconds": 1.9411229999999993
+   },
+   "rulemonkey": {
+    "rm_simulate_seconds": 6.885885000000001,
+    "solve_seconds": 6.885885000000001
+   }
+  },
+  "ssa_netgen_seconds": 0.7657976310001686,
+  "times": {
+   "bngsim": {
+    "ci_high": 2.872434442047961,
+    "ci_low": 2.8576632289914414,
+    "confidence": 0.95,
+    "median_seconds": 2.8639936360996217,
+    "rounds": 5
+   },
+   "nfsim": {
+    "ci_high": 27.4126844269922,
+    "ci_low": 25.825076146051288,
+    "confidence": 0.95,
+    "median_seconds": 26.017891922965646,
+    "rounds": 5
+   },
+   "rulemonkey": {
+    "ci_high": 7.471963502001017,
+    "ci_low": 7.447082806029357,
+    "confidence": 0.95,
+    "median_seconds": 7.457291872007772,
+    "rounds": 5
+   }
+  },
+  "times_per_trajectory": {
+   "bngsim": {
+    "ci_high": 0.028724344420479612,
+    "ci_low": 0.028576632289914413,
+    "median_seconds": 0.028639936360996217
+   },
+   "nfsim": {
+    "ci_high": 0.274126844269922,
+    "ci_low": 0.2582507614605129,
+    "median_seconds": 0.26017891922965647
+   },
+   "rulemonkey": {
+    "ci_high": 0.07471963502001017,
+    "ci_low": 0.07447082806029356,
+    "median_seconds": 0.07457291872007772
+   }
+  },
+  "timing_replicates": 100,
+  "xml_seconds": 0.2163460599258542,
+  "xml_sha256": "e7278640c28585885c6a10fb2d872c5b279e0fe7ceaec5b3b317e9c89ff4cf13"
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "membrane_anchored_multisite_phosphorylation_dushek2011",
+ "schema": 1,
+ "setting": "nf_reject",
+ "started": "2026-11-25T00:22:06.447866+00:00",
+ "wall_seconds": 223.4514938610373
+}

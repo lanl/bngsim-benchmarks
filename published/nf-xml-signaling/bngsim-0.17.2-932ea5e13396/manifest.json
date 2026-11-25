@@ -1,0 +1,752 @@
+{
+ "schema": 1,
+ "suite": "nf-xml-signaling",
+ "capabilities": [
+  "nf"
+ ],
+ "published": "2026-11-25T17:14:42Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "5222c720be28c8879a875b4bc6b3666ddfa0fd5b",
+   "8c67b8f96cc42dc37e46e70f26343de956d193d6"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "membrane_anchored_multisite_phosphorylation_dushek2011",
+   "title": "Membrane-anchored multisite phosphorylation",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/membrane_anchored_multisite_phosphorylation_dushek2011/membrane_anchored_multisite_phosphorylation_dushek2011.bngl",
+    "sha256": "a7ae14839044fac6cf2862d9c9d1ce4280a0207efe0a87879f8a34b4bce44126",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Dushek O, van der Merwe PA, Shahrezaei V (2011). Ultrasensitivity in multisite phosphorylation of membrane-anchored proteins. Biophys J 100:1189-1197.",
+     "doi": "10.1016/j.bpj.2011.01.060"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/membrane_anchored_multisite_phosphorylation_dushek2011/verify_dushek2011.ipynb",
+    "check": "level 1: BNG2.pl scans vs the exact null space of the linear network, 1e-6 asserted; level 2: digitized Fig. 2 A-D curves (80), RMSE 0.02 of full scale asserted",
+    "result": "level 1 max absolute difference 2.65e-8 (Fig. 2 D, the 41 scan points); level 2 RMSE max 0.0040, median 0.0021 of full scale"
+   },
+   "size": {
+    "species": 143,
+    "reactions": 284,
+    "ssa_events": 5000,
+    "nf_events": 30000
+   }
+  },
+  {
+   "position": 2,
+   "problem": "lambda_switch_cortes2017_pergenome",
+   "title": "Phage-lambda lysis-lysogeny decision, per-genome operator states",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/lambda_switch_cortes2017/lambda_switch_cortes2017_pergenome.bngl",
+    "sha256": "0358ed485c75f3b98777d6febe0c1e738daccb6012d49ff8f746a25cf0b93cd5",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Cortes MG, Trinh JT, Zeng L, Balazsi G (2017). Late-arriving signals contribute less to cell-fate decisions. Biophys J 113:2110-2120.",
+     "doi": "10.1016/j.bpj.2017.09.012"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/lambda_switch_cortes2017/verify_cortes2017.ipynb",
+    "check": "BNG2.pl only, 3 cell sizes x MOI 1-5, 1000 seeds each: the per-genome file by stock NFsim against its own exact SSA (%lysogeny and observable means at 20/40/60 min, family-wise 1%), and against the primary (detailed) file by exact SSA; and the digitized Fig. S3 (%lysogeny vs MOI, error bars as 1 SE), chi^2 <= 30.58 over the 15 points with every |z| <= 3.40, fixed before the sweep; all asserted",
+    "result": "NFsim against exact SSA: max |z| 2.09 (of 3.59) on %lysogeny, 2.87 (of 4.12) on the means; per-genome against the primary file 2.03 (of 3.40). Against Fig. S3 the file FAILS at MOI 1 (chi^2 49.7 by SSA, 58.3 by NFsim; the paper's own fitted model scores 19.7): MOI 2-5 fit (chi^2 11.3 over 12 points), MOI 1 sits 10-17 points above the data, asserted as a finding",
+    "pending": "BNGL-Models branch verify-lambda_switch_cortes2017-pergenome-nfsim @ b63a623 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO). Admission under Q1 with the MOI 1 miss is an open question for the user"
+   },
+   "size": {
+    "species": 22,
+    "reactions": 82,
+    "nf_events": 200000
+   }
+  },
+  {
+   "position": 3,
+   "problem": "lambda_switch_arkin1998_fullcircuit_exact",
+   "title": "Phage-lambda lysis-lysogeny decision, full circuit (paper-exact variant)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/lambda_switch_arkin1998/lambda_switch_arkin1998_fullcircuit_exact.bngl",
+    "sha256": "11a14341872f0b91218358cafd824f72486b7070261a52a36e968aa1f92dc4b2",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Arkin A, Ross J, McAdams HH (1998). Stochastic kinetic analysis of developmental pathway bifurcation in phage lambda-infected Escherichia coli cells. Genetics 149:1633-1648.",
+     "doi": "10.1093/genetics/149.4.1633"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/lambda_switch_arkin1998/verify_arkin1998.ipynb and run_fullcircuit.py",
+    "check": "Fig. 6a (lysis fraction vs MOI, \"Full\"), digitized from the journal scan (digitize_arkin1998.py), against stock NFsim 1.14.3 run on the file's writeXML() output, 200 seeds per MOI at MOI 1-8, 10, 12, |z| <= 3.29 fixed before the run; the symmetric functional-rate defect of stock NFsim asserted on a reproducer",
+    "result": "NO ADMISSIBLE CHECK. MOI 1-3 pass (MOI 3 at z 3.22); MOI 4-12 lie above the published curve (z 4.2-8.6), asserted as a finding, and stock NFsim carries the symmetric-dimer defect this file's dilution rules trigger, so it is not a valid reference for it. The values the record quoted as the paper's (0.30/0.55/0.70 at MOI 4/5/6) are not in the paper (digitized: 0.171/0.386/0.456)",
+    "pending": "BNGL-Models branch verify-lambda_switch_arkin1998-fullcircuit-exact-nfsim @ d36d401 (not merged; the .bngl is unchanged). Whether to keep B36 or swap in a reserve (Blinov 2006, kinetic proofreading; suites-stochastic.md \u00a73.1) is the user's call (Q11)"
+   },
+   "size": {
+    "nf_events": 2000000
+   }
+  },
+  {
+   "position": 4,
+   "problem": "p53_nhej_dolan2015",
+   "title": "DNA damage repair (NHEJ) and p53/p21 early senescence signaling",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/p53_nhej_dolan2015/p53_nhej_dolan2015.bngl",
+    "sha256": "896e0421d215236f9ffae1377c9799810b39995bc0cd1a06e4c9faba878a880a",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Dolan DWP, Zupanic A, Nelson G, Hall P, Miwa S, Kirkwood TBL, Shanley DP (2015). Integrated stochastic model of DNA damage repair by non-homologous end joining and p53/p21-mediated early senescence signalling. PLoS Comput Biol 11:e1004246.",
+     "doi": "10.1371/journal.pcbi.1004246"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/p53_nhej_dolan2015/verify_dolan2015.ipynb",
+    "check": "BNG2.pl NFsim 1.14.3 on the exact file (read with readFile, its own simulate with a seed added), 300 non-irradiated cells over the published 2,400 min and 150 at 10x background ROS: exact theory (p53 mRNA mean 10 at every output and its variance; the ROS balance ROS - 0.3 p38p = 10) and the paper's statements for non-irradiated cells at its 30 h (no senescence; ROS about constant, hourly mean within sqrt(10) of 10; p21 above 15 in under 10% of cells; under 10% of foci alive 24 h after they appear; a p53 rise after an isolated focus, z > 3.64), and 10x ROS against the paper's 32% senescent by 30 h; tolerances fixed before the final run; asserted",
+    "result": "seed-2015 run reproduces reference/ exactly; p53 mRNA max |z| 2.99 (of 4.10), variance 9.88 vs 10; ROS balance 10.0026 +- 0.0043; 0 of 300 senescent; ROS within 0.78 of 10; p21 > 15 in 1.0%; 0.00% of 7,744 foci alive at 24 h; p53 rise 51.3 +- 5.8 at +90 min (z 8.9); 10x ROS 37.3% (56/150) vs 32% (+-18.1). Not verified: that the p53 pulse is transient (z 2.4 of 3.64; confounded by new breaks), printed and not asserted",
+    "pending": "BNGL-Models branch verify-p53_nhej_dolan2015-baseline-seeds @ 3c73f23 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 2500000
+   }
+  },
+  {
+   "position": 5,
+   "problem": "early_fceri_signaling_faeder2003",
+   "title": "Early FceRI signaling",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/early_fceri_signaling_faeder2003/early_fceri_signaling_faeder2003.bngl",
+    "sha256": "7dc745c07702bb75567495b1372d64b18353c656673224644955cd53dc6955c4",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Faeder JR, Hlavacek WS, Reischl I, Blinov ML, Metzger H, Redondo A, Wofsy C, Goldstein B (2003). Investigation of early events in Fc epsilon RI-mediated signaling using a detailed mathematical model. J Immunol 170:3769-3781."
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/early_fceri_signaling_faeder2003/verify_faeder2003.ipynb",
+    "check": "the nine model curves of Fig. 3 (1.6 nM IgE dimer, 70 min; digitized from the publisher's raster, 528 points) vs the unchanged model block at the Fig. 3 dose, per curve RMSE <= 0.5% and max <= 1% of panel full scale asserted; the nine numbers the Results section reads off Fig. 3, asserted",
+    "result": "worst RMSE 0.14% (panel a), worst point 0.21%; 9 of 9 numbers; 0.9x and 1.1x the dose fail every curve",
+    "supporting": "equations: BioNetGen ODE vs SciPy on the generated network, 4.1e-7 (shipped protocol) and 4.7e-7 (Fig. 3 protocol) scaled; structure: 354 species, 3680 reactions"
+   },
+   "size": {
+    "species": 354,
+    "reactions": 3680,
+    "ssa_events": 4500000,
+    "psa_events": 1400000,
+    "nf_events": 300000
+   }
+  },
+  {
+   "position": 6,
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "title": "CAR CD3zeta site-specific phosphorylation by LCK",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/car_cd3zeta_phosphorylation_rohrs2018/car_cd3zeta_phosphorylation_rohrs2018.bngl",
+    "sha256": "7d178c1f9f1b1052ac732bc21fc766a53a962f5ffb76a5bf846681f2a62a5b78",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Rohrs JA, Zheng D, Graham NA, Wang P, Finley SD (2018). Computational model of chimeric antigen receptors explains site-specific phosphorylation kinetics. Biophys J 115:1116-1129.",
+     "doi": "10.1016/j.bpj.2018.08.018"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/car_cd3zeta_phosphorylation_rohrs2018/verify_rohrs2018.ipynb",
+    "check": "the nine digitized Fig. S5 model curves vs the BioNetGen ODE, and the Fig. S5 measurements against the authors' own published fit",
+    "result": "Fig. S5 model curves within 1.6 percentage points; SSE 1.25e4 against the authors' 1.27e4 over 354 points",
+    "supporting": "equations: Eqs. 2-5 transcribed independently in SciPy match BioNetGen to 1e-3 percentage points"
+   },
+   "size": {
+    "species": 65,
+    "reactions": 192,
+    "psa_events": 64000,
+    "nf_events": 260000
+   }
+  },
+  {
+   "position": 7,
+   "problem": "camkii_holoenzyme_activation_michalski2012_nfsim",
+   "title": "CaMKII dodecamer holoenzyme activation, network free",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/camkii_holoenzyme_activation_michalski2012/camkii_holoenzyme_activation_michalski2012_nfsim.bngl",
+    "sha256": "285584a6f99b90419f3bfd68b74778252427013f8aee7b9b0ef59800f5a734dc",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Michalski PJ, Loew LM (2012). CaMKII activation and dynamics are independent of the holoenzyme structure: an infinite subunit holoenzyme approximation. Phys Biol 9:036010.",
+     "doi": "10.1088/1478-3975/9/3/036010"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/camkii_holoenzyme_activation_michalski2012/verify_michalski2012.ipynb cell [17]: standalone BNG2.pl NFsim, 5 runs per N_sub from 2 to 100; at N_sub = 6 FP against the exact hexamer ODE within 3 SEM + 1e-3 (2.44 SEM), asserted; size independence of FP within 0.02 absolute (0.00115), asserted"
+   },
+   "size": {
+    "nf_events": 20000
+   }
+  },
+  {
+   "position": 8,
+   "problem": "tcr_signaling_chylek2014",
+   "title": "Early TCR signaling: phosphorylation-site dynamics",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/tcr_signaling_chylek2014/tcr_signaling_chylek2014.bngl",
+    "sha256": "5dde783b3dd52c60528c9a8aafec10e94cdf821a44a9337b0d211043f59a59c9",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Chylek LA, Akimov V, Dengjel J, Rigbolt KTG, Hu B, Hlavacek WS, Blagoev B (2014). Phosphorylation site dynamics of early T-cell receptor signaling. PLoS ONE 9:e104240.",
+     "doi": "10.1371/journal.pone.0104240"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/tcr_signaling_chylek2014/verify_tcr_chylek2014.ipynb",
+    "check": "144 BNG2.pl NFsim runs of the file's own two-phase protocol (Fx = 0.02) against the 16 published simulation lines of Fig. S6 (File S2, read as exact vector geometry; its measured points match the authors' Table S1 source data within one grid step in 15 of 16 panels) at 5/15/30/60 s: max z <= 4 over 64 comparisons, with the published lines' own sampling error and the PDF grid in the budget; a negative control (Fx cut 4x without rescaling the on-rates) must fail; asserted",
+    "result": "max z 1.74; the negative control fails at 14.7; the committed reference/ run is a typical draw (max deviation 3.01/3.32 against null maxima 5.10/4.29). The earlier standalone-vs-bngsim disagreement (frac_pass 0.25) was a protocol artefact of that comparison: its standalone arm started the response from the seed species instead of the equilibrated state",
+    "pending": "BNGL-Models branch verify-tcr_signaling_chylek2014-data @ 6261d32 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 1800000
+   }
+  },
+  {
+   "position": 9,
+   "problem": "erbb_receptor_signaling_creamer2012",
+   "title": "ERBB receptor signaling network",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/erbb_receptor_signaling_creamer2012/erbb_receptor_signaling_creamer2012.bngl",
+    "sha256": "6672c0a8a2d75bc08697ee4c2c7ed7c58aab68ca0e98d6fe75e7b0211a452983",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Creamer MS, Stites EC, Aziz M, Cahill JA, Tan CW, Berens ME, Han H, Bussey KJ, Von Hoff DD, Hlavacek WS, Posner RG (2012). Specification, annotation, visualization and simulation of a large rule-based model for ERBB receptor signaling. BMC Syst Biol 6:107.",
+     "doi": "10.1186/1752-0509-6-107"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/erbb_receptor_signaling_creamer2012/verify_creamer2012.ipynb (on the fixed file)",
+    "check": "144 BNG2.pl NFsim runs of the file's own two-phase protocol at f = 0.02 against Fig. 4 (the authors' original heat map, read on its own grid: 1081 columns at 10 s, 55 rows), per-site fraction of time above 0.14 of peak on the 33 sites with a mean peak of 20 molecules or more: max |z| <= 3.61 and rms z <= 1.39; the file equals the publisher's model at f = 1 and scales uniformly with f; asserted",
+    "result": "fixed file: max |z| 1.70, rms 0.86; the pre-fix file (main's, pinned here) fails, max |z| 25.3, rms 10.8. The committed digitized CSV mapped the dendrogram margin onto 0-180 min; the new digitizer replaces it",
+    "pending": "BNGL-Models branch verify-erbb_receptor_signaling_creamer2012-fig4-assert @ 56bab69 (not merged; it CHANGES the .bngl): re-pin source to the merged fixed file (TODO)"
+   },
+   "size": {
+    "nf_events": 1800000
+   }
+  },
+  {
+   "position": 10,
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "title": "TCR signaling bistability",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/tcr_signaling_bistability_lipniacki2008/tcr_signaling_bistability_lipniacki2008.bngl",
+    "sha256": "82c8d6184c995b38ec82ad19c0ae1e25189b12d3a1dddeeca5b8a7e178436c6d",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Lipniacki T, Hat B, Faeder JR, Hlavacek WS (2008). Stochastic effects and bistability in T cell receptor signaling. J Theor Biol 254:110-122.",
+     "doi": "10.1016/j.jtbi.2008.05.001"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008.ipynb",
+    "check": "digitized Fig. 7B deterministic ppERK vs the BioNetGen ODE: NRMSE <= 1% FS, peak <= 2%, plateau <= 1% asserted",
+    "result": "NRMSE 0.22% FS, peak 1.1%, plateau 0.10%",
+    "supporting": "equations: hand-written 37-state SciPy ODE vs BioNetGen, max relative error 4.2e-9 (follows the supplied chemical specification rather than the paper's Appendix A)",
+    "steady_state_evidence": "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008_steady_state.ipynb at BNGL-Models 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "steady_state_check": "equations: BNG2.pl (a primed cell given N agonists, and a ramp from steady state) vs the independent 37-state equations run the same way and Newton-polished, at 20 log-spaced N_agonist from 1 to 1000, both branches, 1e-6 relative asserted; data: digitized Fig. 7A (d = 0.05/s) ppERK at 19 doses on both branches, 0.024 decade asserted",
+    "steady_state_result": "37 species x 20 doses x 2 protocols, 7.9e-10; folds at N = 8.8452 and 772.11 by continuation (13 doses bistable); Fig. 7A max 0.0102 decade (2.4%)"
+   },
+   "size": {
+    "species": 37,
+    "reactions": 97,
+    "ssa_events": 7200000,
+    "psa_events": 600000,
+    "nf_events": 2000000
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+   "problem": "membrane_anchored_multisite_phosphorylation_dushek2011",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 796164,
+    "sha256": "2da9fb2e4ee1a981a20c414d3b1bed841cf3b8213e714d3ea7a1839bc36781ff"
+   }
+  },
+  {
+   "job_id": "nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness",
+   "problem": "membrane_anchored_multisite_phosphorylation_dushek2011",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 796164,
+    "sha256": "b3f9f4392e595d13479f0e884ce61fb04a0959344fbbc7da591b1d775274cd7c"
+   }
+  },
+  {
+   "job_id": "nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing",
+   "problem": "membrane_anchored_multisite_phosphorylation_dushek2011",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+   "problem": "membrane_anchored_multisite_phosphorylation_dushek2011",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/membrane_anchored_multisite_phosphorylation_dushek2011/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+   "problem": "lambda_switch_cortes2017_pergenome",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 9735467,
+    "sha256": "b1e64158a52fa84c48c1549d0413c54b40a9de820d08096e40f7d295af455d0b"
+   }
+  },
+  {
+   "job_id": "nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness",
+   "problem": "lambda_switch_cortes2017_pergenome",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 9735467,
+    "sha256": "ac8e82343fcd5e53a66aad9fdf5e808285a028411e2eb882bc817b0e17cf2dbd"
+   }
+  },
+  {
+   "job_id": "nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing",
+   "problem": "lambda_switch_cortes2017_pergenome",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+   "problem": "lambda_switch_cortes2017_pergenome",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/lambda_switch_cortes2017_pergenome/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "lambda_switch_arkin1998_fullcircuit_exact",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 399175,
+    "sha256": "b4c5ac84b76d609f9ae294205ead2a1d9f17c6ebe909fa8dc4211b58d2580318"
+   }
+  },
+  {
+   "job_id": "nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "lambda_switch_arkin1998_fullcircuit_exact",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 399175,
+    "sha256": "9d3e82b5d9e32804c17acde16013d967f92f142557ae09f33429c004ec985dd3"
+   }
+  },
+  {
+   "job_id": "nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "lambda_switch_arkin1998_fullcircuit_exact",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "lambda_switch_arkin1998_fullcircuit_exact",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/lambda_switch_arkin1998_fullcircuit_exact/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "p53_nhej_dolan2015",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 306675,
+    "sha256": "796ec6914acec2af42f45ec70331b25c8a4311a63d6f3f7f523d8add0963470c"
+   }
+  },
+  {
+   "job_id": "nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "p53_nhej_dolan2015",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 306675,
+    "sha256": "3b0ef07361076d455050c3b6d25619a2ae0f72411ea89b58cd91e7d828bd1194"
+   }
+  },
+  {
+   "job_id": "nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "p53_nhej_dolan2015",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/p53_nhej_dolan2015/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "p53_nhej_dolan2015",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+   "problem": "early_fceri_signaling_faeder2003",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 2169523,
+    "sha256": "0b7cdaf4ab10070ac4f578d0382e0faa4b314e590a532fa326a496ecd146814a"
+   }
+  },
+  {
+   "job_id": "nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness",
+   "problem": "early_fceri_signaling_faeder2003",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 2169523,
+    "sha256": "c665a0e5622eba468bf6124b684f9ca8f9657aa846e32e0aae93f16ac2b58c5f"
+   }
+  },
+  {
+   "job_id": "nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing",
+   "problem": "early_fceri_signaling_faeder2003",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+   "problem": "early_fceri_signaling_faeder2003",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 10077471,
+    "sha256": "e0f247551ca0ceaca3ccb0eb8148b6d8fa17f2ee3d9b2e825577f24b04120fe5"
+   }
+  },
+  {
+   "job_id": "nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness",
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 10077471,
+    "sha256": "7199c27ad6977807b1a241e389ab71c1da12df92d44b1776b1ec47cba7bd678c"
+   }
+  },
+  {
+   "job_id": "nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing",
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "camkii_holoenzyme_activation_michalski2012_nfsim",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1875169,
+    "sha256": "28db2e8372413729a90ae6483cb62fecba08da9a0947e94fbd76955916316178"
+   }
+  },
+  {
+   "job_id": "nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "camkii_holoenzyme_activation_michalski2012_nfsim",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1875169,
+    "sha256": "5d40fa14c58e45aede6c1e0ea3afb568bf3c5a96859dc8eb869306f3295463ae"
+   }
+  },
+  {
+   "job_id": "nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "camkii_holoenzyme_activation_michalski2012_nfsim",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "camkii_holoenzyme_activation_michalski2012_nfsim",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/camkii_holoenzyme_activation_michalski2012_nfsim/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "tcr_signaling_chylek2014",
+   "kind": "correctness",
+   "outcome": "EXCEPTION",
+   "file": "jobs/nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 351208,
+    "sha256": "fa24e20a245feaca5a14444bd0b124bb83a48d1df37c49031a3c1e55b3210bbf"
+   }
+  },
+  {
+   "job_id": "nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "tcr_signaling_chylek2014",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 351194,
+    "sha256": "4501377cdab2c0ba26b722f55051faf8f6152789294159624cd32ffaad2c17c3"
+   }
+  },
+  {
+   "job_id": "nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "tcr_signaling_chylek2014",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness EXCEPTION"
+  },
+  {
+   "job_id": "nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "tcr_signaling_chylek2014",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "erbb_receptor_signaling_creamer2012",
+   "kind": "correctness",
+   "outcome": "EXCEPTION",
+   "file": "jobs/nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1021859,
+    "sha256": "f5d7d7491b19b39afc41a9f686ac7d55c4e3a9f72774d5d7143dbf531b992e66"
+   }
+  },
+  {
+   "job_id": "nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "erbb_receptor_signaling_creamer2012",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1021845,
+    "sha256": "8cab0e4d92b6475fb85935488570f35c2867c2085f1443a903bc6cdf66317cd8"
+   }
+  },
+  {
+   "job_id": "nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "erbb_receptor_signaling_creamer2012",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness EXCEPTION"
+  },
+  {
+   "job_id": "nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "erbb_receptor_signaling_creamer2012",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 183867,
+    "sha256": "40995718e47a14395bd1996d7570e29b52f46417c085f1e2e1e4847ae08aa4cb"
+   }
+  },
+  {
+   "job_id": "nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 183867,
+    "sha256": "a804bd1db2ca970a5e9852958e3105c251a5b37834decdf5511bd193e203a0f9"
+   }
+  },
+  {
+   "job_id": "nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tcr_signaling_bistability_lipniacki2008/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing.json"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 20,
+  "total_bytes": 53833128,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

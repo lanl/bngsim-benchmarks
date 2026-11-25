@@ -1,0 +1,959 @@
+{
+ "capability": "psa",
+ "engines": "bngsim-vs-run_network",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "44f270634d38b7f316b287df0cc8ca4579f351f0",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/timing",
+ "key": "1e4705bddcd3289a73bd88e66993c73431ec43342130edcc3eca3b8fce66b174",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "psa/bngsim-vs-run_network/1",
+    "protocol": {
+     "n_steps": 800,
+     "netgen": "generate_network({overwrite=>1})",
+     "poplevels": [
+      10,
+      30,
+      100,
+      300,
+      1000
+     ],
+     "replicates": 500,
+     "seed": 1,
+     "t_end": 400,
+     "timing_replicates": 5
+    },
+    "setting": {
+     "exact": "ssa",
+     "method": "psa",
+     "propensities": "auto"
+    },
+    "source_sha256": "0495750da101490549b9bed83b4d70f2e829d46244466a87e418f7f3882273d9",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "codegen_seconds": 0.1171978369820863,
+   "cold_seconds": 0.6826253699837252,
+   "load_seconds": 0.00036683701910078526,
+   "method": "ssa",
+   "propensity_backend": "cc"
+  },
+  "bngsim_cold_seconds": 0.6826253699837252,
+  "engine_roles": {
+   "bngsim": "warm, in-process (system under test)",
+   "bngsim@nc=10": "warm, in-process (system under test)",
+   "bngsim@nc=100": "warm, in-process (system under test)",
+   "bngsim@nc=1000": "warm, in-process (system under test)",
+   "bngsim@nc=30": "warm, in-process (system under test)",
+   "bngsim@nc=300": "warm, in-process (system under test)",
+   "run_network": "fresh subprocess",
+   "run_network@nc=10": "fresh subprocess",
+   "run_network@nc=100": "fresh subprocess",
+   "run_network@nc=1000": "fresh subprocess",
+   "run_network@nc=30": "fresh subprocess",
+   "run_network@nc=300": "fresh subprocess"
+  },
+  "netgen_seconds": 0.2513614690396935,
+  "network": {
+   "reactions": 16,
+   "species": 9
+  },
+  "references": {
+   "bngsim@nc=10": {
+    "codegen_seconds": 0.00012751598842442036,
+    "cold_seconds": 1.3728433690266684,
+    "load_seconds": 0.0003409869968891144,
+    "method": "psa",
+    "poplevel": 10.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 58.077373557217506
+     },
+     "peak_population": 2866.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      9,
+      10,
+      11,
+      16
+     ],
+     "speedup": {
+      "max": 1.7550444645751075,
+      "mean": 1.7399937542314476,
+      "median": 1.7414951985727716,
+      "min": 1.7273810625898152
+     },
+     "trajectories": 5
+    }
+   },
+   "bngsim@nc=100": {
+    "codegen_seconds": 0.00010077701881527901,
+    "cold_seconds": 1.9480171049945056,
+    "load_seconds": 0.0003086770884692669,
+    "method": "psa",
+    "poplevel": 100.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 5.525768212857347
+     },
+     "peak_population": 2411.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      9,
+      10,
+      16
+     ],
+     "speedup": {
+      "max": 1.197079862632261,
+      "mean": 1.1902296117370226,
+      "median": 1.1894045975722716,
+      "min": 1.1864390260554554
+     },
+     "trajectories": 5
+    }
+   },
+   "bngsim@nc=1000": {
+    "codegen_seconds": 9.090290404856205e-05,
+    "cold_seconds": 2.1971743579488248,
+    "load_seconds": 0.00028856005519628525,
+    "method": "psa",
+    "poplevel": 1000.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 1.0033542680516505
+     },
+     "peak_population": 2432.0,
+     "regime": "scaled",
+     "scaled_fraction": 0.4,
+     "scaled_reactions": [
+      10
+     ],
+     "speedup": {
+      "max": 1.0002593315102914,
+      "mean": 1.0000821901786328,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 5
+    }
+   },
+   "bngsim@nc=30": {
+    "codegen_seconds": 0.00010630302131175995,
+    "cold_seconds": 1.841232700040564,
+    "load_seconds": 0.0003108030650764704,
+    "method": "psa",
+    "poplevel": 30.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 18.513385023392704
+     },
+     "peak_population": 2511.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      9,
+      10,
+      16
+     ],
+     "speedup": {
+      "max": 1.2777884571680154,
+      "mean": 1.2741607784076683,
+      "median": 1.2744003378025217,
+      "min": 1.270709746244944
+     },
+     "trajectories": 5
+    }
+   },
+   "bngsim@nc=300": {
+    "codegen_seconds": 9.58229647949338e-05,
+    "cold_seconds": 2.025144330924377,
+    "load_seconds": 0.0003091740654781461,
+    "method": "psa",
+    "poplevel": 300.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 1.9670338234163909
+     },
+     "peak_population": 2519.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      9,
+      10,
+      16
+     ],
+     "speedup": {
+      "max": 1.0990581224945988,
+      "mean": 1.0970267842548378,
+      "median": 1.0968369630421815,
+      "min": 1.0947455906394659
+     },
+     "trajectories": 5
+    }
+   },
+   "run_network": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "method": "ssa (direct method)",
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=10": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "10",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 10.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=100": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "100",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 100.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=1000": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "1000",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 1000.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=30": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "30",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 30.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=300": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "300",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 300.0,
+    "seeds": "first_seed + i for trajectory i"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "bngsim": {
+     "seconds": [
+      0.5557194959837943,
+      0.5595456280279905,
+      0.555004718946293,
+      0.5599959529936314,
+      0.5552604999393225,
+      0.5572907030582428,
+      0.5543445200892165
+     ]
+    },
+    "bngsim@nc=10": {
+     "seconds": [
+      1.400330681935884,
+      1.3886328019434586,
+      1.39941265899688,
+      1.3810230470262468,
+      1.380593366920948,
+      1.3882620149524882,
+      1.39516171393916
+     ]
+    },
+    "bngsim@nc=100": {
+     "seconds": [
+      1.9569880289491266,
+      1.9603162920102477,
+      1.9511831830022857,
+      1.9531983659835532,
+      1.9569199030520394,
+      1.9513065901119262,
+      1.9547499190084636
+     ]
+    },
+    "bngsim@nc=1000": {
+     "seconds": [
+      2.2459122189320624,
+      2.228391784010455,
+      2.200423661037348,
+      2.19854531402234,
+      2.2107832670444623,
+      2.2028677099151537,
+      2.209438606048934
+     ]
+    },
+    "bngsim@nc=30": {
+     "seconds": [
+      1.8472689950140193,
+      1.8508731529582292,
+      1.8498754419852048,
+      1.8467689960962161,
+      1.8470009199809283,
+      1.8442784019280225,
+      1.8476553190266714
+     ]
+    },
+    "bngsim@nc=300": {
+     "seconds": [
+      2.0300507419742644,
+      2.0394998650299385,
+      2.022768700029701,
+      2.032385350088589,
+      2.0271570989862084,
+      2.027791379019618,
+      2.0363359979819506
+     ]
+    },
+    "run_network": {
+     "seconds": [
+      1.5235699829645455,
+      1.537247434956953,
+      1.5323667919728905,
+      1.5306478050770238,
+      1.543219613027759,
+      1.5194022729992867,
+      1.533834905945696
+     ]
+    },
+    "run_network@nc=10": {
+     "seconds": [
+      1.2526356260059401,
+      1.2578427540138364,
+      1.2537876170827076,
+      1.2590385630028322,
+      1.2593917000340298,
+      1.254723303951323,
+      1.2623291180934757
+     ]
+    },
+    "run_network@nc=100": {
+     "seconds": [
+      1.6694423930021003,
+      1.6743282809620723,
+      1.6912724178982899,
+      1.689920827979222,
+      1.678698978968896,
+      1.6848319648997858,
+      1.7020591580076143
+     ]
+    },
+    "run_network@nc=1000": {
+     "seconds": [
+      1.9266308239893988,
+      1.9371672159759328,
+      1.9369282679399475,
+      1.9206344679696485,
+      1.9588058079825714,
+      1.9239946230081841,
+      1.9491869490593672
+     ]
+    },
+    "run_network@nc=30": {
+     "seconds": [
+      1.5801184549927711,
+      1.577015558956191,
+      1.5728889019228518,
+      1.5978603139519691,
+      1.5873312369221821,
+      1.6010873280465603,
+      1.5838083800626919
+     ]
+    },
+    "run_network@nc=300": {
+     "seconds": [
+      1.8569258840288967,
+      1.8117008230183274,
+      1.8110609609866515,
+      1.8047533999197185,
+      1.8158476429525763,
+      1.8404264450073242,
+      1.8201813329942524
+     ]
+    }
+   },
+   "order": "bngsim run_network bngsim@nc=10 run_network@nc=10 bngsim@nc=30 run_network@nc=30 bngsim@nc=100 run_network@nc=100 bngsim@nc=300 run_network@nc=300 bngsim@nc=1000 run_network@nc=1000",
+   "rounds": 7,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "bngsim@nc=10": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "bngsim@nc=100": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "bngsim@nc=1000": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "bngsim@nc=30": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "bngsim@nc=300": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "run_network": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 6,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "run_network@nc=10": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 6,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "run_network@nc=100": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 6,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "run_network@nc=1000": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 6,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "run_network@nc=30": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 6,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   },
+   "run_network@nc=300": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 6,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-09,
+    "worst_rep": 0
+   }
+  },
+  "times": {
+   "bngsim": {
+    "ci_high": 0.5595456280279905,
+    "ci_low": 0.555004718946293,
+    "confidence": 0.95,
+    "median_seconds": 0.5557194959837943,
+    "rounds": 7
+   },
+   "bngsim@nc=10": {
+    "ci_high": 1.39941265899688,
+    "ci_low": 1.3810230470262468,
+    "confidence": 0.95,
+    "median_seconds": 1.3886328019434586,
+    "rounds": 7
+   },
+   "bngsim@nc=100": {
+    "ci_high": 1.9569880289491266,
+    "ci_low": 1.9513065901119262,
+    "confidence": 0.95,
+    "median_seconds": 1.9547499190084636,
+    "rounds": 7
+   },
+   "bngsim@nc=1000": {
+    "ci_high": 2.228391784010455,
+    "ci_low": 2.200423661037348,
+    "confidence": 0.95,
+    "median_seconds": 2.209438606048934,
+    "rounds": 7
+   },
+   "bngsim@nc=30": {
+    "ci_high": 1.8498754419852048,
+    "ci_low": 1.8467689960962161,
+    "confidence": 0.95,
+    "median_seconds": 1.8472689950140193,
+    "rounds": 7
+   },
+   "bngsim@nc=300": {
+    "ci_high": 2.0363359979819506,
+    "ci_low": 2.0271570989862084,
+    "confidence": 0.95,
+    "median_seconds": 2.0300507419742644,
+    "rounds": 7
+   },
+   "run_network": {
+    "ci_high": 1.537247434956953,
+    "ci_low": 1.5235699829645455,
+    "confidence": 0.95,
+    "median_seconds": 1.5323667919728905,
+    "rounds": 7
+   },
+   "run_network@nc=10": {
+    "ci_high": 1.2593917000340298,
+    "ci_low": 1.2537876170827076,
+    "confidence": 0.95,
+    "median_seconds": 1.2578427540138364,
+    "rounds": 7
+   },
+   "run_network@nc=100": {
+    "ci_high": 1.6912724178982899,
+    "ci_low": 1.6743282809620723,
+    "confidence": 0.95,
+    "median_seconds": 1.6848319648997858,
+    "rounds": 7
+   },
+   "run_network@nc=1000": {
+    "ci_high": 1.9491869490593672,
+    "ci_low": 1.9239946230081841,
+    "confidence": 0.95,
+    "median_seconds": 1.9369282679399475,
+    "rounds": 7
+   },
+   "run_network@nc=30": {
+    "ci_high": 1.5978603139519691,
+    "ci_low": 1.577015558956191,
+    "confidence": 0.95,
+    "median_seconds": 1.5838083800626919,
+    "rounds": 7
+   },
+   "run_network@nc=300": {
+    "ci_high": 1.8404264450073242,
+    "ci_low": 1.8110609609866515,
+    "confidence": 0.95,
+    "median_seconds": 1.8158476429525763,
+    "rounds": 7
+   }
+  },
+  "times_per_trajectory": {
+   "bngsim": {
+    "ci_high": 0.1119091256055981,
+    "ci_low": 0.1110009437892586,
+    "median_seconds": 0.11114389919675886
+   },
+   "bngsim@nc=10": {
+    "ci_high": 0.279882531799376,
+    "ci_low": 0.2762046094052494,
+    "median_seconds": 0.2777265603886917
+   },
+   "bngsim@nc=100": {
+    "ci_high": 0.3913976057898253,
+    "ci_low": 0.39026131802238523,
+    "median_seconds": 0.3909499838016927
+   },
+   "bngsim@nc=1000": {
+    "ci_high": 0.445678356802091,
+    "ci_low": 0.44008473220746963,
+    "median_seconds": 0.4418877212097868
+   },
+   "bngsim@nc=30": {
+    "ci_high": 0.36997508839704096,
+    "ci_low": 0.3693537992192432,
+    "median_seconds": 0.36945379900280384
+   },
+   "bngsim@nc=300": {
+    "ci_high": 0.40726719959639013,
+    "ci_low": 0.4054314197972417,
+    "median_seconds": 0.4060101483948529
+   },
+   "run_network": {
+    "ci_high": 0.3074494869913906,
+    "ci_low": 0.3047139965929091,
+    "median_seconds": 0.3064733583945781
+   },
+   "run_network@nc=10": {
+    "ci_high": 0.251878340006806,
+    "ci_low": 0.2507575234165415,
+    "median_seconds": 0.2515685508027673
+   },
+   "run_network@nc=100": {
+    "ci_high": 0.338254483579658,
+    "ci_low": 0.3348656561924145,
+    "median_seconds": 0.3369663929799572
+   },
+   "run_network@nc=1000": {
+    "ci_high": 0.38983738981187344,
+    "ci_low": 0.38479892460163684,
+    "median_seconds": 0.3873856535879895
+   },
+   "run_network@nc=30": {
+    "ci_high": 0.31957206279039385,
+    "ci_low": 0.3154031117912382,
+    "median_seconds": 0.31676167601253835
+   },
+   "run_network@nc=300": {
+    "ci_high": 0.36808528900146487,
+    "ci_low": 0.3622121921973303,
+    "median_seconds": 0.36316952859051527
+   }
+  },
+  "timing_replicates": 5,
+  "zeroth_order_reactions": 0
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "noise_resistant_circadian_oscillator_vilar2002",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T23:54:04.392481+00:00",
+ "wall_seconds": 171.04840313806199
+}

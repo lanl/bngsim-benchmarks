@@ -1,0 +1,41 @@
+suite,position,problem,species,reactions,outcome,agreement,engine,status,passed,failed_check,max_err_over_peak,max_rel,n_cells,cold_seconds,error
+ode-sbml,1,brain_energy_metabolism_winter2017,65,64,DIFF,"DIFF 0/3 (amici: crash, copasi: diff, roadrunner: diff, run_network: n/a)",amici,crash,,,,,,,AttributeError: 'Compartment' object has no attribute 'getValue'
+ode-sbml,1,brain_energy_metabolism_winter2017,65,64,DIFF,"DIFF 0/3 (amici: crash, copasi: diff, roadrunner: diff, run_network: n/a)",copasi,DIFF,False,both,0.9881554692431705,1.0,60060,5.636106244055554,
+ode-sbml,1,brain_energy_metabolism_winter2017,65,64,DIFF,"DIFF 0/3 (amici: crash, copasi: diff, roadrunner: diff, run_network: n/a)",roadrunner,DIFF,False,both,0.12742470399689768,0.12742470399689768,60060,0.8009978150948882,
+ode-sbml,1,brain_energy_metabolism_winter2017,65,64,DIFF,"DIFF 0/3 (amici: crash, copasi: diff, roadrunner: diff, run_network: n/a)",run_network,not_applicable,,,,,,,"no faithful BNGL form: bngsim.convert.sbml_to_bngl refuses it (BIOMD0000000627_url.xml: cannot convert faithfully to cBNGL — 65 amount-valued species in a non-unit compartment (e.g. 'species_23', 'species_24', 'species_25', …) — the writer keeps the concentration-space semantics from_net reads back; a per-species amount factor would mis-scale. Pass strict=False (--allow-lossy) to emit a best-effor"
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,FULL 4/4,amici,ok,True,,1.9552790923994465e-05,0.0,63063,48.24208360305056,
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,FULL 4/4,copasi,ok,True,,1.1642413248991192e-05,0.0,63063,4.84635474497918,
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,FULL 4/4,roadrunner,ok,True,,1.4082534908360995e-05,0.0,63063,0.7606538359541446,
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,FULL 4/4,run_network,ok,True,,1.8108214946026083e-05,0.0,63063,0.4382768200011924,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,FULL 4/4,amici,ok,True,,2.0092562276141646e-05,0.0,49049,53.06529868894722,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,FULL 4/4,copasi,ok,True,,1.339501733593762e-05,0.0,49049,6.0208061300218105,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,FULL 4/4,roadrunner,ok,True,,3.038536608637732e-05,0.0,49049,2.195532313082367,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,FULL 4/4,run_network,ok,True,,8.999021089700537e-12,0.0,49049,0.3289028499275446,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,FULL 4/4,amici,ok,True,,1.163730143386636e-05,0.0,59059,48.185398139990866,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,FULL 4/4,copasi,ok,True,,8.748811446376775e-06,0.0,59059,5.468355277902447,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,FULL 4/4,roadrunner,ok,True,,7.591034639380199e-06,0.0,59059,0.586263817967847,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,FULL 4/4,run_network,ok,True,,0.0007509743827838898,0.0,59000,0.3906523559708148,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,FULL 4/4,amici,ok,True,,0.00022365389672594223,0.0,3300,47.79665230901446,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,FULL 4/4,copasi,ok,True,,8.35098905079466e-05,0.0,3300,4.890115836984478,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,FULL 4/4,roadrunner,ok,True,,0.00015198488872143677,0.0,3300,0.8655861029401422,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,FULL 4/4,run_network,ok,True,,1.9567359651049289e-07,0.0,3300,0.4210538159823045,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),amici,ok,True,,0.0005769781113200806,0.0,79079,49.90407834004145,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),copasi,crash,,,,,,,"RuntimeError: output is not at the protocol's times: 1001 times from 0 to 1000, where the protocol has 1001 from 0 to 12000"
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),roadrunner,ok,True,,0.004560696419424968,0.0,79079,0.716664690990001,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),run_network,ok,True,,0.0005713402882281713,0.0,79079,0.46118402702268213,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,FULL 4/4,amici,ok,True,,8.327359546563502e-06,0.0,89089,50.09881815605331,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,FULL 4/4,copasi,ok,True,,7.844718928785891e-06,0.0,89089,6.477761207032017,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,FULL 4/4,roadrunner,ok,True,,8.16029110534647e-06,0.0,89089,1.8961408839095384,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,FULL 4/4,run_network,ok,True,,6.932055025117825e-06,0.0,89089,0.5302673049736768,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),amici,ok,True,,5.511524739306623e-06,0.0,10403,49.57477102894336,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),copasi,crash,,,,,,,"KeyError: ""['EGF'] not in index"""
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),roadrunner,ok,True,,2.391641396556747e-06,0.0,10403,1.6211333110695705,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),run_network,ok,True,,2.368449648472999e-06,0.0,10403,0.32553800207097083,
+ode-sbml,9,insulin_signalling_oxidative_stress_smith2013,133,367,DIFF,"DIFF 2/4 (amici: diff, copasi: crash)",amici,DIFF,False,species,5.1575319454922914e+219,0.0,105105,54.74356903799344,
+ode-sbml,9,insulin_signalling_oxidative_stress_smith2013,133,367,DIFF,"DIFF 2/4 (amici: diff, copasi: crash)",copasi,crash,,,,,,,"KeyError: ""['PP2A', 'E2F1', 'SGK', 'CDK2', 'AMPK', 'CBPP300', 'SIRT1', 'E3', 'USP7', 'SCF', 'Proteasome'] not in index"""
+ode-sbml,9,insulin_signalling_oxidative_stress_smith2013,133,367,DIFF,"DIFF 2/4 (amici: diff, copasi: crash)",roadrunner,ok,True,,1.0838003759011943e-05,0.0,105105,2.3274014219641685,
+ode-sbml,9,insulin_signalling_oxidative_stress_smith2013,133,367,DIFF,"DIFF 2/4 (amici: diff, copasi: crash)",run_network,ok,True,,2.7589451116528244e-05,0.0,105000,2.9780654570786282,
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, run_network: crash)",amici,crash,,,,,,,RuntimeError: AMICI simulation failed with status -10
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, run_network: crash)",copasi,ok,True,,1.6700020838148943e-06,0.0,29172,3.711483493912965,
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, run_network: crash)",roadrunner,ok,True,,1.7465759495629163e-06,0.0,29172,1.9537723140092567,
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, run_network: crash)",run_network,crash,,,,,,,RuntimeError: run_network failed: Error in CVODE integration (error code -4).

@@ -1,0 +1,2766 @@
+{
+ "capability": "psa",
+ "engines": "bngsim-vs-run_network",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "44f270634d38b7f316b287df0cc8ca4579f351f0",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "psa/mapk_relaxation_oscillations_kochanczyk2017/bngsim-vs-run_network/auto/correctness",
+ "key": "c96590e15ecbd7fc32844b2c37fd2e459dfe911c685c3166e3fcdc8827dee5b8",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "accuracy": {
+     "flag_from_poplevel": 100,
+     "means": "permutation max-T on means/1"
+    },
+    "harness": "psa/bngsim-vs-run_network/1",
+    "protocol": {
+     "exact_replicates": 40,
+     "n_steps": 60,
+     "netgen": "generate_network({overwrite=>1})",
+     "poplevels": [
+      10,
+      30,
+      100,
+      300,
+      1000
+     ],
+     "replicates": 200,
+     "seed": 1,
+     "t_end": 600,
+     "timing_replicates": 1
+    },
+    "setting": {
+     "exact": "ssa",
+     "method": "psa",
+     "propensities": "auto"
+    },
+    "source_sha256": "9dac883b7f245dfdc92a4df37ae54f464a33addfd9fe8a10684370f044983004",
+    "verdict": {
+     "alpha": 0.001,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "psa/mapk_relaxation_oscillations_kochanczyk2017/bngsim-vs-run_network/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "engine_budget_seconds": 3600.0,
+  "engines": {
+   "bngsim": {
+    "codegen_seconds": 1.1176973329856992,
+    "cold_seconds": 1804.4352265690686,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 1803.3103532709647,
+    "events_per_trajectory": {
+     "max": 61943425.0,
+     "mean": 61452130.125,
+     "median": 61458988.5
+    },
+    "first_seed": 1,
+    "load_seconds": 0.006504646968096495,
+    "method": "ssa",
+    "propensity_backend": "interpreted"
+   },
+   "bngsim@nc=10": {
+    "codegen_seconds": 0.001773059950210154,
+    "cold_seconds": 235.77214691403788,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 235.76533654797822,
+    "events_per_trajectory": {
+     "max": 1396991.0,
+     "mean": 1264343.645,
+     "median": 1267578.5
+    },
+    "first_seed": 20000001,
+    "load_seconds": 0.0045043620048090816,
+    "method": "psa",
+    "poplevel": 10.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 36,
+      "value": 46567.59080318054
+     },
+     "peak_population": 3000000.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      1,
+      3,
+      4,
+      5,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      17,
+      21,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      32,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      41,
+      42,
+      43,
+      44,
+      45,
+      48,
+      51,
+      52,
+      53,
+      54,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65
+     ],
+     "speedup": {
+      "max": 56.1314102597204,
+      "mean": 48.216687725332925,
+      "median": 47.864144085964156,
+      "min": 43.13817989970618
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=100": {
+    "codegen_seconds": 0.0025667150039225817,
+    "cold_seconds": 339.9024599499535,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 339.89276090590283,
+    "events_per_trajectory": {
+     "max": 2049165.0,
+     "mean": 1871837.13,
+     "median": 1865525.0
+    },
+    "first_seed": 60000001,
+    "load_seconds": 0.0064180209301412106,
+    "method": "psa",
+    "poplevel": 100.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 36,
+      "value": 3915.0088640501026
+     },
+     "peak_population": 3000000.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      1,
+      3,
+      4,
+      5,
+      7,
+      8,
+      10,
+      11,
+      13,
+      14,
+      15,
+      21,
+      24,
+      26,
+      27,
+      34,
+      35,
+      36,
+      37,
+      38,
+      41,
+      42,
+      43,
+      44,
+      51,
+      52,
+      53,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65
+     ],
+     "speedup": {
+      "max": 35.15928930859202,
+      "mean": 32.841219429512705,
+      "median": 32.93860153914035,
+      "min": 30.062879154759475
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=1000": {
+    "codegen_seconds": 0.0019806530326604843,
+    "cold_seconds": 870.067287206999,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 870.0581701609772,
+    "events_per_trajectory": {
+     "max": 4691979.0,
+     "mean": 4629861.325,
+     "median": 4626853.5
+    },
+    "first_seed": 100000001,
+    "load_seconds": 0.006411907961592078,
+    "method": "psa",
+    "poplevel": 1000.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 36,
+      "value": 359.89502010165285
+     },
+     "peak_population": 3000000.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      1,
+      3,
+      4,
+      5,
+      7,
+      8,
+      10,
+      13,
+      14,
+      15,
+      26,
+      27,
+      34,
+      35,
+      36,
+      37,
+      38,
+      41,
+      42,
+      43,
+      44,
+      51,
+      52,
+      53,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65
+     ],
+     "speedup": {
+      "max": 13.475879042524333,
+      "mean": 13.274023763365507,
+      "median": 13.276800551085017,
+      "min": 13.10363690266014
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=30": {
+    "codegen_seconds": 0.0013189800083637238,
+    "cold_seconds": 281.4122066539712,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 281.4072492909618,
+    "events_per_trajectory": {
+     "max": 1803521.0,
+     "mean": 1547461.535,
+     "median": 1552904.5
+    },
+    "first_seed": 40000001,
+    "load_seconds": 0.0032732250401750207,
+    "method": "psa",
+    "poplevel": 30.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 36,
+      "value": 13680.954752354835
+     },
+     "peak_population": 3000000.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      1,
+      3,
+      4,
+      5,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      21,
+      23,
+      24,
+      25,
+      26,
+      27,
+      34,
+      35,
+      36,
+      37,
+      38,
+      41,
+      42,
+      43,
+      44,
+      51,
+      52,
+      53,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65
+     ],
+     "speedup": {
+      "max": 45.71905548067796,
+      "mean": 39.69526040501465,
+      "median": 39.49268714110277,
+      "min": 34.41946813062225
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=300": {
+    "codegen_seconds": 0.0012882890878245234,
+    "cold_seconds": 519.9575788859511,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 519.9527538790135,
+    "events_per_trajectory": {
+     "max": 2865531.0,
+     "mean": 2769831.565,
+     "median": 2769801.5
+    },
+    "first_seed": 80000001,
+    "load_seconds": 0.003176742931827903,
+    "method": "psa",
+    "poplevel": 300.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 36,
+      "value": 1227.8193503818275
+     },
+     "peak_population": 3000000.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      1,
+      3,
+      4,
+      5,
+      7,
+      8,
+      10,
+      11,
+      13,
+      14,
+      15,
+      21,
+      24,
+      26,
+      27,
+      34,
+      35,
+      36,
+      37,
+      38,
+      41,
+      42,
+      43,
+      44,
+      51,
+      52,
+      53,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65
+     ],
+     "speedup": {
+      "max": 22.73648814925201,
+      "mean": 22.17805158966587,
+      "median": 22.188802973664977,
+      "min": 21.59729561567082
+     },
+     "trajectories": 200
+    }
+   },
+   "run_network": {
+    "cold_seconds": 1868.4111691910075,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 1868.4100615530042,
+    "first_seed": 10000001,
+    "method": "ssa (direct method)",
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=10": {
+    "cold_seconds": 203.39527402899694,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "10",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 203.3947554610204,
+    "first_seed": 30000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 10.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=100": {
+    "cold_seconds": 295.05077655997593,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "100",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 295.04960439691786,
+    "first_seed": 70000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 100.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=1000": {
+    "cold_seconds": 735.9765817580046,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "1000",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 735.9754938929109,
+    "first_seed": 110000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 1000.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=30": {
+    "cold_seconds": 235.9060832799878,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "30",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 235.90549587097485,
+    "first_seed": 50000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 30.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=300": {
+    "cold_seconds": 454.60433769295923,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "300",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 454.6032151289983,
+    "first_seed": 90000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 300.0,
+    "seeds": "first_seed + i for trajectory i"
+   }
+  },
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.0,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 398.65,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7705.3,
+     "EGFR(egf~A,sos)": 19135.825,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.375,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.55,
+     "EGFR(egf~I,sos)": 272754.3,
+     "EKAR3(act~A)": 858405.925,
+     "EKAR3(act~I)": 141594.075,
+     "ERK(S~P)": 569392.125,
+     "ERK(S~PP)": 2396768.9,
+     "ERK(S~U)": 33838.975,
+     "ERKTR(act~A)": 474208.0,
+     "ERKTR(act~I)": 525792.0,
+     "MEK(S~P,T292~P)": 18.9,
+     "MEK(S~P,T292~U)": 55127.0,
+     "MEK(S~PP,T292~P)": 0.125,
+     "MEK(S~PP,T292~U)": 27343.55,
+     "MEK(S~U,T292~P)": 89159.575,
+     "MEK(S~U,T292~U)": 28350.85,
+     "RAF(S~A)": 94013.15,
+     "RAF(S~I)": 183088.075,
+     "RAF(S~P)": 222898.775,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5887.525,
+     "RAS(g~GDP,sos)": 1379.975,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.825,
+     "RAS(g~GTP,sos)": 52327.65,
+     "RasGAP(ras)": 111.65,
+     "SOS(S~P,egfr,rem)": 1305.1,
+     "SOS(S~PP,egfr,rem)": 4524.725,
+     "SOS(S~PPP,egfr,rem)": 22752.3,
+     "SOS(S~PPPP,egfr,rem)": 62584.825,
+     "SOS(S~U,egfr,rem)": 723.175
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.2307692307692308,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 338.0794871794873,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 4922.0615384615385,
+     "EGFR(egf~A,sos)": 21229.32756410256,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.701923076923077,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.5102564102564104,
+     "EGFR(egf~I,sos)": 22867.343589743574,
+     "EKAR3(act~A)": 230888.58397435903,
+     "EKAR3(act~I)": 230888.58397435897,
+     "ERK(S~P)": 16155899.496794872,
+     "ERK(S~PP)": 20607428.810256414,
+     "ERK(S~U)": 306369.1019230769,
+     "ERKTR(act~A)": 713470.5641025641,
+     "ERKTR(act~I)": 713470.5641025641,
+     "MEK(S~P,T292~P)": 18.400000000000002,
+     "MEK(S~P,T292~U)": 61848.307692307695,
+     "MEK(S~PP,T292~P)": 0.11217948717948718,
+     "MEK(S~PP,T292~U)": 63974.97179487178,
+     "MEK(S~U,T292~P)": 129087.78910256407,
+     "MEK(S~U,T292~U)": 25802.335897435907,
+     "RAF(S~A)": 125220.84871794873,
+     "RAF(S~I)": 332534.3275641026,
+     "RAF(S~P)": 633637.2557692307,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 129.33269230769224,
+     "RAS(g~GDP,sos)": 1641.6660256410257,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.6096153846153847,
+     "RAS(g~GTP,sos)": 1621.361538461538,
+     "RasGAP(ras)": 128.84871794871796,
+     "SOS(S~P,egfr,rem)": 1657.630769230769,
+     "SOS(S~PP,egfr,rem)": 5893.383974358973,
+     "SOS(S~PPP,egfr,rem)": 24831.497435897436,
+     "SOS(S~PPPP,egfr,rem)": 58443.22500000001,
+     "SOS(S~U,egfr,rem)": 740.148076923077
+    },
+    "replicates": 40
+   },
+   "bngsim@nc=10": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.005,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 424.89,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7749.475,
+     "EGFR(egf~A,sos)": 18810.41,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.01,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.305,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.875,
+     "EGFR(egf~I,sos)": 273009.03,
+     "EKAR3(act~A)": 855640.995,
+     "EKAR3(act~I)": 144359.005,
+     "ERK(S~P)": 601307.81,
+     "ERK(S~PP)": 2355504.235,
+     "ERK(S~U)": 43187.955,
+     "ERKTR(act~A)": 472517.755,
+     "ERKTR(act~I)": 527482.245,
+     "MEK(S~P,T292~P)": 17.37,
+     "MEK(S~P,T292~U)": 55809.6,
+     "MEK(S~PP,T292~P)": 0.235,
+     "MEK(S~PP,T292~U)": 27023.865,
+     "MEK(S~U,T292~P)": 87212.14,
+     "MEK(S~U,T292~U)": 29936.79,
+     "RAF(S~A)": 93399.67,
+     "RAF(S~I)": 183192.68,
+     "RAF(S~P)": 223407.65,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5887.48,
+     "RAS(g~GDP,sos)": 1400.895,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.555,
+     "RAS(g~GTP,sos)": 52280.86,
+     "RasGAP(ras)": 111.965,
+     "SOS(S~P,egfr,rem)": 1379.13,
+     "SOS(S~PP,egfr,rem)": 4739.94,
+     "SOS(S~PPP,egfr,rem)": 22997.625,
+     "SOS(S~PPPP,egfr,rem)": 61930.205,
+     "SOS(S~U,egfr,rem)": 772.54
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.0904271356783932,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 27881.063216080413,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 1553418.8234924634,
+     "EGFR(egf~A,sos)": 31092806.6350754,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.009949748743718588,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 5.811030150753769,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.8938442211055276,
+     "EGFR(egf~I,sos)": 36011647.99909546,
+     "EKAR3(act~A)": 1979449764.4472103,
+     "EKAR3(act~I)": 1979449764.4472103,
+     "ERK(S~P)": 34361906697.02904,
+     "ERK(S~PP)": 43562366253.36662,
+     "ERK(S~U)": 875714047.5909286,
+     "ERKTR(act~A)": 9870582896.547712,
+     "ERKTR(act~I)": 9870582896.547712,
+     "MEK(S~P,T292~P)": 44.284522613065356,
+     "MEK(S~P,T292~U)": 85304986.65326624,
+     "MEK(S~PP,T292~P)": 0.22087939698492484,
+     "MEK(S~PP,T292~U)": 73657609.60479896,
+     "MEK(S~U,T292~P)": 45754617.46773867,
+     "MEK(S~U,T292~U)": 97624576.98080403,
+     "RAF(S~A)": 595167180.7046233,
+     "RAF(S~I)": 1174030159.796583,
+     "RAF(S~P)": 1442925647.3743703,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 650.6126633165815,
+     "RAS(g~GDP,sos)": 98418.68741206029,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.4391708542713575,
+     "RAS(g~GTP,sos)": 85863.92000000001,
+     "RasGAP(ras)": 647.1294221105524,
+     "SOS(S~P,egfr,rem)": 189869.04834170852,
+     "SOS(S~PP,egfr,rem)": 2914305.6747738696,
+     "SOS(S~PPP,egfr,rem)": 40322462.19535176,
+     "SOS(S~PPPP,egfr,rem)": 47188956.69645729,
+     "SOS(S~U,egfr,rem)": 94414.671758794
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=100": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.04,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 400.455,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7708.19,
+     "EGFR(egf~A,sos)": 19016.835,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.005,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.01,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.85,
+     "EGFR(egf~I,sos)": 272868.615,
+     "EKAR3(act~A)": 859549.715,
+     "EKAR3(act~I)": 140450.285,
+     "ERK(S~P)": 569871.175,
+     "ERK(S~PP)": 2395791.86,
+     "ERK(S~U)": 34336.965,
+     "ERKTR(act~A)": 474800.89,
+     "ERKTR(act~I)": 525199.11,
+     "MEK(S~P,T292~P)": 18.12,
+     "MEK(S~P,T292~U)": 55258.69,
+     "MEK(S~PP,T292~P)": 0.205,
+     "MEK(S~PP,T292~U)": 27192.645,
+     "MEK(S~U,T292~P)": 89057.2,
+     "MEK(S~U,T292~U)": 28473.14,
+     "RAF(S~A)": 94885.705,
+     "RAF(S~I)": 183327.37,
+     "RAF(S~P)": 221786.925,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5886.71,
+     "RAS(g~GDP,sos)": 1381.145,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.61,
+     "RAS(g~GTP,sos)": 52326.025,
+     "RasGAP(ras)": 112.68,
+     "SOS(S~P,egfr,rem)": 1328.815,
+     "SOS(S~PP,egfr,rem)": 4512.21,
+     "SOS(S~PPP,egfr,rem)": 22755.26,
+     "SOS(S~PPPP,egfr,rem)": 62551.645,
+     "SOS(S~U,egfr,rem)": 737.52
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.9129648241206034,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 1821.0431909547742,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 135864.68733668342,
+     "EGFR(egf~A,sos)": 3164742.2691206047,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.00500000000000001,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.587839195979896,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.7613065326633162,
+     "EGFR(egf~I,sos)": 3650454.1977638197,
+     "EKAR3(act~A)": 217934662.40580404,
+     "EKAR3(act~I)": 217934662.4058041,
+     "ERK(S~P)": 2942137564.3662066,
+     "ERK(S~PP)": 3495945793.477787,
+     "ERK(S~U)": 39404480.275150746,
+     "ERKTR(act~A)": 931067689.9878393,
+     "ERKTR(act~I)": 931067689.9878393,
+     "MEK(S~P,T292~P)": 20.407638190954746,
+     "MEK(S~P,T292~U)": 8341742.627035179,
+     "MEK(S~PP,T292~P)": 0.17384422110552739,
+     "MEK(S~PP,T292~U)": 7410354.119572857,
+     "MEK(S~U,T292~P)": 4979815.175879399,
+     "MEK(S~U,T292~U)": 10826257.618492462,
+     "RAF(S~A)": 61005199.98791455,
+     "RAF(S~I)": 121510009.70160805,
+     "RAF(S~P)": 141787081.0646985,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 110.4280402010048,
+     "RAS(g~GDP,sos)": 6586.486407035169,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.590854271356786,
+     "RAS(g~GTP,sos)": 5490.446608040196,
+     "RasGAP(ras)": 111.17346733668342,
+     "SOS(S~P,egfr,rem)": 19955.568618090452,
+     "SOS(S~PP,egfr,rem)": 226455.9657286434,
+     "SOS(S~PPP,egfr,rem)": 3968336.394371859,
+     "SOS(S~PPPP,egfr,rem)": 4673558.561783917,
+     "SOS(S~U,egfr,rem)": 8074.331256281409
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=1000": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.01,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 396.11,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7694.755,
+     "EGFR(egf~A,sos)": 19072.965,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.81,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.785,
+     "EGFR(egf~I,sos)": 272830.565,
+     "EKAR3(act~A)": 858096.335,
+     "EKAR3(act~I)": 141903.665,
+     "ERK(S~P)": 568497.655,
+     "ERK(S~PP)": 2397555.615,
+     "ERK(S~U)": 33946.73,
+     "ERKTR(act~A)": 476155.705,
+     "ERKTR(act~I)": 523844.295,
+     "MEK(S~P,T292~P)": 17.98,
+     "MEK(S~P,T292~U)": 55080.69,
+     "MEK(S~PP,T292~P)": 0.205,
+     "MEK(S~PP,T292~U)": 27255.61,
+     "MEK(S~U,T292~P)": 89157.33,
+     "MEK(S~U,T292~U)": 28488.185,
+     "RAF(S~A)": 93961.65,
+     "RAF(S~I)": 183174.8,
+     "RAF(S~P)": 222863.55,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5887.12,
+     "RAS(g~GDP,sos)": 1386.255,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.58,
+     "RAS(g~GTP,sos)": 52325.115,
+     "RasGAP(ras)": 112.3,
+     "SOS(S~P,egfr,rem)": 1308.105,
+     "SOS(S~PP,egfr,rem)": 4507.685,
+     "SOS(S~PPP,egfr,rem)": 22797.23,
+     "SOS(S~PPPP,egfr,rem)": 62560.91,
+     "SOS(S~U,egfr,rem)": 729.6
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.9144723618090466,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 391.47527638190934,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 14599.30148241205,
+     "EGFR(egf~A,sos)": 313504.2148492462,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.642110552763821,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.792738693467336,
+     "EGFR(egf~I,sos)": 343284.75957286434,
+     "EKAR3(act~A)": 17108976.26409548,
+     "EKAR3(act~I)": 17108976.264095485,
+     "ERK(S~P)": 370392806.1668089,
+     "ERK(S~PP)": 441719379.8560554,
+     "ERK(S~U)": 4406545.554874372,
+     "ERKTR(act~A)": 104778992.06831655,
+     "ERKTR(act~I)": 104778992.06831655,
+     "MEK(S~P,T292~P)": 17.97949748743719,
+     "MEK(S~P,T292~U)": 804003.4813065325,
+     "MEK(S~PP,T292~P)": 0.20399497487437207,
+     "MEK(S~PP,T292~U)": 902116.4200000002,
+     "MEK(S~U,T292~P)": 505215.8704522615,
+     "MEK(S~U,T292~U)": 1061427.4279145729,
+     "RAF(S~A)": 6883462.550251259,
+     "RAF(S~I)": 10380463.336683419,
+     "RAF(S~P)": 13653002.38944724,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 116.04582914572853,
+     "RAS(g~GDP,sos)": 1859.819070351758,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.6066331658291452,
+     "RAS(g~GTP,sos)": 1683.3485175879375,
+     "RasGAP(ras)": 118.17085427135687,
+     "SOS(S~P,egfr,rem)": 2020.5165577889452,
+     "SOS(S~PP,egfr,rem)": 22515.83494974874,
+     "SOS(S~PPP,egfr,rem)": 373639.11266331666,
+     "SOS(S~PPPP,egfr,rem)": 446026.7255276384,
+     "SOS(S~U,egfr,rem)": 955.9396984924626
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=30": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.21,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 398.7,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7613.16,
+     "EGFR(egf~A,sos)": 19137.01,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.97,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.92,
+     "EGFR(egf~I,sos)": 272845.03,
+     "EKAR3(act~A)": 855160.93,
+     "EKAR3(act~I)": 144839.07,
+     "ERK(S~P)": 585297.185,
+     "ERK(S~PP)": 2377590.055,
+     "ERK(S~U)": 37112.76,
+     "ERKTR(act~A)": 469662.115,
+     "ERKTR(act~I)": 530337.885,
+     "MEK(S~P,T292~P)": 18.005,
+     "MEK(S~P,T292~U)": 54759.865,
+     "MEK(S~PP,T292~P)": 0.18,
+     "MEK(S~PP,T292~U)": 27170.58,
+     "MEK(S~U,T292~P)": 88756.155,
+     "MEK(S~U,T292~U)": 29295.215,
+     "RAF(S~A)": 94147.44,
+     "RAF(S~I)": 184803.12,
+     "RAF(S~P)": 221049.44,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5886.73,
+     "RAS(g~GDP,sos)": 1408.43,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.67,
+     "RAS(g~GTP,sos)": 52300.29,
+     "RasGAP(ras)": 112.6,
+     "SOS(S~P,egfr,rem)": 1314.43,
+     "SOS(S~PP,egfr,rem)": 4515.395,
+     "SOS(S~PPP,egfr,rem)": 22856.06,
+     "SOS(S~PPPP,egfr,rem)": 62553.76,
+     "SOS(S~U,egfr,rem)": 742.395
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.2923618090452238,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 5476.804020100497,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 449262.205427136,
+     "EGFR(egf~A,sos)": 10569766.79386935,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.918693467336684,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.9181909547738702,
+     "EGFR(egf~I,sos)": 11719593.546834176,
+     "EKAR3(act~A)": 781180064.4372865,
+     "EKAR3(act~I)": 781180064.4372859,
+     "ERK(S~P)": 12464002882.483185,
+     "ERK(S~PP)": 15105579124.655264,
+     "ERK(S~U)": 188730075.2687437,
+     "ERKTR(act~A)": 3199140569.599774,
+     "ERKTR(act~I)": 3199140569.599774,
+     "MEK(S~P,T292~P)": 22.89947236180902,
+     "MEK(S~P,T292~U)": 26356016.951532677,
+     "MEK(S~PP,T292~P)": 0.18854271356783975,
+     "MEK(S~PP,T292~U)": 31593747.67195978,
+     "MEK(S~U,T292~P)": 12669479.820075372,
+     "MEK(S~U,T292~U)": 26719449.697261304,
+     "RAF(S~A)": 195866913.97628137,
+     "RAF(S~I)": 403969318.14633155,
+     "RAF(S~P)": 409619017.8154774,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 244.04733668341638,
+     "RAS(g~GDP,sos)": 25448.165929648225,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.8151758793969861,
+     "RAS(g~GTP,sos)": 21630.428040200997,
+     "RasGAP(ras)": 239.44723618090455,
+     "SOS(S~P,egfr,rem)": 62222.74884422108,
+     "SOS(S~PP,egfr,rem)": 818149.2753517586,
+     "SOS(S~PPP,egfr,rem)": 12923096.569246223,
+     "SOS(S~PPPP,egfr,rem)": 15265360.977286424,
+     "SOS(S~U,egfr,rem)": 29302.752738693467
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=300": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.01,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 399.325,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7729.335,
+     "EGFR(egf~A,sos)": 19303.32,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.765,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.835,
+     "EGFR(egf~I,sos)": 272562.41,
+     "EKAR3(act~A)": 858755.505,
+     "EKAR3(act~I)": 141244.495,
+     "ERK(S~P)": 571410.925,
+     "ERK(S~PP)": 2394682.42,
+     "ERK(S~U)": 33906.655,
+     "ERKTR(act~A)": 472428.455,
+     "ERKTR(act~I)": 527571.545,
+     "MEK(S~P,T292~P)": 18.175,
+     "MEK(S~P,T292~U)": 55093.3,
+     "MEK(S~PP,T292~P)": 0.215,
+     "MEK(S~PP,T292~U)": 27348.18,
+     "MEK(S~U,T292~P)": 89249.885,
+     "MEK(S~U,T292~U)": 28290.245,
+     "RAF(S~A)": 94075.14,
+     "RAF(S~I)": 183156.21,
+     "RAF(S~P)": 222768.65,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5886.175,
+     "RAS(g~GDP,sos)": 1374.675,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.58,
+     "RAS(g~GTP,sos)": 52334.47,
+     "RasGAP(ras)": 113.245,
+     "SOS(S~P,egfr,rem)": 1311.285,
+     "SOS(S~PP,egfr,rem)": 4506.385,
+     "SOS(S~PPP,egfr,rem)": 22761.255,
+     "SOS(S~PPPP,egfr,rem)": 62560.37,
+     "SOS(S~U,egfr,rem)": 726.435
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.1556783919598017,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 574.3511306532658,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 42713.24902010051,
+     "EGFR(egf~A,sos)": 1198543.1332663316,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.0,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.35655778894472,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.65103015075377,
+     "EGFR(egf~I,sos)": 1386458.9767839194,
+     "EKAR3(act~A)": 73071180.76379396,
+     "EKAR3(act~I)": 73071180.76379396,
+     "ERK(S~P)": 1053552470.6526382,
+     "ERK(S~PP)": 1244547554.2046232,
+     "ERK(S~U)": 14272931.473341707,
+     "ERKTR(act~A)": 286777126.5808794,
+     "ERKTR(act~I)": 286777126.5808795,
+     "MEK(S~P,T292~P)": 20.64761306532661,
+     "MEK(S~P,T292~U)": 2509587.999999999,
+     "MEK(S~PP,T292~P)": 0.20982412060301495,
+     "MEK(S~PP,T292~U)": 2699546.6207035175,
+     "MEK(S~U,T292~P)": 1455182.1927386932,
+     "MEK(S~U,T292~U)": 3412998.326608037,
+     "RAF(S~A)": 22882822.06070353,
+     "RAF(S~I)": 43664112.18683416,
+     "RAF(S~P)": 52275913.032663316,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 124.25565326633156,
+     "RAS(g~GDP,sos)": 2497.4566582914563,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.6468341708542708,
+     "RAS(g~GTP,sos)": 1932.994070351768,
+     "RasGAP(ras)": 124.89947236180915,
+     "SOS(S~P,egfr,rem)": 6915.832939698491,
+     "SOS(S~PP,egfr,rem)": 76882.2379648241,
+     "SOS(S~PPP,egfr,rem)": 1360046.8240954778,
+     "SOS(S~PPPP,egfr,rem)": 1642673.4403015082,
+     "SOS(S~U,egfr,rem)": 2092.719371859297
+    },
+    "replicates": 200
+   },
+   "run_network": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.875,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 401.325,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7695.55,
+     "EGFR(egf~A,sos)": 19120.325,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.025,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.875,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.9,
+     "EGFR(egf~I,sos)": 272777.125,
+     "EKAR3(act~A)": 858327.375,
+     "EKAR3(act~I)": 141672.625,
+     "ERK(S~P)": 569540.575,
+     "ERK(S~PP)": 2396624.25,
+     "ERK(S~U)": 33835.175,
+     "ERKTR(act~A)": 474151.95,
+     "ERKTR(act~I)": 525848.05,
+     "MEK(S~P,T292~P)": 18.1,
+     "MEK(S~P,T292~U)": 55088.4,
+     "MEK(S~PP,T292~P)": 0.2,
+     "MEK(S~PP,T292~U)": 27336.375,
+     "MEK(S~U,T292~P)": 89145.875,
+     "MEK(S~U,T292~U)": 28411.05,
+     "RAF(S~A)": 94017.7,
+     "RAF(S~I)": 183112.725,
+     "RAF(S~P)": 222869.575,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5888.25,
+     "RAS(g~GDP,sos)": 1385.975,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.45,
+     "RAS(g~GTP,sos)": 52319.225,
+     "RasGAP(ras)": 111.3,
+     "SOS(S~P,egfr,rem)": 1318.775,
+     "SOS(S~PP,egfr,rem)": 4524.425,
+     "SOS(S~PPP,egfr,rem)": 22726.15,
+     "SOS(S~PPPP,egfr,rem)": 62599.15,
+     "SOS(S~U,egfr,rem)": 728.95
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.7275641025641025,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 381.3019230769231,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 8205.176923076926,
+     "EGFR(egf~A,sos)": 24582.789102564097,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.024999999999999988,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 2.8814102564102564,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 1.2205128205128208,
+     "EGFR(egf~I,sos)": 23695.59935897436,
+     "EKAR3(act~A)": 254340.85576923078,
+     "EKAR3(act~I)": 254340.85576923078,
+     "ERK(S~P)": 11230682.917307692,
+     "ERK(S~PP)": 14433249.26923077,
+     "ERK(S~U)": 244828.76346153847,
+     "ERKTR(act~A)": 684112.8179487177,
+     "ERKTR(act~I)": 684112.8179487179,
+     "MEK(S~P,T292~P)": 18.810256410256407,
+     "MEK(S~P,T292~U)": 51503.784615384604,
+     "MEK(S~PP,T292~P)": 0.16410256410256419,
+     "MEK(S~PP,T292~U)": 45203.11217948718,
+     "MEK(S~U,T292~P)": 118735.29166666667,
+     "MEK(S~U,T292~U)": 20301.99743589744,
+     "RAF(S~A)": 123568.62564102563,
+     "RAF(S~I)": 257237.48653846158,
+     "RAF(S~P)": 468234.40448717936,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 69.88461538461539,
+     "RAS(g~GDP,sos)": 1795.3583333333336,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.40769230769230785,
+     "RAS(g~GTP,sos)": 2181.460897435898,
+     "RasGAP(ras)": 70.06153846153843,
+     "SOS(S~P,egfr,rem)": 1000.4352564102568,
+     "SOS(S~PP,egfr,rem)": 4981.378846153846,
+     "SOS(S~PPP,egfr,rem)": 21465.925641025642,
+     "SOS(S~PPPP,egfr,rem)": 47195.053846153845,
+     "SOS(S~U,egfr,rem)": 382.35641025641013
+    },
+    "replicates": 40
+   },
+   "run_network@nc=10": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.02,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 402.1,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7650.16,
+     "EGFR(egf~A,sos)": 19361.705,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.015,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.805,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.825,
+     "EGFR(egf~I,sos)": 272580.37,
+     "EKAR3(act~A)": 855298.06,
+     "EKAR3(act~I)": 144701.94,
+     "ERK(S~P)": 575079.4,
+     "ERK(S~PP)": 2387137.985,
+     "ERK(S~U)": 37782.615,
+     "ERKTR(act~A)": 487532.535,
+     "ERKTR(act~I)": 512467.465,
+     "MEK(S~P,T292~P)": 17.755,
+     "MEK(S~P,T292~U)": 53998.585,
+     "MEK(S~PP,T292~P)": 0.2,
+     "MEK(S~PP,T292~U)": 29014.01,
+     "MEK(S~U,T292~P)": 88520.975,
+     "MEK(S~U,T292~U)": 28448.475,
+     "RAF(S~A)": 94542.71,
+     "RAF(S~I)": 188254.95,
+     "RAF(S~P)": 217202.34,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5886.105,
+     "RAS(g~GDP,sos)": 1394.29,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.68,
+     "RAS(g~GTP,sos)": 52311.985,
+     "RasGAP(ras)": 113.215,
+     "SOS(S~P,egfr,rem)": 1372.835,
+     "SOS(S~PP,egfr,rem)": 4701.945,
+     "SOS(S~PPP,egfr,rem)": 23536.82,
+     "SOS(S~PPPP,egfr,rem)": 61545.495,
+     "SOS(S~U,egfr,rem)": 784.98
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.9845226130653286,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 22636.30150753768,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 1282233.6627135677,
+     "EGFR(egf~A,sos)": 32996297.75675881,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.01484924623115575,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.308517587939692,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.8787688442211053,
+     "EGFR(egf~I,sos)": 36532773.30964826,
+     "EKAR3(act~A)": 2474541879.8154764,
+     "EKAR3(act~I)": 2474541879.8154774,
+     "ERK(S~P)": 28548569997.628105,
+     "ERK(S~PP)": 35613926055.21083,
+     "ERK(S~U)": 602297819.0319344,
+     "ERKTR(act~A)": 10433483365.255049,
+     "ERKTR(act~I)": 10433483365.255049,
+     "MEK(S~P,T292~P)": 49.94469849246236,
+     "MEK(S~P,T292~U)": 101222678.02288951,
+     "MEK(S~PP,T292~P)": 0.2010050251256277,
+     "MEK(S~PP,T292~U)": 93300454.91447237,
+     "MEK(S~U,T292~P)": 52243490.16520102,
+     "MEK(S~U,T292~U)": 89964731.66771351,
+     "RAF(S~A)": 542796431.9456284,
+     "RAF(S~I)": 1352736992.1482418,
+     "RAF(S~P)": 1527131225.5923626,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 657.2803768844236,
+     "RAS(g~GDP,sos)": 83798.06623115577,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.6810050251256292,
+     "RAS(g~GTP,sos)": 74211.36158291459,
+     "RasGAP(ras)": 649.1545477386937,
+     "SOS(S~P,egfr,rem)": 214067.6761557788,
+     "SOS(S~PP,egfr,rem)": 2545323.9517336683,
+     "SOS(S~PPP,egfr,rem)": 40908150.11819094,
+     "SOS(S~PPPP,egfr,rem)": 44712978.10047738,
+     "SOS(S~U,egfr,rem)": 96876.87396984933
+    },
+    "replicates": 200
+   },
+   "run_network@nc=100": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.12,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 400.705,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7671.25,
+     "EGFR(egf~A,sos)": 19219.745,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.02,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.795,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.83,
+     "EGFR(egf~I,sos)": 272702.535,
+     "EKAR3(act~A)": 858823.14,
+     "EKAR3(act~I)": 141176.86,
+     "ERK(S~P)": 565228.31,
+     "ERK(S~PP)": 2400338.56,
+     "ERK(S~U)": 34433.13,
+     "ERKTR(act~A)": 473942.28,
+     "ERKTR(act~I)": 526057.72,
+     "MEK(S~P,T292~P)": 18.17,
+     "MEK(S~P,T292~U)": 54997.535,
+     "MEK(S~PP,T292~P)": 0.21,
+     "MEK(S~PP,T292~U)": 27045.22,
+     "MEK(S~U,T292~P)": 88958.61,
+     "MEK(S~U,T292~U)": 28980.255,
+     "RAF(S~A)": 93402.575,
+     "RAF(S~I)": 184631.945,
+     "RAF(S~P)": 221965.48,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5886.03,
+     "RAS(g~GDP,sos)": 1386.82,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.685,
+     "RAS(g~GTP,sos)": 52320.825,
+     "RasGAP(ras)": 113.285,
+     "SOS(S~P,egfr,rem)": 1301.945,
+     "SOS(S~PP,egfr,rem)": 4519.78,
+     "SOS(S~PPP,egfr,rem)": 23045.05,
+     "SOS(S~PPPP,egfr,rem)": 62328.455,
+     "SOS(S~U,egfr,rem)": 727.05
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.0508542713567819,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 1675.5457035175884,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 128519.38442211055,
+     "EGFR(egf~A,sos)": 3833538.432135679,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.01969849246231152,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.9225879396984915,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.8754773869346699,
+     "EGFR(egf~I,sos)": 4401754.5012814095,
+     "EKAR3(act~A)": 220376886.70391962,
+     "EKAR3(act~I)": 220376886.70391962,
+     "ERK(S~P)": 2855243809.6823115,
+     "ERK(S~PP)": 3403721773.4436193,
+     "ERK(S~U)": 44110057.36994972,
+     "ERKTR(act~A)": 1013906893.2176883,
+     "ERKTR(act~I)": 1013906893.2176883,
+     "MEK(S~P,T292~P)": 20.8754773869347,
+     "MEK(S~P,T292~U)": 9198341.77766332,
+     "MEK(S~PP,T292~P)": 0.20693467336683422,
+     "MEK(S~PP,T292~U)": 7795033.700100495,
+     "MEK(S~U,T292~P)": 3859467.4451256287,
+     "MEK(S~U,T292~U)": 9480502.2009799,
+     "RAF(S~A)": 62499532.87876891,
+     "RAF(S~I)": 125555831.15776385,
+     "RAF(S~P)": 157318381.8086432,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 111.15487437185898,
+     "RAS(g~GDP,sos)": 8810.17849246231,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.628919597989949,
+     "RAS(g~GTP,sos)": 7491.3310301507545,
+     "RasGAP(ras)": 110.0138442211055,
+     "SOS(S~P,egfr,rem)": 18994.34369346734,
+     "SOS(S~PP,egfr,rem)": 212476.48402010062,
+     "SOS(S~PPP,egfr,rem)": 4387726.057788945,
+     "SOS(S~PPPP,egfr,rem)": 5260500.008015072,
+     "SOS(S~U,egfr,rem)": 7297.12311557789
+    },
+    "replicates": 200
+   },
+   "run_network@nc=1000": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.98,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 394.76,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7693.955,
+     "EGFR(egf~A,sos)": 19154.245,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.015,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.285,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.84,
+     "EGFR(egf~I,sos)": 272750.92,
+     "EKAR3(act~A)": 858626.035,
+     "EKAR3(act~I)": 141373.965,
+     "ERK(S~P)": 569683.305,
+     "ERK(S~PP)": 2396380.34,
+     "ERK(S~U)": 33936.355,
+     "ERKTR(act~A)": 473977.78,
+     "ERKTR(act~I)": 526022.22,
+     "MEK(S~P,T292~P)": 17.915,
+     "MEK(S~P,T292~U)": 55173.7,
+     "MEK(S~PP,T292~P)": 0.24,
+     "MEK(S~PP,T292~U)": 27289.33,
+     "MEK(S~U,T292~P)": 89180.185,
+     "MEK(S~U,T292~U)": 28338.63,
+     "RAF(S~A)": 94035.95,
+     "RAF(S~I)": 183192.99,
+     "RAF(S~P)": 222771.06,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5885.885,
+     "RAS(g~GDP,sos)": 1384.95,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.625,
+     "RAS(g~GTP,sos)": 52328.5,
+     "RasGAP(ras)": 113.49,
+     "SOS(S~P,egfr,rem)": 1311.03,
+     "SOS(S~PP,egfr,rem)": 4510.95,
+     "SOS(S~PPP,egfr,rem)": 22798.27,
+     "SOS(S~PPPP,egfr,rem)": 62556.96,
+     "SOS(S~U,egfr,rem)": 727.955
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.9744723618090454,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 434.7059296482411,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 16457.852236180923,
+     "EGFR(egf~A,sos)": 281164.7989698492,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.014849246231155752,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 5.069120603015078,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.8988944723618092,
+     "EGFR(egf~I,sos)": 322865.5915577889,
+     "EKAR3(act~A)": 18948221.018869337,
+     "EKAR3(act~I)": 18948221.018869337,
+     "ERK(S~P)": 298411451.3085175,
+     "ERK(S~PP)": 349168129.16020095,
+     "ERK(S~U)": 4012986.4713316574,
+     "ERKTR(act~A)": 122621722.50412054,
+     "ERKTR(act~I)": 122621722.50412054,
+     "MEK(S~P,T292~P)": 18.249020100502513,
+     "MEK(S~P,T292~U)": 996750.3316582923,
+     "MEK(S~PP,T292~P)": 0.2335678391959802,
+     "MEK(S~PP,T292~U)": 734549.8503517587,
+     "MEK(S~U,T292~P)": 473368.3223869346,
+     "MEK(S~U,T292~U)": 844196.6463316588,
+     "RAF(S~A)": 4600297.927135678,
+     "RAF(S~I)": 11438977.537587946,
+     "RAF(S~P)": 14416329.393366832,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 110.46409547738675,
+     "RAS(g~GDP,sos)": 2130.8618090452246,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.7883165829145728,
+     "RAS(g~GTP,sos)": 1913.1356783919598,
+     "RasGAP(ras)": 110.6933668341708,
+     "SOS(S~P,egfr,rem)": 1908.3609045226121,
+     "SOS(S~PP,egfr,rem)": 22303.35427135678,
+     "SOS(S~PPP,egfr,rem)": 415092.93175879406,
+     "SOS(S~PPPP,egfr,rem)": 560954.9531658293,
+     "SOS(S~U,egfr,rem)": 984.5256030150754
+    },
+    "replicates": 200
+   },
+   "run_network@nc=30": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.05,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 403.035,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7636.09,
+     "EGFR(egf~A,sos)": 19277.165,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.005,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.01,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.8,
+     "EGFR(egf~I,sos)": 272677.845,
+     "EKAR3(act~A)": 854998.42,
+     "EKAR3(act~I)": 145001.58,
+     "ERK(S~P)": 571534.29,
+     "ERK(S~PP)": 2391606.39,
+     "ERK(S~U)": 36859.32,
+     "ERKTR(act~A)": 477325.98,
+     "ERKTR(act~I)": 522674.02,
+     "MEK(S~P,T292~P)": 18.625,
+     "MEK(S~P,T292~U)": 55198.285,
+     "MEK(S~PP,T292~P)": 0.2,
+     "MEK(S~PP,T292~U)": 27846.775,
+     "MEK(S~U,T292~P)": 88593.88,
+     "MEK(S~U,T292~U)": 28342.235,
+     "RAF(S~A)": 95433.13,
+     "RAF(S~I)": 181069.395,
+     "RAF(S~P)": 223497.475,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5887.4,
+     "RAS(g~GDP,sos)": 1390.63,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.68,
+     "RAS(g~GTP,sos)": 52313.19,
+     "RasGAP(ras)": 111.92,
+     "SOS(S~P,egfr,rem)": 1316.325,
+     "SOS(S~PP,egfr,rem)": 4722.9,
+     "SOS(S~PPP,egfr,rem)": 23205.69,
+     "SOS(S~PPPP,egfr,rem)": 61968.14,
+     "SOS(S~U,egfr,rem)": 741.955
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.2135678391959792,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 8570.536457286438,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 520116.65517587936,
+     "EGFR(egf~A,sos)": 13154755.414849248,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.00500000000000004,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.9295477386934663,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.9145728643216068,
+     "EGFR(egf~I,sos)": 15467581.850226136,
+     "EKAR3(act~A)": 736702291.1392968,
+     "EKAR3(act~I)": 736702291.1392962,
+     "ERK(S~P)": 10110493627.252161,
+     "ERK(S~PP)": 12345247737.043118,
+     "ERK(S~U)": 196469080.439799,
+     "ERKTR(act~A)": 2955520672.1403003,
+     "ERKTR(act~I)": 2955520672.1403003,
+     "MEK(S~P,T292~P)": 28.76821608040201,
+     "MEK(S~P,T292~U)": 29904792.78771357,
+     "MEK(S~PP,T292~P)": 0.18090452261306494,
+     "MEK(S~PP,T292~U)": 30064562.275753774,
+     "MEK(S~U,T292~P)": 12737692.658894466,
+     "MEK(S~U,T292~U)": 30534513.386708543,
+     "RAF(S~A)": 195768221.26944724,
+     "RAF(S~I)": 420635714.84319097,
+     "RAF(S~P)": 463901744.6224874,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 301.69849246231087,
+     "RAS(g~GDP,sos)": 29295.22924623117,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.6508542713567853,
+     "RAS(g~GTP,sos)": 26086.556683417053,
+     "RasGAP(ras)": 297.2196984924624,
+     "SOS(S~P,egfr,rem)": 70958.11997487431,
+     "SOS(S~PP,egfr,rem)": 846608.1708542712,
+     "SOS(S~PPP,egfr,rem)": 12579571.581809042,
+     "SOS(S~PPPP,egfr,rem)": 15132671.718994977,
+     "SOS(S~U,egfr,rem)": 25204.254246231158
+    },
+    "replicates": 200
+   },
+   "run_network@nc=300": {
+    "final_mean": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.095,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 398.255,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 7696.205,
+     "EGFR(egf~A,sos)": 19015.965,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.015,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 3.93,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.875,
+     "EGFR(egf~I,sos)": 272883.66,
+     "EKAR3(act~A)": 857856.31,
+     "EKAR3(act~I)": 142143.69,
+     "ERK(S~P)": 569975.065,
+     "ERK(S~PP)": 2395837.635,
+     "ERK(S~U)": 34187.3,
+     "ERKTR(act~A)": 474002.29,
+     "ERKTR(act~I)": 525997.71,
+     "MEK(S~P,T292~P)": 17.96,
+     "MEK(S~P,T292~U)": 54889.285,
+     "MEK(S~PP,T292~P)": 0.225,
+     "MEK(S~PP,T292~U)": 27267.425,
+     "MEK(S~U,T292~P)": 88978.485,
+     "MEK(S~U,T292~U)": 28846.62,
+     "RAF(S~A)": 93138.75,
+     "RAF(S~I)": 183955.625,
+     "RAF(S~P)": 222905.625,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 5887.96,
+     "RAS(g~GDP,sos)": 1378.935,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.535,
+     "RAS(g~GTP,sos)": 52329.275,
+     "RasGAP(ras)": 111.505,
+     "SOS(S~P,egfr,rem)": 1310.63,
+     "SOS(S~PP,egfr,rem)": 4537.76,
+     "SOS(S~PPP,egfr,rem)": 22835.98,
+     "SOS(S~PPPP,egfr,rem)": 62486.075,
+     "SOS(S~U,egfr,rem)": 729.18
+    },
+    "final_variance": {
+     "EGFR(egf~A,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 1.1115326633165865,
+     "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 474.2210804020103,
+     "EGFR(egf~A,sos!1).SOS(S~U,egfr!1,rem)": 45813.96278894473,
+     "EGFR(egf~A,sos)": 902541.5917336683,
+     "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)": 0.014849246231155754,
+     "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)": 4.1357788944723675,
+     "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)": 0.8134422110552764,
+     "EGFR(egf~I,sos)": 1000743.9843216075,
+     "EKAR3(act~A)": 82473615.69236182,
+     "EKAR3(act~I)": 82473615.69236177,
+     "ERK(S~P)": 1109602176.091231,
+     "ERK(S~PP)": 1346402360.4439945,
+     "ERK(S~U)": 18504402.44221104,
+     "ERKTR(act~A)": 349356206.3978895,
+     "ERKTR(act~I)": 349356206.3978896,
+     "MEK(S~P,T292~P)": 19.837587939698505,
+     "MEK(S~P,T292~U)": 2474847.8831909536,
+     "MEK(S~PP,T292~P)": 0.27575376884422,
+     "MEK(S~PP,T292~U)": 2853640.406407034,
+     "MEK(S~U,T292~P)": 1386625.0550502508,
+     "MEK(S~U,T292~U)": 3691632.3272361783,
+     "RAF(S~A)": 21198602.711055275,
+     "RAF(S~I)": 33921157.130025126,
+     "RAF(S~P)": 47434124.11494975,
+     "RAS(g~GDP!1,sos).RasGAP(ras!1)": 134.07879396984927,
+     "RAS(g~GDP,sos)": 2508.1615829145735,
+     "RAS(g~GTP!1,sos).RasGAP(ras!1)": 0.6218844221105528,
+     "RAS(g~GTP,sos)": 2195.828517587942,
+     "RasGAP(ras)": 132.55273869346732,
+     "SOS(S~P,egfr,rem)": 6375.761909547736,
+     "SOS(S~PP,egfr,rem)": 93112.7059296482,
+     "SOS(S~PPP,egfr,rem)": 1393882.974472362,
+     "SOS(S~PPPP,egfr,rem)": 1720329.2958542707,
+     "SOS(S~U,egfr,rem)": 1785.5855276381906
+    },
+    "replicates": 200
+   }
+  },
+  "netgen_seconds": 1.4936883809277788,
+  "network": {
+   "reactions": 65,
+   "species": 34
+  },
+  "psa": {
+   "accuracy": {
+    "nc=10": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 90.0,
+        "time_index": 9
+       },
+       "max": 0.44,
+       "se": 0.13072433552891535
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERK(S~U)",
+        "species_index": 7,
+        "time": 290.0,
+        "time_index": 29
+       },
+       "max": 23.833216167955356,
+       "se": 5.215188574577358
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.45454545454545453,
+       "passed": true,
+       "permutations": 44,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~I,sos!1).SOS(S~U,egfr!1,rem)",
+        "species_index": 16,
+        "statistic": "mean",
+        "time": 200.0,
+        "time_index": 20,
+        "z": 3.505675182278613
+       },
+       "z_max": 3.505675182278613
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "MEK(S~U,T292~P)",
+        "species_index": 25,
+        "time": 100.0,
+        "time_index": 10
+       },
+       "max": 13834.604247427338,
+       "median": 52.55453865443044,
+       "min": 0.0,
+       "n_cells": 1846
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 36,
+       "value": 46567.59080318054
+      },
+      "peak_population": 3000000.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       1,
+       3,
+       4,
+       5,
+       7,
+       8,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       17,
+       21,
+       23,
+       24,
+       25,
+       26,
+       27,
+       28,
+       32,
+       34,
+       35,
+       36,
+       37,
+       38,
+       39,
+       41,
+       42,
+       43,
+       44,
+       45,
+       48,
+       51,
+       52,
+       53,
+       54,
+       57,
+       58,
+       59,
+       60,
+       61,
+       62,
+       63,
+       64,
+       65
+      ],
+      "speedup": {
+       "max": 56.1314102597204,
+       "mean": 48.216687725332925,
+       "median": 47.864144085964156,
+       "min": 43.13817989970618
+      },
+      "trajectories": 200
+     },
+     "poplevel": 10,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "MEK(S~PP,T292~P)",
+        "species_index": 27,
+        "time": 370.0,
+        "time_index": 37
+       },
+       "max": 0.4,
+       "se": 0.21714313324848536
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERK(S~U)",
+        "species_index": 7,
+        "time": 300.0,
+        "time_index": 30
+       },
+       "max": 30.965144271053667,
+       "se": 5.817772562186707
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.13513513513513514,
+       "passed": true,
+       "permutations": 148,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 220.0,
+        "time_index": 22,
+        "z": 3.8892907166321447
+       },
+       "z_max": 3.8892907166321447
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~A)",
+        "species_index": 30,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 20,
+        "time": 20.0,
+        "time_index": 2
+       },
+       "max": 15251.11515457259,
+       "median": 62.440266597131455,
+       "min": 0.0,
+       "n_cells": 1848
+      }
+     }
+    },
+    "nc=100": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 90.0,
+        "time_index": 9
+       },
+       "max": 0.5485714285714286,
+       "se": 0.12938253955447174
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "MEK(S~P,T292~U)",
+        "species_index": 15,
+        "time": 220.0,
+        "time_index": 22
+       },
+       "max": 4.531395200559924,
+       "se": 2.0625412459822328
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.7407407407407407,
+       "passed": true,
+       "permutations": 27,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 90.0,
+        "time_index": 9,
+        "z": 3.154998100662565
+       },
+       "z_max": 3.154998100662565
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "MEK(S~U,T292~P)",
+        "species_index": 25,
+        "time": 100.0,
+        "time_index": 10
+       },
+       "max": 1304.984027139198,
+       "median": 5.395624411140744,
+       "min": 0.0,
+       "n_cells": 1846
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 36,
+       "value": 3915.0088640501026
+      },
+      "peak_population": 3000000.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       1,
+       3,
+       4,
+       5,
+       7,
+       8,
+       10,
+       11,
+       13,
+       14,
+       15,
+       21,
+       24,
+       26,
+       27,
+       34,
+       35,
+       36,
+       37,
+       38,
+       41,
+       42,
+       43,
+       44,
+       51,
+       52,
+       53,
+       58,
+       59,
+       60,
+       61,
+       62,
+       63,
+       64,
+       65
+      ],
+      "speedup": {
+       "max": 35.15928930859202,
+       "mean": 32.841219429512705,
+       "median": 32.93860153914035,
+       "min": 30.062879154759475
+      },
+      "trajectories": 200
+     },
+     "poplevel": 100,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 80.0,
+        "time_index": 8
+       },
+       "max": 0.4108108108108107,
+       "se": 0.12890701212174147
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERK(S~P)",
+        "species_index": 22,
+        "time": 310.0,
+        "time_index": 31
+       },
+       "max": 7.742242371956914,
+       "se": 2.0165771654179556
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8695652173913043,
+       "passed": true,
+       "permutations": 23,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 220.0,
+        "time_index": 22,
+        "z": 3.150329549616428
+       },
+       "z_max": 3.150329549616428
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~A)",
+        "species_index": 30,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "MEK(S~U,T292~P)",
+        "species_index": 25,
+        "time": 100.0,
+        "time_index": 10
+       },
+       "max": 1482.0755679711478,
+       "median": 6.01359859466141,
+       "min": 0.0,
+       "n_cells": 1848
+      }
+     }
+    },
+    "nc=1000": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 90.0,
+        "time_index": 9
+       },
+       "max": 0.48571428571428565,
+       "se": 0.1270476001162252
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "max": 2.3058717526344497,
+       "se": 0.8713730112947046
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.6896551724137931,
+       "passed": true,
+       "permutations": 29,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~A,sos)",
+        "species_index": 10,
+        "statistic": "mean",
+        "time": 70.0,
+        "time_index": 7,
+        "z": 3.2800156427307536
+       },
+       "z_max": 3.2800156427307536
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "MEK(S~U,T292~P)",
+        "species_index": 25,
+        "time": 100.0,
+        "time_index": 10
+       },
+       "max": 146.85818496256024,
+       "median": 1.3418464913734436,
+       "min": 0.0,
+       "n_cells": 1846
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 36,
+       "value": 359.89502010165285
+      },
+      "peak_population": 3000000.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       1,
+       3,
+       4,
+       5,
+       7,
+       8,
+       10,
+       13,
+       14,
+       15,
+       26,
+       27,
+       34,
+       35,
+       36,
+       37,
+       38,
+       41,
+       42,
+       43,
+       44,
+       51,
+       52,
+       53,
+       58,
+       59,
+       60,
+       61,
+       62,
+       63,
+       64,
+       65
+      ],
+      "speedup": {
+       "max": 13.475879042524333,
+       "mean": 13.274023763365507,
+       "median": 13.276800551085017,
+       "min": 13.10363690266014
+      },
+      "trajectories": 200
+     },
+     "poplevel": 1000,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 80.0,
+        "time_index": 8
+       },
+       "max": 0.5459459459459458,
+       "se": 0.1291772433687457
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "MEK(S~U,T292~U)",
+        "species_index": 6,
+        "time": 400.0,
+        "time_index": 40
+       },
+       "max": 1.337458870983121,
+       "se": 0.48587082787032637
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5714285714285714,
+       "passed": true,
+       "permutations": 35,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 80.0,
+        "time_index": 8,
+        "z": 3.296201376552139
+       },
+       "z_max": 3.296201376552139
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~A)",
+        "species_index": 30,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "MEK(S~U,T292~P)",
+        "species_index": 25,
+        "time": 100.0,
+        "time_index": 10
+       },
+       "max": 179.24196022491788,
+       "median": 1.4781520764299954,
+       "min": 0.0,
+       "n_cells": 1848
+      }
+     }
+    },
+    "nc=30": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 90.0,
+        "time_index": 9
+       },
+       "max": 0.48571428571428565,
+       "se": 0.1275631658557023
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERK(S~U)",
+        "species_index": 7,
+        "time": 370.0,
+        "time_index": 37
+       },
+       "max": 11.587520309874835,
+       "se": 2.490296497762779
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8,
+       "passed": true,
+       "permutations": 25,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 410.0,
+        "time_index": 41,
+        "z": 3.1689141368491995
+       },
+       "z_max": 3.1689141368491995
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 410.0,
+        "time_index": 41
+       },
+       "max": 4483.913885955196,
+       "median": 18.013615945002787,
+       "min": 0.0,
+       "n_cells": 1846
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 36,
+       "value": 13680.954752354835
+      },
+      "peak_population": 3000000.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       1,
+       3,
+       4,
+       5,
+       7,
+       8,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       21,
+       23,
+       24,
+       25,
+       26,
+       27,
+       34,
+       35,
+       36,
+       37,
+       38,
+       41,
+       42,
+       43,
+       44,
+       51,
+       52,
+       53,
+       58,
+       59,
+       60,
+       61,
+       62,
+       63,
+       64,
+       65
+      ],
+      "speedup": {
+       "max": 45.71905548067796,
+       "mean": 39.69526040501465,
+       "median": 39.49268714110277,
+       "min": 34.41946813062225
+      },
+      "trajectories": 200
+     },
+     "poplevel": 30,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "MEK(S~PP,T292~P)",
+        "species_index": 27,
+        "time": 360.0,
+        "time_index": 36
+       },
+       "max": 0.36999999999999994,
+       "se": 0.21370963421599035
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERK(S~U)",
+        "species_index": 7,
+        "time": 470.0,
+        "time_index": 47
+       },
+       "max": 8.70900741469016,
+       "se": 2.7759334408937772
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.6666666666666666,
+       "passed": true,
+       "permutations": 30,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "RAS(g~GTP!1,sos).RasGAP(ras!1)",
+        "species_index": 11,
+        "statistic": "mean",
+        "time": 330.0,
+        "time_index": 33,
+        "z": 3.3168823550610136
+       },
+       "z_max": 3.3168823550610136
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 20,
+        "time": 20.0,
+        "time_index": 2
+       },
+       "max": 4320.224083802872,
+       "median": 20.198127934825663,
+       "min": 0.0,
+       "n_cells": 1848
+      }
+     }
+    },
+    "nc=300": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 90.0,
+        "time_index": 9
+       },
+       "max": 0.39999999999999997,
+       "se": 0.1289226259024064
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "max": 2.1067885270315236,
+       "se": 1.4264408205219659
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8,
+       "passed": true,
+       "permutations": 25,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 410.0,
+        "time_index": 41,
+        "z": 3.1689141368491995
+       },
+       "z_max": 3.1689141368491995
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "MEK(S~U,T292~P)",
+        "species_index": 25,
+        "time": 100.0,
+        "time_index": 10
+       },
+       "max": 401.9466828902758,
+       "median": 1.9759065053586424,
+       "min": 0.0,
+       "n_cells": 1846
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 36,
+       "value": 1227.8193503818275
+      },
+      "peak_population": 3000000.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       1,
+       3,
+       4,
+       5,
+       7,
+       8,
+       10,
+       11,
+       13,
+       14,
+       15,
+       21,
+       24,
+       26,
+       27,
+       34,
+       35,
+       36,
+       37,
+       38,
+       41,
+       42,
+       43,
+       44,
+       51,
+       52,
+       53,
+       58,
+       59,
+       60,
+       61,
+       62,
+       63,
+       64,
+       65
+      ],
+      "speedup": {
+       "max": 22.73648814925201,
+       "mean": 22.17805158966587,
+       "median": 22.188802973664977,
+       "min": 21.59729561567082
+      },
+      "trajectories": 200
+     },
+     "poplevel": 300,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "EGFR(egf~I,sos!1).RAS(g~GDP,sos!2).SOS(S~U,egfr!1,rem!2)",
+        "species_index": 21,
+        "time": 80.0,
+        "time_index": 8
+       },
+       "max": 0.47027027027027024,
+       "se": 0.130507070128142
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "MEK(S~U,T292~U)",
+        "species_index": 6,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "max": 3.0569516913194343,
+       "se": 0.9665296615276112
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.24691358024691357,
+       "passed": true,
+       "permutations": 81,
+       "replicates": [
+        200,
+        40
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "RAS(g~GTP!1,sos).RasGAP(ras!1)",
+        "species_index": 11,
+        "statistic": "mean",
+        "time": 330.0,
+        "time_index": 33,
+        "z": 3.8301491189466472
+       },
+       "z_max": 3.8301491189466472
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERKTR(act~I)",
+        "species_index": 9,
+        "time": 600.0,
+        "time_index": 60
+       },
+       "at_min": {
+        "species": "MEK(S~U,T292~P)",
+        "species_index": 25,
+        "time": 100.0,
+        "time_index": 10
+       },
+       "max": 510.67045848580767,
+       "median": 2.1622572805344786,
+       "min": 0.0,
+       "n_cells": 1848
+      }
+     }
+    }
+   },
+   "flag_from_poplevel": 100,
+   "flags": [],
+   "poplevels": [
+    10,
+    30,
+    100,
+    300,
+    1000
+   ]
+  },
+  "trajectory_timeout_seconds": 456.99999999999994,
+  "zeroth_order_reactions": 0
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 2,
+ "problem": "mapk_relaxation_oscillations_kochanczyk2017",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:46:01.677209+00:00",
+ "verdicts": {
+  "run_network": {
+   "alpha": 0.001,
+   "n_cells": 2074,
+   "n_tested": {
+    "mean": 1863,
+    "variance": 1808
+   },
+   "p_value": 0.8,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 6.0,
+    "max_z": 3.1276994488060557,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 25,
+   "replicates": [
+    40,
+    40
+   ],
+   "seed": 1835504127,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "MEK(S~P,T292~P)",
+    "species_index": 26,
+    "statistic": "variance",
+    "time": 230.0,
+    "time_index": 23,
+    "z": 3.1420841240021993
+   },
+   "z_max": 3.1420841240021993,
+   "z_max_mean": 2.9671163528693696,
+   "z_max_variance": 3.1420841240021993
+  },
+  "run_network@nc=10": {
+   "alpha": 0.001,
+   "n_cells": 2074,
+   "n_tested": {
+    "mean": 1906,
+    "variance": 1835
+   },
+   "p_value": 0.9090909090909091,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.3516957529009983,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 22,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 1596810411,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "MEK(S~PP,T292~U)",
+    "species_index": 19,
+    "statistic": "mean",
+    "time": 170.0,
+    "time_index": 17,
+    "z": 3.309521863914994
+   },
+   "z_max": 3.309521863914994,
+   "z_max_mean": 3.309521863914994,
+   "z_max_variance": 3.2552066395033354
+  },
+  "run_network@nc=100": {
+   "alpha": 0.001,
+   "n_cells": 2074,
+   "n_tested": {
+    "mean": 1895,
+    "variance": 1826
+   },
+   "p_value": 0.03802281368821293,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.4847113153648963,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 526,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 1563021450,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "SOS(S~U,egfr,rem)",
+    "species_index": 3,
+    "statistic": "variance",
+    "time": 110.0,
+    "time_index": 11,
+    "z": 4.162434218691794
+   },
+   "z_max": 4.162434218691794,
+   "z_max_mean": 3.4370471412768664,
+   "z_max_variance": 4.162434218691794
+  },
+  "run_network@nc=1000": {
+   "alpha": 0.001,
+   "n_cells": 2074,
+   "n_tested": {
+    "mean": 1890,
+    "variance": 1820
+   },
+   "p_value": 0.47619047619047616,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.598412302070323,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 42,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 3151767335,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "EGFR(egf~A,sos)",
+    "species_index": 10,
+    "statistic": "mean",
+    "time": 250.0,
+    "time_index": 25,
+    "z": 3.545713438096266
+   },
+   "z_max": 3.545713438096266,
+   "z_max_mean": 3.545713438096266,
+   "z_max_variance": 3.3444180534406422
+  },
+  "run_network@nc=30": {
+   "alpha": 0.001,
+   "n_cells": 2074,
+   "n_tested": {
+    "mean": 1895,
+    "variance": 1820
+   },
+   "p_value": 0.7407407407407407,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.428487366783076,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 27,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 3549136632,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "RAS(g~GTP,sos)",
+    "species_index": 2,
+    "statistic": "mean",
+    "time": 180.0,
+    "time_index": 18,
+    "z": 3.3831957136117836
+   },
+   "z_max": 3.3831957136117836,
+   "z_max_mean": 3.3831957136117836,
+   "z_max_variance": 3.0664112566985406
+  },
+  "run_network@nc=300": {
+   "alpha": 0.001,
+   "n_cells": 2074,
+   "n_tested": {
+    "mean": 1891,
+    "variance": 1821
+   },
+   "p_value": 0.3225806451612903,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.7126610680822116,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 62,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 2579376181,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "EGFR(egf~A,sos!1).RAS(g~GTP,sos!2).SOS(S~U,egfr!1,rem!2)",
+    "species_index": 17,
+    "statistic": "mean",
+    "time": 210.0,
+    "time_index": 21,
+    "z": 3.654576823800257
+   },
+   "z_max": 3.654576823800257,
+   "z_max_mean": 3.654576823800257,
+   "z_max_variance": 3.3992092321070992
+  }
+ },
+ "wall_seconds": 7849.931336118956
+}

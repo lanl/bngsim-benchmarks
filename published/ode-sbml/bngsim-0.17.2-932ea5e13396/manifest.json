@@ -1,0 +1,538 @@
+{
+ "schema": 1,
+ "suite": "ode-sbml",
+ "capabilities": [
+  "ode"
+ ],
+ "published": "2026-11-25T17:13:42Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "188aefaba9919447d32a7cdda952be101c247cbc"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "brain_energy_metabolism_winter2017",
+   "title": "Brain energy metabolism with the pentose phosphate pathway",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000627/BIOMD0000000627_url.xml",
+    "sha256": "ba4c9be0f03ae1d6939ad3d5090922775c88e0028c9f12e281dd25813ca05ac5",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Winter F, Bludszuweit-Philipp C, Wolkenhauer O (2018). Mathematical analysis of the influence of brain metabolism on the BOLD signal in Alzheimer's disease. J Cereb Blood Flow Metab 38:304-316.",
+     "doi": "10.1177/0271678X17693024"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000627: its curation figure and curation notes, and final/BIOMD0000000627/BIOMD0000000627.sedml at the pinned commit",
+    "check": "BioModels curation: the curators simulated this file in COPASI and reproduced Fig. 3 of the paper; the SED-ML beside it at the pinned commit names Fig. 3a-c and runs exactly this file",
+    "result": "curated; the curation figure reproduces Fig. 3"
+   },
+   "size": {
+    "species": 66,
+    "reactions": 64
+   }
+  },
+  {
+   "position": 2,
+   "problem": "map3k8_vemurafenib_resistance_giani2019",
+   "title": "MAP3K8 as mediator of vemurafenib resistance in thyroid cancer stem cells",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000883/Giani2019.xml",
+    "sha256": "8e4ece4a7396d0ca55804c958fb16fae7edaf66198e12ed63449c984fc7ee4b3",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Gian\u00ec F, Russo G, Pennisi M, Sciacca L, Frasca F, Pappalardo F (2019). Computational modeling reveals MAP3K8 as mediator of resistance to vemurafenib in thyroid cancer stem cells. Bioinformatics 35:2267-2275.",
+     "doi": "10.1093/bioinformatics/bty969"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000883: its curation figure and curation notes, and final/BIOMD0000000883/Giani2019.sedml at the pinned commit",
+    "check": "BioModels curation: the curators reproduced Fig. 2C of the paper in COPASI, with the MAP3K8 inhibitor absent and present; the SED-ML beside it at the pinned commit names Fig. 2c and repeats this file's time course with MAP3K8_inhibitor at 0 and 10. The file sets it to 10, so the protocol here is the with-inhibitor curve",
+    "result": "curated; the curation figure reproduces Fig. 2C"
+   },
+   "size": {
+    "species": 75,
+    "reactions": 85
+   }
+  },
+  {
+   "position": 3,
+   "problem": "alpha_synuclein_parkinsons_bst_sass2009",
+   "title": "Alpha-synuclein-based biochemical systems model of Parkinson's disease",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000575/BIOMD0000000575_url.xml",
+    "sha256": "97597fe0d586e237947843c08622e4cfc2382fa39c5952946f62380c87e2eac1",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Sass MB, Lorenz AN, Green RL, Coleman RA (2009). A pragmatic approach to biochemical systems theory applied to an alpha-synuclein-based model of Parkinson's disease. J Neurosci Methods 178:366-377.",
+     "doi": "10.1016/j.jneumeth.2008.12.014"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000575: its curation figure and curation notes, and final/BIOMD0000000575/Sass2009.sedml at the pinned commit",
+    "check": "BioModels curation: the curators reproduced Fig. 15 of the paper in COPASI, the disease model (alpha-synuclein raised 10%, to 0.22) against this baseline (0.2); the SED-ML beside it at the pinned commit names Fig. 15 and runs exactly this file",
+    "result": "curated; the curation figure reproduces Fig. 15"
+   },
+   "size": {
+    "species": 76,
+    "reactions": 58
+   }
+  },
+  {
+   "position": 4,
+   "problem": "glucose_phosphotransferase_system_nishio2008",
+   "title": "Phosphotransferase system for glucose uptake in E. coli",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000571/BIOMD0000000571_url.xml",
+    "sha256": "9410de3b8aff1ec7826b0fd9ff5cbc16647d9709aa5097ddc3a5b14ebeaf5cf5",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Nishio Y, Usuda Y, Matsui K, Kurata H (2008). Computer-aided rational design of the phosphotransferase system for enhanced glucose uptake in Escherichia coli. Mol Syst Biol 4:160.",
+     "doi": "10.1038/msb4100201"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000571: its curation figure and curation notes, and final/BIOMD0000000571/Nishio2008.sedml at the pinned commit",
+    "check": "BioModels curation: the curators reproduced Fig. 3A of the paper in COPASI, the IIAGlc time course in response to glucose depletion over 1000 min; the SED-ML beside it at the pinned commit names Fig. 3a-d and runs exactly this file",
+    "result": "curated; the curation figure reproduces Fig. 3A"
+   },
+   "size": {
+    "species": 76,
+    "reactions": 92
+   }
+  },
+  {
+   "position": 5,
+   "problem": "hepatocyte_calcium_propagation_verma2016",
+   "title": "Ca2+ signal propagation along hepatocyte cords",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000834/Verma2016.xml",
+    "sha256": "3017cdddfddf0594cd8cc3d1f2ee00a64e95327f7c65d7d9258196987d90ef2d",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Verma A, Makadia H, Hoek JB, Ogunnaike BA, Vadigepalli R (2016). Computational Modeling of Spatiotemporal Ca2+ Signal Propagation Along Hepatocyte Cords. IEEE Trans Biomed Eng 63:2047-2055.",
+     "doi": "10.1109/TBME.2016.2550045"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000834: its curation figure and curation notes, and final/BIOMD0000000834/Verma2016.sedml at the pinned commit",
+    "check": "BioModels curation: the curators reproduced Fig. 2 of the paper in COPASI over 700 s, similar in pattern though not exact by their note, with the parameters H and KH as this file gives them; the SED-ML beside it at the pinned commit names Fig. 2 and runs exactly this file",
+    "result": "curated; the curation figure reproduces the pattern of Fig. 2"
+   },
+   "size": {
+    "species": 76,
+    "reactions": 134
+   }
+  },
+  {
+   "position": 6,
+   "problem": "shear_stress_nitric_oxide_koo2013",
+   "title": "Shear-stress-induced nitric oxide production in endothelial cells",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000468/BIOMD0000000468_url.xml",
+    "sha256": "e1d8e43b2cd8f373ff3646acf852c0cb59adbdf75c6bbe705ff3eac4734d0028",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Koo A, Nordsletten D, Umeton R, Yankama B, Ayyadurai S, Garc\u00eda-Carde\u00f1a G, Dewey CF Jr (2013). In silico modeling of shear-stress-induced nitric oxide production in endothelial cells through systems biology. Biophys J 104:2295-2306.",
+     "doi": "10.1016/j.bpj.2013.03.052"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000468: its curation figure and curation notes, and final/BIOMD0000000468/Integratedmodel_noshearstress.sedml at the pinned commit",
+    "check": "BioModels curation: the curators reproduced Fig. 6 of the paper; by their note this file as it is gives the shear-stress curve (the no-shear curve needs four reactions removed). The SED-ML beside it at the pinned commit names Fig. 6 and, despite its file name, runs exactly this file, unchanged",
+    "result": "curated; the curation figure reproduces the shear-stress curve of Fig. 6"
+   },
+   "size": {
+    "species": 79,
+    "reactions": 74
+   }
+  },
+  {
+   "position": 7,
+   "problem": "alpha_synuclein_neuronal_homeostasis_ouzounoglou2014",
+   "title": "Alpha-synuclein oligomerization and dopaminergic neuronal homeostasis",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000559/BIOMD0000000559_url.xml",
+    "sha256": "883e3d8bf03ceeba5c0eb052aedef52318e025e035fb2e8a3c5bc7015ef94c97",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Ouzounoglou E, Kalamatianos D, Emmanouilidou E, Xilouri M, Stefanis L, Vekrellis K, Manolakos ES (2014). In silico modeling of the effects of alpha-synuclein oligomerization on dopaminergic neuronal homeostasis. BMC Syst Biol 8:54.",
+     "doi": "10.1186/1752-0509-8-54"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000559: its curation figure and curation notes, and final/BIOMD0000000559/Ouzounoglou2014.sedml at the pinned commit",
+    "check": "BioModels curation: the curators reproduced Fig. 7 of the paper's Supplementary material 5 (derived from its Fig. 5), seven days (600000 s) of alpha-synuclein conformations; the SED-ML beside it at the pinned commit names Fig. 7 and runs exactly this file",
+    "result": "curated; the curation figure reproduces Fig. 7 of Supplementary material 5"
+   },
+   "size": {
+    "species": 90,
+    "reactions": 136
+   }
+  },
+  {
+   "position": 8,
+   "problem": "mapk_signalling_control_hornberg2005",
+   "title": "Control of MAPK signalling",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000667/BIOMD0000000667_url.xml",
+    "sha256": "28ec3a680a51e96bbe943e33271530b031b17bf372f7914c4003c87f0994d4db",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Hornberg JJ, Binder B, Bruggeman FJ, Schoeberl B, Heinrich R, Westerhoff HV (2005). Control of MAPK signalling: from complexity to what really matters. Oncogene 24:5533-5542.",
+     "doi": "10.1038/sj.onc.1208817"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000667: its curation figure and curation notes, and final/BIOMD0000000667/MODEL0848279215.sedml at the pinned commit",
+    "check": "BioModels curation: the curators reproduced Fig. 2 of the paper in COPASI; the SED-ML beside it at the pinned commit names Fig. 2 and runs exactly this file",
+    "result": "curated; the curation figure reproduces Fig. 2"
+   },
+   "size": {
+    "species": 103,
+    "reactions": 148
+   }
+  },
+  {
+   "position": 9,
+   "problem": "insulin_signalling_oxidative_stress_smith2013",
+   "title": "Regulation of insulin signalling by oxidative stress (with the Fig. 3A events)",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000474/MODEL1212210000_eventsForFigure3A.xml",
+    "sha256": "b9cb35d09bf07515e7e6bf453346f1eaeba53ccc2b5d08f7b8570d761a3a3a51",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Smith GR, Shanley DP (2013). Computational modelling of the regulation of Insulin signalling by oxidative stress. BMC Syst Biol 7:41.",
+     "doi": "10.1186/1752-0509-7-41"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000474: its curation figure and curation notes, and final/BIOMD0000000474/MODEL1212210000_eventsForFigure3A.sedml at the pinned commit",
+    "check": "BioModels curation: to reproduce Fig. 3A of the paper the curators added two insulin administrations (0-15 min and 2785-2800 min) to the main model, and simulated the result, this file, in COPASI; the SED-ML beside it at the pinned commit names Fig. 3a and runs exactly this file",
+    "result": "curated; the curation figure reproduces Fig. 3A from this file"
+   },
+   "size": {
+    "species": 133,
+    "reactions": 367
+   }
+  },
+  {
+   "position": 10,
+   "problem": "segment_polarity_network_vondassow2000",
+   "title": "Segment polarity network on a 1x4 grid of cells",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000001065/vonDassow2000_1x4.timecourse1.xml",
+    "sha256": "2b0a292e348f5ce6af21e812e0228b97e447fc29161b0441af78715b7d430023",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "von Dassow G, Meir E, Munro EM, Odell GM (2000). The segment polarity network is a robust developmental module. Nature 406:188-192.",
+     "doi": "10.1038/35018085"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000001065: its curation figure, and final/BIOMD0000001065/vonDassow2000_1x4.timecourse1.sedml at the pinned commit",
+    "check": "BioModels curation (curated): the curators reproduced the paper's Fig. 2, a radial plot over the model's parameters (Fig2.png and param_radial.plt beside this file at the pinned commit). The SED-ML beside it, which runs exactly this file, is the curators' time course; it names no figure, so the horizon here is theirs, not the paper's",
+    "result": "curated; the curation figure reproduces Fig. 2 (a parameter plot, not this time course)",
+    "supporting": "the same folder holds this SED-ML's time course from four other engines (timecourse1.{amici,copasi,tellurium,vcell}.tsv)"
+   },
+   "size": {
+    "species": 148,
+    "reactions": 480
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "ode/brain_energy_metabolism_winter2017/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "brain_energy_metabolism_winter2017",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/ode/brain_energy_metabolism_winter2017/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/brain_energy_metabolism_winter2017/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 537136,
+    "sha256": "a6b2cbe0f812e42ee3e830290ce26b171eaf2977b702bda5a30ee1a9f351132b"
+   }
+  },
+  {
+   "job_id": "ode/brain_energy_metabolism_winter2017/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "brain_energy_metabolism_winter2017",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "ode/map3k8_vemurafenib_resistance_giani2019/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "map3k8_vemurafenib_resistance_giani2019",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/map3k8_vemurafenib_resistance_giani2019/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/map3k8_vemurafenib_resistance_giani2019/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1102139,
+    "sha256": "8925d577aa8f51fe1209d5080510df94f9fbeb4953bc40e5ef102633d1638e26"
+   }
+  },
+  {
+   "job_id": "ode/map3k8_vemurafenib_resistance_giani2019/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "map3k8_vemurafenib_resistance_giani2019",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/map3k8_vemurafenib_resistance_giani2019/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/alpha_synuclein_parkinsons_bst_sass2009/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "alpha_synuclein_parkinsons_bst_sass2009",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/alpha_synuclein_parkinsons_bst_sass2009/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/alpha_synuclein_parkinsons_bst_sass2009/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1775586,
+    "sha256": "1071ffcfe2ad050dd54a2c09ab3d6f80c2c757e40320e632e2878aad863d46de"
+   }
+  },
+  {
+   "job_id": "ode/alpha_synuclein_parkinsons_bst_sass2009/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "alpha_synuclein_parkinsons_bst_sass2009",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/alpha_synuclein_parkinsons_bst_sass2009/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/glucose_phosphotransferase_system_nishio2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "glucose_phosphotransferase_system_nishio2008",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/glucose_phosphotransferase_system_nishio2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/glucose_phosphotransferase_system_nishio2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1297749,
+    "sha256": "12908c5f51102ff3d5fbdadc039a75746f2d192a8c5bd1162cf2ccf8917352e9"
+   }
+  },
+  {
+   "job_id": "ode/glucose_phosphotransferase_system_nishio2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "glucose_phosphotransferase_system_nishio2008",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/glucose_phosphotransferase_system_nishio2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/hepatocyte_calcium_propagation_verma2016/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "hepatocyte_calcium_propagation_verma2016",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/hepatocyte_calcium_propagation_verma2016/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/hepatocyte_calcium_propagation_verma2016/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 102956,
+    "sha256": "c7d7f843b9129c1749bf77292a1d07914009740ee73b6ef3460dd3964306ffbf"
+   }
+  },
+  {
+   "job_id": "ode/hepatocyte_calcium_propagation_verma2016/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "hepatocyte_calcium_propagation_verma2016",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/hepatocyte_calcium_propagation_verma2016/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/shear_stress_nitric_oxide_koo2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "shear_stress_nitric_oxide_koo2013",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/shear_stress_nitric_oxide_koo2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/shear_stress_nitric_oxide_koo2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1849671,
+    "sha256": "f2b5b406fef65f9025b6bdb3bc51467f305a10667cc287018fdeac57e6a75479"
+   }
+  },
+  {
+   "job_id": "ode/shear_stress_nitric_oxide_koo2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "shear_stress_nitric_oxide_koo2013",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/shear_stress_nitric_oxide_koo2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/alpha_synuclein_neuronal_homeostasis_ouzounoglou2014/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "alpha_synuclein_neuronal_homeostasis_ouzounoglou2014",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/alpha_synuclein_neuronal_homeostasis_ouzounoglou2014/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/alpha_synuclein_neuronal_homeostasis_ouzounoglou2014/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 3359374,
+    "sha256": "1b96b2f66c6def9645bf25b09d8211d9d21e8fe9677e4ec7e10312853005797d"
+   }
+  },
+  {
+   "job_id": "ode/alpha_synuclein_neuronal_homeostasis_ouzounoglou2014/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "alpha_synuclein_neuronal_homeostasis_ouzounoglou2014",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/alpha_synuclein_neuronal_homeostasis_ouzounoglou2014/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/mapk_signalling_control_hornberg2005/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "mapk_signalling_control_hornberg2005",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/mapk_signalling_control_hornberg2005/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/mapk_signalling_control_hornberg2005/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 316166,
+    "sha256": "ecf23110cdccd15ac1a935540fd0ebc6e33783987a4742fe51906f3c9416669b"
+   }
+  },
+  {
+   "job_id": "ode/mapk_signalling_control_hornberg2005/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "mapk_signalling_control_hornberg2005",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/mapk_signalling_control_hornberg2005/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/insulin_signalling_oxidative_stress_smith2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "insulin_signalling_oxidative_stress_smith2013",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/ode/insulin_signalling_oxidative_stress_smith2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/insulin_signalling_oxidative_stress_smith2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 2466932,
+    "sha256": "0fbe1db4324c7b97d4e7394c12f37e673074087edad343a153cbd7ef5479238a"
+   }
+  },
+  {
+   "job_id": "ode/insulin_signalling_oxidative_stress_smith2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "insulin_signalling_oxidative_stress_smith2013",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "ode/segment_polarity_network_vondassow2000/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "segment_polarity_network_vondassow2000",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/segment_polarity_network_vondassow2000/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/segment_polarity_network_vondassow2000/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 458274,
+    "sha256": "d6e554fb6d04dca700199138827821c4aa7504470c3dc5036a148fe28e9520d3"
+   }
+  },
+  {
+   "job_id": "ode/segment_polarity_network_vondassow2000/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "segment_polarity_network_vondassow2000",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/segment_polarity_network_vondassow2000/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 10,
+  "total_bytes": 13265983,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

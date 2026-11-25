@@ -1,0 +1,376 @@
+{
+ "amici_error": "RuntimeError: AMICI simulation failed with status -1",
+ "capability": "ode",
+ "copasi_error": "KeyError: \"['cell__CCND'] not in index\"",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/cell_cycle_oscillator_lang2024/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+ "key": "49932dceff00c575227a076fe09a3673da8048ad39379a46ed530eb9718153c0",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "protocol": {
+     "atol": 1e-12,
+     "n_steps": 1200,
+     "netgen": "generate_network({overwrite=>1})",
+     "rtol": 1e-10,
+     "sparse": false,
+     "t_end": 136471.6126,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "64020c9b7f7cc6c0ff584b45fedaf34777fe2ff4062ed12545d381264afa6072",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "ode/cell_cycle_oscillator_lang2024/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "codegen_backend": "exprtk",
+   "codegen_cache_hit": null,
+   "codegen_seconds": 0.0,
+   "jacobian": "analytical",
+   "jacobian_seconds": 4.7150999307632446e-05,
+   "linear_solver": "dense",
+   "load_seconds": 0.0034029649978037924
+  },
+  "bngsim_cold_seconds": 0.13446280302014202,
+  "engine_roles": {
+   "bngsim": "warm, in-process (system under test)",
+   "roadrunner": "warm, in-process",
+   "run_network": "fresh subprocess"
+  },
+  "netgen_seconds": 0.690108529990539,
+  "network": {
+   "reactions": 332,
+   "species": 73
+  },
+  "references": {
+   "roadrunner": {
+    "integrator": "cvode",
+    "load_seconds": 0.9266632920189295,
+    "output": "amount",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "command": [
+     "-o",
+     "$TMPDIR/bench-job-sj5yflfo/rn",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-10",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "$TMPDIR/bench-job-sj5yflfo/netgen/model.net",
+     "$TMPDIR/bench-job-sj5yflfo/netgen/model.net",
+     "113.72634383333333",
+     "1200"
+    ],
+    "solver": "dense"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "bngsim": {
+     "seconds": [
+      0.12059496701112948,
+      0.12001158500788733,
+      0.12028181299683638,
+      0.11985302998800762,
+      0.120053591002943,
+      0.12367627999628894,
+      0.12055223100469448,
+      0.12011391299893148,
+      0.12000557201099582,
+      0.119944331003353,
+      0.1198853709793184,
+      0.11999827600084245,
+      0.12021458498202264,
+      0.12004608099232428,
+      0.12006069300696254,
+      0.12020529800793156,
+      0.1232565620157402,
+      0.12013240400119685,
+      0.12072265800088644,
+      0.1201043640030548
+     ]
+    },
+    "roadrunner": {
+     "seconds": [
+      0.10713213399867527,
+      0.10691231201053597,
+      0.10686806999729015,
+      0.1067681580025237,
+      0.10685934199136682,
+      0.1067639329994563,
+      0.10836362498230301,
+      0.10723037802381441,
+      0.10713286401005462,
+      0.10700892700697295,
+      0.10693941099452786,
+      0.10691620700526983,
+      0.10671612599981017,
+      0.10672993600019254,
+      0.10776214199722745,
+      0.10673891799524426,
+      0.10686811900814064,
+      0.10747030700440519,
+      0.10678886002278887,
+      0.10747585300123319
+     ]
+    },
+    "run_network": {
+     "seconds": [
+      0.34677171701332554,
+      0.345768332015723,
+      0.34719695401145145,
+      0.34690486401086673,
+      0.3455541680159513,
+      0.3473509169998579,
+      0.3449909810151439,
+      0.34638872198411264,
+      0.3461296589812264,
+      0.34627000699401833,
+      0.3445590990013443,
+      0.3449460749980062,
+      0.3464468680031132,
+      0.3485948689922225,
+      0.34599844401236624,
+      0.3450483299966436,
+      0.3455535870161839,
+      0.3635678340215236,
+      0.3488818190235179,
+      0.3505853819951881
+     ]
+    }
+   },
+   "order": "bngsim run_network roadrunner",
+   "rounds": 20,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 20,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "roadrunner": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "run_network": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "times": {
+   "bngsim": {
+    "ci_high": 0.12028181299683638,
+    "ci_low": 0.1200288330001058,
+    "confidence": 0.95,
+    "median_seconds": 0.12010913850099314,
+    "rounds": 20
+   },
+   "roadrunner": {
+    "ci_high": 0.10713249900436494,
+    "ci_low": 0.10682410100707784,
+    "confidence": 0.95,
+    "median_seconds": 0.1069142595079029,
+    "rounds": 20
+   },
+   "run_network": {
+    "ci_high": 0.3470509090111591,
+    "ci_low": 0.34566125001583714,
+    "confidence": 0.95,
+    "median_seconds": 0.3463293644890655,
+    "rounds": 20
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "cell_cycle_oscillator_lang2024",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-20T07:48:49.571004+00:00",
+ "wall_seconds": 45.357006735983305
+}

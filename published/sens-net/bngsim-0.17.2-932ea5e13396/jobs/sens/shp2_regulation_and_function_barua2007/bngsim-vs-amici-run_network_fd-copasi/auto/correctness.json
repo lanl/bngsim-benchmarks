@@ -1,0 +1,451 @@
+{
+ "capability": "sens",
+ "copasi_error": "TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve)",
+ "engines": "bngsim-vs-amici-run_network_fd-copasi",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "eb7e3708a100cb697904413d463740463356c54d",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/shp2_regulation_and_function_barua2007/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+ "key": "e5bb999724c038bb3198bf83c660d0df6b431872459fde6d4c0675e7c41618b6",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-run_network_fd-copasi/1",
+    "protocol": {
+     "atol": 1e-08,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-10,
+     "fd_step": 0.001,
+     "n_steps": 200,
+     "netgen": "generate_network({overwrite=>1})",
+     "parameters": "independent",
+     "rtol": 1e-08,
+     "t_end": 1000
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "067378ad7b63bcaf6a05e05e2d78d02a20b6f5e2b19b40503dcb2165d21255ba",
+    "verdict": {
+     "fd_resolved": 0.1,
+     "floor_atol": 100.0,
+     "floor_rel": 0.001,
+     "metric": "semi-scaled column error/1",
+     "tol": 0.001
+    }
+   },
+   "id": "sens/shp2_regulation_and_function_barua2007/bngsim-vs-amici-run_network_fd-copasi/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 11.101228975923732,
+   "cold_seconds": 11.353157441015355,
+   "linear_solver": "KLU",
+   "load_seconds": 0.007576187956146896,
+   "observables_check": {
+    "max_error": 0.0,
+    "n_failed": 0,
+    "n_judged": 66,
+    "passed": true
+   },
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null,
+   "solve_seconds": 0.2392916289390996,
+   "solver_stats": {
+    "n_err_test_fails": 1,
+    "n_rhs_evals": 399,
+    "n_sens_err_test_fails": 1,
+    "n_sens_nonlin_conv_fails": 0,
+    "n_steps": 188
+   }
+  },
+  "configurations": {
+   "bngsim_simultaneous": {
+    "max_error": 6.237767143600436e-05,
+    "max_error_observables": 1.6706879613461627e-05,
+    "max_error_species": 6.237767143600436e-05,
+    "n_columns": 3344,
+    "n_failed": 0,
+    "n_floored": 3268,
+    "n_judged": 3344,
+    "params_judged": [
+     "Rtot",
+     "S_tot",
+     "chi_r1",
+     "chi_r10",
+     "chi_r11",
+     "chi_r2",
+     "chi_r3",
+     "chi_r4",
+     "chi_r5",
+     "chi_r6",
+     "chi_r7",
+     "chi_r8",
+     "chi_r9",
+     "kcat_PTP",
+     "kclose",
+     "kkin_Y1",
+     "koff",
+     "koff_PTP",
+     "kon_CSH2",
+     "kon_NSH2",
+     "kon_PTP",
+     "kopen"
+    ],
+    "passed": true,
+    "tol": 0.001,
+    "trajectory_max_err_over_peak": 1.0861821980410095e-05,
+    "worst": {
+     "error": 6.237767143600436e-05,
+     "floored": false,
+     "output": "R(DD!1,Y1~P,Y2~P).R(DD!1,Y1~U,Y2~P)",
+     "parameter": "kkin_Y1",
+     "time": 5.0
+    }
+   }
+  },
+  "coverage": {
+   "n_columns": 3344,
+   "n_judged": 76,
+   "n_significant": 76,
+   "unjudged": []
+  },
+  "engine_budget_seconds": 1800.0,
+  "netgen_seconds": 1.9937488179421052,
+  "network": {
+   "observables": 3,
+   "reactions": 1032,
+   "species": 149
+  },
+  "parameters": {
+   "convention": "independent",
+   "excluded": {},
+   "n": 22,
+   "names": [
+    "kopen",
+    "kclose",
+    "kon_CSH2",
+    "kon_NSH2",
+    "koff",
+    "kon_PTP",
+    "koff_PTP",
+    "kcat_PTP",
+    "kkin_Y1",
+    "chi_r1",
+    "chi_r2",
+    "chi_r3",
+    "chi_r4",
+    "chi_r5",
+    "chi_r6",
+    "chi_r7",
+    "chi_r8",
+    "chi_r9",
+    "chi_r10",
+    "chi_r11",
+    "Rtot",
+    "S_tot"
+   ],
+   "scales": {},
+   "selection": "independent"
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 43.56992730800994,
+    "cold_seconds": 45.52107439597603,
+    "conservation_laws": true,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "integrator": "CVODES BDF, forward sensitivities",
+    "internal_sensitivity_method": "AMICI default (simultaneous)",
+    "load_seconds": 0.0013889929978176951,
+    "not_differentiated": {},
+    "parameter_scale": "linear",
+    "phases": "single",
+    "solve_seconds": 0.21820541890338063,
+    "version": "1.1.0"
+   },
+   "run_network_fd": {
+    "atol": 1e-12,
+    "cold_seconds": 13.128347538993694,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-10",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<perturbed>.net",
+     "<perturbed>.net",
+     "5.0",
+     "200"
+    ],
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "engine": "run_network (fresh process per solve)",
+    "method": "central differences at steps h and h/2 (relative to each parameter's scale)",
+    "rtol": 1e-10,
+    "solve_seconds": 13.124128106981516,
+    "solves": 89,
+    "step": 0.001
+   }
+  }
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 5,
+ "problem": "shp2_regulation_and_function_barua2007",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:27:19.459378+00:00",
+ "verdicts": {
+  "amici": {
+   "max_error": 4.029561813019574e-05,
+   "max_error_observables": 1.7069529089180293e-05,
+   "max_error_species": 4.029561813019574e-05,
+   "n_columns": 3344,
+   "n_failed": 0,
+   "n_floored": 3268,
+   "n_judged": 3344,
+   "params_judged": [
+    "Rtot",
+    "S_tot",
+    "chi_r1",
+    "chi_r10",
+    "chi_r11",
+    "chi_r2",
+    "chi_r3",
+    "chi_r4",
+    "chi_r5",
+    "chi_r6",
+    "chi_r7",
+    "chi_r8",
+    "chi_r9",
+    "kcat_PTP",
+    "kclose",
+    "kkin_Y1",
+    "koff",
+    "koff_PTP",
+    "kon_CSH2",
+    "kon_NSH2",
+    "kon_PTP",
+    "kopen"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 1.0973706605997294e-05,
+   "worst": {
+    "error": 4.029561813019574e-05,
+    "floored": false,
+    "output": "R(DD!1,Y1~P,Y2~P).R(DD!1,Y1~U,Y2~P)",
+    "parameter": "kkin_Y1",
+    "time": 25.0
+   }
+  },
+  "run_network_fd": {
+   "max_error": 4.751675041294564e-05,
+   "max_error_observables": 1.724353648462105e-05,
+   "max_error_species": 4.751675041294564e-05,
+   "n_columns": 3344,
+   "n_failed": 0,
+   "n_floored": 3268,
+   "n_judged": 3344,
+   "params_judged": [
+    "Rtot",
+    "S_tot",
+    "chi_r1",
+    "chi_r10",
+    "chi_r11",
+    "chi_r2",
+    "chi_r3",
+    "chi_r4",
+    "chi_r5",
+    "chi_r6",
+    "chi_r7",
+    "chi_r8",
+    "chi_r9",
+    "kcat_PTP",
+    "kclose",
+    "kkin_Y1",
+    "koff",
+    "koff_PTP",
+    "kon_CSH2",
+    "kon_NSH2",
+    "kon_PTP",
+    "kopen"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 9.399705838502088e-06,
+   "worst": {
+    "error": 4.751675041294564e-05,
+    "floored": false,
+    "output": "R(DD!1,Y1~P,Y2~P).R(DD!1,Y1~U,Y2~P)",
+    "parameter": "kkin_Y1",
+    "time": 10.0
+   }
+  }
+ },
+ "wall_seconds": 1873.9860784489429
+}

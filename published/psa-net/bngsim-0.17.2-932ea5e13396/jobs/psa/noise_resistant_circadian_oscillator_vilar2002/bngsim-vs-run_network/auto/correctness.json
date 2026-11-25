@@ -1,0 +1,1839 @@
+{
+ "capability": "psa",
+ "engines": "bngsim-vs-run_network",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "44f270634d38b7f316b287df0cc8ca4579f351f0",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/correctness",
+ "key": "ec0fd2ae658e54d92dd36a91fb36bc61205a9c68a606b46d419c44a6bff0f69b",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "accuracy": {
+     "flag_from_poplevel": 100,
+     "means": "permutation max-T on means/1"
+    },
+    "harness": "psa/bngsim-vs-run_network/1",
+    "protocol": {
+     "n_steps": 800,
+     "netgen": "generate_network({overwrite=>1})",
+     "poplevels": [
+      10,
+      30,
+      100,
+      300,
+      1000
+     ],
+     "replicates": 500,
+     "seed": 1,
+     "t_end": 400,
+     "timing_replicates": 5
+    },
+    "setting": {
+     "exact": "ssa",
+     "method": "psa",
+     "propensities": "auto"
+    },
+    "source_sha256": "0495750da101490549b9bed83b4d70f2e829d46244466a87e418f7f3882273d9",
+    "verdict": {
+     "alpha": 0.001,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "engine_budget_seconds": 3080.0,
+  "engines": {
+   "bngsim": {
+    "codegen_seconds": 1.1612247589509934,
+    "cold_seconds": 81.19905852107331,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "cc"
+    },
+    "ensemble_seconds": 80.03358435095288,
+    "events_per_trajectory": {
+     "max": 1169351.0,
+     "mean": 1098256.184,
+     "median": 1096071.0
+    },
+    "first_seed": 1,
+    "load_seconds": 0.003525152918882668,
+    "method": "ssa",
+    "propensity_backend": "cc"
+   },
+   "bngsim@nc=10": {
+    "codegen_seconds": 0.0005872660549357533,
+    "cold_seconds": 191.732557773008,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 191.72933916305192,
+    "events_per_trajectory": {
+     "max": 715036.0,
+     "mean": 642018.338,
+     "median": 641765.0
+    },
+    "first_seed": 20000001,
+    "load_seconds": 0.0021339039085432887,
+    "method": "psa",
+    "poplevel": 10.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 62.3084157539404
+     },
+     "peak_population": 3609.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      9,
+      10,
+      11,
+      16
+     ],
+     "speedup": {
+      "max": 1.7774363782709548,
+      "mean": 1.7418882826513262,
+      "median": 1.742196126151275,
+      "min": 1.702353548365438
+     },
+     "trajectories": 500
+    }
+   },
+   "bngsim@nc=100": {
+    "codegen_seconds": 0.0005823039682582021,
+    "cold_seconds": 264.4411112010712,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 264.437931882916,
+    "events_per_trajectory": {
+     "max": 980311.0,
+     "mean": 923619.208,
+     "median": 922644.5
+    },
+    "first_seed": 60000001,
+    "load_seconds": 0.0021479480201378465,
+    "method": "psa",
+    "poplevel": 100.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 5.748452603867215
+     },
+     "peak_population": 2638.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      9,
+      10,
+      16
+     ],
+     "speedup": {
+      "max": 1.1991616957415925,
+      "mean": 1.190201302734219,
+      "median": 1.1903540067765093,
+      "min": 1.179076866687007
+     },
+     "trajectories": 500
+    }
+   },
+   "bngsim@nc=1000": {
+    "codegen_seconds": 0.0005515859229490161,
+    "cold_seconds": 296.562549747061,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 296.5594961179886,
+    "events_per_trajectory": {
+     "max": 1158932.0,
+     "mean": 1097135.784,
+     "median": 1096167.0
+    },
+    "first_seed": 100000001,
+    "load_seconds": 0.002070115995593369,
+    "method": "psa",
+    "poplevel": 1000.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 9,
+      "value": 1.0040836184277486
+     },
+     "peak_population": 2609.0,
+     "regime": "scaled",
+     "scaled_fraction": 0.182,
+     "scaled_reactions": [
+      9,
+      10
+     ],
+     "speedup": {
+      "max": 1.0015366147184561,
+      "mean": 1.000031667767231,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 500
+    }
+   },
+   "bngsim@nc=30": {
+    "codegen_seconds": 0.0009681140072643757,
+    "cold_seconds": 252.32895499607548,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 252.32372661295813,
+    "events_per_trajectory": {
+     "max": 930535.0,
+     "mean": 864951.828,
+     "median": 864037.0
+    },
+    "first_seed": 40000001,
+    "load_seconds": 0.0035253780661150813,
+    "method": "psa",
+    "poplevel": 30.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 19.721008408390777
+     },
+     "peak_population": 2900.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      9,
+      10,
+      16
+     ],
+     "speedup": {
+      "max": 1.2910330578250884,
+      "mean": 1.2748433369465204,
+      "median": 1.274831469399254,
+      "min": 1.2590977829942764
+     },
+     "trajectories": 500
+    }
+   },
+   "bngsim@nc=300": {
+    "codegen_seconds": 0.0005690549733117223,
+    "cold_seconds": 277.63715571991634,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 277.63408999401145,
+    "events_per_trajectory": {
+     "max": 1065260.0,
+     "mean": 1001867.168,
+     "median": 1000670.5
+    },
+    "first_seed": 80000001,
+    "load_seconds": 0.002060887054540217,
+    "method": "psa",
+    "poplevel": 300.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 10,
+      "value": 2.004418025691119
+     },
+     "peak_population": 2621.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      9,
+      10,
+      16
+     ],
+     "speedup": {
+      "max": 1.1027227573118739,
+      "mean": 1.0967415349146352,
+      "median": 1.0967857252276976,
+      "min": 1.091307970146846
+     },
+     "trajectories": 500
+    }
+   },
+   "run_network": {
+    "cold_seconds": 250.99322849104647,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "ensemble_seconds": 250.9921598089859,
+    "first_seed": 10000001,
+    "method": "ssa (direct method)",
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=10": {
+    "cold_seconds": 188.46709486690816,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "10",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "ensemble_seconds": 188.46625607204624,
+    "first_seed": 30000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 10.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=100": {
+    "cold_seconds": 255.63521290104836,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "100",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "ensemble_seconds": 255.6345284479903,
+    "first_seed": 70000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 100.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=1000": {
+    "cold_seconds": 282.74475802399684,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "1000",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "ensemble_seconds": 282.7438943909947,
+    "first_seed": 110000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 1000.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=30": {
+    "cold_seconds": 239.247644632007,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "30",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "ensemble_seconds": 239.24654656008352,
+    "first_seed": 50000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 30.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=300": {
+    "cold_seconds": 267.4347099249717,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "300",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.5",
+     "800"
+    ],
+    "ensemble_seconds": 267.434073235956,
+    "first_seed": 90000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 300.0,
+    "seeds": "first_seed + i for trajectory i"
+   }
+  },
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.246,
+     "A(s!1).Dr(a!1)": 0.22,
+     "A(s!1).R(a!1)": 528.536,
+     "A(s)": 243.13,
+     "Da(a)": 0.754,
+     "Dr(a)": 0.78,
+     "Ma()": 16.072,
+     "Mr()": 20.272,
+     "R(a)": 490.436
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.18585571142284754,
+     "A(s!1).Dr(a!1)": 0.17194388777555214,
+     "A(s!1).R(a!1)": 240590.24519438852,
+     "A(s)": 219059.67645290532,
+     "Da(a)": 0.18585571142284754,
+     "Dr(a)": 0.17194388777555203,
+     "Ma()": 350.46374348697515,
+     "Mr()": 800.9158476953922,
+     "R(a)": 287838.0620280566
+    },
+    "replicates": 500
+   },
+   "bngsim@nc=10": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.23,
+     "A(s!1).Dr(a!1)": 0.216,
+     "A(s!1).R(a!1)": 581.232,
+     "A(s)": 229.046,
+     "Da(a)": 0.77,
+     "Dr(a)": 0.784,
+     "Ma()": 15.82,
+     "Mr()": 22.498,
+     "R(a)": 577.604
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.1774549098196383,
+     "A(s!1).Dr(a!1)": 0.1696833667334657,
+     "A(s!1).R(a!1)": 288237.47713026055,
+     "A(s)": 226759.73535470883,
+     "Da(a)": 0.1774549098196383,
+     "Dr(a)": 0.1696833667334657,
+     "Ma()": 353.9434869739486,
+     "Mr()": 887.1362685370748,
+     "R(a)": 382438.299783567
+    },
+    "replicates": 500
+   },
+   "bngsim@nc=100": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.228,
+     "A(s!1).Dr(a!1)": 0.222,
+     "A(s!1).R(a!1)": 590.284,
+     "A(s)": 209.298,
+     "Da(a)": 0.772,
+     "Dr(a)": 0.778,
+     "Ma()": 15.454,
+     "Mr()": 22.33,
+     "R(a)": 494.608
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.17636873747495038,
+     "A(s!1).Dr(a!1)": 0.17306212424849676,
+     "A(s!1).R(a!1)": 323231.83902204386,
+     "A(s)": 182683.42404408896,
+     "Da(a)": 0.17636873747495038,
+     "Dr(a)": 0.17306212424849676,
+     "Ma()": 312.2924689378759,
+     "Mr()": 903.3157314629265,
+     "R(a)": 309075.34101803607
+    },
+    "replicates": 500
+   },
+   "bngsim@nc=1000": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.194,
+     "A(s!1).Dr(a!1)": 0.184,
+     "A(s!1).R(a!1)": 520.61,
+     "A(s)": 200.602,
+     "Da(a)": 0.806,
+     "Dr(a)": 0.816,
+     "Ma()": 14.15,
+     "Mr()": 19.102,
+     "R(a)": 511.766
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.15667735470941954,
+     "A(s!1).Dr(a!1)": 0.15044488977955928,
+     "A(s!1).R(a!1)": 253048.68727454895,
+     "A(s)": 189264.2921803609,
+     "Da(a)": 0.15667735470941951,
+     "Dr(a)": 0.15044488977955928,
+     "Ma()": 303.09769539078167,
+     "Mr()": 824.2841643286556,
+     "R(a)": 292748.275795591
+    },
+    "replicates": 500
+   },
+   "bngsim@nc=30": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.246,
+     "A(s!1).Dr(a!1)": 0.224,
+     "A(s!1).R(a!1)": 576.39,
+     "A(s)": 238.414,
+     "Da(a)": 0.754,
+     "Dr(a)": 0.776,
+     "Ma()": 16.104,
+     "Mr()": 22.736,
+     "R(a)": 531.296
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.1858557114228476,
+     "A(s!1).Dr(a!1)": 0.17417234468937748,
+     "A(s!1).R(a!1)": 285706.67124248476,
+     "A(s)": 215860.3472985966,
+     "Da(a)": 0.1858557114228476,
+     "Dr(a)": 0.17417234468937745,
+     "Ma()": 356.6023887775552,
+     "Mr()": 902.9842725450868,
+     "R(a)": 330792.493370741
+    },
+    "replicates": 500
+   },
+   "bngsim@nc=300": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.232,
+     "A(s!1).Dr(a!1)": 0.204,
+     "A(s!1).R(a!1)": 528.122,
+     "A(s)": 214.122,
+     "Da(a)": 0.768,
+     "Dr(a)": 0.796,
+     "Ma()": 15.41,
+     "Mr()": 19.796,
+     "R(a)": 500.418
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.17853306613226463,
+     "A(s!1).Dr(a!1)": 0.1627094188376758,
+     "A(s!1).R(a!1)": 240295.06925450894,
+     "A(s)": 191086.75662925863,
+     "Da(a)": 0.17853306613226463,
+     "Dr(a)": 0.1627094188376758,
+     "Ma()": 322.3305611222451,
+     "Mr()": 801.8540921843722,
+     "R(a)": 305800.96119839675
+    },
+    "replicates": 500
+   },
+   "run_network": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.244,
+     "A(s!1).Dr(a!1)": 0.206,
+     "A(s!1).R(a!1)": 585.244,
+     "A(s)": 227.934,
+     "Da(a)": 0.756,
+     "Dr(a)": 0.794,
+     "Ma()": 15.982,
+     "Mr()": 23.256,
+     "R(a)": 544.606
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.1848336673346685,
+     "A(s!1).Dr(a!1)": 0.16389178356713432,
+     "A(s!1).R(a!1)": 306465.91228857695,
+     "A(s)": 192763.97759919864,
+     "Da(a)": 0.1848336673346685,
+     "Dr(a)": 0.16389178356713432,
+     "Ma()": 332.44656913827714,
+     "Mr()": 937.2289218436875,
+     "R(a)": 322561.33343086176
+    },
+    "replicates": 500
+   },
+   "run_network@nc=10": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.24,
+     "A(s!1).Dr(a!1)": 0.222,
+     "A(s!1).R(a!1)": 552.752,
+     "A(s)": 236.732,
+     "Da(a)": 0.76,
+     "Dr(a)": 0.778,
+     "Ma()": 15.41,
+     "Mr()": 21.702,
+     "R(a)": 551.762
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.18276553106212312,
+     "A(s!1).Dr(a!1)": 0.17306212424849676,
+     "A(s!1).R(a!1)": 265390.4273507012,
+     "A(s)": 227925.30678957858,
+     "Da(a)": 0.18276553106212312,
+     "Dr(a)": 0.17306212424849676,
+     "Ma()": 331.26442885771655,
+     "Mr()": 831.5082124248486,
+     "R(a)": 360583.9572705412
+    },
+    "replicates": 500
+   },
+   "run_network@nc=100": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.218,
+     "A(s!1).Dr(a!1)": 0.188,
+     "A(s!1).R(a!1)": 537.274,
+     "A(s)": 201.09,
+     "Da(a)": 0.782,
+     "Dr(a)": 0.812,
+     "Ma()": 14.892,
+     "Mr()": 20.642,
+     "R(a)": 559.55
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.1708176352705413,
+     "A(s!1).Dr(a!1)": 0.15296192384769566,
+     "A(s!1).R(a!1)": 246094.78850100198,
+     "A(s)": 180900.49488977957,
+     "Da(a)": 0.1708176352705413,
+     "Dr(a)": 0.15296192384769566,
+     "Ma()": 320.7338036072151,
+     "Mr()": 822.1180721442854,
+     "R(a)": 331970.80911823624
+    },
+    "replicates": 500
+   },
+   "run_network@nc=1000": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.258,
+     "A(s!1).Dr(a!1)": 0.24,
+     "A(s!1).R(a!1)": 591.574,
+     "A(s)": 245.112,
+     "Da(a)": 0.742,
+     "Dr(a)": 0.76,
+     "Ma()": 16.642,
+     "Mr()": 23.882,
+     "R(a)": 507.414
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.19181963927855647,
+     "A(s!1).Dr(a!1)": 0.1827655310621235,
+     "A(s!1).R(a!1)": 284447.03459318634,
+     "A(s)": 212833.54254108234,
+     "Da(a)": 0.19181963927855647,
+     "Dr(a)": 0.1827655310621235,
+     "Ma()": 343.5649659318647,
+     "Mr()": 963.3106973947887,
+     "R(a)": 316024.1188416835
+    },
+    "replicates": 500
+   },
+   "run_network@nc=30": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.272,
+     "A(s!1).Dr(a!1)": 0.23,
+     "A(s!1).R(a!1)": 570.552,
+     "A(s)": 250.05,
+     "Da(a)": 0.728,
+     "Dr(a)": 0.77,
+     "Ma()": 16.684,
+     "Mr()": 23.384,
+     "R(a)": 522.946
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.1984128256513018,
+     "A(s!1).Dr(a!1)": 0.17745490981963832,
+     "A(s!1).R(a!1)": 263884.02735070116,
+     "A(s)": 225808.17985971895,
+     "Da(a)": 0.1984128256513018,
+     "Dr(a)": 0.17745490981963832,
+     "Ma()": 354.6855150300607,
+     "Mr()": 943.1789018036094,
+     "R(a)": 338537.5341523048
+    },
+    "replicates": 500
+   },
+   "run_network@nc=300": {
+    "final_mean": {
+     "A(s!1).Da(a!1)": 0.256,
+     "A(s!1).Dr(a!1)": 0.238,
+     "A(s!1).R(a!1)": 556.602,
+     "A(s)": 252.748,
+     "Da(a)": 0.744,
+     "Dr(a)": 0.762,
+     "Ma()": 16.348,
+     "Mr()": 22.198,
+     "R(a)": 476.166
+    },
+    "final_variance": {
+     "A(s!1).Da(a!1)": 0.19084569138276417,
+     "A(s!1).Dr(a!1)": 0.18171943887775682,
+     "A(s!1).R(a!1)": 269189.71101803624,
+     "A(s)": 220029.78005611236,
+     "Da(a)": 0.19084569138276417,
+     "Dr(a)": 0.18171943887775682,
+     "Ma()": 345.1612184368735,
+     "Mr()": 899.4015991983965,
+     "R(a)": 288472.9763967942
+    },
+    "replicates": 500
+   }
+  },
+  "netgen_seconds": 1.2697808789089322,
+  "network": {
+   "reactions": 16,
+   "species": 9
+  },
+  "psa": {
+   "accuracy": {
+    "nc=10": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Da(a!1)",
+        "species_index": 6,
+        "time": 30.0,
+        "time_index": 60
+       },
+       "max": 0.24640657084188916,
+       "se": 0.03133889081778519
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "max": 23.75044644702701,
+       "se": 8.014641137704956
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.0005,
+       "passed": false,
+       "permutations": 1999,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": false,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Mr()",
+        "species_index": 3,
+        "statistic": "mean",
+        "time": 23.5,
+        "time_index": 47,
+        "z": 8.91309831732929
+       },
+       "z_max": 8.91309831732929
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "at_min": {
+        "species": "Dr(a)",
+        "species_index": 1,
+        "time": 9.5,
+        "time_index": 19
+       },
+       "max": 32116.236283096285,
+       "median": 1.0724416520359727,
+       "min": 0.0,
+       "n_cells": 7178
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 10,
+       "value": 62.3084157539404
+      },
+      "peak_population": 3609.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       3,
+       4,
+       5,
+       6,
+       9,
+       10,
+       11,
+       16
+      ],
+      "speedup": {
+       "max": 1.7774363782709548,
+       "mean": 1.7418882826513262,
+       "median": 1.742196126151275,
+       "min": 1.702353548365438
+      },
+      "trajectories": 500
+     },
+     "poplevel": 10,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Da(a!1)",
+        "species_index": 6,
+        "time": 55.0,
+        "time_index": 110
+       },
+       "max": 0.26899383983572905,
+       "se": 0.030850161909660456
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.5,
+        "time_index": 39
+       },
+       "max": 53.09363468578604,
+       "se": 11.661141167359956
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.0005,
+       "passed": false,
+       "permutations": 1999,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": false,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Mr()",
+        "species_index": 3,
+        "statistic": "mean",
+        "time": 23.5,
+        "time_index": 47,
+        "z": 10.116090029597007
+       },
+       "z_max": 10.116090029597007
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "at_min": {
+        "species": "Dr(a)",
+        "species_index": 1,
+        "time": 11.5,
+        "time_index": 23
+       },
+       "max": 71876.60765743673,
+       "median": 1.0813094887195887,
+       "min": 0.0,
+       "n_cells": 7162
+      }
+     }
+    },
+    "nc=100": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Da(a!1)",
+        "species_index": 6,
+        "time": 346.0,
+        "time_index": 692
+       },
+       "max": 0.09856262833675568,
+       "se": 0.027258635938996495
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "max": 2.251199724145591,
+       "se": 2.207486278778589
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.39215686274509803,
+       "passed": true,
+       "permutations": 51,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "statistic": "mean",
+        "time": 346.0,
+        "time_index": 692,
+        "z": 3.594176324038092
+       },
+       "z_max": 3.594176324038092
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 12.5,
+        "time_index": 25
+       },
+       "max": 2435.4978354978707,
+       "median": 1.0031435596267855,
+       "min": 0.0,
+       "n_cells": 7178
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 10,
+       "value": 5.748452603867215
+      },
+      "peak_population": 2638.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       9,
+       10,
+       16
+      ],
+      "speedup": {
+       "max": 1.1991616957415925,
+       "mean": 1.190201302734219,
+       "median": 1.1903540067765093,
+       "min": 1.179076866687007
+      },
+      "trajectories": 500
+     },
+     "poplevel": 100,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Da(a!1)",
+        "species_index": 6,
+        "time": 385.5,
+        "time_index": 771
+       },
+       "max": 0.0759753593429158,
+       "se": 0.026224605162652324
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.5,
+        "time_index": 39
+       },
+       "max": 2.330120535370873,
+       "se": 2.09635461983574
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8,
+       "passed": true,
+       "permutations": 25,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Dr(a)",
+        "species_index": 1,
+        "statistic": "mean",
+        "time": 89.0,
+        "time_index": 178,
+        "z": 3.117621350061793
+       },
+       "z_max": 3.117621350061793
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.5,
+        "time_index": 39
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 11.5,
+        "time_index": 23
+       },
+       "max": 2196.3513460533245,
+       "median": 1.0028292093458187,
+       "min": 0.0,
+       "n_cells": 7162
+      }
+     }
+    },
+    "nc=1000": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Da(a!1)",
+        "species_index": 6,
+        "time": 79.0,
+        "time_index": 158
+       },
+       "max": 0.08418891170431207,
+       "se": 0.032077976708446504
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "max": 1.770866621050259,
+       "se": 1.7535378897272185
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8695652173913043,
+       "passed": true,
+       "permutations": 23,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "A(s!1).Dr(a!1)",
+        "species_index": 7,
+        "statistic": "mean",
+        "time": 305.0,
+        "time_index": 610,
+        "z": 3.093226315265108
+       },
+       "z_max": 3.093226315265108
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 9.0,
+        "time_index": 18
+       },
+       "max": 1536.4475653544932,
+       "median": 0.9922198875732652,
+       "min": 0.0,
+       "n_cells": 7178
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 9,
+       "value": 1.0040836184277486
+      },
+      "peak_population": 2609.0,
+      "regime": "scaled",
+      "scaled_fraction": 0.182,
+      "scaled_reactions": [
+       9,
+       10
+      ],
+      "speedup": {
+       "max": 1.0015366147184561,
+       "mean": 1.000031667767231,
+       "median": 1.0,
+       "min": 1.0
+      },
+      "trajectories": 500
+     },
+     "poplevel": 1000,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Da(a!1)",
+        "species_index": 6,
+        "time": 127.5,
+        "time_index": 255
+       },
+       "max": 0.08213552361396306,
+       "se": 0.0310525909053513
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 62.5,
+        "time_index": 125
+       },
+       "max": 0.30475578310512186,
+       "se": 0.09079696942550534
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5,
+       "passed": true,
+       "permutations": 40,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Dr(a)",
+        "species_index": 1,
+        "statistic": "mean",
+        "time": 62.5,
+        "time_index": 125,
+        "z": 3.367031058066733
+       },
+       "z_max": 3.367031058066733
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 8.5,
+        "time_index": 17
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 9.0,
+        "time_index": 18
+       },
+       "max": 32.99510752688231,
+       "median": 1.0000000000000002,
+       "min": 0.0,
+       "n_cells": 7162
+      }
+     }
+    },
+    "nc=30": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Dr(a!1)",
+        "species_index": 7,
+        "time": 229.5,
+        "time_index": 459
+       },
+       "max": 0.11297071129707112,
+       "se": 0.028451414269433314
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "max": 3.8773876996852086,
+       "se": 2.833984480522091
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.09803921568627451,
+       "passed": true,
+       "permutations": 204,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "A(s)",
+        "species_index": 4,
+        "statistic": "mean",
+        "time": 144.0,
+        "time_index": 288,
+        "z": 4.03524988297625
+       },
+       "z_max": 4.03524988297625
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 8.5,
+        "time_index": 17
+       },
+       "max": 4014.7340179200323,
+       "median": 1.028297253133584,
+       "min": 0.0,
+       "n_cells": 7178
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 10,
+       "value": 19.721008408390777
+      },
+      "peak_population": 2900.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       3,
+       4,
+       5,
+       6,
+       9,
+       10,
+       16
+      ],
+      "speedup": {
+       "max": 1.2910330578250884,
+       "mean": 1.2748433369465204,
+       "median": 1.274831469399254,
+       "min": 1.2590977829942764
+      },
+      "trajectories": 500
+     },
+     "poplevel": 30,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Da(a!1)",
+        "species_index": 6,
+        "time": 82.0,
+        "time_index": 164
+       },
+       "max": 0.12525667351129363,
+       "se": 0.03037540955534113
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.5,
+        "time_index": 39
+       },
+       "max": 1.19549548888934,
+       "se": 0.9081780006177006
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.01721170395869191,
+       "passed": true,
+       "permutations": 1162,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "R(a)",
+        "species_index": 5,
+        "statistic": "mean",
+        "time": 88.5,
+        "time_index": 177,
+        "z": 4.53622822744821
+       },
+       "z_max": 4.53622822744821
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.5,
+        "time_index": 39
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 8.5,
+        "time_index": 17
+       },
+       "max": 411.39364040298216,
+       "median": 1.0356362472830514,
+       "min": 0.0,
+       "n_cells": 7162
+      }
+     }
+    },
+    "nc=300": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Dr(a!1)",
+        "species_index": 7,
+        "time": 263.5,
+        "time_index": 527
+       },
+       "max": 0.0878661087866109,
+       "se": 0.025934619056328285
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "max": 0.7204996546429977,
+       "se": 0.7656364133320963
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.4878048780487805,
+       "passed": true,
+       "permutations": 41,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "A(s!1).Dr(a!1)",
+        "species_index": 7,
+        "statistic": "mean",
+        "time": 264.0,
+        "time_index": 528,
+        "z": 3.395314827488954
+       },
+       "z_max": 3.395314827488954
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.0,
+        "time_index": 38
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 9.0,
+        "time_index": 18
+       },
+       "max": 292.0995587100183,
+       "median": 0.991899832615873,
+       "min": 0.0,
+       "n_cells": 7178
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 10,
+       "value": 2.004418025691119
+      },
+      "peak_population": 2621.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       9,
+       10,
+       16
+      ],
+      "speedup": {
+       "max": 1.1027227573118739,
+       "mean": 1.0967415349146352,
+       "median": 1.0967857252276976,
+       "min": 1.091307970146846
+      },
+      "trajectories": 500
+     },
+     "poplevel": 300,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "A(s!1).Dr(a!1)",
+        "species_index": 7,
+        "time": 54.0,
+        "time_index": 108
+       },
+       "max": 0.09771309771309775,
+       "se": 0.03275906824856936
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.5,
+        "time_index": 39
+       },
+       "max": 0.9641878077396715,
+       "se": 0.8993495090977275
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.3333333333333333,
+       "passed": true,
+       "permutations": 60,
+       "replicates": [
+        500,
+        500
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Dr(a)",
+        "species_index": 1,
+        "statistic": "mean",
+        "time": 392.5,
+        "time_index": 785,
+        "z": 3.640833954816415
+       },
+       "z_max": 3.640833954816415
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "A(s)",
+        "species_index": 4,
+        "time": 19.5,
+        "time_index": 39
+       },
+       "at_min": {
+        "species": "Da(a)",
+        "species_index": 0,
+        "time": 8.5,
+        "time_index": 17
+       },
+       "max": 403.41476975716176,
+       "median": 1.0026910886222526,
+       "min": 0.0,
+       "n_cells": 7162
+      }
+     }
+    }
+   },
+   "flag_from_poplevel": 100,
+   "flags": [],
+   "poplevels": [
+    10,
+    30,
+    100,
+    300,
+    1000
+   ]
+  },
+  "trajectory_timeout_seconds": 77.0,
+  "zeroth_order_reactions": 0
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 4,
+ "problem": "noise_resistant_circadian_oscillator_vilar2002",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:46:01.674606+00:00",
+ "verdicts": {
+  "run_network": {
+   "alpha": 0.001,
+   "n_cells": 7209,
+   "n_tested": {
+    "mean": 7192,
+    "variance": 3999
+   },
+   "p_value": 0.07042253521126761,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 21.213203435596427,
+    "max_z": 4.253221567223016,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 284,
+   "replicates": [
+    500,
+    500
+   ],
+   "seed": 1835504127,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Da(a)",
+    "species_index": 0,
+    "statistic": "mean",
+    "time": 345.0,
+    "time_index": 690,
+    "z": 4.2173018426896345
+   },
+   "z_max": 4.2173018426896345,
+   "z_max_mean": 4.2173018426896345,
+   "z_max_variance": 4.0672340386204295
+  },
+  "run_network@nc=10": {
+   "alpha": 0.001,
+   "n_cells": 7209,
+   "n_tested": {
+    "mean": 7194,
+    "variance": 4000
+   },
+   "p_value": 0.8,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 21.213203435596427,
+    "max_z": 3.198708038623517,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 25,
+   "replicates": [
+    500,
+    500
+   ],
+   "seed": 1596810411,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "A(s)",
+    "species_index": 4,
+    "statistic": "variance",
+    "time": 202.5,
+    "time_index": 405,
+    "z": 3.454988824218847
+   },
+   "z_max": 3.454988824218847,
+   "z_max_mean": 3.184030100425021,
+   "z_max_variance": 3.454988824218847
+  },
+  "run_network@nc=100": {
+   "alpha": 0.001,
+   "n_cells": 7209,
+   "n_tested": {
+    "mean": 7196,
+    "variance": 4000
+   },
+   "p_value": 0.8333333333333334,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 21.213203435596427,
+    "max_z": 3.030605104299105,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 24,
+   "replicates": [
+    500,
+    500
+   ],
+   "seed": 1563021450,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Mr()",
+    "species_index": 3,
+    "statistic": "variance",
+    "time": 385.5,
+    "time_index": 771,
+    "z": 3.1420700100308943
+   },
+   "z_max": 3.1420700100308943,
+   "z_max_mean": 3.0182663588084835,
+   "z_max_variance": 3.1420700100308943
+  },
+  "run_network@nc=1000": {
+   "alpha": 0.001,
+   "n_cells": 7209,
+   "n_tested": {
+    "mean": 7182,
+    "variance": 4000
+   },
+   "p_value": 0.39215686274509803,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 21.213203435596427,
+    "max_z": 3.6764006542519754,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 51,
+   "replicates": [
+    500,
+    500
+   ],
+   "seed": 3151767335,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Dr(a)",
+    "species_index": 1,
+    "statistic": "mean",
+    "time": 360.5,
+    "time_index": 721,
+    "z": 3.653585013984548
+   },
+   "z_max": 3.653585013984548,
+   "z_max_mean": 3.653585013984548,
+   "z_max_variance": 3.209919757555276
+  },
+  "run_network@nc=30": {
+   "alpha": 0.001,
+   "n_cells": 7209,
+   "n_tested": {
+    "mean": 7176,
+    "variance": 4000
+   },
+   "p_value": 0.425531914893617,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 21.213203435596427,
+    "max_z": 3.3751025883003716,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 47,
+   "replicates": [
+    500,
+    500
+   ],
+   "seed": 3549136632,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "A(s!1).R(a!1)",
+    "species_index": 8,
+    "statistic": "variance",
+    "time": 387.5,
+    "time_index": 775,
+    "z": 3.5847989642541216
+   },
+   "z_max": 3.5847989642541216,
+   "z_max_mean": 3.357684916724617,
+   "z_max_variance": 3.5847989642541216
+  },
+  "run_network@nc=300": {
+   "alpha": 0.001,
+   "n_cells": 7209,
+   "n_tested": {
+    "mean": 7182,
+    "variance": 4000
+   },
+   "p_value": 0.8695652173913043,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 21.213203435596427,
+    "max_z": 3.292265847525462,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 23,
+   "replicates": [
+    500,
+    500
+   ],
+   "seed": 2579376181,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "A(s!1).Da(a!1)",
+    "species_index": 6,
+    "statistic": "mean",
+    "time": 192.5,
+    "time_index": 385,
+    "z": 3.2761720912413486
+   },
+   "z_max": 3.2761720912413486,
+   "z_max_mean": 3.2761720912413486,
+   "z_max_variance": 3.2195148123694826
+  }
+ },
+ "wall_seconds": 2869.6991033909144
+}

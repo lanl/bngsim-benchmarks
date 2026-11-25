@@ -1,0 +1,513 @@
+{
+ "schema": 1,
+ "suite": "psa-net",
+ "capabilities": [
+  "psa"
+ ],
+ "published": "2026-11-25T17:14:26Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "d032d7649c5f333a7439d92c8a4261ec68405fb5",
+   "d1b87ce429fd5c481e4c69d9592d0c402d7065e1",
+   "44f270634d38b7f316b287df0cc8ca4579f351f0"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "bursty_autoregulated_gene_expression_lin2016",
+   "title": "Bursty autoregulated gene expression",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/bursty_autoregulated_gene_expression_lin2016/bursty_autoregulated_gene_expression_lin2016.bngl",
+    "sha256": "50f0ed2754c925bdfa8cae677190f433da97547083b94449ee4f870f0636e2d7",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Lin YT, Doering CR (2016). Gene expression dynamics with stochastic bursts: construction and exact results for a coarse-grained model. Phys Rev E 93:022409.",
+     "doi": "10.1103/PhysRevE.93.022409"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/bursty_autoregulated_gene_expression_lin2016/verify_lin2016.ipynb",
+    "check": "digitized Fig. 3b stationary protein distribution vs the record's seeded BioNetGen SSA (one seed), total variation <= 0.15 asserted",
+    "result": "total variation 0.046",
+    "supporting": "equations: SciPy mean-field ODE vs the BioNetGen ODE, <= 1e-6 asserted"
+   },
+   "size": {
+    "species": 2,
+    "reactions": 4,
+    "ssa_events": 100,
+    "psa_events": 4100
+   }
+  },
+  {
+   "position": 2,
+   "problem": "noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair",
+   "title": "Noise-induced bistable futile cycle (unordered-pair driver)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/noise_induced_bistable_futile_cycle_samoilov2005/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair.bngl",
+    "sha256": "5fe2850742b261bca0e4595d3acf59b70b334cd072f6c77f8b9efa7c5522e621",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Samoilov M, Plyasunov S, Arkin AP (2005). Stochastic amplification and signaling in enzymatic futile cycles through noise-induced bistability with oscillations. PNAS 102:2310-2315.",
+     "doi": "10.1073/pnas.0406841102"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/noise_induced_bistable_futile_cycle_samoilov2005/verify_samoilov2005.ipynb",
+    "check": "digitized Fig. 3A trace vs 64-replicate BioNetGen SSA ensembles: mean X, mean X* and time below X* = 190 inside the ensemble's central 95% (|z| <= 1.96), and exactly two X* modes within 15 molecules of the published 108 and 292, asserted on nine disjoint seed blocks",
+    "result": "|z| 0.28, 0.35, 0.51; modes 110 and 286",
+    "supporting": "equations: BioNetGen SSA vs an independent Gillespie, worst z 1.46 (tol 3); ODE vs Eqs. S5 6.3e-10"
+   },
+   "size": {
+    "species": 7,
+    "reactions": 10,
+    "ssa_events": 13000000,
+    "psa_events": 3470000
+   }
+  },
+  {
+   "position": 3,
+   "problem": "noise_resistant_circadian_oscillator_vilar2002",
+   "title": "Noise-resistant circadian oscillator",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/noise_resistant_circadian_oscillator_vilar2002/noise_resistant_circadian_oscillator_vilar2002.bngl",
+    "sha256": "0495750da101490549b9bed83b4d70f2e829d46244466a87e418f7f3882273d9",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Vilar JMG, Kueh HY, Barkai N, Leibler S (2002). Mechanisms of noise-resistance in genetic oscillators. PNAS 99:5988-5992.",
+     "doi": "10.1073/pnas.092133899"
+    }
+   ],
+   "verification": {
+    "kind": "equations",
+    "evidence": "models/noise_resistant_circadian_oscillator_vilar2002/verify_vilar2002.ipynb",
+    "check": "independent SciPy LSODA integration of the paper's Eq. 1 (parameters from the Fig. 1 caption, not read from the .net) vs the BioNetGen ODE, tolerance 1e-6",
+    "result": "max relative error 2.6e-7",
+    "supporting": "data: digitized Fig. 2a/2b, RMSE/panel height 0.030 (A) and 0.038 (R) against a stated 0.06",
+    "stochastic": "equations: 64 BioNetGen SSA seeds vs 16 independent Gillespie runs, mean peak R and period in three regimes, worst |z| 1.13 (Welch-t, 1% family-wise); data: eight statistics of the five published realizations inside t(n-1) prediction intervals of a 64-replicate ensemble, worst |z| 1.62 (tol 3.38); all asserted (verify_vilar2002.ipynb at 7d6d366)"
+   },
+   "size": {
+    "species": 9,
+    "reactions": 16,
+    "ssa_events": 1100000,
+    "psa_events": 380000
+   }
+  },
+  {
+   "position": 4,
+   "problem": "mapk_relaxation_oscillations_kochanczyk2017",
+   "title": "MAPK relaxation oscillations",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/mapk_relaxation_oscillations_kochanczyk2017/mapk_relaxation_oscillations_kochanczyk2017.bngl",
+    "sha256": "9dac883b7f245dfdc92a4df37ae54f464a33addfd9fe8a10684370f044983004",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Kochanczyk M, Kocieniewski P, Kozlowska E, Jaruszewicz-Blonska J, Sparta B, Pargett M, Albeck JG, Hlavacek WS, Lipniacki T (2017). Relaxation oscillations and hierarchy of feedbacks in MAPK signaling. Sci Rep 7:38244.",
+     "doi": "10.1038/srep38244"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/mapk_relaxation_oscillations_kochanczyk2017/verify_kochanczyk2017.ipynb",
+    "check": "digitized Fig. 4B active-ERK trace vs the BioNetGen ODE over 24 h: pulse count, median period and peak amplitude asserted",
+    "result": "17/17 pulses; median period 1.433 h vs 1.500 h (4.44%); peak amplitude 0.90% of full scale; median residual timing error 3.0 min after phase registration",
+    "supporting": "equations: BioNetGen vs an independent SciPy integration of the generated network, 2.3e-4 relative; nine conserved pools to 1e-12"
+   },
+   "size": {
+    "species": 34,
+    "reactions": 65,
+    "psa_events": 2280000
+   }
+  },
+  {
+   "position": 5,
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "title": "TCR signaling bistability",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/tcr_signaling_bistability_lipniacki2008/tcr_signaling_bistability_lipniacki2008.bngl",
+    "sha256": "82c8d6184c995b38ec82ad19c0ae1e25189b12d3a1dddeeca5b8a7e178436c6d",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Lipniacki T, Hat B, Faeder JR, Hlavacek WS (2008). Stochastic effects and bistability in T cell receptor signaling. J Theor Biol 254:110-122.",
+     "doi": "10.1016/j.jtbi.2008.05.001"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008.ipynb",
+    "check": "digitized Fig. 7B deterministic ppERK vs the BioNetGen ODE: NRMSE <= 1% FS, peak <= 2%, plateau <= 1% asserted",
+    "result": "NRMSE 0.22% FS, peak 1.1%, plateau 0.10%",
+    "supporting": "equations: hand-written 37-state SciPy ODE vs BioNetGen, max relative error 4.2e-9 (follows the supplied chemical specification rather than the paper's Appendix A)",
+    "steady_state_evidence": "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008_steady_state.ipynb at BNGL-Models 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "steady_state_check": "equations: BNG2.pl (a primed cell given N agonists, and a ramp from steady state) vs the independent 37-state equations run the same way and Newton-polished, at 20 log-spaced N_agonist from 1 to 1000, both branches, 1e-6 relative asserted; data: digitized Fig. 7A (d = 0.05/s) ppERK at 19 doses on both branches, 0.024 decade asserted",
+    "steady_state_result": "37 species x 20 doses x 2 protocols, 7.9e-10; folds at N = 8.8452 and 772.11 by continuation (13 doses bistable); Fig. 7A max 0.0102 decade (2.4%)"
+   },
+   "size": {
+    "species": 37,
+    "reactions": 97,
+    "ssa_events": 7200000,
+    "psa_events": 600000,
+    "nf_events": 2000000
+   }
+  },
+  {
+   "position": 6,
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "title": "CAR CD3zeta site-specific phosphorylation by LCK",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/car_cd3zeta_phosphorylation_rohrs2018/car_cd3zeta_phosphorylation_rohrs2018.bngl",
+    "sha256": "7d178c1f9f1b1052ac732bc21fc766a53a962f5ffb76a5bf846681f2a62a5b78",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Rohrs JA, Zheng D, Graham NA, Wang P, Finley SD (2018). Computational model of chimeric antigen receptors explains site-specific phosphorylation kinetics. Biophys J 115:1116-1129.",
+     "doi": "10.1016/j.bpj.2018.08.018"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/car_cd3zeta_phosphorylation_rohrs2018/verify_rohrs2018.ipynb",
+    "check": "the nine digitized Fig. S5 model curves vs the BioNetGen ODE, and the Fig. S5 measurements against the authors' own published fit",
+    "result": "Fig. S5 model curves within 1.6 percentage points; SSE 1.25e4 against the authors' 1.27e4 over 354 points",
+    "supporting": "equations: Eqs. 2-5 transcribed independently in SciPy match BioNetGen to 1e-3 percentage points"
+   },
+   "size": {
+    "species": 65,
+    "reactions": 192,
+    "psa_events": 64000,
+    "nf_events": 260000
+   }
+  },
+  {
+   "position": 7,
+   "problem": "scaffolded_mapk_cascade_kocieniewski2012",
+   "title": "Scaffolded MAPK cascade",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/scaffolded_mapk_cascade_kocieniewski2012/scaffolded_mapk_cascade_kocieniewski2012.bngl",
+    "sha256": "5199f2dbedbc5282ca2b24bd1f4276d6622a2ec7e3a693ce4e77d6e509adb1e2",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Kocieniewski P, Faeder JR, Lipniacki T (2012). The interplay of double phosphorylation and scaffolding in MAPK pathways. J Theor Biol 295:116-124.",
+     "doi": "10.1016/j.jtbi.2011.11.014"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/scaffolded_mapk_cascade_kocieniewski2012/verify_kocieniewski2012.ipynb",
+    "check": "digitized Fig. 2 (Scaff-22) steady states vs the generated network, 5% of full scale asserted",
+    "result": "peak amplitude error 0.46% FS, RMS 0.20% FS",
+    "supporting": "theory: active MAP3K steady state vs S*Atot/(S+u), 0.025% (printed, not asserted)"
+   },
+   "size": {
+    "species": 85,
+    "reactions": 487,
+    "psa_events": 3200000
+   }
+  },
+  {
+   "position": 8,
+   "problem": "prion_nucleated_polymerization_rubenstein2007_benchmark",
+   "title": "Prion nucleated polymerization (Lin et al. 2019 parameterization)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/prion_nucleated_polymerization_rubenstein2007/prion_nucleated_polymerization_rubenstein2007_benchmark.bngl",
+    "sha256": "88acf773d57518e377932ea0ac9967166a0bab305eb149639e363caa3ba94c2e",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Rubenstein R, Gray PC, Cleland TJ, Piltch MS, Hlavacek WS, Roberts RM, Ambrosiano J, Kim J-I (2007). Dynamics of the nucleated polymerization model of prion replication. Biophys Chem 125:360-367.",
+     "doi": "10.1016/j.bpc.2006.09.011"
+    },
+    {
+     "citation": "Lin YT, Feng S, Hlavacek WS (2019). Scaling methods for accelerating kinetic Monte Carlo simulations of chemical reaction networks. J Chem Phys 150:244101.",
+     "doi": "10.1063/1.5096774"
+    }
+   ],
+   "verification": {
+    "kind": "equations",
+    "evidence": "models/prion_nucleated_polymerization_rubenstein2007/verify_rubenstein2007.ipynb",
+    "check": "the generated network vs an independent enumeration of the paper's Eqs. 1-6 over chain length, asserted; the fresh BioNetGen run reproduces the committed seeded reference exactly",
+    "result": "3843/3843 reactions, sets identical; reference reproduced to the last digit"
+   },
+   "size": {
+    "species": 121,
+    "reactions": 3843,
+    "psa_events": 720000
+   }
+  },
+  {
+   "position": 9,
+   "problem": "early_fceri_signaling_faeder2003",
+   "title": "Early FceRI signaling",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/early_fceri_signaling_faeder2003/early_fceri_signaling_faeder2003.bngl",
+    "sha256": "7dc745c07702bb75567495b1372d64b18353c656673224644955cd53dc6955c4",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Faeder JR, Hlavacek WS, Reischl I, Blinov ML, Metzger H, Redondo A, Wofsy C, Goldstein B (2003). Investigation of early events in Fc epsilon RI-mediated signaling using a detailed mathematical model. J Immunol 170:3769-3781."
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/early_fceri_signaling_faeder2003/verify_faeder2003.ipynb",
+    "check": "the nine model curves of Fig. 3 (1.6 nM IgE dimer, 70 min; digitized from the publisher's raster, 528 points) vs the unchanged model block at the Fig. 3 dose, per curve RMSE <= 0.5% and max <= 1% of panel full scale asserted; the nine numbers the Results section reads off Fig. 3, asserted",
+    "result": "worst RMSE 0.14% (panel a), worst point 0.21%; 9 of 9 numbers; 0.9x and 1.1x the dose fail every curve",
+    "supporting": "equations: BioNetGen ODE vs SciPy on the generated network, 4.1e-7 (shipped protocol) and 4.7e-7 (Fig. 3 protocol) scaled; structure: 354 species, 3680 reactions"
+   },
+   "size": {
+    "species": 354,
+    "reactions": 3680,
+    "ssa_events": 4500000,
+    "psa_events": 1400000,
+    "nf_events": 300000
+   }
+  },
+  {
+   "position": 10,
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "title": "Combinatorial EGFR signaling",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/combinatorial_egfr_signaling_blinov2006/combinatorial_egfr_signaling_blinov2006.bngl",
+    "sha256": "14f5668d43b031d4ef3e05e6b362c6ad643c617d8a74e4966a815480d3af3f4f",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Blinov ML, Faeder JR, Goldstein B, Hlavacek WS (2006). A network model of early events in epidermal growth factor receptor signaling that accounts for combinatorial complexity. BioSystems 83:136-151.",
+     "doi": "10.1016/j.biosystems.2005.06.014"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/combinatorial_egfr_signaling_blinov2006/verify_blinov2006.ipynb",
+    "check": "digitized Fig. 2 A/C/D/E network curves, RMS within 2-4 nM per panel asserted",
+    "result": "RMS 0.44 / 1.51 / 1.33 / 1.72 nM"
+   },
+   "size": {
+    "species": 356,
+    "reactions": 3749,
+    "sens_parameters": 43,
+    "psa_events": 3500000
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "psa/bursty_autoregulated_gene_expression_lin2016/bngsim-vs-run_network/auto/correctness",
+   "problem": "bursty_autoregulated_gene_expression_lin2016",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/psa/bursty_autoregulated_gene_expression_lin2016/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/bursty_autoregulated_gene_expression_lin2016/bngsim-vs-run_network/auto/timing",
+   "problem": "bursty_autoregulated_gene_expression_lin2016",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/psa/bursty_autoregulated_gene_expression_lin2016/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair/bngsim-vs-run_network/auto/correctness",
+   "problem": "noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/psa/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair/bngsim-vs-run_network/auto/timing",
+   "problem": "noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair",
+   "kind": "timing",
+   "outcome": "EXCEPTION",
+   "file": "jobs/psa/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/correctness",
+   "problem": "noise_resistant_circadian_oscillator_vilar2002",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/timing",
+   "problem": "noise_resistant_circadian_oscillator_vilar2002",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/psa/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/mapk_relaxation_oscillations_kochanczyk2017/bngsim-vs-run_network/auto/correctness",
+   "problem": "mapk_relaxation_oscillations_kochanczyk2017",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/psa/mapk_relaxation_oscillations_kochanczyk2017/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/mapk_relaxation_oscillations_kochanczyk2017/bngsim-vs-run_network/auto/timing",
+   "problem": "mapk_relaxation_oscillations_kochanczyk2017",
+   "kind": "timing",
+   "outcome": "EXCEPTION",
+   "file": "jobs/psa/mapk_relaxation_oscillations_kochanczyk2017/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network/auto/correctness",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/psa/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network/auto/timing",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "timing",
+   "outcome": "EXCEPTION",
+   "file": "jobs/psa/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-run_network/auto/correctness",
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/psa/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-run_network/auto/timing",
+   "problem": "car_cd3zeta_phosphorylation_rohrs2018",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/psa/car_cd3zeta_phosphorylation_rohrs2018/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network/auto/correctness",
+   "problem": "scaffolded_mapk_cascade_kocieniewski2012",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/psa/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network/auto/timing",
+   "problem": "scaffolded_mapk_cascade_kocieniewski2012",
+   "kind": "timing",
+   "outcome": "EXCEPTION",
+   "file": "jobs/psa/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/prion_nucleated_polymerization_rubenstein2007_benchmark/bngsim-vs-run_network/auto/correctness",
+   "problem": "prion_nucleated_polymerization_rubenstein2007_benchmark",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/psa/prion_nucleated_polymerization_rubenstein2007_benchmark/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/prion_nucleated_polymerization_rubenstein2007_benchmark/bngsim-vs-run_network/auto/timing",
+   "problem": "prion_nucleated_polymerization_rubenstein2007_benchmark",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/psa/prion_nucleated_polymerization_rubenstein2007_benchmark/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/early_fceri_signaling_faeder2003/bngsim-vs-run_network/auto/correctness",
+   "problem": "early_fceri_signaling_faeder2003",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/psa/early_fceri_signaling_faeder2003/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/early_fceri_signaling_faeder2003/bngsim-vs-run_network/auto/timing",
+   "problem": "early_fceri_signaling_faeder2003",
+   "kind": "timing",
+   "outcome": "EXCEPTION",
+   "file": "jobs/psa/early_fceri_signaling_faeder2003/bngsim-vs-run_network/auto/timing.json"
+  },
+  {
+   "job_id": "psa/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network/auto/correctness",
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/psa/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network/auto/correctness.json"
+  },
+  {
+   "job_id": "psa/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network/auto/timing",
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "kind": "timing",
+   "outcome": "EXCEPTION",
+   "file": "jobs/psa/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network/auto/timing.json"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 0,
+  "total_bytes": 0,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

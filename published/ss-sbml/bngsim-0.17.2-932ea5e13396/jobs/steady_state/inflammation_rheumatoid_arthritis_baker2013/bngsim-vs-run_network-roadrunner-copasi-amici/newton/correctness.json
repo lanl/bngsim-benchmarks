@@ -1,0 +1,1701 @@
+{
+ "capability": "steady_state",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "09925d1c3708ea2e810991b29031a541fcb66ebb",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "steady_state/inflammation_rheumatoid_arthritis_baker2013/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+ "key": "ecaea6439de4dbf1b1b1bb47fdf33221df6295ea7bf8be7b59f6ce29c78397bb",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "steady_state/bngsim-vs-run_network-roadrunner-copasi-amici/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "n_steps": 20,
+     "parameters": {},
+     "rtol": 1e-08,
+     "scan": {
+      "log": false,
+      "max": 25,
+      "min": 1,
+      "parameter": "parameter_2",
+      "points": 20
+     },
+     "t_end": 1000000.0
+    },
+    "reference_settings": {
+     "amici": {
+      "mode": "integrationOnly",
+      "output": "state (concentration)",
+      "steady_state_tolerance_factor": 1.0,
+      "steady_state_tolerances": "protocol rtol/atol",
+      "tolerances": "protocol rtol/atol"
+     },
+     "copasi": {
+      "method": "Enhanced Newton (COPASI's defaults)",
+      "output": "concentration",
+      "task": "Steady-State"
+     },
+     "roadrunner": {
+      "allow_presimulation": true,
+      "conserved_moiety_analysis": true,
+      "integrator": "cvode, protocol tolerances",
+      "output": "concentration",
+      "solver": "nleq2"
+     },
+     "run_network": {
+      "grid": "n_steps",
+      "horizon": "t_end",
+      "input": "network derived from the SBML (ode.derive_network)",
+      "method": "cvode (dense)"
+     }
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "bngsim": {
+      "atol": "protocol (float, per-species ceiling)",
+      "input": "sbml (Model.from_sbml)",
+      "mask": null,
+      "max_time": "t_end",
+      "method": "newton",
+      "output": "concentration",
+      "rtol": "protocol"
+     },
+     "codegen": "auto"
+    },
+    "source_sha256": "498b2c5f826214e6c9944eba1a2511792b8a927dc653c205201547acd5ad4d4c",
+    "verdict": {
+     "agreement": "species by species at every point, |a-b| <= rtol*max(|a|,|b|) + atol/1",
+     "atol_factor": 10.0,
+     "conservation_atol": "atol_factor * protocol atol, added to the law's tolerance",
+     "conservation_tol": 1e-06,
+     "law_coeff_floor": 1e-12,
+     "peak_floor": 1e-09,
+     "residual_floor": 1e-06,
+     "residual_floor_of": "max_j g_j at the state and at the point's initial state",
+     "residual_leaves_out": "species a rate rule moves",
+     "residual_tol": 0.0001,
+     "rtol": 0.0001,
+     "settled": 0.1
+    }
+   },
+   "id": "steady_state/inflammation_rheumatoid_arthritis_baker2013/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_seconds": 0.005410192999988794,
+   "cold_seconds": 0.11360490194056183,
+   "input": "sbml (Model.from_sbml)",
+   "load_seconds": 0.0672893290175125,
+   "mask": null,
+   "method": "newton",
+   "methods_used": [
+    "newton"
+   ],
+   "points": [
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 2,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 3,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 3,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 3,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.734723475976807e-18,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 3,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 7,
+     "n_steps": 6,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 7,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.551115123125783e-17,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 3,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 2.482534153247273e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 7,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 3,
+     "n_steps": 2,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 2.220446049250313e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    }
+   ],
+   "root_stability": [
+    "stable"
+   ]
+  },
+  "bngsim_integration": {
+   "config": {
+    "atol": "float (per-species ceiling)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.005270090070553124,
+    "cold_seconds": 0.10349599900655448,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.06746137491427362,
+    "mask": null,
+    "method": "integration",
+    "methods_used": [
+     "integration"
+    ],
+    "points": [
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 6,
+      "n_steps": 2,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 157,
+      "n_steps": 123,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 164,
+      "n_steps": 130,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 166,
+      "n_steps": 130,
+      "n_unstable_roots_rejected": 0,
+      "residual": 4.336808689942018e-19,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 158,
+      "n_steps": 130,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.734723475976807e-18,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 188,
+      "n_steps": 155,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 194,
+      "n_steps": 161,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 217,
+      "n_steps": 179,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 205,
+      "n_steps": 178,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 215,
+      "n_steps": 176,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 237,
+      "n_steps": 197,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 237,
+      "n_steps": 206,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 1405,
+      "n_steps": 1256,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.2887833992611187e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 890,
+      "n_steps": 787,
+      "n_unstable_roots_rejected": 0,
+      "residual": 4.965068306494546e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 786,
+      "n_steps": 694,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.551115123125783e-17,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 760,
+      "n_steps": 663,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 725,
+      "n_steps": 630,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.482534153247273e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 687,
+      "n_steps": 594,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.220446049250313e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 685,
+      "n_steps": 592,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1102230246251565e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 737,
+      "n_steps": 654,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.220446049250313e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     }
+    ],
+    "root_stability": [
+     ""
+    ]
+   },
+   "engine_free": {
+    "conservation": {
+     "max": 0.0,
+     "n_laws": 0,
+     "passed": true,
+     "tol": 1e-06
+    },
+    "evaluated": true,
+    "passed": true,
+    "residual": {
+     "evaluated": false,
+     "passed": true,
+     "reason": "ValueError: no species has a gross flux to judge its net rate against",
+     "tol": 0.0001
+    }
+   },
+   "vs_bngsim": {
+    "max_ratio": 1.1564558433851573e-11,
+    "max_rel": 1.1572273105982316e-15,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 11,
+    "worst_species": "species_1"
+   },
+   "vs_integration": {
+    "max_ratio": 3.068036215222089e-09,
+    "max_rel": 3.070954698859623e-13,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 9,
+    "worst_species": "species_1"
+   }
+  },
+  "conservation_laws": 0,
+  "derived_network": {
+   "bngsim_only": [],
+   "conversion_seconds": 0.15901243197731674,
+   "converter_notes": [],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 0.0,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 5.77667577789773e-05,
+      "err": 0.0,
+      "err_over_peak": 0.0,
+      "index": 0,
+      "peak": 0.00577667577789773,
+      "score": 0.0,
+      "species": "species_1",
+      "t": 0.0
+     }
+    }
+   },
+   "netgen_seconds": 1.1168717719847336,
+   "network": {
+    "reactions": 2,
+    "species": 2
+   },
+   "phases": 1,
+   "seconds": 1.4008078910410404
+  },
+  "doses": {
+   "parameter_2": "parameter"
+  },
+  "engine_budget_seconds": 1800.0,
+  "integration_reference": "run_network",
+  "network": {
+   "reactions": 0,
+   "species": 2
+  },
+  "points": [
+   {
+    "parameter_2": 1.0
+   },
+   {
+    "parameter_2": 2.263157894736842
+   },
+   {
+    "parameter_2": 3.526315789473684
+   },
+   {
+    "parameter_2": 4.789473684210526
+   },
+   {
+    "parameter_2": 6.052631578947368
+   },
+   {
+    "parameter_2": 7.315789473684211
+   },
+   {
+    "parameter_2": 8.578947368421051
+   },
+   {
+    "parameter_2": 9.842105263157894
+   },
+   {
+    "parameter_2": 11.105263157894736
+   },
+   {
+    "parameter_2": 12.368421052631579
+   },
+   {
+    "parameter_2": 13.631578947368421
+   },
+   {
+    "parameter_2": 14.894736842105262
+   },
+   {
+    "parameter_2": 16.157894736842103
+   },
+   {
+    "parameter_2": 17.421052631578945
+   },
+   {
+    "parameter_2": 18.684210526315788
+   },
+   {
+    "parameter_2": 19.94736842105263
+   },
+   {
+    "parameter_2": 21.210526315789473
+   },
+   {
+    "parameter_2": 22.473684210526315
+   },
+   {
+    "parameter_2": 23.736842105263158
+   },
+   {
+    "parameter_2": 25.0
+   }
+  ],
+  "reference_checks": {
+   "amici": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 0,
+      "passed": true,
+      "tol": 1e-06
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": false,
+      "passed": true,
+      "reason": "ValueError: no species has a gross flux to judge its net rate against",
+      "tol": 0.0001
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 0.0007196571354514169,
+     "max_rel": 7.201372159385634e-08,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 11,
+     "worst_species": "species_1"
+    }
+   },
+   "copasi": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 0,
+      "passed": true,
+      "tol": 1e-06
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": false,
+      "passed": true,
+      "reason": "ValueError: no species has a gross flux to judge its net rate against",
+      "tol": 0.0001
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 6.390465441813921e-07,
+     "max_rel": 6.390674155848442e-11,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 13,
+     "worst_species": "species_2"
+    }
+   },
+   "roadrunner": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 0,
+      "passed": true,
+      "tol": 1e-06
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": false,
+      "passed": true,
+      "reason": "ValueError: no species has a gross flux to judge its net rate against",
+      "tol": 0.0001
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 6.062146110079164e-07,
+     "max_rel": 6.067160141492894e-11,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 10,
+     "worst_species": "species_1"
+    }
+   },
+   "run_network": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 0,
+      "passed": true,
+      "tol": 1e-06
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": false,
+      "passed": true,
+      "reason": "ValueError: no species has a gross flux to judge its net rate against",
+      "tol": 0.0001
+     }
+    }
+   }
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 33.497840958996676,
+    "cold_seconds": 37.70353111496661,
+    "load_seconds": 0.0030770970042794943,
+    "mode": "integrationOnly (simulation to steady state)",
+    "output": "state (concentration)",
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 4.446470602066256,
+    "load_seconds": 0.15681392699480057,
+    "method": {
+     "Iteration Limit": 50,
+     "Resolution": 1e-09,
+     "Target Criterion": "Distance and Rate",
+     "Use Back Integration": false,
+     "Use Integration": true,
+     "Use Newton": true,
+     "name": "Enhanced Newton"
+    },
+    "output": "concentration",
+    "task": "Steady-State",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 1.2759587049949914,
+    "conserved_moiety_analysis": true,
+    "load_seconds": 0.5054157850099728,
+    "output": "concentration",
+    "settings": {
+     "allow_presimulation": true,
+     "maximum_iterations": 100,
+     "presimulation_times": [
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "relative_tolerance": 1e-12
+    },
+    "solver": "nleq2",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "cold_seconds": 0.38052233203779906,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-10",
+     "-r",
+     "1e-08",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<point>.net",
+     "<point>.net",
+     "50000.0",
+     "20"
+    ],
+    "input": "network derived from the SBML",
+    "method": "cvode (dense), integrated to t_end",
+    "settled": {
+     "max": 0.0,
+     "per_point": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tol": 0.1
+    }
+   }
+  },
+  "residual_leaves_out": [
+   "@comp1::species_1()",
+   "@comp1::species_2()"
+  ],
+  "sbml": {
+   "compared_species": 2,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [],
+    "constant": []
+   },
+   "reactions": 0,
+   "species": 2
+  },
+  "states": {
+   "amici": {
+    "species": [
+     "species_1",
+     "species_2"
+    ],
+    "values": [
+     [
+      0.00577667577789773,
+      0.0203298264712407
+     ],
+     [
+      0.006035336467730265,
+      0.02078076347732596
+     ],
+     [
+      0.006325611190217998,
+      0.021275513262865413
+     ],
+     [
+      0.006654677345299616,
+      0.021822914595349675
+     ],
+     [
+      0.007032320576874432,
+      0.02243479246160209
+     ],
+     [
+      0.007472348384644281,
+      0.023127497297994095
+     ],
+     [
+      0.007995107710765689,
+      0.023924603318945574
+     ],
+     [
+      0.008632340323612656,
+      0.02486202465676135
+     ],
+     [
+      0.009437609089120334,
+      0.025998799699861772
+     ],
+     [
+      0.010512432159610015,
+      0.027443581213014424
+     ],
+     [
+      0.01209036281005476,
+      0.029437916025515508
+     ],
+     [
+      0.014990342304969585,
+      0.032792444391555965
+     ],
+     [
+      2.2329497961937697,
+      0.663762295768322
+     ],
+     [
+      2.379106012922324,
+      0.7284414299881737
+     ],
+     [
+      2.5122093830704526,
+      0.7973802314496511
+     ],
+     [
+      2.6316809930113316,
+      0.8704562864505497
+     ],
+     [
+      2.737311667396495,
+      0.947236839920823
+     ],
+     [
+      2.8294415698497786,
+      1.027074789098714
+     ],
+     [
+      2.9089465368585468,
+      1.1092373219768907
+     ],
+     [
+      2.9770819404437825,
+      1.1930223286582735
+     ]
+    ]
+   },
+   "bngsim": {
+    "species": [
+     "species_1",
+     "species_2"
+    ],
+    "values": [
+     [
+      0.005776675777897729,
+      0.020329826471240677
+     ],
+     [
+      0.006035336631548943,
+      0.020780763484178236
+     ],
+     [
+      0.006325611423484099,
+      0.02127551327463481
+     ],
+     [
+      0.006654677542836994,
+      0.02182291460626457
+     ],
+     [
+      0.007032320766389822,
+      0.022434792486417627
+     ],
+     [
+      0.0074723485868791505,
+      0.023127497332316258
+     ],
+     [
+      0.00799510787061953,
+      0.02392460335919917
+     ],
+     [
+      0.00863234052903761,
+      0.024862024724739248
+     ],
+     [
+      0.009437609346431473,
+      0.0259987998159393
+     ],
+     [
+      0.010512432469263224,
+      0.02744358138594537
+     ],
+     [
+      0.012090363242400162,
+      0.02943791631586416
+     ],
+     [
+      0.01499034338448196,
+      0.03279244524892671
+     ],
+     [
+      2.2329497918978127,
+      0.6637622833519035
+     ],
+     [
+      2.3791060137350684,
+      0.7284414197642596
+     ],
+     [
+      2.5122094012668215,
+      0.7973802569227146
+     ],
+     [
+      2.6316810022300814,
+      0.8704563053351233
+     ],
+     [
+      2.7373116773960837,
+      0.9472368412301976
+     ],
+     [
+      2.829441575379972,
+      1.0270747632592026
+     ],
+     [
+      2.90894652704602,
+      1.1092373549912062
+     ],
+     [
+      2.9770819324618856,
+      1.1930223343269382
+     ]
+    ]
+   },
+   "bngsim_integration": {
+    "species": [
+     "species_1",
+     "species_2"
+    ],
+    "values": [
+     [
+      0.005776675777897729,
+      0.020329826471240677
+     ],
+     [
+      0.006035336631548943,
+      0.020780763484178236
+     ],
+     [
+      0.006325611423484099,
+      0.02127551327463481
+     ],
+     [
+      0.006654677542836993,
+      0.02182291460626457
+     ],
+     [
+      0.007032320766389822,
+      0.022434792486417627
+     ],
+     [
+      0.007472348586879153,
+      0.02312749733231626
+     ],
+     [
+      0.00799510787061953,
+      0.02392460335919917
+     ],
+     [
+      0.008632340529037611,
+      0.02486202472473925
+     ],
+     [
+      0.009437609346431477,
+      0.025998799815939302
+     ],
+     [
+      0.010512432469263228,
+      0.027443581385945378
+     ],
+     [
+      0.012090363242400166,
+      0.029437916315864166
+     ],
+     [
+      0.014990343384481977,
+      0.03279244524892673
+     ],
+     [
+      2.232949791897813,
+      0.6637622833519036
+     ],
+     [
+      2.379106013735069,
+      0.7284414197642595
+     ],
+     [
+      2.5122094012668215,
+      0.7973802569227145
+     ],
+     [
+      2.6316810022300814,
+      0.8704563053351231
+     ],
+     [
+      2.7373116773960837,
+      0.9472368412301976
+     ],
+     [
+      2.8294415753799727,
+      1.0270747632592032
+     ],
+     [
+      2.90894652704602,
+      1.1092373549912065
+     ],
+     [
+      2.9770819324618856,
+      1.1930223343269382
+     ]
+    ]
+   },
+   "copasi": {
+    "species": [
+     "species_1",
+     "species_2"
+    ],
+    "values": [
+     [
+      0.00577667577789773,
+      0.020329826471240677
+     ],
+     [
+      0.006035336631548942,
+      0.020780763484178233
+     ],
+     [
+      0.006325611423484099,
+      0.02127551327463481
+     ],
+     [
+      0.006654677542836994,
+      0.02182291460626457
+     ],
+     [
+      0.007032320766389824,
+      0.02243479248641763
+     ],
+     [
+      0.007472348586879152,
+      0.023127497332316258
+     ],
+     [
+      0.007995107870619527,
+      0.02392460335919917
+     ],
+     [
+      0.00863234052903761,
+      0.024862024724739248
+     ],
+     [
+      0.009437609346431472,
+      0.025998799815939295
+     ],
+     [
+      0.010512432469263224,
+      0.027443581385945374
+     ],
+     [
+      0.012090363242400164,
+      0.029437916315864163
+     ],
+     [
+      0.014990343384482002,
+      0.03279244524892676
+     ],
+     [
+      2.232949791897813,
+      0.6637622833519036
+     ],
+     [
+      2.3791060138695,
+      0.7284414198108523
+     ],
+     [
+      2.512209401266821,
+      0.7973802569227142
+     ],
+     [
+      2.6316810022300805,
+      0.8704563053351223
+     ],
+     [
+      2.7373116773960837,
+      0.9472368412301972
+     ],
+     [
+      2.8294415753799727,
+      1.0270747632592028
+     ],
+     [
+      2.9089465270460195,
+      1.1092373549912062
+     ],
+     [
+      2.977081932461885,
+      1.1930223343269384
+     ]
+    ]
+   },
+   "roadrunner": {
+    "species": [
+     "species_1",
+     "species_2"
+    ],
+    "values": [
+     [
+      0.00577667577789773,
+      0.020329826471240677
+     ],
+     [
+      0.006035336631548942,
+      0.020780763484178233
+     ],
+     [
+      0.006325611423484104,
+      0.021275513274634814
+     ],
+     [
+      0.0066546775428370595,
+      0.021822914606264586
+     ],
+     [
+      0.007032320766390251,
+      0.02243479248641778
+     ],
+     [
+      0.007472348586870739,
+      0.023127497332312827
+     ],
+     [
+      0.00799510787022543,
+      0.023924603359006813
+     ],
+     [
+      0.00863234052903761,
+      0.024862024724739248
+     ],
+     [
+      0.009437609346431508,
+      0.02599879981593932
+     ],
+     [
+      0.01051243246926395,
+      0.027443581385945885
+     ],
+     [
+      0.012090363241666457,
+      0.029437916315289435
+     ],
+     [
+      0.014990343384483209,
+      0.032792445248927785
+     ],
+     [
+      2.2329497918980272,
+      0.6637622833518663
+     ],
+     [
+      2.37910601373508,
+      0.7284414197642607
+     ],
+     [
+      2.5122094012668206,
+      0.7973802569227142
+     ],
+     [
+      2.631681002230082,
+      0.8704563053351231
+     ],
+     [
+      2.7373116773960837,
+      0.9472368412301971
+     ],
+     [
+      2.829441575379972,
+      1.0270747632592023
+     ],
+     [
+      2.90894652704602,
+      1.1092373549912065
+     ],
+     [
+      2.9770819324615383,
+      1.1930223343264716
+     ]
+    ]
+   },
+   "run_network": {
+    "species": [
+     "species_1",
+     "species_2"
+    ],
+    "values": [
+     [
+      0.005776675777898,
+      0.02032982647124
+     ],
+     [
+      0.006035336631549,
+      0.02078076348418
+     ],
+     [
+      0.006325611423484,
+      0.02127551327463
+     ],
+     [
+      0.006654677542837,
+      0.02182291460626
+     ],
+     [
+      0.00703232076639,
+      0.02243479248642
+     ],
+     [
+      0.007472348586879,
+      0.02312749733232
+     ],
+     [
+      0.00799510787062,
+      0.0239246033592
+     ],
+     [
+      0.008632340529038,
+      0.02486202472474
+     ],
+     [
+      0.009437609346431,
+      0.02599879981594
+     ],
+     [
+      0.01051243246926,
+      0.02744358138595
+     ],
+     [
+      0.0120903632424,
+      0.02943791631586
+     ],
+     [
+      0.01499034338448,
+      0.03279244524893
+     ],
+     [
+      2.232949791898,
+      0.6637622833519
+     ],
+     [
+      2.379106013735,
+      0.7284414197643
+     ],
+     [
+      2.512209401267,
+      0.7973802569227
+     ],
+     [
+      2.63168100223,
+      0.8704563053351
+     ],
+     [
+      2.737311677396,
+      0.9472368412302
+     ],
+     [
+      2.82944157538,
+      1.027074763259
+     ],
+     [
+      2.908946527046,
+      1.109237354991
+     ],
+     [
+      2.977081932462,
+      1.193022334327
+     ]
+    ]
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 4,
+ "problem": "inflammation_rheumatoid_arthritis_baker2013",
+ "schema": 1,
+ "setting": "newton",
+ "started": "2026-11-24T20:38:40.341844+00:00",
+ "verdicts": {
+  "amici": {
+   "max_ratio": 0.0007196584422464259,
+   "max_rel": 7.201385236053303e-08,
+   "passed": true,
+   "per_point": [
+    1.1940184788702318e-11,
+    0.00027098355017287067,
+    0.00036818246283605967,
+    0.0002963945017270861,
+    0.00026910928463309516,
+    0.0002702826086323033,
+    0.00019968980158393765,
+    0.00023769597182559003,
+    0.00027235582037121557,
+    0.00029427911296021713,
+    0.0003572995238850401,
+    0.0007196584422464259,
+    0.00018705492847169477,
+    0.00014034869289999708,
+    0.0003194493568478085,
+    0.00021694371709613604,
+    3.653032572177525e-05,
+    0.0002515766122619213,
+    0.00029762295315617057,
+    4.751397381843053e-05
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 11,
+   "worst_species": "species_1"
+  },
+  "copasi": {
+   "max_ratio": 6.396013011895962e-07,
+   "max_rel": 6.396221907115366e-11,
+   "passed": true,
+   "per_point": [
+    1.4988946526109188e-12,
+    1.6687443703517005e-12,
+    0.0,
+    0.0,
+    2.463283814415196e-12,
+    2.3184210890932993e-12,
+    2.167020737276528e-12,
+    0.0,
+    1.836150725931574e-12,
+    1.2637502201187374e-12,
+    1.4336127281685773e-12,
+    2.775494024124373e-11,
+    1.988780807404268e-12,
+    6.396013011895962e-07,
+    5.569177504140549e-12,
+    1.1478698100833914e-11,
+    3.5160930006963034e-12,
+    2.161853216829785e-12,
+    1.5266171614826218e-12,
+    1.8611475891726422e-12
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 13,
+   "worst_species": "species_2"
+  },
+  "engine_free": {
+   "conservation": {
+    "max": 0.0,
+    "n_laws": 0,
+    "passed": true,
+    "tol": 1e-06
+   },
+   "evaluated": true,
+   "passed": true,
+   "residual": {
+    "evaluated": false,
+    "passed": true,
+    "reason": "ValueError: no species has a gross flux to judge its net rate against",
+    "tol": 0.0001
+   }
+  },
+  "roadrunner": {
+   "max_ratio": 6.063493706043561e-07,
+   "max_rel": 6.068508852060664e-11,
+   "passed": true,
+   "per_point": [
+    1.4988946526109188e-12,
+    1.6687443703517005e-12,
+    6.845130485538999e-12,
+    9.890874939323421e-11,
+    6.084311021605165e-10,
+    1.124202386101341e-08,
+    4.923102721566935e-07,
+    0.0,
+    3.672301451863134e-11,
+    6.891129166914268e-10,
+    6.063493706043561e-07,
+    8.326482072372449e-10,
+    9.605811299761696e-10,
+    4.853169185148968e-11,
+    5.569177504140549e-12,
+    2.5508218001853144e-12,
+    4.688124000928404e-12,
+    2.161853216829785e-12,
+    2.001724707663267e-12,
+    3.910271084851722e-09
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 10,
+   "worst_species": "species_1"
+  },
+  "run_network": {
+   "max_ratio": 3.064739024233136e-09,
+   "max_rel": 3.067654371402494e-13,
+   "passed": true,
+   "per_point": [
+    4.676551316145848e-10,
+    8.47722140138592e-10,
+    2.260750239034216e-09,
+    2.0928317259170888e-09,
+    1.0573061508909444e-09,
+    1.6179508126528152e-09,
+    5.872626198019047e-10,
+    4.5162856147977805e-10,
+    5.012691481793196e-10,
+    3.064739024233136e-09,
+    1.4126184178102213e-09,
+    1.3067951030252292e-09,
+    8.392655007245309e-10,
+    5.547570082395488e-10,
+    7.106178213046988e-10,
+    3.088045726612315e-10,
+    3.066220848525742e-10,
+    1.9716101337487643e-09,
+    1.8596022534191756e-09,
+    5.173990297899679e-10
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 9,
+   "worst_species": "species_1"
+  }
+ },
+ "wall_seconds": 47.218353388947435
+}

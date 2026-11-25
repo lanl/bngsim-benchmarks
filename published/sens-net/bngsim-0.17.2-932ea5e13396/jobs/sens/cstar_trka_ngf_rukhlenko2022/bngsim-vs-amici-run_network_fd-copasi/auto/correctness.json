@@ -1,0 +1,681 @@
+{
+ "bngsim_error": "RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati",
+ "capability": "sens",
+ "engines": "bngsim-vs-amici-run_network_fd-copasi",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "e3110c7b2519ce852b7ab8b8f51e21847419accf",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+ "key": "168a7aeb5a0b336f56ee1762442c7d0cf9fdee826f09c8b19cfa8f8d5e590e0f",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-run_network_fd-copasi/1",
+    "protocol": {
+     "atol": 1e-12,
+     "fd_atol": 1e-14,
+     "fd_rtol": 1e-12,
+     "fd_step": 0.001,
+     "fitted": [
+      "vpTRK",
+      "vpRTK",
+      "g_A_TRKERK",
+      "vpERK",
+      "g_A_TRKAKT",
+      "vpAKT",
+      "kpRSKA",
+      "g_A_AKTS6K"
+     ],
+     "netgen": "generate_network({overwrite=>1})",
+     "parameters": "independent",
+     "phases": [
+      {
+       "duration": 50000,
+       "set": {
+        "Lig_on": 0
+       }
+      },
+      {
+       "duration": 50000,
+       "reset": {
+        "S()": "2*S0"
+       }
+      },
+      {
+       "duration": 2700,
+       "n_steps": 270,
+       "set": {
+        "Lig_on": 1
+       }
+      }
+     ],
+     "rtol": 1e-10
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "1f5d6fbbba78a165a6068f3b2e0f1fa8066697856fd8be7f71fd1c550ef59def",
+    "verdict": {
+     "fd_resolved": 0.1,
+     "floor_atol": 100.0,
+     "floor_rel": 0.001,
+     "metric": "semi-scaled column error/1",
+     "tol": 0.001
+    }
+   },
+   "id": "sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {},
+  "engine_budget_seconds": 1974.539917377966,
+  "netgen_seconds": 2.234734366997145,
+  "network": {
+   "observables": 36,
+   "reactions": 405,
+   "species": 82
+  },
+  "parameters": {
+   "convention": "independent",
+   "excluded": {
+    "I_AKT_conc": "zero value: no relative step (give it a parameter_scales entry)",
+    "I_AdRTK_conc": "zero value: no relative step (give it a parameter_scales entry)",
+    "I_ERK_conc": "zero value: no relative step (give it a parameter_scales entry)",
+    "I_JNK_conc": "zero value: no relative step (give it a parameter_scales entry)",
+    "I_RSK_conc": "zero value: no relative step (give it a parameter_scales entry)",
+    "I_S6K_conc": "zero value: no relative step (give it a parameter_scales entry)",
+    "I_TRK_conc": "zero value: no relative step (give it a parameter_scales entry)",
+    "Lig_on": "set by the protocol",
+    "vDegRTKDim0": "zero value: no relative step (give it a parameter_scales entry)",
+    "vDegTRKDim0": "zero value: no relative step (give it a parameter_scales entry)"
+   },
+   "n": 88,
+   "names": [
+    "TRK_total",
+    "AdRTK_total",
+    "JNK_total",
+    "ERK_total",
+    "AKT_total",
+    "RSK_total",
+    "S6K_total",
+    "TRKl_conc",
+    "time_scale_dim",
+    "time_scale_JNK",
+    "time_scale_S6K",
+    "vSynTRK",
+    "vDegTRK",
+    "vDegTRKp",
+    "kpTRKl",
+    "KTRKl",
+    "f",
+    "KTRKdimall",
+    "vpTRK",
+    "vnTRK",
+    "vSynRTK",
+    "vDegRTK",
+    "vDegRTKp",
+    "KRTKdimall",
+    "vpRTK",
+    "vnRTK",
+    "factor",
+    "KpJNK",
+    "KnJNK",
+    "vpERK",
+    "KpERK",
+    "vnERK",
+    "KnERK",
+    "vpAKT",
+    "KpAKT",
+    "vnAKT",
+    "KnAKT",
+    "KpS6K",
+    "KnS6K",
+    "vpRSKbasal",
+    "kpRSKA",
+    "KpRSKA",
+    "vnRSK",
+    "KnRSK",
+    "g_A_S6KRTK",
+    "K_A_S6KRTK",
+    "g_A_ERKRTK",
+    "K_A_ERKRTK",
+    "g_A_ERKJNK",
+    "K_A_ERKJNK",
+    "g_A_RTKERK",
+    "K_A_RTKERK",
+    "g_A_TRKERK",
+    "K_A_TRKERK",
+    "g_A_S6KERK",
+    "K_A_S6KERK",
+    "g_A_AKTERK",
+    "K_A_AKTERK",
+    "g_A_JNKERK",
+    "K_A_JNKERK",
+    "g_A_RSKERK",
+    "K_A_RSKERK",
+    "g_A_RTKAKT",
+    "K_A_RTKAKT",
+    "g_A_TRKAKT",
+    "K_A_TRKAKT",
+    "g_A_S6KAKT",
+    "K_A_S6KAKT",
+    "g_A_RSKAKT",
+    "K_A_RSKAKT",
+    "g_A_JNKAKT",
+    "K_A_JNKAKT",
+    "g_A_ERKAKT",
+    "K_A_ERKAKT",
+    "g_A_AKTS6K",
+    "K_A_AKTS6K",
+    "kpinh",
+    "Kinh",
+    "beta_A_ERK",
+    "beta_A_JNK",
+    "beta_A_RSK",
+    "beta_A_S6K",
+    "alpha0",
+    "alphad",
+    "alphap",
+    "S0",
+    "Sd",
+    "Sp"
+   ],
+   "scales": {},
+   "selection": "independent"
+  },
+  "protocol_phases": [
+   {
+    "duration": 50000.0,
+    "n_steps": null,
+    "start": -100000.0,
+    "values": {
+     "Lig_on": 0.0
+    }
+   },
+   {
+    "duration": 50000.0,
+    "n_steps": null,
+    "resets": [
+     {
+      "expression": "2*S0",
+      "species": "S()",
+      "value": -8.727261739403005
+     }
+    ],
+    "start": -50000.0,
+    "values": {
+     "Lig_on": 0.0
+    }
+   },
+   {
+    "duration": 2700.0,
+    "n_steps": 270,
+    "start": 0.0,
+    "values": {
+     "Lig_on": 1.0
+    }
+   }
+  ],
+  "references": {
+   "amici": {
+    "codegen_seconds": 115.97744351695292,
+    "cold_seconds": 124.47607839899138,
+    "conservation_laws": false,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "integrator": "CVODES BDF, forward sensitivities",
+    "internal_sensitivity_method": "AMICI default (simultaneous)",
+    "load_seconds": 0.0076685219537466764,
+    "not_differentiated": {},
+    "parameter_scale": "linear",
+    "phases": "chained",
+    "solve_seconds": 6.2601775410585105,
+    "version": "1.1.0"
+   },
+   "run_network_fd": {
+    "atol": 1e-14,
+    "cold_seconds": 132.14949992694892,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-14",
+     "-r",
+     "1e-12",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<perturbed>.net",
+     "<perturbed>.net",
+     "10.0",
+     "270"
+    ],
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "engine": "run_network (fresh process per solve)",
+    "method": "central differences at steps h and h/2 (relative to each parameter's scale)",
+    "phases": {
+     "drift_last_half_of_unmeasured": [
+      0.008110051050110001,
+      0.001430445225999999
+     ],
+     "n": 3,
+     "processes_per_solve": 3
+    },
+    "rtol": 1e-12,
+    "solve_seconds": 132.1457341229543,
+    "solves": 1059,
+    "step": 0.001
+   }
+  },
+  "references_agreement": {
+   "amici_vs_run_network_fd": {
+    "max_error": 0.00016761687840528952,
+    "max_error_observables": 0.00016761687840528952,
+    "max_error_species": 0.00016761687840528952,
+    "n_columns": 10384,
+    "n_failed": 0,
+    "n_floored": 8205,
+    "n_judged": 10330,
+    "params_judged": [
+     "AKT_total",
+     "AdRTK_total",
+     "ERK_total",
+     "JNK_total",
+     "KRTKdimall",
+     "KTRKdimall",
+     "KTRKl",
+     "K_A_AKTERK",
+     "K_A_AKTS6K",
+     "K_A_ERKAKT",
+     "K_A_ERKJNK",
+     "K_A_ERKRTK",
+     "K_A_JNKAKT",
+     "K_A_JNKERK",
+     "K_A_RSKAKT",
+     "K_A_RSKERK",
+     "K_A_RTKAKT",
+     "K_A_RTKERK",
+     "K_A_S6KAKT",
+     "K_A_S6KERK",
+     "K_A_S6KRTK",
+     "K_A_TRKAKT",
+     "K_A_TRKERK",
+     "Kinh",
+     "KnAKT",
+     "KnERK",
+     "KnJNK",
+     "KnRSK",
+     "KnS6K",
+     "KpAKT",
+     "KpERK",
+     "KpJNK",
+     "KpRSKA",
+     "KpS6K",
+     "RSK_total",
+     "S0",
+     "S6K_total",
+     "Sd",
+     "Sp",
+     "TRK_total",
+     "TRKl_conc",
+     "alpha0",
+     "alphad",
+     "alphap",
+     "beta_A_ERK",
+     "beta_A_JNK",
+     "beta_A_RSK",
+     "beta_A_S6K",
+     "f",
+     "factor",
+     "g_A_AKTERK",
+     "g_A_AKTS6K",
+     "g_A_ERKAKT",
+     "g_A_ERKJNK",
+     "g_A_ERKRTK",
+     "g_A_JNKAKT",
+     "g_A_JNKERK",
+     "g_A_RSKAKT",
+     "g_A_RSKERK",
+     "g_A_RTKAKT",
+     "g_A_RTKERK",
+     "g_A_S6KAKT",
+     "g_A_S6KERK",
+     "g_A_S6KRTK",
+     "g_A_TRKAKT",
+     "g_A_TRKERK",
+     "kpRSKA",
+     "kpTRKl",
+     "kpinh",
+     "time_scale_JNK",
+     "time_scale_S6K",
+     "time_scale_dim",
+     "vDegRTK",
+     "vDegRTKp",
+     "vDegTRK",
+     "vDegTRKp",
+     "vSynRTK",
+     "vSynTRK",
+     "vnAKT",
+     "vnERK",
+     "vnRSK",
+     "vnRTK",
+     "vnTRK",
+     "vpAKT",
+     "vpERK",
+     "vpRSKbasal",
+     "vpRTK",
+     "vpTRK"
+    ],
+    "passed": true,
+    "tol": 0.001,
+    "trajectory_max_err_over_peak": 4.740807501258303e-09,
+    "worst": {
+     "error": 0.00016761687840528952,
+     "floored": false,
+     "output": "S()",
+     "parameter": "factor",
+     "time": 590.0
+    }
+   }
+  }
+ },
+ "not_applicable": {
+  "copasi": "a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next"
+ },
+ "outcome": "UNSUPPORTED",
+ "pinned_cpu": 0,
+ "problem": "cstar_trka_ngf_rukhlenko2022",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:34:49.769473+00:00",
+ "wall_seconds": 286.5022364790784
+}

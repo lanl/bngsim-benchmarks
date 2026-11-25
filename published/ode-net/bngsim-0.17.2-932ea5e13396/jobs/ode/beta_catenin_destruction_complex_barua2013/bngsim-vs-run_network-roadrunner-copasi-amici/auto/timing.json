@@ -1,0 +1,354 @@
+{
+ "capability": "ode",
+ "copasi_error": "KeyError: \"['I'] not in index\"",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+ "key": "becd2a9ae22e9bfaf7cc0d8ac55e13554597ea1a5c836254aa955c9993cc2932",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "protocol": {
+     "atol": 1e-08,
+     "n_steps": 1000,
+     "netgen": "generate_network({overwrite=>1,max_stoich=>{APC=>1,AXIN=>1,bCat=>1}})",
+     "rtol": 1e-08,
+     "sparse": true,
+     "t_end": 250000,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "cf61ed161abb4efddb5cccd423b278f984aa63777996095f1f041005ec8deb97",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 9.213417418010067,
+   "jacobian": "analytical",
+   "jacobian_seconds": 0.00010962598025798798,
+   "linear_solver": "KLU",
+   "load_seconds": 0.009712899976875633
+  },
+  "bngsim_cold_seconds": 9.642968330008443,
+  "engine_roles": {
+   "amici": "warm, in-process",
+   "bngsim": "warm, in-process (system under test)",
+   "roadrunner": "warm, in-process",
+   "run_network": "fresh subprocess"
+  },
+  "netgen_seconds": 16.791113908024272,
+  "network": {
+   "reactions": 2737,
+   "species": 409
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 192.30822545601404,
+    "integrator": "CVODES BDF",
+    "load_seconds": 0.005379101989092305,
+    "output": "amount",
+    "sensitivities": "none",
+    "version": "1.1.0"
+   },
+   "roadrunner": {
+    "integrator": "cvode",
+    "load_seconds": 10.94922765699448,
+    "output": "amount",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "command": [
+     "-o",
+     "$TMPDIR/bench-job-xanujvy_/rn",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-08",
+     "-r",
+     "1e-08",
+     "-b",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "$TMPDIR/bench-job-xanujvy_/netgen/model.net",
+     "$TMPDIR/bench-job-xanujvy_/netgen/model.net",
+     "250.0",
+     "1000"
+    ],
+    "solver": "sparse (-b)"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "amici": {
+     "seconds": [
+      0.6074715529975947,
+      0.6022770089912228,
+      0.6042676570068579,
+      0.6027713429939467,
+      0.6095406359818298,
+      0.6034122789860703,
+      0.6138066090061329,
+      0.6047374230111018
+     ]
+    },
+    "bngsim": {
+     "seconds": [
+      0.4003910830069799,
+      0.4009663589822594,
+      0.4007677460031118,
+      0.4010239120107144,
+      0.400707210006658,
+      0.4026607249979861,
+      0.41207115701399744,
+      0.41546304599614814
+     ]
+    },
+    "roadrunner": {
+     "seconds": [
+      0.63196887698723,
+      0.6328198369883467,
+      0.632212080003228,
+      0.6324977810145356,
+      0.6322560230037197,
+      0.6332057040126529,
+      0.6332535599940456,
+      0.6320067830092739
+     ]
+    },
+    "run_network": {
+     "seconds": [
+      13.858630742004607,
+      13.860453598987078,
+      13.86434928898234,
+      13.847845989017515,
+      15.59221962900483,
+      13.838390369026456,
+      13.88119720100076,
+      13.842856259987457
+     ]
+    }
+   },
+   "order": "bngsim run_network roadrunner amici",
+   "rounds": 8,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "amici": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 8,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "roadrunner": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "run_network": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 7,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "sparse_reference": {
+   "agrees_with_dense": true,
+   "max_rel": 0.0,
+   "n_hard_fail": 0,
+   "seconds": 13.922961814998416
+  },
+  "times": {
+   "amici": {
+    "ci_high": 0.6095406359818298,
+    "ci_low": 0.6028446439886466,
+    "confidence": 0.95,
+    "median_seconds": 0.6045025400089798,
+    "rounds": 8
+   },
+   "bngsim": {
+    "ci_high": 0.40913711728498997,
+    "ci_low": 0.400707210006658,
+    "confidence": 0.95,
+    "median_seconds": 0.4009951354964869,
+    "rounds": 8
+   },
+   "roadrunner": {
+    "ci_high": 0.6330127705004998,
+    "ci_low": 0.6320067830092739,
+    "confidence": 0.95,
+    "median_seconds": 0.6323769020091277,
+    "rounds": 8
+   },
+   "run_network": {
+    "ci_high": 13.88119720100076,
+    "ci_low": 13.842856259987457,
+    "confidence": 0.95,
+    "median_seconds": 13.859542170495843,
+    "rounds": 8
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "beta_catenin_destruction_complex_barua2013",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-20T07:41:53.041060+00:00",
+ "wall_seconds": 415.448477405007
+}

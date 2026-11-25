@@ -1,0 +1,533 @@
+{
+ "capability": "sens",
+ "engines": "bngsim-vs-amici-run_network_fd-copasi",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "e26cdf2e98d8215835b1ac69d9684666cbc8cc19",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness",
+ "key": "514ba5d1a497158f1333e39c2de3f2670cae7b083dc5bdc47391747f15d4580d",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-run_network_fd-copasi/1",
+    "protocol": {
+     "atol": 1e-08,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-10,
+     "fd_step": 0.001,
+     "fitted": [
+      "a1_perMpers",
+      "a2_perMpers",
+      "d1",
+      "d2",
+      "kcr",
+      "d1prime",
+      "d2prime"
+     ],
+     "n_steps": 48,
+     "netgen": "generate_network({overwrite=>1})",
+     "parameter_scales": {
+      "IGF1_cold_conc": 7e-12
+     },
+     "parameters": "fitted",
+     "rtol": 1e-08,
+     "t_end": 14400
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "90672c73670a408a01cb4e660cfde9b43d827c2896171f71a8781b7b9cf13fb3",
+    "verdict": {
+     "fd_resolved": 0.1,
+     "floor_atol": 100.0,
+     "floor_rel": 0.001,
+     "metric": "semi-scaled column error/1",
+     "tol": 0.001
+    }
+   },
+   "id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 4.786086047999561,
+   "cold_seconds": 4.923461882979609,
+   "linear_solver": "dense",
+   "load_seconds": 0.0059819420566782355,
+   "observables_check": {
+    "max_error": 0.0,
+    "n_failed": 0,
+    "n_judged": 21,
+    "passed": true
+   },
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null,
+   "solve_seconds": 0.13037540297955275,
+   "solver_stats": {
+    "n_err_test_fails": 1,
+    "n_rhs_evals": 476,
+    "n_sens_err_test_fails": 2,
+    "n_sens_nonlin_conv_fails": 0,
+    "n_steps": 227
+   }
+  },
+  "configurations": {
+   "bngsim_simultaneous": {
+    "max_error": 4.806277413941568e-06,
+    "max_error_observables": 8.427664619246934e-09,
+    "max_error_species": 4.806277413941568e-06,
+    "n_columns": 210,
+    "n_failed": 0,
+    "n_floored": 158,
+    "n_judged": 210,
+    "params_judged": [
+     "a1_perMpers",
+     "a2_perMpers",
+     "d1",
+     "d1prime",
+     "d2",
+     "d2prime",
+     "kcr"
+    ],
+    "passed": true,
+    "tol": 0.001,
+    "trajectory_max_err_over_peak": 9.333010349813138e-07,
+    "worst": {
+     "error": 4.806277413941568e-06,
+     "floored": false,
+     "output": "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+     "parameter": "d1prime",
+     "time": 8100.0
+    }
+   }
+  },
+  "coverage": {
+   "n_columns": 210,
+   "n_judged": 52,
+   "n_significant": 52,
+   "unjudged": []
+  },
+  "engine_budget_seconds": 1800.0,
+  "netgen_seconds": 1.4469593779649585,
+  "network": {
+   "observables": 3,
+   "reactions": 96,
+   "species": 27
+  },
+  "parameters": {
+   "convention": "fitted",
+   "excluded": {},
+   "n": 7,
+   "names": [
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d2",
+    "kcr",
+    "d1prime",
+    "d2prime"
+   ],
+   "scales": {},
+   "selection": "fitted"
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 37.44834989996161,
+    "cold_seconds": 40.6204923420446,
+    "conservation_laws": true,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "integrator": "CVODES BDF, forward sensitivities",
+    "internal_sensitivity_method": "AMICI default (simultaneous)",
+    "load_seconds": 0.0014058529632166028,
+    "not_differentiated": {},
+    "parameter_scale": "linear",
+    "phases": "single",
+    "solve_seconds": 0.04046047700103372,
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 10.50204714096617,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "load_seconds": 0.3860006749164313,
+    "method": "time-course sensitivities (LSODA Sensitivities)",
+    "not_differentiated": {},
+    "output": "amount",
+    "solve_seconds": 7.084606143063866,
+    "version": "4.48.311"
+   },
+   "run_network_fd": {
+    "atol": 1e-12,
+    "cold_seconds": 0.7584383960347623,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-10",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<perturbed>.net",
+     "<perturbed>.net",
+     "300.0",
+     "48"
+    ],
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "engine": "run_network (fresh process per solve)",
+    "method": "central differences at steps h and h/2 (relative to each parameter's scale)",
+    "rtol": 1e-10,
+    "solve_seconds": 0.7548223109915853,
+    "solves": 29,
+    "step": 0.001
+   }
+  }
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 10,
+ "problem": "igf1r_ligand_binding_erickson2019",
+ "schema": 1,
+ "setting": "fitted",
+ "started": "2026-11-24T20:21:29.922453+00:00",
+ "verdicts": {
+  "amici": {
+   "max_error": 3.971654762082716e-06,
+   "max_error_observables": 1.3279348210175597e-08,
+   "max_error_species": 3.971654762082716e-06,
+   "n_columns": 210,
+   "n_failed": 0,
+   "n_floored": 158,
+   "n_judged": 210,
+   "params_judged": [
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d1prime",
+    "d2",
+    "d2prime",
+    "kcr"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 8.152757834319884e-07,
+   "worst": {
+    "error": 3.971654762082716e-06,
+    "floored": false,
+    "output": "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+    "parameter": "d1prime",
+    "time": 8100.0
+   }
+  },
+  "copasi": {
+   "failed": [
+    [
+     "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+     "d1prime",
+     1.8249582962533604
+    ],
+    [
+     "IGF1(ds,hs!1,label~hot).IGF1R(C!2,S1,S2!1).IGF1R(C!2,S1,S2)",
+     "d2prime",
+     1.0093289770305758
+    ],
+    [
+     "IGF1(ds!1,hs!2,label~hot).IGF1(ds!3,hs,label~hot).IGF1R(C!4,S1!3,S2!2).IGF1R(C!4,S1!1,S2)",
+     "d2prime",
+     1.0092114911038135
+    ],
+    [
+     "IGF1R(C!1,S1,S2).IGF1R(C!1,S1,S2)",
+     "d2prime",
+     1.009195918148801
+    ],
+    [
+     "observable:IGF1_hot_bound",
+     "d2prime",
+     1.0091951538099115
+    ],
+    [
+     "IGF1(ds,hs,label~hot)",
+     "d2prime",
+     1.0091951537674373
+    ],
+    [
+     "observable:IGF1_hot_free",
+     "d2prime",
+     1.0091951537674373
+    ],
+    [
+     "IGF1(ds!1,hs!2,label~hot).IGF1R(C!3,S1!1,S2).IGF1R(C!3,S1,S2!2)",
+     "d2prime",
+     1.009182124275754
+    ],
+    [
+     "observable:IGF1_hot_crosslinked",
+     "d2prime",
+     1.0091813575442459
+    ],
+    [
+     "IGF1(ds!1,hs,label~hot).IGF1R(C!2,S1!1,S2).IGF1R(C!2,S1,S2)",
+     "d1prime",
+     1.007801500828557
+    ],
+    [
+     "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+     "d2prime",
+     1.0075179243171541
+    ],
+    [
+     "IGF1(ds!1,hs,label~hot).IGF1R(C!2,S1!1,S2).IGF1R(C!2,S1,S2)",
+     "d2",
+     1.0056799373310934
+    ],
+    [
+     "IGF1(ds!1,hs,label~hot).IGF1R(C!2,S1!1,S2).IGF1R(C!2,S1,S2)",
+     "d2prime",
+     1.0039352819058571
+    ],
+    [
+     "IGF1(ds,hs!1,label~hot).IGF1R(C!2,S1,S2!1).IGF1R(C!2,S1,S2)",
+     "d1",
+     1.003215031861269
+    ],
+    [
+     "IGF1(ds!1,hs!2,label~hot).IGF1R(C!3,S1!1,S2).IGF1R(C!3,S1,S2!2)",
+     "d1",
+     1.0030911901793393
+    ],
+    [
+     "observable:IGF1_hot_crosslinked",
+     "d1",
+     1.0026332807663618
+    ],
+    [
+     "IGF1(ds,hs,label~hot)",
+     "a1_perMpers",
+     1.0
+    ],
+    [
+     "IGF1(ds,hs,label~hot)",
+     "a2_perMpers",
+     1.0
+    ],
+    [
+     "IGF1(ds,hs,label~hot)",
+     "kcr",
+     1.0
+    ],
+    [
+     "IGF1R(C!1,S1,S2).IGF1R(C!1,S1,S2)",
+     "a1_perMpers",
+     1.0
+    ]
+   ],
+   "max_error": 1.8249582962533604,
+   "max_error_observables": 1.0091951538099115,
+   "max_error_species": 1.8249582962533604,
+   "n_columns": 210,
+   "n_failed": 91,
+   "n_floored": 140,
+   "n_judged": 210,
+   "params_failed": [
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d1prime",
+    "d2",
+    "d2prime",
+    "kcr"
+   ],
+   "params_judged": [
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d1prime",
+    "d2",
+    "d2prime",
+    "kcr"
+   ],
+   "passed": false,
+   "refuted_by": [
+    "amici",
+    "run_network_fd"
+   ],
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 8.453915685748806e-07,
+   "worst": {
+    "error": 1.8249582962533604,
+    "floored": false,
+    "output": "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+    "parameter": "d1prime",
+    "time": 14400.0
+   }
+  },
+  "run_network_fd": {
+   "max_error": 5.7311237993781686e-05,
+   "max_error_observables": 3.9692337229424404e-07,
+   "max_error_species": 5.7311237993781686e-05,
+   "n_columns": 210,
+   "n_failed": 0,
+   "n_floored": 156,
+   "n_judged": 208,
+   "params_judged": [
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d1prime",
+    "d2",
+    "d2prime",
+    "kcr"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 8.173483485167315e-07,
+   "worst": {
+    "error": 5.7311237993781686e-05,
+    "floored": true,
+    "output": "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+    "parameter": "d2prime",
+    "time": 9000.0
+   }
+  }
+ },
+ "wall_seconds": 60.820137739996426
+}

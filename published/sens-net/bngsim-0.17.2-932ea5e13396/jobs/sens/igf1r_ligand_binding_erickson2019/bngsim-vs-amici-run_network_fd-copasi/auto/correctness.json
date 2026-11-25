@@ -1,0 +1,399 @@
+{
+ "capability": "sens",
+ "copasi_error": "RuntimeError: COPASI time-course sensitivities run failed: >WARNING 2026-11-24T13:27:57<\n  SBML (91): The default substance unit has not been set in the model. COPASI will use mole as the default substance unit.\n>WARNING 2026-11-24T13:27:57<\n  SBML (91): The default time unit has not been set in the model. COPASI will use second as the default time unit.\n>W",
+ "engines": "bngsim-vs-amici-run_network_fd-copasi",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "e3110c7b2519ce852b7ab8b8f51e21847419accf",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+ "key": "03de5037027f9ccdb63a6d5279df7b937266611677f77c8fe36c2ddffe2bc00a",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-run_network_fd-copasi/1",
+    "protocol": {
+     "atol": 1e-08,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-10,
+     "fd_step": 0.001,
+     "fitted": [
+      "a1_perMpers",
+      "a2_perMpers",
+      "d1",
+      "d2",
+      "kcr",
+      "d1prime",
+      "d2prime"
+     ],
+     "n_steps": 48,
+     "netgen": "generate_network({overwrite=>1})",
+     "parameter_scales": {
+      "IGF1_cold_conc": 7e-12
+     },
+     "parameters": "independent",
+     "rtol": 1e-08,
+     "t_end": 14400
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "90672c73670a408a01cb4e660cfde9b43d827c2896171f71a8781b7b9cf13fb3",
+    "verdict": {
+     "fd_resolved": 0.1,
+     "floor_atol": 100.0,
+     "floor_rel": 0.001,
+     "metric": "semi-scaled column error/1",
+     "tol": 0.001
+    }
+   },
+   "id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 3.88284604891669,
+   "cold_seconds": 4.243219500989653,
+   "linear_solver": "dense",
+   "load_seconds": 0.0025897989980876446,
+   "observables_check": {
+    "max_error": 0.0,
+    "n_failed": 0,
+    "n_judged": 33,
+    "passed": true
+   },
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null,
+   "solve_seconds": 0.3570585580309853,
+   "solver_stats": {
+    "n_err_test_fails": 0,
+    "n_rhs_evals": 693,
+    "n_sens_err_test_fails": 14,
+    "n_sens_nonlin_conv_fails": 0,
+    "n_steps": 330
+   }
+  },
+  "configurations": {
+   "bngsim_simultaneous": {
+    "max_error": 2.2916176413975648e-07,
+    "max_error_observables": 3.378474517205921e-09,
+    "max_error_species": 2.2916176413975648e-07,
+    "n_columns": 330,
+    "n_failed": 0,
+    "n_floored": 231,
+    "n_judged": 330,
+    "params_judged": [
+     "IGF1_cold_conc",
+     "IGF1_hot_conc",
+     "NA",
+     "a1_perMpers",
+     "a2_perMpers",
+     "d1",
+     "d1prime",
+     "d2",
+     "d2prime",
+     "f",
+     "kcr"
+    ],
+    "passed": true,
+    "tol": 0.001,
+    "trajectory_max_err_over_peak": 4.901819946214743e-08,
+    "worst": {
+     "error": 2.2916176413975648e-07,
+     "floored": false,
+     "output": "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+     "parameter": "d1prime",
+     "time": 12600.0
+    }
+   }
+  },
+  "coverage": {
+   "n_columns": 330,
+   "n_judged": 99,
+   "n_significant": 99,
+   "unjudged": []
+  },
+  "engine_budget_seconds": 1800.0,
+  "netgen_seconds": 0.8241814030334353,
+  "network": {
+   "observables": 3,
+   "reactions": 96,
+   "species": 27
+  },
+  "parameters": {
+   "convention": "independent",
+   "excluded": {},
+   "n": 11,
+   "names": [
+    "f",
+    "NA",
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d2",
+    "kcr",
+    "d1prime",
+    "d2prime",
+    "IGF1_hot_conc",
+    "IGF1_cold_conc"
+   ],
+   "scales": {
+    "IGF1_cold_conc": 7e-12
+   },
+   "selection": "independent"
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 25.79282027098816,
+    "cold_seconds": 29.193915973068215,
+    "conservation_laws": true,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "integrator": "CVODES BDF, forward sensitivities",
+    "internal_sensitivity_method": "AMICI default (simultaneous)",
+    "load_seconds": 0.0040090070106089115,
+    "not_differentiated": {},
+    "parameter_scale": "linear",
+    "phases": "single",
+    "solve_seconds": 0.04482745798304677,
+    "version": "1.1.0"
+   },
+   "run_network_fd": {
+    "atol": 1e-12,
+    "cold_seconds": 0.626768241985701,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-10",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<perturbed>.net",
+     "<perturbed>.net",
+     "300.0",
+     "48"
+    ],
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "engine": "run_network (fresh process per solve)",
+    "method": "central differences at steps h and h/2 (relative to each parameter's scale)",
+    "rtol": 1e-10,
+    "solve_seconds": 0.6249659520108253,
+    "solves": 45,
+    "step": 0.001
+   }
+  }
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 3,
+ "problem": "igf1r_ligand_binding_erickson2019",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:27:19.459391+00:00",
+ "verdicts": {
+  "amici": {
+   "max_error": 4.431431546667307e-07,
+   "max_error_observables": 3.800135127485844e-08,
+   "max_error_species": 4.431431546667307e-07,
+   "n_columns": 330,
+   "n_failed": 0,
+   "n_floored": 231,
+   "n_judged": 330,
+   "params_judged": [
+    "IGF1_cold_conc",
+    "IGF1_hot_conc",
+    "NA",
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d1prime",
+    "d2",
+    "d2prime",
+    "f",
+    "kcr"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 1.1036458963850224e-07,
+   "worst": {
+    "error": 4.431431546667307e-07,
+    "floored": false,
+    "output": "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+    "parameter": "d1prime",
+    "time": 11400.0
+   }
+  },
+  "run_network_fd": {
+   "max_error": 5.717246514698438e-05,
+   "max_error_observables": 3.981360404433886e-07,
+   "max_error_species": 5.717246514698438e-05,
+   "n_columns": 330,
+   "n_failed": 0,
+   "n_floored": 229,
+   "n_judged": 328,
+   "params_judged": [
+    "IGF1_cold_conc",
+    "IGF1_hot_conc",
+    "NA",
+    "a1_perMpers",
+    "a2_perMpers",
+    "d1",
+    "d1prime",
+    "d2",
+    "d2prime",
+    "f",
+    "kcr"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 8.824298289696049e-08,
+   "worst": {
+    "error": 5.717246514698438e-05,
+    "floored": true,
+    "output": "IGF1(ds!1,hs!2,label~hot).IGF1(ds,hs!3,label~hot).IGF1R(C!4,S1!1,S2!3).IGF1R(C!4,S1,S2!2)",
+    "parameter": "d2prime",
+    "time": 9000.0
+   }
+  }
+ },
+ "wall_seconds": 495.31711837707553
+}

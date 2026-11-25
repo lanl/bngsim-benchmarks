@@ -1,0 +1,879 @@
+{
+ "capability": "steady_state",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "09925d1c3708ea2e810991b29031a541fcb66ebb",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "steady_state/histone_h4_acetylation_motifs_blasi2016/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+ "key": "80c313722f3287b72ae363df505acfdc364b664b0d0abb733524c6083bb770b6",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "steady_state/bngsim-vs-run_network-roadrunner-copasi-amici/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "n_steps": 20,
+     "parameters": {
+      "a_basal": 0.066799999926855,
+      "a_k12_k5k12": 0.551899999917063,
+      "a_k12k16_k8k12k16": 2.2054999994189,
+      "a_k16_k12k16": 0.695899999206803,
+      "a_k5_k5k12": 2.06200000024928,
+      "a_k5k12_k5k8k12": 0.325299999788883,
+      "a_k8": 0.027299999997438,
+      "a_k8k12k16_4ac": 3.59170000273213
+     },
+     "rtol": 1e-08,
+     "t_end": 1000000.0
+    },
+    "reference_settings": {
+     "amici": {
+      "mode": "integrationOnly",
+      "output": "state (concentration)",
+      "steady_state_tolerance_factor": 1.0,
+      "steady_state_tolerances": "protocol rtol/atol",
+      "tolerances": "protocol rtol/atol"
+     },
+     "copasi": {
+      "method": "Enhanced Newton (COPASI's defaults)",
+      "output": "concentration",
+      "task": "Steady-State"
+     },
+     "roadrunner": {
+      "allow_presimulation": true,
+      "conserved_moiety_analysis": true,
+      "integrator": "cvode, protocol tolerances",
+      "output": "concentration",
+      "solver": "nleq2"
+     },
+     "run_network": {
+      "grid": "n_steps",
+      "horizon": "t_end",
+      "input": "network derived from the SBML (ode.derive_network)",
+      "method": "cvode (dense)"
+     }
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "bngsim": {
+      "atol": "protocol (float, per-species ceiling)",
+      "input": "sbml (Model.from_sbml)",
+      "mask": null,
+      "max_time": "t_end",
+      "method": "newton",
+      "output": "concentration",
+      "rtol": "protocol"
+     },
+     "codegen": "auto"
+    },
+    "source_sha256": "f9469a2b49524f5f7d3ab0fbe43f7d8cd89c30a15915e9cc99a7be32918ee9df",
+    "verdict": {
+     "agreement": "species by species at every point, |a-b| <= rtol*max(|a|,|b|) + atol/1",
+     "atol_factor": 10.0,
+     "conservation_atol": "atol_factor * protocol atol, added to the law's tolerance",
+     "conservation_tol": 1e-06,
+     "law_coeff_floor": 1e-12,
+     "peak_floor": 1e-09,
+     "residual_floor": 1e-06,
+     "residual_floor_of": "max_j g_j at the state and at the point's initial state",
+     "residual_leaves_out": "species a rate rule moves",
+     "residual_tol": 0.0001,
+     "rtol": 0.0001,
+     "settled": 0.1
+    }
+   },
+   "id": "steady_state/histone_h4_acetylation_motifs_blasi2016/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_seconds": 0.015696095069870353,
+   "cold_seconds": 0.1732371710240841,
+   "input": "sbml (Model.from_sbml)",
+   "load_seconds": 0.15100090706255287,
+   "mask": null,
+   "method": "newton",
+   "methods_used": [
+    "newton"
+   ],
+   "points": [
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 3,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.0949905195200245e-18,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    }
+   ],
+   "root_stability": [
+    "stable"
+   ]
+  },
+  "bngsim_integration": {
+   "config": {
+    "atol": "float (per-species ceiling)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.012926607974804938,
+    "cold_seconds": 0.12854740000329912,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.10906143498141319,
+    "mask": null,
+    "method": "integration",
+    "methods_used": [
+     "integration"
+    ],
+    "points": [
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 291,
+      "n_steps": 245,
+      "n_unstable_roots_rejected": 0,
+      "residual": 7.006800714025061e-19,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     }
+    ],
+    "root_stability": [
+     ""
+    ]
+   },
+   "engine_free": {
+    "conservation": {
+     "max": 2.5301516514337074e-12,
+     "n_laws": 1,
+     "passed": true,
+     "tol": 1e-06,
+     "worst_point": 0
+    },
+    "evaluated": true,
+    "passed": true,
+    "residual": {
+     "evaluated": true,
+     "max": 1.368634345267742e-16,
+     "passed": true,
+     "tol": 0.0001,
+     "worst_point": 0,
+     "worst_species": "@comp1::x_k5k16()"
+    }
+   },
+   "vs_bngsim": {
+    "max_ratio": 3.203751199793528e-08,
+    "max_rel": 3.203867741513135e-12,
+    "passed": true,
+    "points": 1,
+    "points_agreed": 1,
+    "worst_point": 0,
+    "worst_species": "x_0ac"
+   },
+   "vs_integration": {
+    "max_ratio": 1.099210552813601e-06,
+    "max_rel": 1.099516516783762e-10,
+    "passed": true,
+    "points": 1,
+    "points_agreed": 1,
+    "worst_point": 0,
+    "worst_species": "x_k16"
+   }
+  },
+  "conservation_laws": 1,
+  "derived_network": {
+   "bngsim_only": [],
+   "conversion_seconds": 0.1739950249902904,
+   "converter_notes": [],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 0.0,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 0.01,
+      "err": 0.0,
+      "err_over_peak": 0.0,
+      "index": 0,
+      "peak": 1.0,
+      "score": 0.0,
+      "species": "x_0ac",
+      "t": 0.0
+     }
+    }
+   },
+   "netgen_seconds": 1.2387194299371913,
+   "network": {
+    "reactions": 64,
+    "species": 16
+   },
+   "phases": 1,
+   "seconds": 1.6008276770589873
+  },
+  "doses": {
+   "a_basal": "parameter",
+   "a_k12_k5k12": "parameter",
+   "a_k12k16_k8k12k16": "parameter",
+   "a_k16_k12k16": "parameter",
+   "a_k5_k5k12": "parameter",
+   "a_k5k12_k5k8k12": "parameter",
+   "a_k8": "parameter",
+   "a_k8k12k16_4ac": "parameter"
+  },
+  "engine_budget_seconds": 1800.0,
+  "integration_reference": "run_network",
+  "network": {
+   "reactions": 32,
+   "species": 16
+  },
+  "points": [
+   {
+    "a_basal": 0.066799999926855,
+    "a_k12_k5k12": 0.551899999917063,
+    "a_k12k16_k8k12k16": 2.2054999994189,
+    "a_k16_k12k16": 0.695899999206803,
+    "a_k5_k5k12": 2.06200000024928,
+    "a_k5k12_k5k8k12": 0.325299999788883,
+    "a_k8": 0.027299999997438,
+    "a_k8k12k16_4ac": 3.59170000273213
+   }
+  ],
+  "reference_checks": {
+   "amici": {
+    "engine_free": {
+     "conservation": {
+      "max": 2.1917460646383384e-16,
+      "n_laws": 1,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 0
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 2.2119592707447884e-08,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 0,
+      "worst_species": "@comp1::x_0ac()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 0.00023813587641728341,
+     "max_rel": 2.385559792165391e-08,
+     "passed": true,
+     "points": 1,
+     "points_agreed": 1,
+     "worst_point": 0,
+     "worst_species": "x_k5k8"
+    }
+   },
+   "copasi": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 1,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 0
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 2.324324745039796e-14,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 0,
+      "worst_species": "@comp1::x_k5k8k16()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 1.0671789268706403e-06,
+     "max_rel": 1.0674759748752315e-10,
+     "passed": true,
+     "points": 1,
+     "points_agreed": 1,
+     "worst_point": 0,
+     "worst_species": "x_k16"
+    }
+   },
+   "roadrunner": {
+    "engine_free": {
+     "conservation": {
+      "max": 5.479365149504911e-17,
+      "n_laws": 1,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 0
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 2.7163795213115787e-14,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 0,
+      "worst_species": "@comp1::x_k5k8k16()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 1.0671789268706403e-06,
+     "max_rel": 1.0674759748752315e-10,
+     "passed": true,
+     "points": 1,
+     "points_agreed": 1,
+     "worst_point": 0,
+     "worst_species": "x_k16"
+    }
+   },
+   "run_network": {
+    "engine_free": {
+     "conservation": {
+      "max": 8.425038977874033e-11,
+      "n_laws": 1,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 0
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 1.4269380630257565e-13,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 0,
+      "worst_species": "@comp1::x_k5k12k16()"
+     }
+    }
+   }
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 33.88065883994568,
+    "cold_seconds": 38.0794092209544,
+    "load_seconds": 0.0009929679799824953,
+    "mode": "integrationOnly (simulation to steady state)",
+    "output": "state (concentration)",
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 4.368353125988506,
+    "load_seconds": 0.22533374605700374,
+    "method": {
+     "Iteration Limit": 50,
+     "Resolution": 1e-09,
+     "Target Criterion": "Distance and Rate",
+     "Use Back Integration": false,
+     "Use Integration": true,
+     "Use Newton": true,
+     "name": "Enhanced Newton"
+    },
+    "output": "concentration",
+    "task": "Steady-State",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 1.4648717410163954,
+    "conserved_moiety_analysis": true,
+    "load_seconds": 0.6942854959052056,
+    "output": "concentration",
+    "settings": {
+     "allow_presimulation": true,
+     "maximum_iterations": 100,
+     "presimulation_times": [
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "relative_tolerance": 1e-12
+    },
+    "solver": "nleq2",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "cold_seconds": 0.04582402901723981,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-10",
+     "-r",
+     "1e-08",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<point>.net",
+     "<point>.net",
+     "50000.0",
+     "20"
+    ],
+    "input": "network derived from the SBML",
+    "method": "cvode (dense), integrated to t_end",
+    "settled": {
+     "max": 3.175307980550269e-08,
+     "per_point": [
+      3.175307980550269e-08
+     ],
+     "tol": 0.1
+    }
+   }
+  },
+  "sbml": {
+   "compared_species": 16,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [],
+    "constant": []
+   },
+   "reactions": 32,
+   "species": 16
+  },
+  "states": {
+   "amici": {
+    "species": [
+     "x_0ac",
+     "x_k8",
+     "x_k5",
+     "x_k12",
+     "x_k16",
+     "x_k5k8",
+     "x_k5k12",
+     "x_k5k16",
+     "x_k8k12",
+     "x_k8k16",
+     "x_k12k16",
+     "x_k5k8k12",
+     "x_k5k8k16",
+     "x_k5k12k16",
+     "x_k8k12k16",
+     "x_4ac"
+    ],
+    "values": [
+     [
+      0.7376317804586144,
+      0.03148187379144444,
+      0.03342261904827751,
+      0.06712811751322616,
+      0.03592614371113352,
+      0.0056685142578992,
+      0.04796239965499926,
+      0.003900604870317374,
+      0.0076703739828115035,
+      0.004314605912203617,
+      0.008237866135177128,
+      0.006417148505652263,
+      0.0013415735033365439,
+      0.00234825972721251,
+      0.003361214132282629,
+      0.0031869047954116896
+     ]
+    ]
+   },
+   "bngsim": {
+    "species": [
+     "x_0ac",
+     "x_k8",
+     "x_k5",
+     "x_k12",
+     "x_k16",
+     "x_k5k8",
+     "x_k5k12",
+     "x_k5k16",
+     "x_k8k12",
+     "x_k8k16",
+     "x_k12k16",
+     "x_k5k8k12",
+     "x_k5k8k16",
+     "x_k5k12k16",
+     "x_k8k12k16",
+     "x_4ac"
+    ],
+    "values": [
+     [
+      0.7376317776642078,
+      0.031481874385749765,
+      0.03342261934277565,
+      0.06712811828295762,
+      0.035926143598905044,
+      0.005668514393729175,
+      0.047962400382543895,
+      0.0039006049049279978,
+      0.007670374138075257,
+      0.004314605945598304,
+      0.008237866135903322,
+      0.006417148620839366,
+      0.001341573512473895,
+      0.0023482597526781075,
+      0.00336121413597908,
+      0.003186904802656071
+     ]
+    ]
+   },
+   "bngsim_integration": {
+    "species": [
+     "x_0ac",
+     "x_k8",
+     "x_k5",
+     "x_k12",
+     "x_k16",
+     "x_k5k8",
+     "x_k5k12",
+     "x_k5k16",
+     "x_k8k12",
+     "x_k8k16",
+     "x_k12k16",
+     "x_k5k8k12",
+     "x_k5k8k16",
+     "x_k5k12k16",
+     "x_k8k12k16",
+     "x_4ac"
+    ],
+    "values": [
+     [
+      0.7376317776665711,
+      0.03148187438585063,
+      0.03342261934288273,
+      0.06712811828317267,
+      0.03592614359902014,
+      0.0056685143937473354,
+      0.04796240038269755,
+      0.0039006049049404943,
+      0.007670374138099831,
+      0.004314605945612126,
+      0.008237866135929714,
+      0.006417148620859925,
+      0.0013415735124781931,
+      0.002348259752685631,
+      0.0033612141359898482,
+      0.003186904802666281
+     ]
+    ]
+   },
+   "copasi": {
+    "species": [
+     "x_0ac",
+     "x_k8",
+     "x_k5",
+     "x_k12",
+     "x_k16",
+     "x_k5k8",
+     "x_k5k12",
+     "x_k5k16",
+     "x_k8k12",
+     "x_k8k16",
+     "x_k12k16",
+     "x_k5k8k12",
+     "x_k5k8k16",
+     "x_k5k12k16",
+     "x_k8k12k16",
+     "x_4ac"
+    ],
+    "values": [
+     [
+      0.7376317776642076,
+      0.03148187438574976,
+      0.03342261934277564,
+      0.0671281182829576,
+      0.03592614359890503,
+      0.005668514393729172,
+      0.04796240038254388,
+      0.003900604904927997,
+      0.007670374138075255,
+      0.004314605945598302,
+      0.008237866135903318,
+      0.006417148620839363,
+      0.0013415735124738474,
+      0.002348259752678107,
+      0.003361214135979079,
+      0.00318690480265607
+     ]
+    ]
+   },
+   "roadrunner": {
+    "species": [
+     "x_0ac",
+     "x_k8",
+     "x_k5",
+     "x_k12",
+     "x_k16",
+     "x_k5k8",
+     "x_k5k12",
+     "x_k5k16",
+     "x_k8k12",
+     "x_k8k16",
+     "x_k12k16",
+     "x_k5k8k12",
+     "x_k5k8k16",
+     "x_k5k12k16",
+     "x_k8k12k16",
+     "x_4ac"
+    ],
+    "values": [
+     [
+      0.7376317776642076,
+      0.03148187438574976,
+      0.033422619342775635,
+      0.06712811828295759,
+      0.03592614359890503,
+      0.005668514393729172,
+      0.047962400382543874,
+      0.003900604904927996,
+      0.007670374138075255,
+      0.004314605945598301,
+      0.008237866135903318,
+      0.006417148620839364,
+      0.0013415735124738398,
+      0.0023482597526781066,
+      0.0033612141359790786,
+      0.00318690480265607
+     ]
+    ]
+   },
+   "run_network": {
+    "species": [
+     "x_0ac",
+     "x_k8",
+     "x_k5",
+     "x_k12",
+     "x_k16",
+     "x_k5k8",
+     "x_k5k12",
+     "x_k5k16",
+     "x_k8k12",
+     "x_k8k16",
+     "x_k12k16",
+     "x_k5k8k12",
+     "x_k5k8k16",
+     "x_k5k12k16",
+     "x_k8k12k16",
+     "x_4ac"
+    ],
+    "values": [
+     [
+      0.7376317775855,
+      0.03148187438239,
+      0.03342261933921,
+      0.0671281182758,
+      0.03592614359507,
+      0.005668514393125,
+      0.04796240037743,
+      0.003900604904512,
+      0.007670374137257,
+      0.004314605945138,
+      0.008237866135025,
+      0.006417148620155,
+      0.001341573512331,
+      0.002348259752428,
+      0.003361214135621,
+      0.003186904802316
+     ]
+    ]
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 3,
+ "problem": "histone_h4_acetylation_motifs_blasi2016",
+ "schema": 1,
+ "setting": "newton",
+ "started": "2026-11-24T20:38:40.342723+00:00",
+ "verdicts": {
+  "amici": {
+   "max_ratio": 0.00023919984251845813,
+   "max_rel": 2.3962182229288207e-08,
+   "passed": true,
+   "per_point": [
+    0.00023919984251845813
+   ],
+   "points": 1,
+   "points_agreed": 1,
+   "worst_point": 0,
+   "worst_species": "x_k5k8"
+  },
+  "copasi": {
+   "max_ratio": 3.5135384584404765e-10,
+   "max_rel": 3.5397281411210884e-14,
+   "passed": true,
+   "per_point": [
+    3.5135384584404765e-10
+   ],
+   "points": 1,
+   "points_agreed": 1,
+   "worst_point": 0,
+   "worst_species": "x_k5k8k16"
+  },
+  "engine_free": {
+   "conservation": {
+    "max": 2.739682574752455e-16,
+    "n_laws": 1,
+    "passed": true,
+    "per_point": [
+     2.739682574752455e-16
+    ],
+    "tol": 1e-06,
+    "worst_point": 0
+   },
+   "evaluated": true,
+   "passed": true,
+   "residual": {
+    "evaluated": true,
+    "max": 1.387723088568464e-16,
+    "passed": true,
+    "per_point": [
+     1.387723088568464e-16
+    ],
+    "tol": 0.0001,
+    "worst_point": 0,
+    "worst_species": "@comp1::x_k16()"
+   }
+  },
+  "roadrunner": {
+   "max_ratio": 4.075062869606763e-10,
+   "max_rel": 4.1054381180125867e-14,
+   "passed": true,
+   "per_point": [
+    4.075062869606763e-10
+   ],
+   "points": 1,
+   "points_agreed": 1,
+   "worst_point": 0,
+   "worst_species": "x_k5k8k16"
+  },
+  "run_network": {
+   "max_ratio": 1.0671827886616998e-06,
+   "max_rel": 1.067479837741216e-10,
+   "passed": true,
+   "per_point": [
+    1.0671827886616998e-06
+   ],
+   "points": 1,
+   "points_agreed": 1,
+   "worst_point": 0,
+   "worst_species": "x_k16"
+  }
+ },
+ "wall_seconds": 48.03068243910093
+}

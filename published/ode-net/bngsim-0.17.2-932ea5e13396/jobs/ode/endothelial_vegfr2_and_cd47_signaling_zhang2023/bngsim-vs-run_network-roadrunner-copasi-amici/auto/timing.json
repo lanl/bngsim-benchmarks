@@ -1,0 +1,330 @@
+{
+ "capability": "ode",
+ "copasi_error": "KeyError: \"['PTEN_PIP3docking', 'mTOR_aktbd', 'RasGDP_rafbd', 'I'] not in index\"",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+ "key": "5d2a503c835027be9490320b8ef11cde4607d48165a66b8df378a74ad5ccd1de",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "protocol": {
+     "atol": 1e-12,
+     "n_steps": 360,
+     "netgen": "generate_network({overwrite=>1,max_agg=>10})",
+     "rtol": 1e-10,
+     "sparse": true,
+     "t_end": 1800,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "a12dc63cabbabc4929f7bf3844a696bc320f4b0bab39c2a82bad053c98f91a26",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 22.468805499986047,
+   "jacobian": "analytical",
+   "jacobian_seconds": 2.246915064024506,
+   "linear_solver": "KLU",
+   "load_seconds": 0.022040547977667302
+  },
+  "bngsim_cold_seconds": 25.20449585802271,
+  "engine_roles": {
+   "amici": "warm, in-process",
+   "bngsim": "warm, in-process (system under test)",
+   "roadrunner": "warm, in-process",
+   "run_network": "fresh subprocess"
+  },
+  "netgen_seconds": 15.126916528999573,
+  "network": {
+   "reactions": 5602,
+   "species": 870
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 1586.8298255200207,
+    "integrator": "CVODES BDF",
+    "load_seconds": 0.016245083999820054,
+    "output": "amount",
+    "sensitivities": "none",
+    "version": "1.1.0"
+   },
+   "roadrunner": {
+    "integrator": "cvode",
+    "load_seconds": 42.985787821991835,
+    "output": "amount",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "command": [
+     "-o",
+     "$TMPDIR/bench-job-3ptj9tml/rn",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-10",
+     "-b",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "$TMPDIR/bench-job-3ptj9tml/netgen/model.net",
+     "$TMPDIR/bench-job-3ptj9tml/netgen/model.net",
+     "5.0",
+     "360"
+    ],
+    "solver": "sparse (-b)"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "amici": {
+     "seconds": [
+      1.4056154880090617,
+      1.4000445200072136,
+      1.4109648379962891,
+      1.4318833499855828,
+      1.5136005989916157
+     ]
+    },
+    "bngsim": {
+     "seconds": [
+      0.4286712600151077,
+      0.4293705449963454,
+      0.42986819200450554,
+      0.4301318220095709,
+      0.4328742880024947
+     ]
+    },
+    "roadrunner": {
+     "seconds": [
+      11.35549277800601,
+      11.348646061000181,
+      11.35952589000226,
+      11.356635367003037,
+      11.357217320008203
+     ]
+    },
+    "run_network": {
+     "seconds": [
+      70.1702775680169,
+      70.40522339899326,
+      70.17944588200771,
+      70.24440477599273,
+      69.91282840698841
+     ]
+    }
+   },
+   "order": "bngsim run_network roadrunner amici",
+   "rounds": 5,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "amici": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 4,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 5,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "roadrunner": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 4,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "run_network": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 4,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "sparse_reference": {
+   "agrees_with_dense": true,
+   "max_rel": 0.0,
+   "n_hard_fail": 0,
+   "seconds": 70.20997783800703
+  },
+  "times": {
+   "amici": {
+    "ci_high": 1.5136005989916157,
+    "ci_low": 1.4000445200072136,
+    "confidence": 0.95,
+    "median_seconds": 1.4109648379962891,
+    "rounds": 5
+   },
+   "bngsim": {
+    "ci_high": 0.4328742880024947,
+    "ci_low": 0.4286712600151077,
+    "confidence": 0.95,
+    "median_seconds": 0.42986819200450554,
+    "rounds": 5
+   },
+   "roadrunner": {
+    "ci_high": 11.35952589000226,
+    "ci_low": 11.348646061000181,
+    "confidence": 0.95,
+    "median_seconds": 11.356635367003037,
+    "rounds": 5
+   },
+   "run_network": {
+    "ci_high": 70.40522339899326,
+    "ci_low": 69.91282840698841,
+    "confidence": 0.95,
+    "median_seconds": 70.17944588200771,
+    "rounds": 5
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "endothelial_vegfr2_and_cd47_signaling_zhang2023",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-20T07:56:39.570329+00:00",
+ "wall_seconds": 2432.976224457001
+}

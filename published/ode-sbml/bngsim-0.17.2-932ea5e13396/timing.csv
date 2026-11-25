@@ -1,0 +1,43 @@
+suite,position,problem,species,reactions,outcome,engine,role,status,presim_seconds,netgen_seconds,codegen_seconds,load_seconds,backend,sim_median_seconds,sim_ci_low_seconds,sim_ci_high_seconds,rounds,reproducible,error
+ode-sbml,1,brain_energy_metabolism_winter2017,65,64,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,amici,"warm, in-process",timed,22.55103112210054,,22.54944036703091,0.0015907550696283579,,0.21167532948311418,0.21135699696606025,0.21278694801731035,20,True,
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,bngsim,"warm, in-process (system under test)",timed,0.12209682399407029,,0.0,0.12209682399407029,exprtk,0.021101347520016134,0.021081518498249352,0.021171694697113705,20,True,
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,copasi,"warm, in-process",timed,0.1615498960018158,,,0.1615498960018158,,0.05473475548205897,0.05453616305021569,0.054916573979426175,20,True,
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,roadrunner,"warm, in-process",timed,0.27810278604738414,,,0.27810278604738414,,0.00956518400926143,0.009530096023809165,0.009600379038602114,20,True,
+ode-sbml,2,map3k8_vemurafenib_resistance_giani2019,75,85,PASS,run_network,fresh subprocess,timed,,,,,,0.17457268899306655,0.17419079394312575,0.17509142454946414,20,True,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,amici,"warm, in-process",timed,26.94868782197591,,26.94745089195203,0.0012369300238788128,,0.3227224459988065,0.3217173455050215,0.3245162869570777,20,True,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,bngsim,"warm, in-process (system under test)",timed,0.1562474990496412,,0.0,0.1562474990496412,exprtk,0.009080067509785295,0.009027540509123355,0.009173513040877879,20,True,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,copasi,"warm, in-process",timed,0.17753765790257603,,,0.17753765790257603,,0.02177239558659494,0.021688958047889173,0.021924726490397006,20,True,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,roadrunner,"warm, in-process",timed,0.5636485529830679,,,0.5636485529830679,,0.004041636537294835,0.00400103849824518,0.00410982435423648,20,True,
+ode-sbml,3,alpha_synuclein_parkinsons_bst_sass2009,76,58,PASS,run_network,fresh subprocess,timed,,,,,,0.13751249149208888,0.13687997998204082,0.13800640450790524,20,True,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,amici,"warm, in-process",timed,22.649936969857663,,22.648781718919054,0.0011552509386092424,,0.17297783645335585,0.17138419498223811,0.17347203998360783,20,True,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,bngsim,"warm, in-process (system under test)",timed,0.12019074999261647,,0.0,0.12019074999261647,exprtk,0.02652790053980425,0.026435510022565722,0.026636214985046536,20,True,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,copasi,"warm, in-process",timed,0.12807947001419961,,,0.12807947001419961,,0.07090353145031258,0.0706924835103564,0.07103538356022909,20,True,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,roadrunner,"warm, in-process",timed,0.2676859289640561,,,0.2676859289640561,,0.009246971050743014,0.009218004997819662,0.009279455989599228,20,True,
+ode-sbml,4,glucose_phosphotransferase_system_nishio2008,76,92,PASS,run_network,fresh subprocess,timed,,,,,,0.1710854084813036,0.1709245514939539,0.171382428961806,20,True,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,amici,"warm, in-process",timed,24.896529935998842,,24.895392726990394,0.001137209008447826,,0.014865727978758514,0.014796766510698944,0.014922727539669722,20,True,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,bngsim,"warm, in-process (system under test)",timed,0.19649331795517355,,0.0,0.19649331795517355,exprtk,0.029845843033399433,0.02978523849742487,0.02993631304707378,20,True,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,copasi,"warm, in-process",timed,0.18554913392290473,,,0.18554913392290473,,0.09573125152383,0.09553564892848954,0.09583539748564363,20,True,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,roadrunner,"warm, in-process",timed,0.37057724094484,,,0.37057724094484,,0.020562599995173514,0.020516037475317717,0.020701549015939236,20,True,
+ode-sbml,5,hepatocyte_calcium_propagation_verma2016,75,134,PASS,run_network,fresh subprocess,timed,,,,,,0.15115217550192028,0.15076034347293898,0.15193313888594276,20,True,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,PASS,amici,"warm, in-process",timed,25.092636563116685,,25.091480110073462,0.0011564530432224274,,0.21887630794662982,0.21784951945301145,0.22042851248988882,20,True,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,PASS,bngsim,"warm, in-process (system under test)",timed,0.12294873199425638,,0.0,0.12294873199425638,exprtk,0.019808081560768187,0.019752510474063456,0.01988821075501619,20,True,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,PASS,roadrunner,"warm, in-process",timed,0.29412110906559974,,,0.29412110906559974,,0.01900725398445502,0.01899341499665752,0.019055826065596193,20,True,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,PASS,run_network,fresh subprocess,timed,,,,,,0.22108075843425468,0.2207464809762314,0.22181392047787085,20,True,
+ode-sbml,6,shear_stress_nitric_oxide_koo2013,79,74,PASS,copasi,,crash,,,,,,,,,,,"RuntimeError: output is not at the protocol's times: 1001 times from 0 to 1000, where the protocol has 1001 from 0 to 12000"
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,amici,"warm, in-process",timed,25.421245685894974,,25.419916895916685,0.001328789978288114,,0.08255210000788793,0.08201062347507104,0.08299004699802026,20,True,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,bngsim,"warm, in-process (system under test)",timed,0.1465001740725711,,0.0,0.1465001740725711,exprtk,0.0048238320159725845,0.004804366501048207,0.004854308965150267,20,True,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,copasi,"warm, in-process",timed,0.2437990460311994,,,0.2437990460311994,,0.05403740401379764,0.053816078521776944,0.054214144533034414,20,True,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,roadrunner,"warm, in-process",timed,0.355860106064938,,,0.355860106064938,,0.007537280966062099,0.007495068944990635,0.007563286396907642,20,True,
+ode-sbml,7,alpha_synuclein_neuronal_homeostasis_ouzounoglou2014,90,136,PASS,run_network,fresh subprocess,timed,,,,,,0.14298421703279018,0.1426846760441549,0.14366829599021003,20,True,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,PASS,amici,"warm, in-process",timed,24.695349183049984,,24.694303574040532,0.0010456090094521642,,0.0296468255110085,0.029413063544780016,0.029913663456682116,20,True,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,PASS,bngsim,"warm, in-process (system under test)",timed,0.1767350430600345,,0.0,0.1767350430600345,exprtk,0.021020423446316272,0.020996864943299443,0.021172788459807634,20,True,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,PASS,roadrunner,"warm, in-process",timed,0.5748879180755466,,,0.5748879180755466,,0.038215302512981,0.03812213253695518,0.03833231749013066,20,True,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,PASS,run_network,fresh subprocess,timed,,,,,,0.13586021750234067,0.1353453499614261,0.13622781599406153,20,True,
+ode-sbml,8,mapk_signalling_control_hornberg2005,103,148,PASS,copasi,,crash,,,,,,,,,,,"KeyError: ""['EGF'] not in index"""
+ode-sbml,9,insulin_signalling_oxidative_stress_smith2013,133,367,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,PASS,bngsim,"warm, in-process (system under test)",timed,0.47373661608435214,,0.0,0.47373661608435214,exprtk,0.06131749099586159,0.06107428652467206,0.06182880501728505,20,True,
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,PASS,copasi,"warm, in-process",timed,0.4640056809876114,,,0.4640056809876114,,0.27328143402701244,0.27302403503563255,0.27372167754219845,20,True,
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,PASS,roadrunner,"warm, in-process",timed,0.9629837149986997,,,0.9629837149986997,,0.12112303054891527,0.12095593300182372,0.12134770106058568,20,True,
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,PASS,amici,,crash,,,,,,,,,,,RuntimeError: AMICI simulation failed with status -10
+ode-sbml,10,segment_polarity_network_vondassow2000,148,480,PASS,run_network,,crash,,,,,,,,,,,RuntimeError: run_network failed: Error in CVODE integration (error code -4).

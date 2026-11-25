@@ -1,0 +1,577 @@
+{
+ "capability": "sens",
+ "copasi_error": "TIMEOUT: no result within the 3600 s per-engine budget (stopped in: first solve)",
+ "engines": "bngsim-vs-amici-run_network_fd-copasi",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "eb7e3708a100cb697904413d463740463356c54d",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/combinatorial_egfr_signaling_blinov2006/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+ "key": "0aa8aeabe0870ce4dd90129aad749577749a8b6581e960d5136f1f84bb7d8f35",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-run_network_fd-copasi/1",
+    "protocol": {
+     "atol": 1e-10,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-12,
+     "fd_step": 0.001,
+     "n_steps": 120,
+     "netgen": "generate_network({overwrite=>1})",
+     "parameters": "independent",
+     "rtol": 1e-10,
+     "t_end": 120
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "14f5668d43b031d4ef3e05e6b362c6ad643c617d8a74e4966a815480d3af3f4f",
+    "verdict": {
+     "fd_resolved": 0.1,
+     "floor_atol": 100.0,
+     "floor_rel": 0.001,
+     "metric": "semi-scaled column error/1",
+     "tol": 0.001
+    }
+   },
+   "id": "sens/combinatorial_egfr_signaling_blinov2006/bngsim-vs-amici-run_network_fd-copasi/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 33.54533606907353,
+   "cold_seconds": 40.02939742302988,
+   "linear_solver": "KLU",
+   "load_seconds": 0.021225483040325344,
+   "observables_check": {
+    "max_error": 0.0,
+    "n_failed": 0,
+    "n_judged": 430,
+    "passed": true
+   },
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null,
+   "solve_seconds": 6.450771617004648,
+   "solver_stats": {
+    "n_err_test_fails": 0,
+    "n_rhs_evals": 3173,
+    "n_sens_err_test_fails": 12,
+    "n_sens_nonlin_conv_fails": 0,
+    "n_steps": 1565
+   }
+  },
+  "configurations": {
+   "bngsim_simultaneous": {
+    "max_error": 6.07471050297189e-09,
+    "max_error_observables": 1.5538319447298849e-09,
+    "max_error_species": 6.07471050297189e-09,
+    "n_columns": 15738,
+    "n_failed": 0,
+    "n_floored": 786,
+    "n_judged": 15738,
+    "params_judged": [
+     "Grb2_Sos_tot",
+     "Grb2_tot",
+     "Shc_tot",
+     "Sos_tot",
+     "egf_tot",
+     "egfr_tot",
+     "km1",
+     "km10",
+     "km11",
+     "km12",
+     "km13",
+     "km14",
+     "km15",
+     "km16",
+     "km17",
+     "km18",
+     "km19",
+     "km2",
+     "km20",
+     "km21",
+     "km22",
+     "km23",
+     "km24",
+     "km3",
+     "km9",
+     "kp1",
+     "kp10",
+     "kp11",
+     "kp12",
+     "kp13",
+     "kp14",
+     "kp15",
+     "kp17",
+     "kp18",
+     "kp19",
+     "kp2",
+     "kp20",
+     "kp21",
+     "kp22",
+     "kp23",
+     "kp24",
+     "kp3",
+     "kp9"
+    ],
+    "passed": true,
+    "tol": 0.001,
+    "trajectory_max_err_over_peak": 4.6504034060250967e-10,
+    "worst": {
+     "error": 6.07471050297189e-09,
+     "floored": false,
+     "output": "EGF(r!1).EGF(r!2).EGFR(Y1068~pY!3,Y1148~pY!4,l!1,r!5).EGFR(Y1068~pY!6,Y1148~pY!7,l!2,r!5).GRB2(SH2!3,SH3!8).GRB2(SH2!9,SH3!10).GRB2(SH2!6,SH3!11).GRB2(SH2!12,SH3!13).SHC1(PTB!4,Y317~pY!9).SHC1(PTB!7,Y317~pY!12).SOS1(dom!8).SOS1(dom!10).SOS1(dom!11).SOS1(dom!13)",
+     "parameter": "kp21",
+     "time": 11.0
+    }
+   }
+  },
+  "coverage": {
+   "n_columns": 15738,
+   "n_judged": 14952,
+   "n_significant": 14952,
+   "unjudged": []
+  },
+  "engine_budget_seconds": 3600.0,
+  "netgen_seconds": 6.4352321330225095,
+  "network": {
+   "observables": 10,
+   "reactions": 3749,
+   "species": 356
+  },
+  "parameters": {
+   "convention": "independent",
+   "excluded": {},
+   "n": 43,
+   "names": [
+    "egf_tot",
+    "egfr_tot",
+    "Grb2_tot",
+    "Shc_tot",
+    "Sos_tot",
+    "Grb2_Sos_tot",
+    "kp1",
+    "km1",
+    "kp2",
+    "km2",
+    "kp3",
+    "km3",
+    "kp14",
+    "km14",
+    "km16",
+    "kp9",
+    "km9",
+    "kp10",
+    "km10",
+    "kp11",
+    "km11",
+    "kp13",
+    "km13",
+    "kp15",
+    "km15",
+    "kp17",
+    "km17",
+    "kp18",
+    "km18",
+    "kp19",
+    "km19",
+    "kp20",
+    "km20",
+    "kp24",
+    "km24",
+    "kp21",
+    "km21",
+    "kp23",
+    "km23",
+    "kp12",
+    "km12",
+    "kp22",
+    "km22"
+   ],
+   "scales": {},
+   "selection": "independent"
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 273.0335026209941,
+    "cold_seconds": 291.487222739961,
+    "conservation_laws": true,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "integrator": "CVODES BDF, forward sensitivities",
+    "internal_sensitivity_method": "AMICI default (simultaneous)",
+    "load_seconds": 0.0015169280814006925,
+    "not_differentiated": {},
+    "parameter_scale": "linear",
+    "phases": "single",
+    "solve_seconds": 15.828784869983792,
+    "version": "1.1.0"
+   },
+   "run_network_fd": {
+    "atol": 1e-12,
+    "cold_seconds": 622.8095736670075,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-12",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<perturbed>.net",
+     "<perturbed>.net",
+     "1.0",
+     "120"
+    ],
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "engine": "run_network (fresh process per solve)",
+    "method": "central differences at steps h and h/2 (relative to each parameter's scale)",
+    "rtol": 1e-12,
+    "solve_seconds": 622.7971865630243,
+    "solves": 173,
+    "step": 0.001
+   }
+  }
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 1,
+ "problem": "combinatorial_egfr_signaling_blinov2006",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:27:19.459402+00:00",
+ "verdicts": {
+  "amici": {
+   "max_error": 6.257665786888794e-09,
+   "max_error_observables": 1.6502259319160827e-09,
+   "max_error_species": 6.257665786888794e-09,
+   "n_columns": 15738,
+   "n_failed": 0,
+   "n_floored": 786,
+   "n_judged": 15738,
+   "params_judged": [
+    "Grb2_Sos_tot",
+    "Grb2_tot",
+    "Shc_tot",
+    "Sos_tot",
+    "egf_tot",
+    "egfr_tot",
+    "km1",
+    "km10",
+    "km11",
+    "km12",
+    "km13",
+    "km14",
+    "km15",
+    "km16",
+    "km17",
+    "km18",
+    "km19",
+    "km2",
+    "km20",
+    "km21",
+    "km22",
+    "km23",
+    "km24",
+    "km3",
+    "km9",
+    "kp1",
+    "kp10",
+    "kp11",
+    "kp12",
+    "kp13",
+    "kp14",
+    "kp15",
+    "kp17",
+    "kp18",
+    "kp19",
+    "kp2",
+    "kp20",
+    "kp21",
+    "kp22",
+    "kp23",
+    "kp24",
+    "kp3",
+    "kp9"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 1.0621067637888743e-09,
+   "worst": {
+    "error": 6.257665786888794e-09,
+    "floored": false,
+    "output": "EGF(r!1).EGF(r!2).EGFR(Y1068~pY!3,Y1148~pY!4,l!1,r!5).EGFR(Y1068~pY!6,Y1148~pY!7,l!2,r!5).GRB2(SH2!3,SH3!8).GRB2(SH2!9,SH3!10).GRB2(SH2!6,SH3!11).GRB2(SH2!12,SH3!13).SHC1(PTB!4,Y317~pY!9).SHC1(PTB!7,Y317~pY!12).SOS1(dom!8).SOS1(dom!10).SOS1(dom!11).SOS1(dom!13)",
+    "parameter": "kp21",
+    "time": 11.0
+   }
+  },
+  "run_network_fd": {
+   "max_error": 1.0701116256243226e-06,
+   "max_error_observables": 4.958399592737654e-07,
+   "max_error_species": 1.0701116256243226e-06,
+   "n_columns": 15738,
+   "n_failed": 0,
+   "n_floored": 786,
+   "n_judged": 15738,
+   "params_judged": [
+    "Grb2_Sos_tot",
+    "Grb2_tot",
+    "Shc_tot",
+    "Sos_tot",
+    "egf_tot",
+    "egfr_tot",
+    "km1",
+    "km10",
+    "km11",
+    "km12",
+    "km13",
+    "km14",
+    "km15",
+    "km16",
+    "km17",
+    "km18",
+    "km19",
+    "km2",
+    "km20",
+    "km21",
+    "km22",
+    "km23",
+    "km24",
+    "km3",
+    "km9",
+    "kp1",
+    "kp10",
+    "kp11",
+    "kp12",
+    "kp13",
+    "kp14",
+    "kp15",
+    "kp17",
+    "kp18",
+    "kp19",
+    "kp2",
+    "kp20",
+    "kp21",
+    "kp22",
+    "kp23",
+    "kp24",
+    "kp3",
+    "kp9"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 1.126210185494346e-09,
+   "worst": {
+    "error": 1.0701116256243226e-06,
+    "floored": false,
+    "output": "EGF(r!1).EGF(r!2).EGFR(Y1068~Y,Y1148~pY!3,l!1,r!4).EGFR(Y1068~pY!5,Y1148~pY!6,l!2,r!4).GRB2(SH2!7,SH3!8).GRB2(SH2!9,SH3!10).GRB2(SH2!5,SH3).SHC1(PTB!3,Y317~pY!7).SHC1(PTB!6,Y317~pY!9).SOS1(dom!8).SOS1(dom!10)",
+    "parameter": "km1",
+    "time": 10.0
+   }
+  }
+ },
+ "wall_seconds": 4569.748027288006
+}

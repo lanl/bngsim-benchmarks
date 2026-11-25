@@ -1,0 +1,793 @@
+{
+ "capability": "sens",
+ "engines": "bngsim-vs-amici-fd_roadrunner",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "c6813bd1739390300717276640ccf5ec5a79f0e5",
+   "dirty": false,
+   "source_sha256": "e39bd5e5b50ef99b7573795943b5e0a2724a2722f8406287c79afae27bfa7291"
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/covid19_italy_interventions_giordano2020/bngsim-vs-amici-fd_roadrunner/auto/timing",
+ "key": "fff183470c2fed7e37d4fd814156185f67a3dc53e7fd129f060b25be387bf492",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-fd_roadrunner/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "petab_sha256": {
+     "conditions": "29bd52be19e6cfe7a7a46fe0780e1b29e68ce6ce807c0b4851614c03cfc717f7",
+     "measurements": "a81b7192cda7fabefa1eeb2773d813836bbd263210d4fc90f70c259c56b53bbc",
+     "observables": "b04ab92db882b3bad0e367baaa48d4a73decebae4e2094c9b16a3e6265de4b27",
+     "parameters": "c7b0c7958818d13489bb426fd1daf01e29bf324fd512b51e5dcc29a8cdc1588c",
+     "yaml": "3649183d6898cd096eef39913095c2efef4db81ac16011671567d120cb412b3b"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-10,
+     "fd_step": 0.001,
+     "parameters": [
+      "alpha_0",
+      "beta_0",
+      "delta_0",
+      "epsilon_0",
+      "eta_0",
+      "gamma_0",
+      "kappa_0",
+      "lam_0",
+      "mu_0",
+      "nu_0",
+      "rho_0",
+      "sigma_0",
+      "tau",
+      "theta",
+      "xi_0",
+      "zeta_0",
+      "alpha_4",
+      "alpha_22",
+      "alpha_28",
+      "beta_4",
+      "beta_22",
+      "delta_4",
+      "delta_22",
+      "epsilon_12",
+      "epsilon_38",
+      "eta_22",
+      "eta_38",
+      "gamma_4",
+      "gamma_22",
+      "gamma_28",
+      "kappa_22",
+      "kappa_38",
+      "lam_22",
+      "mu_22",
+      "nu_22",
+      "rho_22",
+      "rho_38",
+      "sigma_22",
+      "sigma_38",
+      "xi_22",
+      "xi_38",
+      "zeta_22",
+      "zeta_38"
+     ],
+     "preeq_max_time": 1000000.0,
+     "rtol": 1e-08
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "petab": "0.10.0",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "1855fb5673300b7b1fc0890d5d5d810deb7731101dc227b6cb16042b0c615675",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "sens/covid19_italy_interventions_giordano2020/bngsim-vs-amici-fd_roadrunner/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "atol": "ExactAtol (scalar, held exactly)",
+   "codegen_backend": "cc",
+   "codegen_seconds": 1.9559173829620704,
+   "input": "sbml (Model.from_sbml)",
+   "linear_solver": "dense",
+   "load_seconds": 0.08779097301885486,
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null
+  },
+  "bngsim_cold_seconds": 2.6930942410835996,
+  "configurations": {
+   "bngsim_ode": {
+    "atol": "ExactAtol (scalar, held exactly)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.11238471092656255,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.07066694006789476,
+    "sensitivity_method": null
+   },
+   "bngsim_simultaneous": {
+    "analytic_sensitivity_rhs": true,
+    "atol": "ExactAtol (scalar, held exactly)",
+    "codegen_backend": "cc",
+    "codegen_seconds": 0.26994313404429704,
+    "input": "sbml (Model.from_sbml)",
+    "linear_solver": "dense",
+    "load_seconds": 0.07316740707028657,
+    "sensitivity_method": "simultaneous",
+    "sensitivity_rhs_decline": null
+   }
+  },
+  "engine_roles": {
+   "amici": "warm, in-process (simulate_petab with forward sensitivities, every condition)",
+   "amici_adjoint": "warm, in-process (simulate_petab with adjoint sensitivities: the PEtab log-likelihood gradient; timing only)",
+   "bngsim": "warm, in-process (system under test, staggered corrector, every condition)",
+   "bngsim_ode": "warm, in-process (plain solve of every condition: the unit of an FD gradient)",
+   "bngsim_simultaneous": "warm, in-process (system under test, simultaneous corrector, every condition)",
+   "roadrunner": "warm, in-process (plain solve of every condition: the unit of an FD gradient)"
+  },
+  "fd_baselines": {
+   "bngsim_ode": {
+    "central_seconds": 0.31531637511216104,
+    "forward_seconds": 0.1613246570341289,
+    "parameters": 43
+   },
+   "roadrunner": {
+    "central_seconds": 0.13686126191169024,
+    "forward_seconds": 0.07002204097807407,
+    "parameters": 43
+   }
+  },
+  "network": {
+   "events": 0,
+   "species": 13,
+   "state_species": 10
+  },
+  "parameters": {
+   "excluded": {
+    "sd_CurrentCases": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_Deaths": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_DiagHome": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_Hospit": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_ICU": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_Recovered": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_TotalCases": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)"
+   },
+   "n": 43,
+   "names": [
+    "alpha_0",
+    "beta_0",
+    "delta_0",
+    "epsilon_0",
+    "eta_0",
+    "gamma_0",
+    "kappa_0",
+    "lam_0",
+    "mu_0",
+    "nu_0",
+    "rho_0",
+    "sigma_0",
+    "tau",
+    "theta",
+    "xi_0",
+    "zeta_0",
+    "alpha_4",
+    "alpha_22",
+    "alpha_28",
+    "beta_4",
+    "beta_22",
+    "delta_4",
+    "delta_22",
+    "epsilon_12",
+    "epsilon_38",
+    "eta_22",
+    "eta_38",
+    "gamma_4",
+    "gamma_22",
+    "gamma_28",
+    "kappa_22",
+    "kappa_38",
+    "lam_22",
+    "mu_22",
+    "nu_22",
+    "rho_22",
+    "rho_38",
+    "sigma_22",
+    "sigma_38",
+    "xi_22",
+    "xi_38",
+    "zeta_22",
+    "zeta_38"
+   ],
+   "scales_in_petab": {
+    "alpha_0": "log10",
+    "alpha_22": "log10",
+    "alpha_28": "log10",
+    "alpha_4": "log10",
+    "beta_0": "log10",
+    "beta_22": "log10",
+    "beta_4": "log10",
+    "delta_0": "log10",
+    "delta_22": "log10",
+    "delta_4": "log10",
+    "epsilon_0": "log10",
+    "epsilon_12": "log10",
+    "epsilon_38": "log10",
+    "eta_0": "log10",
+    "eta_22": "log10",
+    "eta_38": "log10",
+    "gamma_0": "log10",
+    "gamma_22": "log10",
+    "gamma_28": "log10",
+    "gamma_4": "log10",
+    "kappa_0": "log10",
+    "kappa_22": "log10",
+    "kappa_38": "log10",
+    "lam_0": "log10",
+    "lam_22": "log10",
+    "mu_0": "log10",
+    "mu_22": "log10",
+    "nu_0": "log10",
+    "nu_22": "log10",
+    "rho_0": "log10",
+    "rho_22": "log10",
+    "rho_38": "log10",
+    "sigma_0": "log10",
+    "sigma_22": "log10",
+    "sigma_38": "log10",
+    "tau": "log10",
+    "theta": "log10",
+    "xi_0": "log10",
+    "xi_22": "log10",
+    "xi_38": "log10",
+    "zeta_0": "log10",
+    "zeta_22": "log10",
+    "zeta_38": "log10"
+   },
+   "selection": "estimated SBML parameters"
+  },
+  "petab": {
+   "condition_columns": {
+    "alpha_50": "parameter",
+    "beta_50": "parameter",
+    "delta_50": "parameter",
+    "epsilon_50": "parameter",
+    "eta_50": "parameter",
+    "gamma_50": "parameter",
+    "kappa_50": "parameter",
+    "lam_50": "parameter",
+    "mu_50": "parameter",
+    "nu_50": "parameter",
+    "rho_50": "parameter",
+    "sigma_50": "parameter",
+    "xi_50": "parameter",
+    "zeta_50": "parameter"
+   },
+   "conditions": 1,
+   "estimated": 50,
+   "measurement_times": 46,
+   "measurements": 313,
+   "observables": 7,
+   "with_preequilibration": 0
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 20.69099410495255,
+    "importer": "amici.importers.petab.v1 (petab 0.10.0)",
+    "integrator": "CVODES BDF, forward sensitivities",
+    "load_seconds": 0.09834871895145625,
+    "not_differentiated": {},
+    "sensitivities": "on the PEtab parameter scale, put back on a linear one",
+    "version": "1.1.0"
+   },
+   "amici_adjoint": {
+    "llh": -287.62776135794195,
+    "shared_build": "amici"
+   },
+   "roadrunner": {
+    "integrator": "cvode",
+    "load_seconds": 0.23184674291405827,
+    "output": "SBML semantics (amount if hasOnlySubstanceUnits, else concentration)",
+    "version": "2.11.0"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "amici": {
+     "seconds": [
+      0.032716633984819055,
+      0.0324340428924188,
+      0.04211216396652162,
+      0.04023498098831624,
+      0.03360699489712715,
+      0.033063350012525916,
+      0.032992666005156934,
+      0.03285711200442165,
+      0.033298704074695706,
+      0.033308692974969745,
+      0.03308394504711032,
+      0.033242620062083006,
+      0.03305290197022259,
+      0.0327771189622581,
+      0.03586563596036285,
+      0.033367338008247316,
+      0.03306441300082952,
+      0.033151751034893095,
+      0.03252861404325813,
+      0.03295842697843909
+     ]
+    },
+    "amici_adjoint": {
+     "seconds": [
+      0.0699822079623118,
+      0.06651165708899498,
+      0.076829819008708,
+      0.07357084297109395,
+      0.06960000097751617,
+      0.06699724006466568,
+      0.06887215794995427,
+      0.06697497703135014,
+      0.0669208059553057,
+      0.06690798595082015,
+      0.06725312198977917,
+      0.0700400909408927,
+      0.06960787402931601,
+      0.06702622910961509,
+      0.0669789359671995,
+      0.06749715993646532,
+      0.0669973089825362,
+      0.06753665301948786,
+      0.0686825750162825,
+      0.06683773105032742
+     ]
+    },
+    "bngsim": {
+     "seconds": [
+      0.5225004429230466,
+      0.535864053061232,
+      0.5549678020179272,
+      0.5642287710215896,
+      0.5216644919710234,
+      0.5206333090318367,
+      0.5202614549780264,
+      0.513899227953516,
+      0.522883391007781,
+      0.5213416080223396,
+      0.5200747310882434,
+      0.5198448450537398,
+      0.5170280410675332,
+      0.5223289229907095,
+      0.5232556710252538,
+      0.5215688300086185,
+      0.5227750290650874,
+      0.5226654539583251,
+      0.5208548529772088,
+      0.5129927279194817
+     ]
+    },
+    "bngsim_ode": {
+     "seconds": [
+      0.0037200599908828735,
+      0.003695238963700831,
+      0.004243782022967935,
+      0.0037225239211693406,
+      0.0036184450145810843,
+      0.0036507779732346535,
+      0.00361177499871701,
+      0.0037259430391713977,
+      0.0036670539993792772,
+      0.003674495965242386,
+      0.003618099959567189,
+      0.0036796981003135443,
+      0.0036421710392460227,
+      0.003647984005510807,
+      0.0037191580049693584,
+      0.003665884956717491,
+      0.0036607440561056137,
+      0.0036708000116050243,
+      0.0035962919937446713,
+      0.003656360087916255
+     ]
+    },
+    "bngsim_simultaneous": {
+     "seconds": [
+      0.5771190020022914,
+      0.5198300760239363,
+      0.573147373041138,
+      0.5472672570031136,
+      0.5169332720106468,
+      0.5170811408897862,
+      0.5155618530698121,
+      0.5257665240205824,
+      0.5198845029808581,
+      0.5199100449681282,
+      0.5204308429965749,
+      0.5207372599979863,
+      0.5325960940681398,
+      0.5150974430143833,
+      0.5230219380464405,
+      0.5193328990135342,
+      0.5195177349960431,
+      0.5177643110509962,
+      0.5169004420749843,
+      0.5216819769702852
+     ]
+    },
+    "roadrunner": {
+     "seconds": [
+      0.0015910000074654818,
+      0.001557334908284247,
+      0.0017862510867416859,
+      0.0017437910428270698,
+      0.0015897430712357163,
+      0.0015997720183804631,
+      0.001562683959491551,
+      0.001588132930919528,
+      0.0015605639200657606,
+      0.0016111090080812573,
+      0.0016035879962146282,
+      0.0015932460082694888,
+      0.0015804489376023412,
+      0.0015860770363360643,
+      0.0015918200369924307,
+      0.0016044570365920663,
+      0.00159624801017344,
+      0.0015962909674271941,
+      0.0015725670382380486,
+      0.0015886810142546892
+     ]
+    }
+   },
+   "order": "bngsim bngsim_simultaneous bngsim_ode roadrunner amici amici_adjoint",
+   "rounds": 20,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "amici": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "amici_adjoint": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 20,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim_ode": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim_simultaneous": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "roadrunner": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "species_in_amount": [],
+  "times": {
+   "amici": {
+    "ci_high": 0.033303698524832726,
+    "ci_low": 0.03297554649179801,
+    "confidence": 0.95,
+    "median_seconds": 0.03307417902396992,
+    "rounds": 20
+   },
+   "amici_adjoint": {
+    "ci_high": 0.06923607946373522,
+    "ci_low": 0.06698808801593259,
+    "confidence": 0.95,
+    "median_seconds": 0.06737514096312225,
+    "rounds": 20
+   },
+   "bngsim": {
+    "ci_high": 0.5227202415117063,
+    "ci_low": 0.5204473820049316,
+    "confidence": 0.95,
+    "median_seconds": 0.521616660989821,
+    "rounds": 20
+   },
+   "bngsim_ode": {
+    "ci_high": 0.0036874685320071876,
+    "ci_low": 0.003647984005510807,
+    "confidence": 0.95,
+    "median_seconds": 0.003666469478048384,
+    "rounds": 20
+   },
+   "bngsim_simultaneous": {
+    "ci_high": 0.5223519575083628,
+    "ci_low": 0.5185486050322652,
+    "confidence": 0.95,
+    "median_seconds": 0.5198972739744931,
+    "rounds": 20
+   },
+   "roadrunner": {
+    "ci_high": 0.0015980314929038286,
+    "ci_low": 0.0015871049836277962,
+    "confidence": 0.95,
+    "median_seconds": 0.0015914100222289562,
+    "rounds": 20
+   }
+  }
+ },
+ "not_applicable": {
+  "copasi": "COPASI is not wired for PEtab conditions on the SBML path"
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "covid19_italy_interventions_giordano2020",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-25T00:12:48.914012+00:00",
+ "wall_seconds": 51.16702094802167
+}
