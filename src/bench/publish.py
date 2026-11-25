@@ -9,6 +9,7 @@ results were measured on (``bngsim-<version>-<build commit>``):
                          and the suite's members with their provenance
     correctness.csv      one row per (problem, setting, reference engine)
     timing.csv           one row per (problem, setting, engine)
+    README.md            the same for people, generated from the three files above
     jobs/<job id>.json   every job's full result record
     jobs/<job id>.npz    the trajectories a correctness job stored, when the suite's
                          total is at most TRAJECTORIES_LIMIT_BYTES
@@ -455,6 +456,10 @@ def publish(
     _write_csv(dest / "timing.csv", TIMING_COLUMNS, time_rows)
     (dest / "manifest.json").write_text(
         json.dumps(_sweep(manifest, _replacements(root)), indent=1) + "\n", encoding="utf-8")
+    # The snapshot's summary for people, from the three files just written (bench.summary).
+    from .summary import README, read_snapshot, snapshot_readme
+
+    (dest / README).write_text(snapshot_readme(read_snapshot(dest)), encoding="utf-8")
     return dest
 
 

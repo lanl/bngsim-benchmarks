@@ -6,14 +6,20 @@ SUITE`, or `bench submit SUITE` on a Slurm cluster) and compare what they get wi
 is here.
 
 ```
+published/README.md      every suite: its latest snapshot, tally and status (generated)
+published/index.json     the same, machine-readable (generated)
 published/<suite>/bngsim-<version>-<build commit>/
     manifest.json        what was measured, on what, with which engines and harness
     correctness.csv      one row per (problem, setting, reference engine)
     timing.csv           one row per (problem, setting, engine)
+    README.md            the snapshot for people, generated from the three files above
     jobs/<job id>.json   every job's full result record
     jobs/<job id>.npz    a correctness job's stored trajectories, when the suite's
                          total is at most 5 MB (see Trajectories below)
 ```
+
+The READMEs and index.json are generated, never edited: see Summaries and staleness
+below.
 
 A snapshot is complete: every job of the suite has a current result, all from one
 BNGsim build, and every timing from one node type. `bench publish` refuses otherwise.
@@ -114,3 +120,54 @@ Measured on the core suites' correctness results of November 2026, neither fits:
 ten ode-sbml files total 13.3 MB (0.1 to 3.4 MB each), and ode-net's eight total 32.7 MB
 (9.2 to 9.5 MB for each of its three largest networks), before its two largest models,
 which had no current result to measure.
+
+## Summaries and staleness
+
+Three kinds of file under `published/` are generated, so that what people read cannot
+drift from the data:
+
+- `published/<suite>/<label>/README.md`, written by `bench publish SUITE` from that
+  snapshot's `manifest.json`, `correctness.csv` and `timing.csv` alone: a header (the
+  BNGsim version and build, the engine versions, the harness version and commits, the
+  timing node, the date), a correctness table (each member's outcome and every
+  reference's verdict, then one line per check that did not pass, naming the engine and
+  why), and a timing table (absolute pre-sim and solve medians with their 95% CI, per
+  engine). A speedup appears only as a view derived from that table (a reference's solve
+  median over BNGsim's); it is not stored.
+- `published/README.md` and `published/index.json`: every suite of `specs.SUITES`, its
+  latest snapshot (by `published` time), the tally of its correctness outcomes, and its
+  status: `CURRENT`, `OUT OF DATE` with every reason, or `NOT PUBLISHED`.
+  `index.json` also records the newest bngsim release seen on PyPI
+  (`bngsim_release`: `version`, and the day it was `checked`).
+
+`bench publish SUITE` regenerates all of them; `bench publish --index` regenerates them
+without publishing (`--offline`: judge by the release `index.json` records instead of
+looking up PyPI).
+
+A snapshot is **OUT OF DATE** (`bench.staleness`) when
+
+| signal | from |
+|---|---|
+| a newer bngsim release is on PyPI than the snapshot's (pre-releases and yanked releases do not count) | PyPI's JSON API, looked up by `bench publish` and `bench staleness` |
+| the environment pins another bngsim | `pixi.toml` |
+| the suite's members or their positions differ | `problems/` against `manifest.json` `members` |
+| a member's jobs differ: a job id defined now is not in the snapshot, or one in it is no longer defined (an engine added, a setting changed) | the job list (`bench list`) against `manifest.json` `jobs` |
+| a job's definition differs from the one its record was keyed on: model file (sha256), PEtab tables, protocol, verdict, harness version, setting, timing protocol, input conversion | `Job.definition` now against each record's `key_parts.job.definition` |
+| the harness the records were keyed on differs: the bench version, the vendored verdict code, the environment the harness forces | `env.harness_identity()` against each record's `key_parts.environment.harness` |
+| a reference engine's version differs from the one the environment pins | `pixi.toml` exact pins (libRoadRunner, COPASI, AMICI, PEtab, Antimony) and `bench.fetch` (BioNetGen, RuleMonkey) against the records' `reference_versions` and BioNetGen |
+
+All but the first are read from committed files, never from the installed environment,
+so every machine gets the same answer: a job reads its engines' versions from the
+environment it runs in, and here they are replaced by what the environment pins. A
+withheld timing has no record, so only its correctness job's definition is compared.
+
+Two guards keep this honest:
+
+- `tests/test_summary.py` regenerates every README and `index.json` from the committed
+  data (with the release `index.json` records) and fails on any difference, in CI's
+  unit tests. A change to a spec, a snapshot or the code that would change a status
+  fails there until `bench publish --index` is run and its output committed.
+- `bench staleness` prints every suite's status and reasons, looking up PyPI (exit 0
+  when every published suite is current, 1 when one is out of date, 2 when PyPI cannot
+  be read; `--offline` uses the recorded release). `--markdown FILE` writes the
+  out-of-date suites as an issue body; `--write` also regenerates the summaries.

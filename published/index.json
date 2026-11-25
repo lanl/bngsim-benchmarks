@@ -1,0 +1,278 @@
+{
+ "schema": 1,
+ "bngsim_release": {
+  "version": "0.17.3",
+  "checked": "2026-11-25"
+ },
+ "suites": [
+  {
+   "suite": "ode-net",
+   "description": "ODE on the `.net` generated from published BNGL",
+   "capability": "ode",
+   "formats": [
+    "bngl"
+   ],
+   "members": 10,
+   "snapshot": "ode-net/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:14:00Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 10,
+    "outcomes": {
+     "PASS": 4,
+     "REFERENCE_FAILED": 6
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  },
+  {
+   "suite": "ode-sbml",
+   "description": "ODE on published SBML, read as it is",
+   "capability": "ode",
+   "formats": [
+    "sbml"
+   ],
+   "members": 10,
+   "snapshot": "ode-sbml/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:13:42Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 10,
+    "outcomes": {
+     "DIFF": 2,
+     "PASS": 5,
+     "REFERENCE_FAILED": 3
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  },
+  {
+   "suite": "ssa-sbml",
+   "description": "exact SSA on published SBML, amounts as molecule counts",
+   "capability": "ssa",
+   "formats": [
+    "sbml"
+   ],
+   "members": 10,
+   "snapshot": null,
+   "status": "NOT PUBLISHED",
+   "reasons": []
+  },
+  {
+   "suite": "ss-net",
+   "description": "steady state on the `.net` generated from published BNGL",
+   "capability": "steady_state",
+   "formats": [
+    "bngl"
+   ],
+   "members": 10,
+   "snapshot": null,
+   "status": "NOT PUBLISHED",
+   "reasons": []
+  },
+  {
+   "suite": "ss-sbml",
+   "description": "steady state on published SBML, read as it is",
+   "capability": "steady_state",
+   "formats": [
+    "sbml"
+   ],
+   "members": 10,
+   "snapshot": "ss-sbml/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:14:11Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 10,
+    "outcomes": {
+     "PASS": 7,
+     "REFERENCE_FAILED": 3
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  },
+  {
+   "suite": "ssa-net",
+   "description": "exact SSA on the `.net` generated from published BNGL",
+   "capability": "ssa",
+   "formats": [
+    "bngl"
+   ],
+   "members": 10,
+   "snapshot": null,
+   "status": "NOT PUBLISHED",
+   "reasons": []
+  },
+  {
+   "suite": "psa-net",
+   "description": "partial scaling (PSA) on the `.net` generated from published BNGL",
+   "capability": "psa",
+   "formats": [
+    "bngl"
+   ],
+   "members": 10,
+   "snapshot": "psa-net/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:14:26Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 10,
+    "outcomes": {
+     "PASS": 7,
+     "REFERENCE_FAILED": 3
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  },
+  {
+   "suite": "sens-net",
+   "description": "forward sensitivities on the `.net` generated from published BNGL",
+   "capability": "sens",
+   "formats": [
+    "bngl"
+   ],
+   "members": 10,
+   "snapshot": "sens-net/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:14:15Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 15,
+    "outcomes": {
+     "PASS": 3,
+     "REFERENCE_FAILED": 8,
+     "UNSUPPORTED": 4
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  },
+  {
+   "suite": "ode-antimony",
+   "description": "ODE on Antimony converted from ode-net and ode-sbml members",
+   "capability": "ode",
+   "formats": [
+    "antimony"
+   ],
+   "members": 10,
+   "snapshot": null,
+   "status": "NOT PUBLISHED",
+   "reasons": []
+  },
+  {
+   "suite": "sens-sbml",
+   "description": "forward sensitivities on SBML, from PEtab benchmark problems",
+   "capability": "sens",
+   "formats": [
+    "sbml"
+   ],
+   "members": 10,
+   "snapshot": "sens-sbml/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:14:19Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 10,
+    "outcomes": {
+     "PASS": 10
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  },
+  {
+   "suite": "nf-xml-aggregation",
+   "description": "network-free on BNG-XML from published BNGL: multivalent aggregation",
+   "capability": "nf",
+   "formats": [
+    "bngl"
+   ],
+   "members": 10,
+   "snapshot": "nf-xml-aggregation/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:14:37Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 20,
+    "outcomes": {
+     "DIFF": 5,
+     "PASS": 15
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  },
+  {
+   "suite": "nf-xml-signaling",
+   "description": "network-free on BNG-XML from published BNGL: signaling and gene circuits",
+   "capability": "nf",
+   "formats": [
+    "bngl"
+   ],
+   "members": 10,
+   "snapshot": "nf-xml-signaling/bngsim-0.17.2-932ea5e13396",
+   "older": [],
+   "published": "2026-11-25T17:14:42Z",
+   "bngsim": {
+    "version": "0.17.2",
+    "build_commit": "932ea5e13396"
+   },
+   "correctness": {
+    "jobs": 20,
+    "outcomes": {
+     "DIFF": 5,
+     "EXCEPTION": 2,
+     "PASS": 10,
+     "REFERENCE_FAILED": 3
+    }
+   },
+   "status": "OUT OF DATE",
+   "reasons": [
+    "bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"
+   ]
+  }
+ ],
+ "generated_by": "bench publish --index",
+ "formats": "docs/published_format.md"
+}
