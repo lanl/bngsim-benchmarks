@@ -95,8 +95,8 @@ def test_a_diff_a_withheld_timing_and_a_reference_that_does_not_apply(spec_data,
     assert "9 PASS, 1 DIFF." in text
     assert ("| 2 | [model_02](https://github.com/owner/models/blob/" + "a" * 40
             + "/models/m2/m2.bngl) | 9 / 14 | DIFF |  | DIFF (species) | timeout |") in text
-    assert ("- #2 model_02, roadrunner: DIFF (species), BNGsim disagrees with it; "
-            "max error / peak 0.25; failed the species check") in text
+    assert ("- #2 model_02, roadrunner: DIFF, BNGsim disagrees with it; "
+            "max error / peak 0.25; failed the per-species check") in text
     assert "| 2 | model_02 |  | – |  | withheld: correctness DIFF |  |" in text
     assert f"- run_network, #3: `{why}`" in text
 

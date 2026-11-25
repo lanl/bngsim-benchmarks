@@ -64,6 +64,10 @@ ENGINE_NAMES = {"bionetgen": "BioNetGen", "roadrunner": "libRoadRunner", "copasi
 # A per-reference status as a table cell (correctness.csv's ``status``).
 STATUS_CELLS = {"ok": "ok", "crash": "crash", "timeout": "timeout", "n/a": "unsupported",
                 "not_applicable": "–"}
+# Which half of the ODE gate a DIFF failed (correctness.csv's ``failed_check``).
+FAILED_CHECKS = {"vendored": "failed bngsim's vendored verdict",
+                 "species": "failed the per-species check",
+                 "both": "failed both the vendored verdict and the per-species check"}
 NOT_TIMED = {"crash": "crash", "timeout": "timeout", "n/a": "unsupported",
              "not_applicable": "not applicable"}
 FORMAT_DOC = "docs/published_format.md"
@@ -258,12 +262,12 @@ def _failure_line(row: dict[str, str], where: str) -> str:
         detail = ("it disagrees with BNGsim, and the references that agree with BNGsim "
                   "refute it")
     elif status == "DIFF":
+        word = "DIFF"
         bits = ["BNGsim disagrees with it"]
         if row.get("max_err_over_peak"):
             bits.append(f"max error / peak {float(row['max_err_over_peak']):.2g}")
-        if row.get("failed_check"):
-            bits.append(f"failed the {row['failed_check']} check"
-                        if row["failed_check"] != "both" else "failed both checks")
+        if row.get("failed_check") in FAILED_CHECKS:
+            bits.append(FAILED_CHECKS[row["failed_check"]])
         detail = "; ".join(bits)
     else:
         detail = one_line(row.get("error"))
