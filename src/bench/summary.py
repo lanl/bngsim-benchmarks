@@ -471,6 +471,7 @@ def index(published: Path, problems: list[specs.Problem], jobs: list, *,
     found = snapshots(published)
     members = specs.suite_members(problems)
     pins = staleness.pins(root)
+    skipped = staleness.skipped_releases(published)
     suites = []
     for suite, (cap, formats) in specs.SUITES.items():
         entry: dict[str, Any] = {
@@ -479,23 +480,26 @@ def index(published: Path, problems: list[specs.Problem], jobs: list, *,
         }
         paths = found.get(suite) or []
         if not paths:
-            entry.update(snapshot=None, status=staleness.NOT_PUBLISHED, reasons=[])
+            entry.update(snapshot=None, status=staleness.NOT_PUBLISHED, reasons=[], notes=[])
             suites.append(entry)
             continue
         snap = read_snapshot(paths[-1])
         m = snap.manifest
         outcomes = [j.get("outcome") for j in m.get("jobs") or []
                     if j.get("kind") == "correctness"]
-        reasons = staleness.reasons(snap.path, problems, jobs, pins=pins, release=release)
+        reasons, notes = staleness.assess(snap.path, problems, jobs, pins=pins,
+                                          release=release, skipped=skipped)
         entry.update(
             snapshot=snap.path.relative_to(published).as_posix(),
             older=[p.relative_to(published).as_posix() for p in paths[:-1]],
             published=m.get("published"), bngsim=m.get("bngsim"),
             correctness={"jobs": len(outcomes),
                          "outcomes": dict(sorted(Counter(outcomes).items()))},
-            status=staleness.OUT_OF_DATE if reasons else staleness.CURRENT, reasons=reasons)
+            status=staleness.OUT_OF_DATE if reasons else staleness.CURRENT, reasons=reasons,
+            notes=notes)
         suites.append(entry)
-    return {"schema": INDEX_SCHEMA, "bngsim_release": release, "suites": suites,
+    return {"schema": INDEX_SCHEMA, "bngsim_release": release,
+            "skipped_releases": skipped, "suites": suites,
             "generated_by": "bench publish --index", "formats": FORMAT_DOC}
 
 
@@ -503,6 +507,10 @@ def index_readme(idx: dict[str, Any]) -> str:
     rel = idx.get("bngsim_release") or {}
     seen = (f"Newest bngsim release on PyPI: {rel['version']} (looked up {rel['checked']})."
             if rel.get("version") else "Newest bngsim release on PyPI: not looked up.")
+    if idx.get("skipped_releases"):
+        seen += (f" Skipped on purpose ([{staleness.SKIPPED_FILE}]({staleness.SKIPPED_FILE}), "
+                 "no snapshot is out of date for these): "
+                 + ", ".join(idx["skipped_releases"]) + ".")
     rows = []
     for e in idx["suites"]:
         if e.get("snapshot") is None:
@@ -514,8 +522,10 @@ def index_readme(idx: dict[str, Any]) -> str:
         outcomes = [o for o, n in c["outcomes"].items() for _ in range(n)]
         count = f" ({c['jobs']} jobs)" if c["jobs"] != e["members"] else ""
         older = f" (+{len(e['older'])} older)" if e.get("older") else ""
-        status = ("CURRENT" if e["status"] == staleness.CURRENT
-                  else f"**{e['status']}**: " + "; ".join(e["reasons"]))
+        if e["status"] == staleness.CURRENT:
+            status = "CURRENT" + (f" ({'; '.join(e['notes'])})" if e.get("notes") else "")
+        else:
+            status = f"**{e['status']}**: " + "; ".join(e["reasons"])
         rows.append([f"[{e['suite']}]({e['snapshot']}/{README})", e["description"],
                      str(e["members"]),
                      f"bngsim {b.get('version')}, {str(e.get('published') or '')[:10]}{older}",
@@ -553,8 +563,8 @@ def status_of(idx: dict[str, Any] | None) -> list[tuple[Any, ...]] | None:
     the day the bngsim release was looked up."""
     if not idx:
         return None
-    return [(e.get("suite"), e.get("snapshot"), e.get("status"), tuple(e.get("reasons") or ()))
-            for e in idx.get("suites") or []]
+    return [(e.get("suite"), e.get("snapshot"), e.get("status"), tuple(e.get("reasons") or ()),
+             tuple(e.get("notes") or ())) for e in idx.get("suites") or []]
 
 
 def committed_status(published: Path) -> list[tuple[Any, ...]] | None:
@@ -582,6 +592,8 @@ def staleness_markdown(idx: dict[str, Any], *, shown: bool, link_base: str | Non
 
     seen = (f"newest bngsim release on PyPI: {rel['version']}, looked up {rel['checked']}"
             if rel.get("version") else "bngsim release not looked up")
+    if idx.get("skipped_releases"):
+        seen += "; skipped on purpose: " + ", ".join(idx["skipped_releases"])
     lines = [f"{len(stale)} published suite{'s are' if len(stale) != 1 else ' is'} out of "
              f"date ({seen}).", ""]
     if stale:

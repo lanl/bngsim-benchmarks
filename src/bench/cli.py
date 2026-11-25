@@ -287,10 +287,11 @@ def _release(published: Path, offline: bool) -> tuple[dict | None, str | None]:
     if offline:
         return recorded, None
     try:
-        version = staleness.look_up_release()
+        releases = staleness.look_up_releases()
     except (OSError, ValueError) as exc:
         return recorded, f"could not look up the newest bngsim release on PyPI: {exc}"
-    return {"version": version, "checked": dt.datetime.now(dt.UTC).date().isoformat()}, None
+    return {"version": releases[-1], "releases": releases,
+            "checked": dt.datetime.now(dt.UTC).date().isoformat()}, None
 
 
 def cmd_publish(args) -> int:
@@ -342,6 +343,8 @@ def cmd_staleness(args) -> int:
         print(f"{e['suite']:<20} {e['status']:<14} {e.get('snapshot') or ''}")
         for why in e.get("reasons") or []:
             print(f"    - {why}")
+        for note in e.get("notes") or []:
+            print(f"    ({note})")
     stale = [e for e in idx["suites"] if e["status"] == staleness.OUT_OF_DATE]
     seen = (f"{release['version']} (looked up {release['checked']})" if release
             else "not looked up")

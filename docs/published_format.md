@@ -8,6 +8,7 @@ is here.
 ```
 published/README.md      every suite: its latest snapshot, tally and status (generated)
 published/index.json     the same, machine-readable (generated)
+published/skipped-releases.json   bngsim releases skipped on purpose, each with why
 published/<suite>/bngsim-<version>-<build commit>/
     manifest.json        what was measured, on what, with which engines and harness
     correctness.csv      one row per (problem, setting, reference engine)
@@ -136,9 +137,11 @@ drift from the data:
   median over BNGsim's); it is not stored.
 - `published/README.md` and `published/index.json`: every suite of `specs.SUITES`, its
   latest snapshot (by `published` time), the tally of its correctness outcomes, and its
-  status: `CURRENT`, `OUT OF DATE` with every reason, or `NOT PUBLISHED`.
+  status: `CURRENT` (with a note for a newer bngsim release skipped on purpose), `OUT
+  OF DATE` with every reason, or `NOT PUBLISHED`.
   `index.json` also records the newest bngsim release seen on PyPI
-  (`bngsim_release`: `version`, and the day it was `checked`).
+  (`bngsim_release`: the newest `version`, every final release in `releases`, and the
+  day it was `checked`) and the releases skipped on purpose (`skipped_releases`).
 
 `bench publish SUITE` regenerates all of them; `bench publish --index` regenerates them
 without publishing (`--offline`: judge by the release `index.json` records instead of
@@ -148,7 +151,7 @@ A snapshot is **OUT OF DATE** (`bench.staleness`) when
 
 | signal | from |
 |---|---|
-| a newer bngsim release is on PyPI than the snapshot's (pre-releases and yanked releases do not count) | PyPI's JSON API, looked up by `bench publish` and `bench staleness` |
+| a newer bngsim release is on PyPI than the snapshot's (pre-releases and yanked releases do not count, nor does a release listed in `published/skipped-releases.json`: it is noted beside `CURRENT` instead) | PyPI's JSON API, looked up by `bench publish` and `bench staleness` |
 | the environment pins another bngsim | `pixi.toml` |
 | the suite's members or their positions differ | `problems/` against `manifest.json` `members` |
 | a member's jobs differ: a job id defined now is not in the snapshot, or one in it is no longer defined (an engine added, a setting changed) | the job list (`bench list`) against `manifest.json` `jobs` |
@@ -175,3 +178,8 @@ Three guards keep this honest:
   to main and on demand, and keeps one issue, "Published results are out of date",
   open and up to date while a suite is out of date (closing it when none is). It
   needs only the workflow's `GITHUB_TOKEN`, with `issues: write`; it does not push.
+
+`published/skipped-releases.json` maps each bngsim release skipped on purpose to why,
+with the date of the decision, e.g. `{"0.17.3": "skipped by decision 2026-11-25; the
+next measured release is 0.17.4"}`. A skipped release never makes a snapshot out of
+date; the next release that is not skipped does.

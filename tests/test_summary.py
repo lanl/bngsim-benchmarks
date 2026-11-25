@@ -141,6 +141,27 @@ def test_the_index_says_why_a_snapshot_is_out_of_date(spec_data, write_spec, tmp
     assert "does not show this yet" in md
 
 
+def test_a_skipped_release_leaves_the_snapshot_current_and_says_so(spec_data, write_spec,
+                                                                   tmp_path):
+    problems, jobs, _ = _snapshot(spec_data, write_spec, tmp_path)
+    why = "skipped by decision 2026-11-25; the next measured release is 0.17.4"
+    (tmp_path / "published" / staleness.SKIPPED_FILE).write_text(json.dumps({"0.17.3": why}))
+    release = {"version": "0.17.3", "releases": ["0.17.2", "0.17.3"], "checked": "2026-11-25"}
+    idx = summary.index(tmp_path / "published", problems, jobs, release=release, root=REPO)
+    entry = next(e for e in idx["suites"] if e["suite"] == "ode-net")
+    assert (entry["status"], entry["reasons"]) == (staleness.CURRENT, [])
+    assert entry["notes"] == [f"bngsim 0.17.3 skipped: {why}"]
+    assert idx["skipped_releases"] == {"0.17.3": why}
+    assert f"| 10 PASS | CURRENT (bngsim 0.17.3 skipped: {why}) |" in summary.index_readme(idx)
+
+
+def test_the_committed_snapshots_are_current_but_for_skipped_releases():
+    """What the first run of the staleness workflow should find."""
+    idx = json.loads((PUBLISHED / summary.INDEX_JSON).read_text())
+    published = [e for e in idx["suites"] if e["snapshot"]]
+    assert published and {e["status"] for e in published} == {staleness.CURRENT}
+
+
 def test_publish_index_and_staleness_commands(spec_data, write_spec, tmp_path, monkeypatch):
     _snapshot(spec_data, write_spec, tmp_path)
     monkeypatch.setattr(cli, "ROOT", REPO)  # pixi.toml's pins
@@ -171,15 +192,16 @@ def test_publish_looks_up_the_release_and_keeps_the_recorded_one_when_it_cannot(
     monkeypatch.setattr(cli, "ROOT", REPO)
     out = tmp_path / "published"
     common = ["--problems", str(tmp_path / "problems"), "--out", str(out)]
-    monkeypatch.setattr(staleness, "look_up_release", lambda: "0.17.2")
+    monkeypatch.setattr(staleness, "look_up_releases", lambda: ["0.17.1", "0.17.2"])
     assert cli.main(["publish", "--index", *common]) == 0
     rel = json.loads((out / "index.json").read_text())["bngsim_release"]
-    assert rel["version"] == "0.17.2" and len(rel["checked"]) == 10
+    assert rel["version"] == "0.17.2" and rel["releases"] == ["0.17.1", "0.17.2"]
+    assert len(rel["checked"]) == 10
 
     def down():
         raise OSError("no network")
 
-    monkeypatch.setattr(staleness, "look_up_release", down)
+    monkeypatch.setattr(staleness, "look_up_releases", down)
     assert cli.main(["publish", "--index", *common]) == 0
     assert "keeping the recorded 0.17.2" in capsys.readouterr().err
     assert cli.main(["staleness", *common]) == 2

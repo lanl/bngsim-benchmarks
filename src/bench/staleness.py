@@ -2,8 +2,9 @@
 
 A snapshot is OUT OF DATE, with a reason for each of these, when
 
-- a newer bngsim release is on PyPI than the one it measured, or the environment
-  (pixi.toml) pins another bngsim;
+- a newer bngsim release is on PyPI than the one it measured, unless it is one we
+  skip on purpose (published/skipped-releases.json, each with the reason), or the
+  environment (pixi.toml) pins another bngsim;
 - its suite's members, or their positions, differ from problems/;
 - a member's jobs differ: one the suite defines now is not in the snapshot, or one in
   it is no longer defined (an engine added to a capability, a setting changed);
@@ -15,7 +16,10 @@ A snapshot is OUT OF DATE, with a reason for each of these, when
 - the reference engines its records were keyed on differ from the versions the
   environment pins (pixi.toml; bench.fetch for BioNetGen and RuleMonkey).
 
-Everything but the PyPI release is read from committed files -- problems/, the code,
+A skipped release newer than the snapshot does not make it out of date; it is
+noted beside its CURRENT status instead.
+
+Everything but the PyPI releases is read from committed files -- problems/, the code,
 pixi.toml, the snapshot's records -- never from the installed environment, so the
 answer is the same on every machine. A job reads its reference engines' versions
 from the environment it runs in (``reference_versions``, the Antimony converter's
@@ -40,6 +44,8 @@ OUT_OF_DATE = "OUT OF DATE"
 NOT_PUBLISHED = "NOT PUBLISHED"
 
 RELEASES_URL = "https://pypi.org/pypi/bngsim/json"
+# bngsim releases we skip on purpose, each with why: {"0.17.3": "<reason and date>"}.
+SKIPPED_FILE = "skipped-releases.json"
 
 # A job's environment-read version -> the pixi.toml [pypi-dependencies] package pinning it.
 PIXI_PACKAGES = {
@@ -99,33 +105,55 @@ def release_key(version: str | None) -> tuple[int, ...] | None:
     return tuple(int(p) for p in version.split("."))
 
 
+def final_releases(data: dict[str, Any]) -> list[str]:
+    """Every final release in PyPI's JSON for a project that has a file not yanked,
+    oldest first."""
+    found = [v for v, files in (data.get("releases") or {}).items()
+             if release_key(v) is not None and any(not f.get("yanked") for f in files or [])]
+    return sorted(found, key=release_key)
+
+
 def newest_release(data: dict[str, Any]) -> str | None:
-    """The newest final release in PyPI's JSON for a project that has a file not
-    yanked."""
-    best: tuple[tuple[int, ...], str] | None = None
-    for version, files in (data.get("releases") or {}).items():
-        key = release_key(version)
-        if key is None or not any(not f.get("yanked") for f in files or []):
-            continue
-        if best is None or key > best[0]:
-            best = (key, version)
-    return best[1] if best else None
+    """The newest of ``final_releases``."""
+    found = final_releases(data)
+    return found[-1] if found else None
 
 
-def look_up_release(url: str = RELEASES_URL, timeout: float = 30.0,
-                    opener: Callable[..., Any] | None = None) -> str:
-    """The newest bngsim release on PyPI. Raises OSError (or ValueError) when it
-    cannot be read."""
+def look_up_releases(url: str = RELEASES_URL, timeout: float = 30.0,
+                     opener: Callable[..., Any] | None = None) -> list[str]:
+    """bngsim's final releases on PyPI, oldest first. Raises OSError (or ValueError)
+    when they cannot be read."""
     from .fetch import USER_AGENT
 
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
                                                "Accept": "application/json"})
     with (opener or urllib.request.urlopen)(req, timeout=timeout) as resp:
         data = json.loads(resp.read().decode("utf-8"))
-    version = newest_release(data)
-    if version is None:
+    found = final_releases(data)
+    if not found:
         raise ValueError(f"{url} lists no final release")
-    return version
+    return found
+
+
+def skipped_releases(published: Path) -> dict[str, str]:
+    """The bngsim releases skipped on purpose (published/skipped-releases.json), each
+    with its reason; none when there is no file. Raises ValueError for a file that is
+    not a mapping of final release versions to reasons."""
+    path = Path(published) / SKIPPED_FILE
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return {}
+    if not isinstance(data, dict):
+        bad = ["not a mapping"]
+    else:
+        bad = [f"{k!r}: {'not a final release' if release_key(k) is None else 'no reason'}"
+               for k, v in data.items()
+               if release_key(k) is None or not (isinstance(v, str) and v.strip())]
+    if bad:
+        raise ValueError(f"{path}: a mapping of final bngsim releases to the reason each is "
+                         "skipped; " + "; ".join(bad))
+    return dict(data)
 
 
 # --------------------------------------------------------------------------- #
@@ -180,31 +208,54 @@ def _read_records(snapshot: Path, manifest: dict[str, Any]) -> dict[str, dict[st
     return out
 
 
+def release_check(measured: str | None, release: dict[str, Any] | None,
+                  skipped: dict[str, str]) -> tuple[list[str], list[str]]:
+    """``(reasons, notes)`` for a snapshot of bngsim ``measured``: the newest release on
+    PyPI newer than it and not skipped is a reason; each skipped one newer than it, a
+    note. ``release`` is what was seen on PyPI: ``version`` (the newest), ``releases``
+    (every final release; just ``version`` when absent) and the day it was ``checked``."""
+    if not release or not release.get("version"):
+        return [], []
+    old = release_key(measured)
+    newer = [v for v in release.get("releases") or [release["version"]]
+             if release_key(v) is not None and (old is None or release_key(v) > old)]
+    newer.sort(key=release_key)
+    kept = [v for v in newer if v not in skipped]
+    reasons = [f"bngsim {kept[-1]} is on PyPI (snapshot: {measured})"] if kept else []
+    notes = [f"bngsim {v} skipped: {skipped[v]}" for v in newer if v in skipped]
+    return reasons, notes
+
+
 def reasons(snapshot: Path, problems: list[specs.Problem], jobs: list, *,
-            pins: dict[str, Any], release: dict[str, str] | None) -> list[str]:
-    """Why the snapshot at ``snapshot`` is out of date; empty when it is current.
-    ``jobs`` is every job the specs define (bench.jobs.jobs_for); ``release`` the
-    newest bngsim release seen on PyPI (``{"version", "checked"}``), or None when it
-    was not looked up."""
+            pins: dict[str, Any], release: dict[str, Any] | None,
+            skipped: dict[str, str] | None = None) -> list[str]:
+    """Why the snapshot at ``snapshot`` is out of date; empty when it is current."""
+    return assess(snapshot, problems, jobs, pins=pins, release=release, skipped=skipped)[0]
+
+
+def assess(snapshot: Path, problems: list[specs.Problem], jobs: list, *,
+           pins: dict[str, Any], release: dict[str, Any] | None,
+           skipped: dict[str, str] | None = None) -> tuple[list[str], list[str]]:
+    """``(reasons, notes)`` for the snapshot at ``snapshot``: why it is out of date
+    (empty when it is current), and what is worth saying beside a CURRENT status (a
+    newer release skipped on purpose). ``jobs`` is every job the specs define
+    (bench.jobs.jobs_for); ``release`` what was seen on PyPI (``release_check``), or
+    None when it was not looked up; ``skipped`` the releases skipped on purpose."""
     from . import env
 
     snapshot = Path(snapshot)
     manifest = json.loads((snapshot / "manifest.json").read_text(encoding="utf-8"))
     suite = manifest["suite"]
-    out: list[str] = []
     measured = (manifest.get("bngsim") or {}).get("version")
 
-    # bngsim: the newest release, and the environment's pin.
-    if release and release.get("version"):
-        new, old = release_key(release["version"]), release_key(measured)
-        if new is not None and (old is None or new > old):
-            out.append(f"bngsim {release['version']} is on PyPI (snapshot: {measured})")
+    # bngsim: the newest release not skipped, and the environment's pin.
+    out, notes = release_check(measured, release, skipped or {})
     if pins.get("bngsim") and pins["bngsim"] != measured:
         out.append(f"the environment pins bngsim {pins['bngsim']} (snapshot: {measured})")
 
     # Members and their positions.
     if suite not in specs.SUITES:
-        return out + [f"no suite {suite!r} is defined any more"]
+        return out + [f"no suite {suite!r} is defined any more"], notes
     now = {p.id: p.suites[suite] for p in specs.suite_members(problems).get(suite) or []}
     then = {m["problem"]: m["position"] for m in manifest.get("members") or []}
     gone = sorted(set(then) - set(now), key=lambda i: then[i])
@@ -293,4 +344,4 @@ def reasons(snapshot: Path, problems: list[specs.Problem], jobs: list, *,
         out.append(f"{name} is now {new} (snapshot: {old})")
     if unkeyed:
         out.append(f"records without a key, so not comparable: {_members(sorted(unkeyed), 0)}")
-    return out
+    return out, notes

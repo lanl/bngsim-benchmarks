@@ -76,6 +76,44 @@ def test_a_newer_bngsim_release_makes_it_out_of_date(spec_data, write_spec, tmp_
     assert _reasons(dest, tmp_path, release={"version": "0.18.0rc1", "checked": "x"}) == []
 
 
+SKIP = {"0.17.3": "skipped by decision 2026-11-25; the next measured release is 0.17.4"}
+
+
+def test_a_release_skipped_on_purpose_is_a_note_not_a_reason(spec_data, write_spec,
+                                                             tmp_path):
+    problems, jobs, dest = published(tmp_path, spec_data, write_spec)
+
+    def assess(*releases):
+        release = {"version": releases[-1], "releases": list(releases), "checked": "x"}
+        return staleness.assess(dest, problems, jobs, pins=PINS, release=release,
+                                skipped=SKIP)
+
+    note = f"bngsim 0.17.3 skipped: {SKIP['0.17.3']}"
+    assert assess("0.17.2", "0.17.3") == ([], [note])
+    # The next release that is not skipped makes it out of date again.
+    assert assess("0.17.2", "0.17.3", "0.17.4") == (
+        ["bngsim 0.17.4 is on PyPI (snapshot: 0.17.2)"], [note])
+    # So does one between the snapshot and a skipped release.
+    skip = {"0.17.4": "broken"}
+    release = {"version": "0.17.4", "releases": ["0.17.2", "0.17.3", "0.17.4"], "checked": "x"}
+    assert staleness.release_check("0.17.2", release, skip) == (
+        ["bngsim 0.17.3 is on PyPI (snapshot: 0.17.2)"], ["bngsim 0.17.4 skipped: broken"])
+    # A release seen before the list was recorded: just the newest.
+    assert staleness.release_check("0.17.2", {"version": "0.17.3", "checked": "x"}, SKIP) \
+        == ([], [note])
+
+
+def test_the_skipped_releases_file_is_checked(tmp_path):
+    assert staleness.skipped_releases(tmp_path) == {}
+    path = tmp_path / staleness.SKIPPED_FILE
+    path.write_text(json.dumps(SKIP))
+    assert staleness.skipped_releases(tmp_path) == SKIP
+    path.write_text(json.dumps({"0.18.0rc1": "x", "0.17.5": " "}))
+    with pytest.raises(ValueError, match="'0.18.0rc1': not a final release; '0.17.5': no reason"):
+        staleness.skipped_releases(tmp_path)
+    assert staleness.skipped_releases(REPO / "published")  # the committed one reads
+
+
 def test_a_protocol_or_model_file_change_names_the_members(spec_data, write_spec, tmp_path):
     dest = _publish(tmp_path, spec_data, write_spec)
     d = _member(spec_data, 3)
@@ -131,6 +169,14 @@ def test_an_engine_pin_bngsim_pin_or_harness_change_is_out_of_date(spec_data, wr
         f"harness version is now bench 9.9.9 (snapshot: bench {was})"]
 
 
+def test_a_new_bionetgen_is_an_engine_change(spec_data, write_spec, tmp_path):
+    # BioNetGen 2.9.4 (which bundles NFsim 2.0.1) once its fetch pin moves.
+    dest = _publish(tmp_path, spec_data, write_spec)
+    pins = {**PINS, "bionetgen": {"version": "2.9.4", "sha256": ["f" * 64]}}
+    assert _reasons(dest, tmp_path, pins=pins) == [
+        f"BioNetGen is now 2.9.4 (snapshot: {fetch.BIONETGEN_VERSION})"]
+
+
 def test_every_real_jobs_engine_versions_have_a_pin():
     problems = specs.load_all(REPO / "problems")
     names = set()
@@ -151,6 +197,7 @@ def test_the_newest_release_skips_pre_releases_and_yanked_ones():
                          "0.17.10": [{"yanked": True}], "0.18.0rc1": [{"yanked": False}],
                          "0.16.0": []}}
     assert staleness.newest_release(data) == "0.17.3"
+    assert staleness.final_releases(data) == ["0.17.2", "0.17.3"]
     assert staleness.release_key("0.17.10") > staleness.release_key("0.17.9")
     assert staleness.release_key("1.0.0.dev1") is None
 
@@ -171,10 +218,10 @@ def test_the_release_is_read_from_pypi_json():
         seen["url"], seen["agent"] = req.full_url, req.get_header("User-agent")
         return Resp(body)
 
-    assert staleness.look_up_release(opener=opener) == "0.17.3"
+    assert staleness.look_up_releases(opener=opener) == ["0.17.2", "0.17.3"]
     assert seen == {"url": staleness.RELEASES_URL, "agent": fetch.USER_AGENT}
 
 
 @pytest.mark.network
 def test_pypi_names_a_final_bngsim_release():
-    assert staleness.release_key(staleness.look_up_release()) is not None
+    assert staleness.release_key(staleness.look_up_releases()[-1]) is not None
