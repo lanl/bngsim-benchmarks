@@ -194,6 +194,15 @@ def test_run_network_launch_prefixes_the_loader_when_present(tmp_path, monkeypat
     env.run_network_launch.cache_clear()
 
 
+def test_bionetgen_is_pinned_to_the_release_that_bundles_nfsim_2():
+    from bench import env
+
+    assert fetch.BIONETGEN_VERSION == "2.9.4"
+    assert env.NFSIM_VERSION[fetch.BIONETGEN_VERSION] == "2.0.1"
+    assert set(fetch.BIONETGEN_SHA256) == {"mac", "linux"}
+    assert all(len(h) == 64 and int(h, 16) >= 0 for h in fetch.BIONETGEN_SHA256.values())
+
+
 # --------------------------------------------------------------------------- #
 # RuleMonkey: the pinned source, built with the env's compiler
 # --------------------------------------------------------------------------- #

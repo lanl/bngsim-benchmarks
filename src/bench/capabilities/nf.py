@@ -12,14 +12,16 @@ Both read the BNG-XML that BNG2.pl's ``writeXML()`` writes from the published
 BNGL, and both are compared with every reference in ``REFERENCE_ENGINES`` on the
 same protocol:
 
-- **nfsim** -- standalone NFsim 1.14.3 (bundled with BioNetGen 2.9.3) as BNG2.pl
+- **nfsim** -- standalone NFsim 2.0.1 (bundled with BioNetGen 2.9.4) as BNG2.pl
   drives it: BNG2.pl runs the protocol's own actions (``bench.nfactions``), writing
   the XML and starting NFsim for each network-free step, with any ``setParameter``
   between steps applied by BNG2.pl, as NFsim's command line cannot change a
   parameter mid-run. A fresh BNG2.pl process per trajectory, its seed replaced.
   BNG2.pl execs ``$BNGPATH/bin/NFsim`` itself, so on an old-glibc host the job runs
   it under a mirror of the distribution whose ``NFsim`` wraps the loader swap
-  (``env.bng_launch_tree``); the binary's bytes are untouched.
+  (``env.bng_launch_tree``); the binary's bytes are untouched. NFsim 1.14.3
+  (BioNetGen 2.9.3) is for comparison runs only (``BNGPATH`` naming that
+  distribution); which ran is in the key, through BioNetGen's sha256.
 - **rulemonkey** -- standalone RuleMonkey's ``rm_driver`` (v3.13.0, built from its
   pinned source by ``bench fetch-rulemonkey``), a fresh process per trajectory, on
   the same XML. It is the **same code lineage** as BNGsim's embedded ``nf_exact``
@@ -50,9 +52,10 @@ not a DIFF. Recorded beside the verdicts, and not gating:
 - the other network-free setting of BNGsim, drawn from its own seeds and compared
   the same way (``cross_setting``): the two embedded engines against each other;
 - a same-seed check of the embedding (``same_seed``): BNGsim's ``nf_exact`` against
-  ``rm_driver``, and BNGsim's ``nf_reject`` in its NFsim v1.14.3 compatibility mode
-  against BNG2.pl's NFsim, on the first trajectories of the reference's own seeds.
-  Two copies of one code fed one seed should give one trajectory.
+  ``rm_driver``, and BNGsim's ``nf_reject`` against BNG2.pl's NFsim (in BNGsim's NFsim
+  v1.14.3 compatibility mode where that NFsim is 1.14.3, a comparison run), on the
+  first trajectories of the reference's own seeds. Two copies of one code fed one
+  seed should give one trajectory.
 
 Known reference gaps are recorded, never worked around: NFsim stops with NaN on a
 rate law that divides by a single-copy count (RuleWorld/nfsim#115), which the
@@ -891,6 +894,12 @@ def _score(bn: np.ndarray | None, ensembles: dict[str, np.ndarray], seed: int,
     return verdicts, result, verdict_basis(applicable, verdicts, result)
 
 
+def v1143_reference() -> bool:
+    """Whether the standalone NFsim is a 1.14 release (BioNetGen 2.9.3's, for a
+    comparison run), which BNGsim's ``v1143_compat`` mode reproduces seed for seed."""
+    return str(env.nfsim_identity().get("version") or "").startswith("1.14.")
+
+
 def other_setting(setting: str) -> str:
     return SETTINGS[1 - SETTINGS.index(setting)]
 
@@ -957,18 +966,22 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         info["cross_setting"] = {"setting": other, "config": cross["config"]}
 
     # The embedding, same seed for same seed: bngsim nf_exact against rm_driver;
-    # bngsim nf_reject in its v1.14.3 compatibility mode against BNG2.pl's NFsim.
+    # bngsim nf_reject against BNG2.pl's NFsim, in its v1.14.3 compatibility mode
+    # where that NFsim is 1.14.3.
     twin = "rulemonkey" if setting == "nf_exact" else "nfsim"
     if twin in ensembles and nf.single:
         k = min(SAME_SEED_TRAJECTORIES, n)
+        compat = setting == "nf_reject" and v1143_reference()
         out = isolated(f"{setting} (same seeds as {twin})",
                        _cold_bngsim(setting, prep, k, seed_for(twin, seed),
-                                    v1143_compat=setting == "nf_reject"))
+                                    v1143_compat=compat))
         if "error" in out:
             info["same_seed"] = {"engine": twin, "error": out["error"]}
         else:
             info["same_seed"] = {"engine": twin, **_same_seed(out["trajectory"],
                                                               ensembles[twin][:k])}
+        if setting == "nf_reject":
+            info["same_seed"]["v1143_compat"] = compat
 
     verdicts, result, basis = _score(bn, ensembles, seed, grid, names, bn_error, ref_errors,
                                      applicable)

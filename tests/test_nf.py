@@ -324,10 +324,16 @@ def test_correctness_passes_and_records_cross_setting_and_same_seed(monkeypatch,
     assert arrays["bngsim"].shape == (200, N_T, N_OBS)
 
 
-def test_the_reject_setting_checks_its_embedding_against_nfsim(monkeypatch, tmp_path):
+@pytest.mark.parametrize("version, compat", [("2.0.1", False), ("1.14.3", True)])
+def test_the_reject_setting_checks_its_embedding_against_nfsim(monkeypatch, tmp_path, version,
+                                                                compat):
+    # BNGsim's v1.14.3 compatibility mode only where the reference is NFsim 1.14.3
+    # (BioNetGen 2.9.3, a comparison run); against NFsim 2 (2.9.4) BNGsim as it is.
     _install(monkeypatch, {"nfsim": _fake_reference(), "rulemonkey": _fake_reference()})
+    monkeypatch.setattr(nf.env, "nfsim_identity", lambda: {"version": version})
     rec = nf.run_correctness(_job("nf_reject"), None, _ctx(tmp_path))
     assert rec["measurements"]["same_seed"]["engine"] == "nfsim"
+    assert rec["measurements"]["same_seed"]["v1143_compat"] is compat
     assert rec["measurements"]["cross_setting"]["setting"] == "nf_exact"
 
 

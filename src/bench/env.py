@@ -378,10 +378,11 @@ def run_network_launch() -> list[str]:
 # --------------------------------------------------------------------------- #
 # The network-free reference engines: NFsim (bundled with BioNetGen) and RuleMonkey
 # --------------------------------------------------------------------------- #
-# The NFsim BioNetGen 2.9.3 bundles (its banner: "starting NFsim v1.14.3"; `bench
-# doctor` runs it and checks). A BioNetGen release pins its NFsim, so the version
-# follows from the distribution, whose sha256 is in every fingerprint.
-NFSIM_VERSION = {"2.9.3": "1.14.3"}
+# The NFsim a BioNetGen release bundles (2.9.4's banner: "starting NFsim v2.0.1";
+# `bench doctor` runs it and checks). A BioNetGen release pins its NFsim, so the
+# version follows from the distribution, whose sha256 is in every fingerprint.
+# 2.9.3 (NFsim 1.14.3) is kept for comparison runs only.
+NFSIM_VERSION = {"2.9.4": "2.0.1", "2.9.3": "1.14.3"}
 # The binaries BNG2.pl execs from ``$BNGPATH/bin``, which a loader swap must wrap.
 LAUNCHED_BINARIES = ("NFsim", "run_network")
 

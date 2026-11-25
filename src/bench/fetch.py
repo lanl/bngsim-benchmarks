@@ -20,15 +20,19 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-BIONETGEN_VERSION = "2.9.3"
+BIONETGEN_VERSION = "2.9.4"
 _BIONETGEN_BASE = (
     "https://github.com/RuleWorld/bionetgen/releases/download/"
     f"BioNetGen-{BIONETGEN_VERSION}/BioNetGen-{BIONETGEN_VERSION}"
 )
-# sha256 of the published release assets.
+# sha256 of the published release assets (GitHub's own digests of them agree).
+# 2.9.4 is the first release to bundle NFsim 2 (2.0.1); 2.9.3, with NFsim 1.14.3,
+# was: mac 5ddf0ebf76b9573bbfef794bc8335438b46962f704c3fffffff7db425eb8ebf9, linux
+# b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d (comparison runs
+# only: unpack it and point BNGPATH at it).
 BIONETGEN_SHA256 = {
-    "mac": "5ddf0ebf76b9573bbfef794bc8335438b46962f704c3fffffff7db425eb8ebf9",
-    "linux": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "mac": "712df23d1c64db0b85a4c3f7ae1027f480ddad06e1565828aa88c911c843f00c",
+    "linux": "8af3bbf86a157b9474664c2bc7a647f0aa624219244bccc2ce5fd8f3c43d4ff1",
 }
 # Written into the extracted distribution; what jobs read to record which
 # BioNetGen they ran, and to tell a fetched copy from one found elsewhere.
@@ -115,12 +119,13 @@ def fetch_bionetgen(cache_dir: str | Path) -> Path:
 # --------------------------------------------------------------------------- #
 # A newer glibc, for machines whose own is too old to load run_network
 # --------------------------------------------------------------------------- #
-# BioNetGen's prebuilt Linux run_network (2.9.3) needs glibc >= 2.34 and
-# libstdc++ GLIBCXX_3.4.29; a cluster on an older OS (e.g. RHEL 8 / glibc 2.28)
-# cannot load it. Rather than rebuild it or pin an older BioNetGen, we run the
-# unchanged binary under a newer loader, extracted (no root) from public Rocky
-# Linux 9 RPMs. The binary's bytes -- and so its sha256 fingerprint -- are
-# untouched; only how it is launched changes (see env.run_network_launch).
+# BioNetGen's prebuilt Linux run_network and NFsim (2.9.3 and 2.9.4 alike) need
+# glibc >= 2.34 and libstdc++ GLIBCXX_3.4.29; a cluster on an older OS (e.g. RHEL
+# 8 / glibc 2.28) cannot load them. Rather than rebuild them or pin an older
+# BioNetGen, we run the unchanged binaries under a newer loader, extracted (no
+# root) from public Rocky Linux 9 RPMs. The binaries' bytes -- and so BioNetGen's
+# sha256 fingerprint -- are untouched; only how they are launched changes (see
+# env.run_network_launch).
 #
 # Pinned to the Rocky *vault* (archived point releases never garbage-collected,
 # unlike the rolling mirror). glibc provides the loader + libc/libm; libstdc++

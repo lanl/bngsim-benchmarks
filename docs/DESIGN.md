@@ -637,14 +637,18 @@ dropped; anything else is refused by name. Of NFsim's own flags (`param`), three
 accepted: `-bscb` and `-cb`, which are the same in NFsim 1.14.3 -- both stop a
 bimolecular rule from binding two molecules of one complex, and one seed gives one
 trajectory under either (measured on `tlbr_yang2008` and `blbr_rings_posner1995`) --
-so either sets BNGsim's `block_same_complex_binding`, as `complex=>1`, BNG2.pl's
-default, does; and `-utl N`, the traversal limit. BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
+and no-ops in NFsim 2, which blocks it by default (`-no-bscb` turns that off) -- so
+either sets BNGsim's `block_same_complex_binding`, as `complex=>1`, BNG2.pl's
+default, does; and `-utl N`, the traversal limit. Every core member runs `complex=>1`:
+under NFsim 2 a `complex=>0` run would still block (BNG2.pl 2.9.4 does not pass
+`-no-bscb` for it). BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
 so on a host whose glibc is too old the job points BNG2.pl at a mirror of the fetched
 distribution whose `NFsim` launches the unchanged binary under the loader swap.
 
 **References.**
 
-- `nfsim`: BNG2.pl and NFsim 1.14.3 (BioNetGen 2.9.3), one BNG2.pl process per
+- `nfsim`: BNG2.pl and NFsim 2.0.1 (BioNetGen 2.9.4, the latest release of each;
+  2.9.3's NFsim 1.14.3 only for comparison runs), one BNG2.pl process per
   trajectory, each step's seed replaced. Its NaN stop on a rate law that divides by a
   single-copy count (RuleWorld/nfsim#115) is recorded as such. The protocol's last step
   runs with `get_final_state=>0`: no step follows it to use NFsim's final state, and
@@ -696,9 +700,11 @@ Recorded beside the verdicts, never scored:
   compared the same way, so the two embedded engines are checked against each other
   without one's failure being charged to the other;
 - **same seed**: the first five trajectories of the twin reference's own seeds run
-  again by BNGsim -- `nf_exact` against `rm_driver`, `nf_reject` in its NFsim v1.14.3
-  compatibility mode against BNG2.pl's NFsim -- and compared exactly. Two copies of
-  one code fed one seed should give one trajectory.
+  again by BNGsim -- `nf_exact` against `rm_driver`, `nf_reject` against BNG2.pl's
+  NFsim (in BNGsim's NFsim v1.14.3 compatibility mode where that NFsim is 1.14.3, a
+  comparison run) -- and compared exactly. Two copies of one code fed one seed should
+  give one trajectory; against NFsim 2, whose draws all come from one generator,
+  BNGsim's embedded NFsim (an older base) is not expected to match.
 
 The ensembles are stored with the record (§6.1), so a changed verdict is re-scored
 without re-simulating.
