@@ -104,7 +104,8 @@ from .ssa import VERDICT as SSA_VERDICT
 
 CAPABILITY = "nf"
 # Bump when this module's computation changes; every result it wrote goes stale.
-HARNESS_VERSION = "2"
+# 3: run_network's edgepop questions answered as BNG2.pl does (EDGEPOP_REPLY).
+HARNESS_VERSION = "3"
 # BNGsim's two network-free engines: each is the system under test of one setting.
 SETTINGS = ("nf_reject", "nf_exact")
 SESSION = {"nf_reject": "NfsimSession", "nf_exact": "RuleMonkeySession"}
@@ -610,17 +611,46 @@ def _single_step_ssa(prep: dict[str, Any]) -> str | None:
     return None
 
 
+# BNG2.pl's answer to run_network's ``edgepop: <species>`` (as in the ssa
+# capability). run_network's stochastic methods write that line when a species no
+# reaction consumes (the network's edge, as on-the-fly generation sees it) first
+# becomes populated, and then read their stdin for BNG2.pl's reply: ``read`` and new
+# network blocks, or ``continue``. BNG2.pl, running a simulation from a finished
+# network, replies ``continue`` (BNGAction.pm, simulate). A run_network given no
+# reply reads end of file and crashes (signal 11; Rohrs 2018's fully phosphorylated
+# CD3z). So every trajectory gets BNG2.pl's reply on stdin once per species, more
+# than it can ask for.
+EDGEPOP_REPLY = "continue\n"
+
+
 class RunNetworkSSA:
     """BioNetGen's ``run_network -p ssa`` on the generated network, a fresh
-    process per trajectory, read back from its observables (``.gdat``)."""
+    process per trajectory, read back from its observables (``.gdat``). Each
+    process is driven as BNG2.pl drives it, its ``edgepop`` questions answered on
+    stdin (``EDGEPOP_REPLY``), in the job's scratch directory (a crash's core file
+    stays there)."""
 
     NAME = "run_network"
     unsupported = staticmethod(_single_step_ssa)
 
     def __init__(self, prep: dict[str, Any], out_prefix: Path, *, timeout: float):
-        self.net, self.nf, self.names, self.timeout = prep["net"], prep["nf"], prep["names"], timeout
-        self.out_prefix = out_prefix
-        out_prefix.parent.mkdir(parents=True, exist_ok=True)
+        self.nf, self.names, self.timeout = prep["nf"], prep["names"], timeout
+        # Absolute: each trajectory runs in the scratch directory, not the job's.
+        self.net = Path(prep["net"]).absolute() if prep.get("net") is not None else None
+        self.out_prefix = Path(out_prefix).absolute()
+        self.out_prefix.parent.mkdir(parents=True, exist_ok=True)
+        self._replies: str | None = None
+
+    def replies(self) -> str:
+        """What every trajectory reads on stdin: BNG2.pl's ``EDGEPOP_REPLY`` once per
+        species and once more, since each species can reach the edge only once."""
+        if self._replies is None:
+            try:
+                n = network_size(self.net).get("species", 0)
+            except OSError:
+                n = 0  # no network to read: run_network fails on it first
+            self._replies = EDGEPOP_REPLY * (n + 1)
+        return self._replies
 
     def command(self, seed: int) -> list[str]:
         p = self.nf.phases[0]
@@ -629,8 +659,9 @@ class RunNetworkSSA:
                 "-g", str(self.net), str(self.net), repr(p.duration / p.n_steps), str(p.n_steps)]
 
     def trajectory(self, seed: int) -> np.ndarray:
-        proc = subprocess.run(self.command(seed), capture_output=True, text=True,
-                              timeout=self.timeout, check=False)
+        proc = subprocess.run(self.command(seed), input=self.replies(), capture_output=True,
+                              text=True, timeout=self.timeout, check=False,
+                              cwd=self.out_prefix.parent)
         if proc.returncode != 0:
             raise RuntimeError(f"run_network failed: {_tail(proc)}")
         gdat = Path(f"{self.out_prefix}.gdat")
