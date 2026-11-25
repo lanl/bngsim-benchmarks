@@ -93,10 +93,9 @@ kept repetition must reproduce the first run.
 
 Input formats: the jobs are built from BNGL through the generated ``.net``; BNGsim and
 the finite differences read the ``.net``, AMICI and COPASI the SBML exported from it.
-An SBML suite (a PEtab problem's model, say) would load the SBML into BNGsim, AMICI
-and COPASI directly and take its finite differences from an engine that reads SBML;
-the engine adapters take their input by kind (``INPUT``), and ``jobs`` is where such
-a suite would be admitted, with its own engines id.
+An SBML source is a PEtab problem (the sens-sbml suite): BNGsim and libRoadRunner's
+finite differences read its SBML, AMICI the whole problem through its PEtab importer,
+every condition of the problem applied (``bench.capabilities.sens_sbml``).
 """
 
 from __future__ import annotations
@@ -210,8 +209,12 @@ def engines_id() -> str:
 
 
 def jobs(problem: Problem) -> list[Job]:
-    # BNGL only for now; an SBML source is where a sens-sbml suite would be admitted
-    # (see the module docstring), with its own engines id.
+    # An SBML source is a PEtab problem: the sens-sbml path, with its own engines id
+    # (bench.capabilities.sens_sbml).
+    if problem.source.get("format") == "sbml":
+        from . import sens_sbml
+
+        return sens_sbml.jobs(problem)
     if problem.source.get("format") != "bngl":
         return []
     engines = engines_id()
@@ -1935,6 +1938,10 @@ def run_timing(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any
 
 
 def run(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str, Any]:
+    if problem.source.get("format") == "sbml":
+        from . import sens_sbml
+
+        return sens_sbml.run(job, problem, ctx)
     if job.kind == CORRECTNESS:
         return run_correctness(job, problem, ctx)
     if job.kind == TIMING:

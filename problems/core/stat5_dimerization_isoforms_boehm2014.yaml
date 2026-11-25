@@ -1,0 +1,67 @@
+# Isoform-specific dynamics of phosphorylation-dependent STAT5 dimerization (PEtab Boehm_JProteomeRes2014).
+# A core problem: member 2 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# kept from the paper's set (P01); six parameters reach the state, below the 10-parameter floor (decision D4: kept).
+# The PEtab problem as the harness applies it (bench.petab_problem): 1 simulation condition(s), 48 measurements of 3 observables; 9 estimated parameters, of which
+# the 6 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: sd_pSTAT5A_rel, sd_pSTAT5B_rel, sd_rSTAT5A_rel.
+id: stat5_dimerization_isoforms_boehm2014
+layer: core
+title: Isoform-specific dynamics of phosphorylation-dependent STAT5 dimerization
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Boehm_JProteomeRes2014/model_Boehm_JProteomeRes2014.xml
+  sha256: 90fc7f262efd9a2878e8ae0321cfdd66339b18e9573f4aba1469b6268d572ea2
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Boehm_JProteomeRes2014/Boehm_JProteomeRes2014.yaml
+    sha256: d62def033b5c02d084dd36019a784eab927196d24cfe30e55202efb753f86f77
+  conditions:
+    path: Benchmark-Models/Boehm_JProteomeRes2014/experimentalCondition_Boehm_JProteomeRes2014.tsv
+    sha256: 523a28f32498f4dc0e4301692559c4d2f571f21d8e454270d22e91e0725b50b6
+  measurements:
+    path: Benchmark-Models/Boehm_JProteomeRes2014/measurementData_Boehm_JProteomeRes2014.tsv
+    sha256: fe5813913d14daa07e72a40fa403d56a0ed3367f14745819f4d5384953a0d1c2
+  observables:
+    path: Benchmark-Models/Boehm_JProteomeRes2014/observables_Boehm_JProteomeRes2014.tsv
+    sha256: 5e9a4692ce33e00b2ffb55b32b824e3ba19518546854fe0b4ffebd3f896f2429
+  parameters:
+    path: Benchmark-Models/Boehm_JProteomeRes2014/parameters_Boehm_JProteomeRes2014.tsv
+    sha256: 5fad6c55cc5433289dee6997ef0da1e0ce5cbcfa39c37558135773855061f291
+publications:
+- citation: Boehm ME, Adlung L, Schilling M, Roth S, Klingmueller U, Lehmann WD (2014). Identification
+    of isoform-specific dynamics in phosphorylation-dependent STAT5 dimerization by quantitative mass
+    spectrometry and mathematical modeling. J Proteome Res 13:5685-5694.
+  doi: 10.1021/pr5006923
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Boehm_JProteomeRes2014 at Benchmark-Models-PEtab 4d20850 (the authors''
+    model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark
+    test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal -138.22199693517703
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: -138.22199693517703
+    parameters:
+    - Epo_degradation_BaF3
+    - k_exp_hetero
+    - k_exp_homo
+    - k_imp_hetero
+    - k_imp_homo
+    - k_phos
+size:
+  species: 8
+  reactions: 9
+  conditions: 1
+  measurements: 48
+  sens_parameters: 6
+suites:
+  sens-sbml: 2

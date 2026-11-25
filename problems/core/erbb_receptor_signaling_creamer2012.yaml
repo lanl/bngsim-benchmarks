@@ -1,0 +1,59 @@
+# ERBB receptor signaling, the large rule-based model of Creamer et al. (2012). A core problem:
+# member 9 of the nf-xml-signaling suite (docs/DESIGN.md §3.2, suites-stochastic.md §2.5; the
+# bngsim paper's B32), the largest multisite receptor network (> 1e100 species). Two-phase: the
+# file's own action block equilibrates the basal state for 500 s with ligand binding off (lig =
+# 0), then sets lig = 1 (5 nM EGF and HRG) and follows the 180-min response at 1-min output. The
+# suite replays that protocol at a twentieth of the file's subvolume, f = 0.001 for 0.02, about
+# 4,800 particles for ~95,900: at f = 0.02 one trajectory costs BNG2.pl's NFsim 312-340 s, so
+# 100 would outrun the hour each engine has; every count and rate constant derived from f follows
+# it. Neither RuleMonkey can replay it (rm_driver UNSUPPORTED; BNGsim's RuleMonkeySession refuses
+# set_param on a live session), so the nf_exact job records that refusal.
+# TODO(pin): this pins main's file, which has a scaling bug: ten association constants
+# (Grb2kp1-4, Gab1kp156-161) are not divided by f, so below f = 1 those reactions run 1/f times
+# too slow (it fails the Fig. 4 check: max z 25.3). The fix is on the unmerged BNGL-Models branch
+# verify-erbb_receptor_signaling_creamer2012-fig4-assert @ 56bab69 (new sha256
+# 23a778bfefef1cc5b8c54a0fb16cab6c55171d374fd3ab905d13e8dff2fb884d). Until it is merged and
+# re-pinned, this member's results compare the engines on the pre-fix rules only.
+id: erbb_receptor_signaling_creamer2012
+layer: core
+title: "ERBB receptor signaling network"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/erbb_receptor_signaling_creamer2012/erbb_receptor_signaling_creamer2012.bngl
+  sha256: 6672c0a8a2d75bc08697ee4c2c7ed7c58aab68ca0e98d6fe75e7b0211a452983
+  format: bngl
+publications:
+  - citation: "Creamer MS, Stites EC, Aziz M, Cahill JA, Tan CW, Berens ME, Han H, Bussey KJ, Von Hoff DD, Hlavacek WS, Posner RG (2012). Specification, annotation, visualization and simulation of a large rule-based model for ERBB receptor signaling. BMC Syst Biol 6:107."
+    doi: 10.1186/1752-0509-6-107
+verification:
+  kind: data
+  evidence: models/erbb_receptor_signaling_creamer2012/verify_creamer2012.ipynb (on the fixed file)
+  check: >-
+    144 BNG2.pl NFsim runs of the file's own two-phase protocol at f = 0.02 against Fig. 4 (the
+    authors' original heat map, read on its own grid: 1081 columns at 10 s, 55 rows), per-site
+    fraction of time above 0.14 of peak on the 33 sites with a mean peak of 20 molecules or more:
+    max |z| <= 3.61 and rms z <= 1.39; the file equals the publisher's model at f = 1 and scales
+    uniformly with f; asserted
+  result: >-
+    fixed file: max |z| 1.70, rms 0.86; the pre-fix file (main's, pinned here) fails, max |z| 25.3,
+    rms 10.8. The committed digitized CSV mapped the dendrogram margin onto 0-180 min; the new
+    digitizer replaces it
+  pending: >-
+    BNGL-Models branch verify-erbb_receptor_signaling_creamer2012-fig4-assert @ 56bab69 (not
+    merged; it CHANGES the .bngl): re-pin source to the merged fixed file (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      setParameter("f",0.001)
+      simulate({suffix=>"equil",method=>"nf",t_start=>0,t_end=>500,n_steps=>5,gml=>2147483647,get_final_state=>1})
+      setParameter("lig",1)
+      simulate({suffix=>"erbb",method=>"nf",t_start=>0,t_end=>10800,n_steps=>180,gml=>2147483647,get_final_state=>0})
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+size:
+  nf_events: 1800000
+suites:
+  nf-xml-signaling: 9

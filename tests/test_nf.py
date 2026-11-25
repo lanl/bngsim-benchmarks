@@ -106,7 +106,10 @@ def test_the_pilot_specs_load_and_declare_what_they_test():
     problems = {p.id: p for p in specs.load_all(REPO / "problems")}
     camkii = problems["camkii_holoenzyme_activation_michalski2012_nfsim"]
     tnf = problems["tnf_tnfr1_sequential_binding_mcmillan2021"]
-    assert camkii.layer == tnf.layer == "pilot" and not camkii.suites and not tnf.suites
+    # Both pilots became core members, their protocols unchanged.
+    assert camkii.layer == "core"
+    # The TNF pilot became the aggregation suite's finite anchor, its protocol unchanged.
+    assert tnf.layer == "core" and tnf.suites == {"nf-xml-aggregation": 3}
     assert camkii.protocol_for("nf")["actions"] == "own"
     assert "netgen" not in camkii.protocol_for("nf")
     # The finite anchor: exact SSA on its generated network is a reference.
@@ -291,15 +294,87 @@ def test_a_failing_or_unsupported_reference_is_a_reference_failure(monkeypatch, 
     assert "same_seed" not in rec["measurements"]
 
 
-def test_a_disagreement_is_a_diff_even_when_another_reference_failed(monkeypatch, tmp_path):
-    _install(monkeypatch, {"nfsim": _fake_reference(boom="NaN stop"),
-                           "rulemonkey": _fake_reference()},
-             bngsim=_fake_bngsim(shift={"nf_exact": 1.5}))
+def test_an_independent_disagreement_is_a_diff_even_when_another_reference_failed(
+        monkeypatch, tmp_path):
+    # The outcome rule (DIFF is never masked) on top of the independent-reference rule.
+    _install(monkeypatch, {"nfsim": _fake_reference(shift=1.5),
+                           "rulemonkey": _fake_reference(boom="crashed")})
     rec = nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))
     assert rec["outcome"] == "DIFF"
-    assert "NaN stop" in rec["nfsim_error"]
-    assert not rec["verdicts"]["rulemonkey"]["passed"]
+    assert "crashed" in rec["rulemonkey_error"]
+    assert not rec["verdicts"]["nfsim"]["passed"]
     assert nf.VERDICT["outcome_rule"] == ssa.VERDICT["outcome_rule"]
+
+
+def test_rm_driver_alone_disagreeing_is_its_own_failure_not_a_diff(monkeypatch, tmp_path):
+    # rm_driver is the upstream of nf_exact: a disagreement only it finds is the
+    # reference's, while NFsim, the independent reference, agrees with BNGsim.
+    _install(monkeypatch, {"nfsim": _fake_reference(),
+                           "rulemonkey": _fake_reference(shift=1.5)})
+    rec = nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))
+    assert rec["outcome"] == "REFERENCE_FAILED"
+    assert rec["verdicts"]["nfsim"]["passed"] and not rec["verdicts"]["rulemonkey"]["passed"]
+    assert rec["verdicts"]["rulemonkey"]["same_lineage"] is True
+    assert "same_lineage" not in rec["verdicts"]["nfsim"]
+    basis = rec["verdict_basis"]
+    assert basis["independent"] == ["nfsim"] and basis["same_lineage"] == ["rulemonkey"]
+    assert "only rulemonkey disagrees" in basis["same_lineage_disagreement"]
+
+
+def test_an_independent_reference_disagreeing_is_a_diff_whatever_rm_driver_says(monkeypatch,
+                                                                                 tmp_path):
+    _install(monkeypatch, {"nfsim": _fake_reference(shift=1.5),
+                           "rulemonkey": _fake_reference()})
+    rec = nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))
+    assert rec["outcome"] == "DIFF"
+    assert "same_lineage_disagreement" not in rec["verdict_basis"]
+
+
+def test_rm_driver_alone_can_never_pass_bngsim(monkeypatch, tmp_path):
+    # Only the same-lineage reference applies: it agrees, but that is no PASS.
+    _install(monkeypatch, {"rulemonkey": _fake_reference()})
+    rec = nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))
+    assert rec["verdicts"]["rulemonkey"]["passed"]
+    assert rec["outcome"] == "REFERENCE_FAILED"
+    assert rec["verdict_basis"]["independent"] == []
+    assert "no independent reference" in rec["verdict_basis"]["no_independent_reference"]
+    # Nor can it refute BNGsim alone.
+    _install(monkeypatch, {"rulemonkey": _fake_reference(shift=1.5)})
+    assert nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))["outcome"] \
+        == "REFERENCE_FAILED"
+
+
+@pytest.mark.parametrize("passed, errors, expected", [
+    ({"nfsim": True, "rulemonkey": True}, {}, "PASS"),
+    ({"nfsim": True, "rulemonkey": True, "run_network": True, "bngsim_ssa": True}, {}, "PASS"),
+    ({"nfsim": False, "rulemonkey": True}, {}, "DIFF"),
+    ({"nfsim": False, "rulemonkey": False}, {}, "DIFF"),
+    ({"nfsim": True, "rulemonkey": False}, {}, "REFERENCE_FAILED"),
+    # BNGsim's own exact SSA is another algorithm: a disagreement with it is a DIFF.
+    ({"nfsim": True, "rulemonkey": True, "run_network": True, "bngsim_ssa": False}, {},
+     "DIFF"),
+    ({"nfsim": True, "rulemonkey": False, "run_network": True, "bngsim_ssa": True}, {},
+     "REFERENCE_FAILED"),
+    ({"rulemonkey": True}, {"nfsim": "NaN stop"}, "REFERENCE_FAILED"),
+    ({"rulemonkey": False}, {"nfsim": "NaN stop"}, "REFERENCE_FAILED"),
+    ({"nfsim": True}, {"rulemonkey": "UNSUPPORTED: two steps"}, "REFERENCE_FAILED"),
+    # An independent disagreement is a DIFF even when another reference failed.
+    ({"nfsim": False}, {"rulemonkey": "UNSUPPORTED: two steps"}, "DIFF"),
+    ({"nfsim": True, "rulemonkey": True, "bngsim_ssa": False}, {"run_network": "crashed"},
+     "DIFF"),
+])
+def test_the_outcome_needs_an_independent_reference_to_pass_or_refute(passed, errors, expected):
+    applicable = [*passed, *errors]
+    verdicts = {name: {"passed": ok} for name, ok in passed.items()}
+    assert nf.verdict_outcome(None, errors, applicable, verdicts) == expected
+
+
+def test_the_rule_is_in_the_verdict_so_a_change_restales_and_rescores():
+    assert nf.VERDICT["independent_reference_rule"] == 1
+    assert {k: v for k, v in nf.VERDICT.items() if k != "independent_reference_rule"} \
+        == nf.SSA_VERDICT
+    assert nf.independent(["nfsim", "rulemonkey", "run_network", "bngsim_ssa"]) == \
+        ["nfsim", "run_network", "bngsim_ssa"]
 
 
 def test_bngsim_failing_is_an_exception_and_with_every_reference_a_bad_test(monkeypatch,
@@ -330,6 +405,7 @@ def test_rescoring_the_stored_ensembles_reproduces_the_verdicts(monkeypatch, tmp
     arrays = rec.pop("_trajectories")
     update = nf.rescore(_job("nf_exact"), json.loads(json.dumps(rec, default=str)), arrays)
     assert update["outcome"] == rec["outcome"] == "REFERENCE_FAILED"
+    assert update["verdict_basis"] == rec["verdict_basis"]
     assert json.dumps(update["verdicts"], default=str) == json.dumps(rec["verdicts"], default=str)
     assert update["measurements"]["cross_setting"]["verdict"]["p_value"] == \
         rec["measurements"]["cross_setting"]["verdict"]["p_value"]

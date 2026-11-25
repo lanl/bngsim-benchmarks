@@ -1,0 +1,41 @@
+# Trivalent ligand, bivalent receptor on mast cells, fit to Monine et al. (2010) Fig. 2a (the
+# equivalent-site acyclic TLBR model; the paper's steric Models I-III are not encoded). A core
+# problem: member 8 of the nf-xml-aggregation suite (docs/DESIGN.md §3.2, suites-stochastic.md
+# §2.4). The file's own protocol is a 12-dose parameter_scan, which no engine but BNG2.pl can
+# replay; the suite runs the record's single-dose alternative, which its action block carries
+# commented out: the default LT_conc = 7 nM (300 receptors and ~4,200 ligands in a 0.001
+# subvolume), network-free to 5000 s (equilibrium) in 250 steps, -bscb.
+id: tlbr_steric_monine2010
+layer: core
+title: "Trivalent antigen aggregating IgE-FceRI on mast cells"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/tlbr_steric_monine2010/tlbr_steric_monine2010.bngl
+  sha256: d6a9d36e417a7a1f299a2fad81dbf6b55702c107e25400048e398034fbbd378c
+  format: bngl
+publications:
+  - citation: "Monine MI, Posner RG, Savage PB, Faeder JR, Hlavacek WS (2010). Modeling multivalent ligand-receptor interactions with steric constraints on configurations of cell-surface receptor aggregates. Biophys J 98:48-56."
+    doi: 10.1016/j.bpj.2009.09.043
+verification:
+  kind: data
+  evidence: >-
+    models/tlbr_steric_monine2010/verify_monine2010.ipynb and run_monine2010.py
+  check: >-
+    24 fresh BNG2.pl NFsim scans (seeds 1000-1023, each in its own run directory, asserted distinct) at the 12 Fig. 2a doses against the published CSV: RMS lambda < 0.02 (Monine's own acceptance criterion, SI Eq. 11) with a margin of more than 3 bootstrap SE, asserted
+  result: >-
+    RMS lambda 0.0153 +- 0.0005 (margin 9.4 SE); the old cache, which a shared-directory glob had left with 1 distinct scan of 5, read 0.0124
+  pending: >-
+    BNGL-Models branch verify-tlbr_steric_monine2010-replicates @ 936660b (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nfr",t_start=>0,t_end=>5000,n_steps=>250,gml=>2147483647,print_functions=>1,param=>"-bscb"})
+    replicates: 500
+    timing_replicates: 10
+    seed: 1
+size:
+  nf_events: 450000
+suites:
+  nf-xml-aggregation: 8

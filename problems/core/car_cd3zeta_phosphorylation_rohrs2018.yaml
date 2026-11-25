@@ -9,6 +9,11 @@
 # over the first 60 min (time unit: minutes), when A1 is past half-maximal and C1 has begun.
 # run_network segfaults or hangs on this network, for exact SSA and PSA alike, on x86 and on the
 # native aarch64 build (the pilot's finding): recorded as REFERENCE_FAILED, never worked around.
+# Also member 6 of the nf-xml-signaling suite (suites-stochastic.md §2.5): finite (65 / 192), so
+# exact SSA on its network is a reference, with functional Michaelis-Menten propensities and the
+# non-integer LCK seed (19.703), which shows how each network-free engine converts a count. nf
+# protocol: the psa one as a network-free run. run_network's SSA fails on this network here too
+# ("edgepop", cost probe 2026-11-24): REFERENCE_FAILED, recorded.
 id: car_cd3zeta_phosphorylation_rohrs2018
 layer: core
 title: "CAR CD3zeta site-specific phosphorylation by LCK"
@@ -27,7 +32,7 @@ verification:
   check: "the nine digitized Fig. S5 model curves vs the BioNetGen ODE, and the Fig. S5 measurements against the authors' own published fit"
   result: "Fig. S5 model curves within 1.6 percentage points; SSE 1.25e4 against the authors' 1.27e4 over 354 points"
   supporting: "equations: Eqs. 2-5 transcribed independently in SciPy match BioNetGen to 1e-3 percentage points"
-capabilities: [psa]
+capabilities: [psa, nf]
 protocol:
   psa:
     netgen: "generate_network({overwrite=>1})"
@@ -37,9 +42,18 @@ protocol:
     timing_replicates: 10
     seed: 1
     poplevels: [10, 30, 100, 300, 1000]
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>60,n_steps=>60,gml=>2147483647})
+    netgen: "generate_network({overwrite=>1})"
+    replicates: 800
+    timing_replicates: 5
+    seed: 1
 size:
   species: 65
   reactions: 192
   psa_events: 64000
+  nf_events: 260000
 suites:
   psa-net: 6
+  nf-xml-signaling: 6

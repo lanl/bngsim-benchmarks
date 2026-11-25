@@ -442,6 +442,26 @@ def test_nf_rows_carry_the_cross_setting_check_and_divide_by_nfsim(tmp_path):
     assert "x run_network" not in summary
 
 
+def test_nf_rm_driver_alone_disagreeing_is_shown_refuted_not_diff(tmp_path):
+    corr, _ = _nf_records()
+    corr["outcome"] = "REFERENCE_FAILED"
+    corr["verdicts"]["rulemonkey"].update(passed=False, p_value=1e-4, same_lineage=True)
+    corr["verdict_basis"] = {"independent": ["nfsim"], "same_lineage": ["rulemonkey"],
+                             "same_lineage_disagreement": "only rulemonkey disagrees"}
+    results = tmp_path / "results"
+    job = Job("nf", "toy", NF_ENGINES, "nf_exact", CORRECTNESS)
+    dest = results / f"{job.id}.json"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(corr))
+    reports = tmp_path / "reports"
+    g.gather([job], results, reports, {CORRECTNESS: {}, TIMING: {}})
+    [row] = json.loads((reports / "nf-correctness.json").read_text())
+    assert row["verdicts"]["rulemonkey"]["refuted_by"] == ["nfsim"]
+    assert g.reference_agreement(row) == "PARTIAL 1/2 (rulemonkey: refuted)"
+    summary = (reports / "summary.md").read_text(encoding="utf-8")
+    assert "refuted (p 0.0001)" in summary
+
+
 # --------------------------------------------------------------------------- #
 # Forward sensitivities: a column error per reference, a refuted reference named
 # as such, and the finite-difference baselines beside the timed solves

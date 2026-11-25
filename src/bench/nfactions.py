@@ -29,10 +29,17 @@ NF_METHODS = frozenset({"nf", "nfsim"})
 # simulate options every engine can follow (or that do not change the law sampled).
 SIM_OPTIONS = frozenset({
     "method", "t_start", "t_end", "n_steps", "seed", "suffix", "prefix", "gml", "utl",
-    "complex", "get_final_state", "print_functions", "verbose", "n_output_steps",
+    "complex", "get_final_state", "print_functions", "verbose", "n_output_steps", "param",
 })
 # Options that hold for the whole run: an engine is built with them once.
-RUN_OPTIONS = ("gml", "utl", "complex")
+RUN_OPTIONS = ("gml", "utl", "complex", "param")
+# NFsim flags a ``param`` string may pass, which every engine can follow: -bscb
+# (block same-complex binding) and -cb, the same thing in NFsim 1.14.3 (one seed
+# gives one trajectory under -cb, -bscb or both; without either NFsim lets a
+# bimolecular rule bind within one complex), and -utl N, the traversal limit.
+# BNG2.pl appends the string to NFsim's command line as written.
+PARAM_SWITCHES = frozenset({"-bscb", "-cb"})
+PARAM_VALUED = frozenset({"-utl"})
 
 
 class ActionError(ValueError):
@@ -64,10 +71,15 @@ class SimulateNF:
                 return v
         return default
 
-    def render(self, *, seed: int, suffix: str) -> str:
-        """The step for BNG2.pl, its seed and output suffix replaced."""
-        opts = [(k, v) for k, v in self.options if k not in ("seed", "suffix", "prefix")]
+    def render(self, *, seed: int, suffix: str, get_final_state: bool | None = None) -> str:
+        """The step for BNG2.pl, its seed and output suffix replaced (and, if
+        given, whether BNG2.pl reads NFsim's final state back)."""
+        drop = {"seed", "suffix", "prefix"} | ({"get_final_state"} if get_final_state is not None
+                                              else set())
+        opts = [(k, v) for k, v in self.options if k not in drop]
         opts += [("suffix", f'"{suffix}"'), ("seed", str(int(seed)))]
+        if get_final_state is not None:
+            opts.append(("get_final_state", "1" if get_final_state else "0"))
         return f"{self.action}({{" + ",".join(f"{k}=>{v}" for k, v in opts) + "})"
 
 
@@ -295,16 +307,59 @@ def protocol(text: str) -> Protocol:
             raise ActionError(f"{key} must be a positive integer")
         return int(x)
 
-    return Protocol(tuple(phases), gml=opt_int("gml"), utl=opt_int("utl"),
-                    complex=_flag(run_opts.get("complex"), True), dropped=tuple(dropped))
+    utl = opt_int("utl")
+    complex_ = _flag(run_opts.get("complex"), True)
+    flags = _param_flags(run_opts.get("param"))
+    if "-bscb" in flags or "-cb" in flags:
+        complex_ = True
+    if "-utl" in flags:
+        if utl is not None and utl != flags["-utl"]:
+            raise ActionError(f"utl=>{utl} and param -utl {flags['-utl']} disagree")
+        utl = flags["-utl"]
+    return Protocol(tuple(phases), gml=opt_int("gml"), utl=utl, complex=complex_,
+                    dropped=tuple(dropped))
 
 
-def render(proto: Protocol, seeds: list[int], *, suffix: str = "nfp") -> str:
+def _param_flags(text: str | None) -> dict[str, int | bool]:
+    """The NFsim flags of a ``param`` string, refusing any no other engine can follow."""
+    if text is None:
+        return {}
+    tokens = _unquote(text).split()
+    out: dict[str, int | bool] = {}
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok in PARAM_SWITCHES:
+            out[tok] = True
+            i += 1
+        elif tok in PARAM_VALUED:
+            if i + 1 >= len(tokens):
+                raise ActionError(f"param: {tok} needs a value")
+            v = _number(tokens[i + 1], f"param {tok}")
+            if v != int(v) or v < 1:
+                raise ActionError(f"param: {tok} must be a positive integer")
+            out[tok] = int(v)
+            i += 2
+        else:
+            raise ActionError(f"param: the NFsim flag {tok!r} cannot be followed by every "
+                              f"network-free engine (only {', '.join(sorted(PARAM_SWITCHES | PARAM_VALUED))})")
+    return out
+
+
+def render(proto: Protocol, seeds: list[int], *, suffix: str = "nfp",
+           read_back_last: bool = True) -> str:
     """The protocol as BNG2.pl actions: every ``setParameter`` as written and
     every network-free step with ``seeds[k]`` and the output suffix
-    ``<suffix><k>``, so each phase writes its own ``.gdat``."""
+    ``<suffix><k>``, so each phase writes its own ``.gdat``. With
+    ``read_back_last`` false the last step runs with ``get_final_state=>0``:
+    no step follows it to use its final state, so BNG2.pl need not read NFsim's
+    species file back -- which, for a model of many large complexes, takes BNG2.pl
+    far longer than NFsim took to simulate. The trajectory is unchanged."""
     lines = []
+    last = len(proto.phases) - 1
     for p in proto.phases:
         lines += [s.render() for s in p.sets]
-        lines.append(p.step.render(seed=seeds[p.index], suffix=f"{suffix}{p.index}"))
+        keep = None if read_back_last or p.index != last else False
+        lines.append(p.step.render(seed=seeds[p.index], suffix=f"{suffix}{p.index}",
+                                   get_final_state=keep))
     return "\n".join(lines) + "\n"

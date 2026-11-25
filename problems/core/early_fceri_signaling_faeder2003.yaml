@@ -19,6 +19,9 @@
 # TODO(pin): the .bngl header calls its active protocol a "Fig. 3-style time course"; a fix is a
 # local BNGL-Models branch (verify-early_fceri_signaling_faeder2003-header). Re-pin source.commit
 # and source.sha256 to the merged fix; the model block is unchanged, but the results restale.
+# Also member 5 of the nf-xml-signaling suite (suites-stochastic.md §2.5), the classic finite
+# anchor: network-free simulation against exact SSA on its generated network. nf protocol: the ssa
+# one as a network-free run (6,828 particles; ~2.8 s per trajectory in the slowest engine).
 id: early_fceri_signaling_faeder2003
 layer: core
 title: "Early FceRI signaling"
@@ -36,7 +39,7 @@ verification:
   check: "the nine model curves of Fig. 3 (1.6 nM IgE dimer, 70 min; digitized from the publisher's raster, 528 points) vs the unchanged model block at the Fig. 3 dose, per curve RMSE <= 0.5% and max <= 1% of panel full scale asserted; the nine numbers the Results section reads off Fig. 3, asserted"
   result: "worst RMSE 0.14% (panel a), worst point 0.21%; 9 of 9 numbers; 0.9x and 1.1x the dose fail every curve"
   supporting: "equations: BioNetGen ODE vs SciPy on the generated network, 4.1e-7 (shipped protocol) and 4.7e-7 (Fig. 3 protocol) scaled; structure: 354 species, 3680 reactions"
-capabilities: [ssa, psa]
+capabilities: [ssa, psa, nf]
 protocol:
   ssa:
     netgen: "generate_network({overwrite=>1})"
@@ -53,6 +56,13 @@ protocol:
     timing_replicates: 1
     seed: 1
     poplevels: [10, 30, 100, 300, 1000]
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>120,n_steps=>60,gml=>2147483647})
+    netgen: "generate_network({overwrite=>1})"
+    replicates: 800
+    timing_replicates: 5
+    seed: 1
 size:
   species: 354
   reactions: 3680
@@ -62,6 +72,8 @@ size:
   # run_network one).
   ssa_events: 4500000
   psa_events: 1400000
+  nf_events: 300000
 suites:
   ssa-net: 10
   psa-net: 9
+  nf-xml-signaling: 5

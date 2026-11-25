@@ -719,3 +719,254 @@ differentiated and the fitted set is a job setting of its own (D3c).
   start from an earlier phase's, so it is `not_applicable` on 3, 5, 7 and 8. BNGsim 0.17.2
   refuses to carry sensitivities across a species reset (7, 8), which is BNGsim's result
   to record.
+
+## sens-sbml: forward sensitivities on SBML, from PEtab benchmark problems
+
+BNGsim's forward sensitivities on the SBML of ten PEtab benchmark problems, each applied
+as PEtab defines it, against AMICI's own PEtab importer and central finite differences
+from libRoadRunner (`bench.capabilities.sens_sbml`). Every member is pinned at
+`Benchmarking-Initiative/Benchmark-Models-PEtab` `4d20850` (the commit BNGL-Models' Grein
+job and AMICI v1.1.0's CI resolved): the SBML is the spec's `source`, and its `petab:` block
+pins the YAML and the four tables by sha256 (D12). Members are ordered by N x N_p, N the
+SBML species and N_p the sensitivity set (`suites-deterministic.md` §2.2, decision D4).
+
+| # | problem | PEtab id | species / reactions | conditions (measurements) | estimated / N_p | what the problem adds | AMICI v1.1.0 CI |
+|---|---|---|---|---|---|---|---|
+| 1 | `sphingolipid_rheostat_apoptosis_armistead2024` | `Armistead_CellDeathDis2024` | 4 / 8 | 2 (58), each setting a switch and four initial values | 14 / 10 | initial values set per condition | G |
+| 2 | `stat5_dimerization_isoforms_boehm2014` | `Boehm_JProteomeRes2014` | 8 / 9 | 1 (48) | 9 / 6 | two compartments of unequal volume; initial assignments | G + L |
+| 3 | `ip3_receptor_type2_dynamics_sneyd2002` | `Sneyd_PNAS2002` | 6 / 10 | 9 (135), IP3 and Ca doses | 15 / 14 | a dose-response read as nine conditions | G + L |
+| 4 | `akt_pathway_low_pass_filter_fujita2010` | `Fujita_SciSignal2010` | 9 / 11 | 6 (144), EGF steps and ramps | 19 / 16 | a time-dependent input set per condition; scaling parameters | G + L |
+| 5 | `il13_signaling_lymphoma_raia2011` | `Raia_CancerResearch2011` | 14 / 16 | 4 (205), IL13 doses | 39 / 18 | two compartments (10 / 100); a noise model that reads the state | G |
+| 6 | `covid19_italy_interventions_giordano2020` | `Giordano_Nature2020` | 13 / 13 | 1 (313) | 50 / 43 | 55 `piecewise` terms in time (rates switched at intervention dates) | G |
+| 7 | `histone_h3_k27_k36_methylation_zheng2012` | `Zheng_PNAS2012` | 15 / 60 | 1 after a pre-equilibration (60) | 46 / 45 | **pre-equilibration**: sensitivities carried from a steady state | G + L |
+| 8 | `jak2_stat5_dual_feedback_bachmann2011` | `Bachmann_MSB2011` | 25 / 36 | 36 (541) | 113 / 27 | initial values set per condition through initial assignments; log10 observables | L |
+| 9 | `insulin_signalling_oxidative_stress_smith2013_petab` | `Smith_BMCSystBiol2013` | 133 / 367 | 35 (62), species and parameters set | 25 / 16 | **3 events** (insulin pulses); 5 compartments of 6.4e-14 to 1.65e-11; amount-only species | L (AMICI's own regression value) |
+| 10 | `smad_complex_gene_expression_lucarelli2018` | `Lucarelli_CellSystems2018` | 33 / 57 | 16 (1755) | 84 / 69 | three estimated totals reach initial values through the condition table; 65 log10 observables | L |
+
+Evidence: every member is `author_file` (the collection holds the authors' model, data and
+fitted nominal parameters). AMICI v1.1.0's benchmark test checks each at that commit: G, the
+likelihood gradient against finite differences at nominal plus 5% noise; L, the
+log-likelihood at nominal against a stored value, which the specs copy as `llh_reference`.
+
+### Protocol and comparison
+
+- **The PEtab problem is applied, not just its SBML** (the paper's rows read none of the
+  tables). For each simulation condition of the measurement table: the SBML's values,
+  overridden by every SBML parameter's nominal value in the parameter table, overridden
+  by the condition table (a number, or a parameter-table id standing for its nominal
+  value); initial assignments evaluated at those values; the condition's species
+  initial values; the condition's measurement times from t = 0. A pre-equilibration
+  runs the pre-equilibration condition to steady state on the same model, then the
+  simulation condition's parameters take effect and the state, with its
+  sensitivities, carries over. The harness reads the tables itself (`bench.petab_problem`,
+  no `petab` library); AMICI reads them through `petab` 0.10.0, an independent application.
+- **Sensitivity set:** the estimated parameters that are the model's own SBML parameters,
+  in parameter-table order: not a noise, scaling or offset parameter (those never reach the
+  state), not a condition-table column (the experiment's). The spec writes the set down; the
+  harness and a unit test re-derive it from the pinned tables and refuse a spec that differs.
+- **Engines:** BNGsim (`Model.from_sbml`, both CVODES correctors), its pre-equilibration by
+  its own recipe (`run(steady_state=True)`, then `carry_sensitivities=True`); AMICI's PEtab
+  importer (`amici.importers.petab.v1`, `simulate_petab` with forward sensitivities, its
+  steady-state pre-equilibration; sensitivities on the PEtab scale put back on a linear
+  one); libRoadRunner central differences at steps 1e-3 and 5e-4 of each parameter, at
+  rtol 1e-10 and atol 1e-12. COPASI is not wired for PEtab conditions (recorded).
+- **Outputs:** the state species, by SBML semantics (an amount for a species with
+  `hasOnlySubstanceUnits`, a concentration otherwise; BNGsim reports concentrations, which
+  the harness multiplies by the constant compartment size for Smith's amount-only species),
+  and every measurement row's observable, at each condition's measurement times, the
+  conditions end to end. The verdict is `sens-net`'s column error of the semi-scaled
+  sensitivity (tol 1e-3, with its floors, refutation and coverage rules). An observable is
+  formed from the states by the harness for BNGsim and the finite differences, and by AMICI
+  itself for AMICI.
+- **Problem-level checks**, part of the outcome: BNGsim's PEtab log-likelihood at nominal
+  against AMICI's (atol 1e-3 + rtol 1e-6; AMICI 1.1.0's cost functions keep the Jacobian term
+  of a log-transformed observable, as PEtab's do) and against AMICI's stored value; its
+  gradient over the sensitivity set against AMICI's forward gradient, within 1e-3 of the
+  size of the rows' contributions (at the fitted point the gradient is a cancelled sum).
+- `rtol` 1e-8 and `atol` 1e-10 on every member; a pre-equilibration may integrate to 1e6.
+- **Timing** interleaves one evaluation of the whole problem per engine: both BNGsim
+  correctors, AMICI's forward sensitivities and its adjoint gradient of the PEtab
+  log-likelihood (D7, timing only), and the plain solves of BNGsim and libRoadRunner that a
+  finite-difference gradient pays N_p + 1 or 2 N_p times.
+
+### What the suite spans (DESIGN §3.2, sensitivities)
+
+| axis | members |
+|---|---|
+| size | 4 to 133 species; N_p 6 to 69; N x N_p 40 to 2277 |
+| conditions | 1 to 36 simulation conditions; 48 to 1755 measurements |
+| pre-equilibration, sensitivities carried from a steady state | 7 |
+| events | 9 |
+| the clock read by an assignment rule (a time-dependent input, `piecewise` rates) | 4, 6; 9's events trigger on time |
+| compartments of unequal size | 2, 5, 9 |
+| initial values set per condition (directly or through initial assignments) | 1, 8, 9, 10 |
+| log-transformed observables | 8, 10 |
+| observable and noise parameters (scalings, offsets, a noise model of the state) | 4, 5, 8, 9, 10 |
+
+### Membership decisions
+
+- **Seed:** the paper's six PEtab rows. Kept: Armistead (P04), Boehm (P01), Sneyd (P02), Raia
+  (P05), each now at its PEtab nominal parameters and every condition (the paper ran
+  Armistead at the SBML's 1.0 placeholders, Sneyd at IP3 = 0, Raia unstimulated). Replaced:
+  Perelson 1996 (P03; N_p = 2, a nominal 210 log-likelihood units from the optimum) and
+  Crauste 2017 (P06; AMICI's own test excludes its gradient for numerical failures; the
+  paper's manifest named Bruno 2016, whose per-condition estimated initial values BNGsim's
+  sensitivity path cannot route). Boehm stays below the 10-parameter floor (D4).
+- **Top-ups** by the criterion of proposal §2.2: at least 10 estimated parameters, N_p <= 200,
+  validated by AMICI v1.1.0's CI at the pinned commit, the largest N x N_p: Giordano, Zheng,
+  Bachmann, Isensee, Smith, Lucarelli.
+- **Isensee 2018 replaced by Fujita 2010** (D4: record the refusal once, then replace). BNGsim
+  does not reach a steady state in Isensee's pre-equilibration: the model reads the clock, and
+  BNGsim never marks such a model steady (bngsim issue #710), so its correctness job is
+  UNSUPPORTED in BNGsim's words. Its spec stays (`pka_rii_phosphorylation_camp_isensee2018`,
+  no suite) so the refusal is reproducible. Fujita 2010 is the first alternate BNGsim can
+  pre-equilibrate (Weber 2015 reads the clock too); it has no pre-equilibration, and takes
+  its place by N x N_p (4).
+- **Smith 2013** is the PEtab problem's file, not `ode-sbml`'s BIOMD0000000474: the problem's
+  parameter table sets 54 of the model's parameters and its conditions three species.
+
+## nf-xml-aggregation: network-free on BNG-XML, multivalent aggregation
+
+Network-free simulation of the BNG-XML that BNG2.pl's `writeXML()` writes from published
+BNGL, on the multivalent-aggregation models of the bngsim paper's network-free set (its
+B15–B20, B31 and B35, kept whole) plus two top-ups: the strict finite-network anchor and
+polymerization with turnover (suites-stochastic.md §2.4). Every job runs one of BNGsim's
+two network-free engines (`nf_reject`, `nf_exact`, two settings) against standalone NFsim
+driven by BNG2.pl, standalone RuleMonkey (same lineage as `nf_exact`, so it cannot pass or
+refute BNGsim alone; DESIGN §5.5) and, on a finite or negligibly truncated network, exact
+SSA by run_network and by BNGsim. Members are ordered by particle count as the proposal
+ranked them (at the largest dose of a scan); see the protocol notes for the one dose each
+scan member runs.
+
+| # | problem | particles in the protocol | network | protocol (one network-free run) | replicates | evidence | how it entered |
+|---|---|---|---|---|---:|---|---|
+| 1 | `blbr_heterogeneity_goldstein1980` | 50 antibodies (excess-ligand mode) | unbounded chains | default dose 1e-8 M, 0–10 s, 50 steps, -bscb | 1000 | `theory`: Goldstein–Wofsy Eqs. 13–14 (Fig. 5) | paper seed (B18) |
+| 2 | `prion_nucleated_polymerization_rubenstein2007` | 600 PrPC + 3 seed trimers → ~3.7e4 PrPSc | unbounded chains; SSA on the 40-subunit truncation (41 / 483) | 0–200 days, 40 steps | 100 | `data`: Fig. 2, by SSA (shared with ssa-net 8) | top-up: polymerization with turnover |
+| 3 | `tnf_tnfr1_sequential_binding_mcmillan2021` | 3,613 | **finite, 9 / 24** | 0–10,000 s, 100 steps | 1000 | `data`: Fig. 1b Source Data, by ODE | top-up: the strict finite anchor |
+| 4 | `tlbr_solution_macken1982` | 4,500 | unbounded, acyclic | own: 0–500 s, 250 steps, -bscb | 1000 | `theory`: Eq. 11, Eq. 21, Theorem 1 | paper seed (B16) |
+| 5 | `tlbr_yang2008` | 4,500 | unbounded | own: 0–3000 s, 300 steps | 1000 | `theory`: mean-field bond ODE | paper seed (B15) |
+| 6 | `blbr_dembo1978` | 33,000 | unbounded chains | own: 0–3000 s, 300 steps, -bscb | 500 | `theory`: Dembo–Goldstein equilibrium | paper seed (B17) |
+| 7 | `blbr_rings_posner1995` | 33,000 | unbounded, with rings | own: 0–3000 s, 300 steps, -bscb -utl 5 | 250 | `theory`: Posner Eqs. 14a–i | paper seed (B19) |
+| 8 | `tlbr_steric_monine2010` | 4,515 at 7 nM (scan to ~1.3e5) | unbounded, acyclic | the record's single-dose run: 7 nM, 0–5000 s, 250 steps, -bscb | 500 | `data`: Fig. 2a | paper seed (B35) |
+| 9 | `blbr_cooperativity_posner2004` | 2,707 at 1 nM (scan to ~1.8e5) | unbounded | default 1 nM, 0–10 s, 50 steps | 1000 | `theory`: Wofsy–Goldstein Eqs. 10, 15, 17 | paper seed (B20) |
+| 10 | `egfr_oligomerization_mitra2019` | ~3.0e5 EGF + 900 receptors (30 nM) | unbounded, with rings | the file's 30 nM time course, cut to 0–150 s, 15 steps, -bscb -utl 5 | 120 | `data`: Kozer 2013 | paper seed (B31) |
+
+### Protocol and comparison
+
+- **One network-free run per member.** Every engine replays the protocol, so it can hold
+  only network-free `simulate` steps and `setParameter` (bench.nfactions). The action
+  blocks of Goldstein, Monine and Posner 2004 are a `parameter_scan` (so is Mitra's first
+  protocol), which no engine but BNG2.pl can replay. Each of those runs one dose: the
+  file's default (Goldstein 1e-8 M, near the peak of Fig. 5's bell; Posner 2004 1 nM),
+  the record's own single-dose alternative (Monine 7 nM, commented out in its action
+  block), or the record's time course (Mitra). A scan is a series of independent runs, so
+  one dose loses no engine path; the dose curve stays the record's own check.
+- **Mitra 2019 runs the first 150 s of its 600 s time course.** One engine spends about a
+  minute on the whole course (2.1e6 events at a steady ~3.5e3 per simulated second; RuleMonkey
+  55 s and `nf_exact` 60 s per trajectory on a general node), so 100 trajectories would
+  outrun the per-engine budget below, and a lower dose does not help (1 nM costs as much as
+  30 nM: the cost is in the receptors' clustering and phosphorylation, not the free EGF). The
+  window is cut, the same for every engine, rather than the model; clustering is still
+  evolving at 150 s.
+- **NFsim flags.** `-bscb` and `-cb` are the same in NFsim 1.14.3 (one seed, one
+  trajectory under either; measured on Yang 2008 and Posner 1995), and BNG2.pl passes
+  `-cb` by default, so every member blocks same-complex binding in every engine, whether
+  or not its file writes `-bscb`. Posner 1995 and Mitra pass `-utl 5` (RuleWorld/nfsim#52).
+- **Ensemble sizes** fit each engine's ensemble inside the harness's per-engine budget
+  of one hour (`nf.ENGINE_BUDGET_CAP_SECONDS`): 1000 trajectories where one costs under
+  about 2 s in the slowest engine, fewer where it costs more (measured per engine on a
+  general node, 2026-11-24): Dembo 1978 and Monine 2010 about 5 s, Posner 1995 9 s,
+  Mitra 2019 (150 s) 15 s, and Rubenstein 2007 over 24 s for BNGsim's `nf_exact` on a scaling
+  node (its whole year timed out at 150 trajectories; it now runs 200 days, 100).
+- **NFsim's final state is not read back.** BNG2.pl reads NFsim's species file back after
+  a run with `get_final_state=>1` (its default); on Dembo 1978's chains that took BNG2.pl
+  over three minutes per trajectory against NFsim's 3 s. The harness runs the protocol's
+  last step with `get_final_state=>0`, since no step follows it; the trajectory is the
+  same (DESIGN §5.5).
+- **Rubenstein 2007** is the one member whose network is truncated: exact SSA runs on the
+  network `generate_network` writes at `max_stoich` 40, the file's own. The chain-length
+  tail is negligible: in a BioNetGen SSA run to 365 days no chain ever exceeded 27
+  subunits, and at day 365 2e-4 of the aggregates held 20 or more. Its NF route has no
+  action of its own (the file runs SSA only), so the protocol is its SSA run as a
+  network-free one, output every five days.
+
+### Membership decisions
+
+- The seed is the paper's aggregation group whole (Q11, Q13); Yang 2008 is kept beside
+  its near-duplicate Macken 1982 as the rejection-method paper behind `nf_reject`.
+- TNF 2021 was the network-free capability's pilot; it entered unchanged as the strict
+  finite anchor; both of its pilot jobs passed, correctness and timing.
+- Each member's network-free check of the exact file, not run through BNGsim, is the
+  upstream work of suites-stochastic.md §3.2 items 1–3, one BNGL-Models branch per
+  record. A spec names its branch under `verification.pending` until it is merged and
+  pinned. No branch changes a `.bngl`, so every member's source pin stays 7d6d366.
+
+### Evidence (BNG2.pl NFsim 1.14.3 or exact SSA, never BNGsim)
+
+| # | BNGL-Models branch @ commit | what is asserted | result |
+|---|---|---|---|
+| 1 | `verify-blbr_heterogeneity_goldstein1980-asserts` @ 168a072 | 18 doses x 64 seeds against Eqs. 13–14, 4.32 SE + 0.01 | worst 0.41 of the tolerance |
+| 2 | — (ssa-net's check) | SSA against Fig. 2's saturated levels, < 5% of full scale | 3.91% |
+| 3 | — (pilot) | ODE against Fig. 1b Source Data | as the pilot |
+| 4 | `verify-tlbr_solution_macken1982-asserts` @ 0c3b431 | 3 doses x 200 seeds against Eq. 11 kinetics and Eq. 21 | max \|z\| 3.76 of 5.33; Eq. 21 within 2.0% |
+| 5 | `verify-tlbr_yang2008-seeds-bscb` @ d4cceef | 200 seeds against the mean-field bond ODE; Fig. 3 caption's rejected fractions | bonds 293.13 ± 0.17 vs 293.21 |
+| 6 | `verify-blbr_dembo1978-execute-asserts` @ 05f6bb4 | 3 doses x 20 seeds against the exact chain theory and Perelson–DeLisi kinetics | max \|z\| 1.66 and 2.16 |
+| 7 | `verify-blbr_rings_posner1995-asserts` @ 78d7f9a | a measured ring identity, equilibrium and kinetics against Eqs. 14a–i, 60 seeds | max \|z\| 1.20, 1.58, 2.37 |
+| 8 | `verify-tlbr_steric_monine2010-replicates` @ 936660b | 24 fresh scans against Fig. 2a, RMS λ < 0.02 | 0.0153 ± 0.0005 |
+| 9 | `verify-blbr_cooperativity_posner2004-seeds-bscb` @ 2cd5a16 | 120 seeds x 20 doses against Wofsy–Goldstein | max \|q − theory\| 0.0016 |
+| 10 | `verify-egfr_oligomerization_mitra2019-replicates` @ 5b8ebb1 | Kozer 2013 data, χ² < 30 | 13.90 ± 0.50 |
+
+## nf-xml-signaling: network-free on BNG-XML, signaling and gene circuits
+
+The rest of the bngsim paper's network-free set -- site-dynamics signaling (B32 Creamer 2012,
+B33 Dolan 2015, B34 Chylek 2014) and the phage-lambda circuits (B36 Arkin 1998 `_exact`, B37
+Cortes 2017 `_pergenome`) -- plus five top-ups: CaMKII `_nfsim`, the one asserted network-free
+check in the corpus that runs without BNGsim, and four finite-network anchors spanning one
+particle to about 1e6 (suites-stochastic.md §2.5). Jobs and references as in nf-xml-aggregation.
+Members are ordered by particle count.
+
+| # | problem | particles | network | protocol (network-free) | replicates | evidence | how it entered |
+|---|---|---|---|---|---:|---|---|
+| 1 | `membrane_anchored_multisite_phosphorylation_dushek2011` | 1 | **finite, 143 / 284** | 0-1000 s, 50 steps (the ssa protocol) | 2000 | `theory`: exact CTMC (shared with ssa-net 9) | top-up: finite anchor |
+| 2 | `lambda_switch_cortes2017` (`_pergenome`) | 1,001 | **finite, 22 / 82** | MOI 3, 0–60 min, 120 steps (the record's Fig. S3 condition) | 1000 | `data`: Fig. S3 by NFsim and by SSA; fails at MOI 1 ‖ | paper seed (B37) |
+| 3 | `lambda_switch_arkin1998` (`_fullcircuit_exact`) | 1,212 | not generable | MOI 6, the first 300 s of the Fig. 6a run, 30 steps | 300 | none admissible ‖ | paper seed (B36) |
+| 4 | `p53_nhej_dolan2015` | 2,341 | unbounded | the first 240 min of the file's run, 24 steps | 100 | `theory`: the paper's baseline, multi-seed (pending) | paper seed (B33) |
+| 5 | `early_fceri_signaling_faeder2003` | 6,828 | **finite, 354 / 3680** | 0-120 s, 60 steps (the ssa protocol) | 800 | `data`: Fig. 3 (shared with ssa-net 10) | top-up: the classic finite anchor |
+| 6 | `car_cd3zeta_phosphorylation_rohrs2018` | ~2.0e4 | **finite, 65 / 192** | 0-60 min, 60 steps (the psa protocol) | 800 | `data`: ODE vs the paper (shared with psa-net 6) | top-up: functional rate laws, a non-integer seed |
+| 7 | `camkii_holoenzyme_activation_michalski2012_nfsim` | 2,509 holoenzymes | not generable (44,368 configurations) | own: 0-6 s, 60 steps | 1000 | `theory` + `data`: BNG2.pl NFsim, cell [17] | top-up: the clean NF check |
+| 8 | `tcr_signaling_chylek2014` | ~8,400 at Fx = 0.0025 (67,042 at the file's 0.02) | unbounded | two-phase, the file's own, at Fx = 0.0025 (on-rates rescaled) | 100 | `data`: Fig. S6 by NFsim | paper seed (B34) |
+| 9 | `erbb_receptor_signaling_creamer2012` | ~4,800 at f = 0.001 (~9.6e4 at the file's 0.02) | unbounded | two-phase, the file's own, at f = 0.001 | 100 | `data`: Fig. 4 by NFsim, on the fixed file ‡ | paper seed (B32) |
+| 10 | `tcr_signaling_bistability_lipniacki2008` | 925,633 | **finite, 37 / 97** | 0-200 s, 20 steps (the first third of the ssa protocol) | 100 | `data`: Fig. 7B by ODE (shared with ode-net 2) | top-up: the high-particle finite anchor |
+
+- ‖ **Open for the user.** Arkin 1998 `_exact` has no admissible check: stock NFsim 1.14.3
+  fires a symmetric functional-rate rule at half the exact rate (the defect bngsim fixed as
+  lanl/bngsim#195; reproducer 500.2 ± 2.0 against 1000.2), the file's dimer dilution rules
+  have that shape, and NFsim's Fig. 6a curve lies above the published one from MOI 4 up
+  (z 4.2–8.6). BNG2.pl also aborts the file's NFsim run after it completes (NFsim notes the
+  `~PLUS` states on stderr), so its `nfsim` reference is REFERENCE_FAILED. Q11's reserves are
+  Blinov 2006 and kinetic proofreading. Cortes 2017 `_pergenome` passes its engine check
+  (NFsim against exact SSA on its finite network) but misses Fig. S3 at MOI 1.
+- ‡ **Creamer 2012's file has a scaling bug**, fixed on an unmerged BNGL-Models branch: ten
+  association constants were not divided by f, so below f = 1 they ran 1/f times too slow
+  (the pre-fix file fails Fig. 4 at z 25.3). The spec pins main's file until the fix is merged,
+  so its results compare the engines on the pre-fix rules.
+
+### Protocol and comparison
+
+- **Finite anchors** (1, 2, 5, 6, 10) add exact SSA on the generated network (run_network and
+  BNGsim) as references; their nf protocol is the ssa or psa one where the file sits in those
+  suites (Lipniacki's cut to its first 200 s: a 600 s network-free trajectory of its 925,633
+  particles costs an engine 42–60 s).
+- **Windows and subvolumes cut for cost**, the same for every engine, so each engine's ensemble
+  fits the hour it has: Arkin (first 300 s of 2100 s; BNGsim's nf_reject spends 140 s on the
+  whole run), Dolan (240 of 2400 min; 400–700 s per whole run), Lipniacki (200 of 600 s), Chylek
+  (Fx 0.02 → 0.0025, its two set on-rates scaled by 0.02/Fx, as the record's own reduced check
+  does) and Creamer (f 0.02 → 0.001).
+- **Two-phase members (8, 9)** replay the file's own `setParameter` between the runs. Neither
+  RuleMonkey can: `rm_driver` is UNSUPPORTED for a multi-step protocol, and BNGsim's
+  `RuleMonkeySession` refuses `set_param` on a live session ("Cannot set_param during active
+  session"), so their `nf_exact` jobs record that refusal (EXCEPTION). `NfsimSession` applies
+  a live change to the rates.
+- **Non-integer seed counts.** BNGsim rounds a non-integer seed count to the nearest integer;
+  NFsim 1.14.3 and `rm_driver` truncate it. Rohrs 2018's LCK (19.703) is the member that tests
+  it on purpose (the aggregation suite's Posner 2004 and Mitra 2019 hit it too).

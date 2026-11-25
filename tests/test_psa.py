@@ -133,7 +133,7 @@ def test_the_psa_net_suite_loads_and_declares_what_it_tests():
     lin = by_id["bursty_autoregulated_gene_expression_lin2016"]
     rohrs = by_id["car_cd3zeta_phosphorylation_rohrs2018"]
     assert lin.suites["psa-net"] == 1 and rohrs.suites["psa-net"] == 6
-    assert set(lin.capabilities) == {"ssa", "psa"} and rohrs.capabilities == ("psa",)
+    assert set(lin.capabilities) == {"ssa", "psa"} and set(rohrs.capabilities) == {"psa", "nf"}  # nf: nf-xml-signaling
     for p in members:
         proto = psa.protocol(p)
         assert p.layer == "core", p.id

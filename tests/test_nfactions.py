@@ -69,6 +69,21 @@ def test_render_replaces_each_steps_seed_and_suffix_and_keeps_the_rest():
     assert again.describe() == {**proto.describe(), "dropped": []}
 
 
+def test_the_last_step_need_not_be_read_back_and_earlier_ones_keep_their_choice():
+    proto = nfactions.protocol(TWO_PHASE.replace("gml=>500})  # equilibrate",
+                                                 "gml=>500,get_final_state=>1})"))
+    lines = nfactions.render(proto, [11, 22], read_back_last=False).strip().splitlines()
+    assert "get_final_state=>1" in lines[1]
+    assert lines[3].endswith('suffix=>"nfp1",seed=>22,get_final_state=>0})')
+    # Only BNG2.pl's output changes: the protocol read back is the same but for it.
+    again = nfactions.protocol("\n".join(lines))
+    assert [p.duration for p in again.phases] == [p.duration for p in proto.phases]
+    assert again.phases[0].get_final_state and not again.phases[1].get_final_state
+    single = nfactions.protocol(CAMKII.split("begin actions")[1].split("end actions")[0])
+    text = nfactions.render(single, [5], read_back_last=False)
+    assert text.count("get_final_state") == 1 and "get_final_state=>0" in text
+
+
 def test_an_expression_value_is_quoted_for_bngl():
     step = nfactions.SetParameter("f", "2*k")
     assert step.render() == 'setParameter("f","2*k")'
@@ -90,6 +105,37 @@ def test_an_expression_value_is_quoted_for_bngl():
 def test_what_cannot_be_replayed_is_refused_by_name(actions, message):
     with pytest.raises(nfactions.ActionError, match=message):
         nfactions.protocol(actions)
+
+
+def test_param_passes_the_flags_every_engine_can_follow():
+    # -bscb is -cb in NFsim 1.14.3: both block same-complex binding (complex).
+    p = nfactions.protocol('simulate({method=>"nf",t_end=>10,n_steps=>5,complex=>0,'
+                           'param=>"-bscb -utl 5"})')
+    assert p.complex and p.utl == 5
+    assert nfactions.protocol('simulate_nf({t_end=>1,n_steps=>1,param=>"-cb"})').complex
+    assert not nfactions.protocol('simulate_nf({t_end=>1,n_steps=>1,complex=>0})').complex
+    # BNG2.pl gets the string as written.
+    step = p.phases[0].step.render(seed=3, suffix="x")
+    assert 'param=>"-bscb -utl 5"' in step and "seed=>3" in step
+
+
+@pytest.mark.parametrize("param, message", [
+    ('"-bscb -gml 5"', "-gml"),
+    ('"-utl"', "needs a value"),
+    ('"-utl 0"', "positive integer"),
+    ('"-v -bscb"', "'-v'"),
+])
+def test_param_refuses_flags_some_engine_cannot_follow(param, message):
+    with pytest.raises(nfactions.ActionError, match=message):
+        nfactions.protocol(f'simulate_nf({{t_end=>1,n_steps=>1,param=>{param}}})')
+
+
+def test_param_and_utl_must_agree_and_hold_for_every_step():
+    with pytest.raises(nfactions.ActionError, match="disagree"):
+        nfactions.protocol('simulate_nf({t_end=>1,n_steps=>1,utl=>4,param=>"-utl 5"})')
+    with pytest.raises(nfactions.ActionError, match="param differs"):
+        nfactions.protocol('simulate_nf({t_end=>1,n_steps=>1,param=>"-bscb"})\n'
+                           'simulate_nf({t_end=>2,n_steps=>1})')
 
 
 def test_a_file_without_actions_is_refused():
