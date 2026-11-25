@@ -21,19 +21,24 @@ publications:
     doi: 10.1371/journal.pcbi.1004246
 verification:
   kind: theory
-  evidence: models/p53_nhej_dolan2015/verify_dolan2015.ipynb (new)
+  evidence: models/p53_nhej_dolan2015/verify_dolan2015.ipynb
   check: >-
-    BNG2.pl NFsim on the exact file, 300 baseline cells to 2,400 min and 150 cells at 10x ROS
-    (positive control), against the paper's baseline statements with tolerances pre-registered
-    before the ensemble: no senescence, the ROS level its own theory gives (kROS/kdROS = 10) within
-    3 SE, rare p21 feedback, short-lived damage foci, a transient p53 pulse after focus onset, the
-    p53 mRNA mean and variance; 10x ROS senescent fraction against the paper's 0.32
+    BNG2.pl NFsim 1.14.3 on the exact file (read with readFile, its own simulate with a seed added),
+    300 non-irradiated cells over the published 2,400 min and 150 at 10x background ROS: exact
+    theory (p53 mRNA mean 10 at every output and its variance; the ROS balance ROS - 0.3 p38p = 10)
+    and the paper's statements for non-irradiated cells at its 30 h (no senescence; ROS about
+    constant, hourly mean within sqrt(10) of 10; p21 above 15 in under 10% of cells; under 10% of foci
+    alive 24 h after they appear; a p53 rise after an isolated focus, z > 3.64), and 10x ROS against
+    the paper's 32% senescent by 30 h; tolerances fixed before the final run; asserted
   result: >-
-    pending: the verification ensemble is running (BNGL-Models branch
-    verify-p53_nhej_dolan2015-baseline-seeds); fill in from its commit (TODO)
+    seed-2015 run reproduces reference/ exactly; p53 mRNA max |z| 2.99 (of 4.10), variance 9.88 vs 10;
+    ROS balance 10.0026 +- 0.0043; 0 of 300 senescent; ROS within 0.78 of 10; p21 > 15 in 1.0%; 0.00% of
+    7,744 foci alive at 24 h; p53 rise 51.3 +- 5.8 at +90 min (z 8.9); 10x ROS 37.3% (56/150) vs 32%
+    (+-18.1). Not verified: that the p53 pulse is transient (z 2.4 of 3.64; confounded by new breaks),
+    printed and not asserted
   pending: >-
-    BNGL-Models branch verify-p53_nhej_dolan2015-baseline-seeds (not committed yet when this spec
-    was written; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
+    BNGL-Models branch verify-p53_nhej_dolan2015-baseline-seeds @ 3c73f23 (not merged; the .bngl is
+    unchanged): pin the merged sha in this evidence when it lands (TODO)
 capabilities: [nf]
 protocol:
   nf:
