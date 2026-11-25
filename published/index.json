@@ -50,7 +50,7 @@
    },
    "status": "OUT OF DATE",
    "reasons": [
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
@@ -81,7 +81,7 @@
    },
    "status": "OUT OF DATE",
    "reasons": [
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
@@ -137,7 +137,7 @@
    },
    "status": "OUT OF DATE",
    "reasons": [
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
@@ -180,7 +180,7 @@
    },
    "status": "OUT OF DATE",
    "reasons": [
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
@@ -211,7 +211,7 @@
    },
    "status": "OUT OF DATE",
    "reasons": [
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
@@ -253,7 +253,7 @@
    },
    "status": "OUT OF DATE",
    "reasons": [
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
@@ -285,7 +285,7 @@
    "reasons": [
     "harness changed: all 10 members",
     "verdict changed: all 10 members",
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
@@ -319,7 +319,7 @@
    "reasons": [
     "harness changed: all 10 members",
     "verdict changed: all 10 members",
-    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+    "BioNetGen is now 2.9.5 (snapshot: 2.9.3)"
    ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"

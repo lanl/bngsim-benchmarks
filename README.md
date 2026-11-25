@@ -96,7 +96,7 @@ pixi run doctor
 ```
 
 `pixi install` builds the pinned environment, including the bngsim release under
-test. `fetch-bionetgen` downloads BioNetGen 2.9.4 (which bundles NFsim 2.0.1) and checks
+test. `fetch-bionetgen` downloads BioNetGen 2.9.5 (which bundles NFsim 2.0.1) and checks
 its sha256.
 `fetch-models` downloads every model file the problem specs pin, each from its
 repository at a pinned commit, into the git-ignored `.cache/models/`, and checks its

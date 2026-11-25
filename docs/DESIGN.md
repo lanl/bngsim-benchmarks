@@ -640,14 +640,14 @@ trajectory under either (measured on `tlbr_yang2008` and `blbr_rings_posner1995`
 and no-ops in NFsim 2, which blocks it by default (`-no-bscb` turns that off) -- so
 either sets BNGsim's `block_same_complex_binding`, as `complex=>1`, BNG2.pl's
 default, does; and `-utl N`, the traversal limit. Every core member runs `complex=>1`:
-under NFsim 2 a `complex=>0` run would still block (BNG2.pl 2.9.4 does not pass
+under NFsim 2 a `complex=>0` run would still block (BNG2.pl 2.9.4 and 2.9.5 do not pass
 `-no-bscb` for it). BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
 so on a host whose glibc is too old the job points BNG2.pl at a mirror of the fetched
 distribution whose `NFsim` launches the unchanged binary under the loader swap.
 
 **References.**
 
-- `nfsim`: BNG2.pl and NFsim 2.0.1 (BioNetGen 2.9.4, the latest release of each;
+- `nfsim`: BNG2.pl and NFsim 2.0.1 (BioNetGen 2.9.5, the latest release of each;
   2.9.3's NFsim 1.14.3 only for comparison runs), one BNG2.pl process per
   trajectory, each step's seed replaced. Its NaN stop on a rate law that divides by a
   single-copy count (RuleWorld/nfsim#115) is recorded as such. The protocol's last step
