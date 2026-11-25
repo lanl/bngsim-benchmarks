@@ -21,6 +21,9 @@
   ],
   "amici": [
    "1.1.0"
+  ],
+  "petab": [
+   "0.10.0"
   ]
  },
  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",

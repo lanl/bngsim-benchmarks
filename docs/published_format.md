@@ -6,14 +6,21 @@ SUITE`, or `bench submit SUITE` on a Slurm cluster) and compare what they get wi
 is here.
 
 ```
+published/README.md      every suite: its latest snapshot, tally and status (generated)
+published/index.json     the same, machine-readable (generated)
+published/skipped-releases.json   bngsim releases skipped on purpose, each with why
 published/<suite>/bngsim-<version>-<build commit>/
     manifest.json        what was measured, on what, with which engines and harness
-    correctness.csv      one row per (problem, reference engine)
-    timing.csv           one row per (problem, engine)
+    correctness.csv      one row per (problem, setting, reference engine)
+    timing.csv           one row per (problem, setting, engine)
+    README.md            the snapshot for people, generated from the three files above
     jobs/<job id>.json   every job's full result record
     jobs/<job id>.npz    a correctness job's stored trajectories, when the suite's
                          total is at most 5 MB (see Trajectories below)
 ```
+
+The READMEs and index.json are generated, never edited: see Summaries and staleness
+below.
 
 A snapshot is complete: every job of the suite has a current result, all from one
 BNGsim build, and every timing from one node type. `bench publish` refuses otherwise.
@@ -35,7 +42,7 @@ scratch directory), and `bench publish` refuses if anything of that kind survive
 | `suite`, `capabilities` | the suite and the capabilities its jobs exercise |
 | `published` | when the snapshot was written (UTC) |
 | `bngsim` | version and compiled build commit of the BNGsim under test |
-| `engines` | each reference engine's version(s) across the records |
+| `engines` | each engine's version(s) across the records: BioNetGen, libRoadRunner, COPASI and AMICI in every manifest (as recorded in each job's environment), then NFsim (the binary BioNetGen bundles), RuleMonkey (`rm_driver`), Antimony and PEtab only where the suite's jobs use them |
 | `node_type` | the CPU model, architecture and OS of the timing node |
 | `harness` | the harness version, the vendored verdict code, and the git commits of the harness that ran the jobs |
 | `members` | the suite's models in position order: source pin (repo, commit, path, sha256), publications, verification evidence, size |
@@ -50,6 +57,7 @@ BNGsim's agreement with one reference.
 | column | meaning |
 |---|---|
 | `suite`, `position`, `problem` | the suite, the model's position in it (1-10), the problem id |
+| `setting` | the job's setting (the fourth part of its id): `auto` for most capabilities; a member has one job per setting where a capability runs several (network-free `nf_exact` and `nf_reject`; sens-net's `auto` and `fitted`) |
 | `species`, `reactions` | size of the generated network |
 | `outcome` | the job's outcome: `PASS` (agrees with every reference), `DIFF` (disagrees with one that ran, whatever else failed), `REFERENCE_FAILED` (BNGsim ran; some reference did not, and every one that ran agrees), `EXCEPTION` (BNGsim failed), `TIMEOUT` (BNGsim ran out of time), `BAD_TEST` (the model could not be prepared, or every engine failed) |
 | `agreement` | references agreed / attempted, e.g. `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`; a reference that does not apply is named (`run_network: n/a`) but not counted |
@@ -70,7 +78,7 @@ is a ratio of two rows, not stored.
 
 | column | meaning |
 |---|---|
-| `suite`, `position`, `problem`, `species`, `reactions`, `outcome` | as above; `outcome` is `PASS` when every timed engine reproduced its first run, and `WITHHELD` (not a job outcome) on the one row of a withheld timing |
+| `suite`, `position`, `problem`, `setting`, `species`, `reactions`, `outcome` | as above; `outcome` is `PASS` when every timed engine reproduced its first run, and `WITHHELD` (not a job outcome) on the one row of a withheld timing |
 | `engine`, `role` | the engine, and how it was timed (`warm, in-process`, or `fresh subprocess` when every solve is a new process) |
 | `status` | `timed`, or why it was not: `crash`, `timeout` (it ran past its budget in the correctness job), `n/a`, `not_applicable` (as in correctness.csv), or `withheld`: the member's correctness outcome does not let it be timed, so the row has no engine and no numbers |
 | `presim_seconds` | the one-time cost before the timed solve, measured cold (BNGsim: network generation + code generation + load; a reference: its own code generation + load); empty for a fresh subprocess, whose load is inside every solve |
@@ -113,3 +121,65 @@ Measured on the core suites' correctness results of November 2026, neither fits:
 ten ode-sbml files total 13.3 MB (0.1 to 3.4 MB each), and ode-net's eight total 32.7 MB
 (9.2 to 9.5 MB for each of its three largest networks), before its two largest models,
 which had no current result to measure.
+
+## Summaries and staleness
+
+Three kinds of file under `published/` are generated, so that what people read cannot
+drift from the data:
+
+- `published/<suite>/<label>/README.md`, written by `bench publish SUITE` from that
+  snapshot's `manifest.json`, `correctness.csv` and `timing.csv` alone: a header (the
+  BNGsim version and build, the engine versions, the harness version and commits, the
+  timing node, the date), a correctness table (each member's outcome and every
+  reference's verdict, then one line per check that did not pass, naming the engine and
+  why), and a timing table (absolute pre-sim and solve medians with their 95% CI, per
+  engine). A speedup appears only as a view derived from that table (a reference's solve
+  median over BNGsim's); it is not stored.
+- `published/README.md` and `published/index.json`: every suite of `specs.SUITES`, its
+  latest snapshot (by `published` time), the tally of its correctness outcomes, and its
+  status: `CURRENT` (with a note for a newer bngsim release skipped on purpose), `OUT
+  OF DATE` with every reason, or `NOT PUBLISHED`.
+  `index.json` also records the newest bngsim release seen on PyPI
+  (`bngsim_release`: the newest `version`, every final release in `releases`, and the
+  day it was `checked`) and the releases skipped on purpose (`skipped_releases`).
+
+`bench publish SUITE` regenerates all of them; `bench publish --index` regenerates them
+without publishing (`--offline`: judge by the release `index.json` records instead of
+looking up PyPI).
+
+A snapshot is **OUT OF DATE** (`bench.staleness`) when
+
+| signal | from |
+|---|---|
+| a newer bngsim release is on PyPI than the snapshot's (pre-releases and yanked releases do not count, nor does a release listed in `published/skipped-releases.json`: it is noted beside `CURRENT` instead) | PyPI's JSON API, looked up by `bench publish` and `bench staleness` |
+| the environment pins another bngsim | `pixi.toml` |
+| the suite's members or their positions differ | `problems/` against `manifest.json` `members` |
+| a member's jobs differ: a job id defined now is not in the snapshot, or one in it is no longer defined (an engine added, a setting changed) | the job list (`bench list`) against `manifest.json` `jobs` |
+| a job's definition differs from the one its record was keyed on: model file (sha256), PEtab tables, protocol, verdict, harness version, setting, timing protocol, input conversion | `Job.definition` now against each record's `key_parts.job.definition` |
+| the harness the records were keyed on differs: the bench version, the vendored verdict code, the environment the harness forces | `env.harness_identity()` against each record's `key_parts.environment.harness` |
+| a reference engine's version differs from the one the environment pins | `pixi.toml` exact pins (libRoadRunner, COPASI, AMICI, PEtab, Antimony) and `bench.fetch` (BioNetGen, RuleMonkey) against the records' `reference_versions` and BioNetGen |
+
+All but the first are read from committed files, never from the installed environment,
+so every machine gets the same answer: a job reads its engines' versions from the
+environment it runs in, and here they are replaced by what the environment pins. A
+withheld timing has no record, so only its correctness job's definition is compared.
+
+Three guards keep this honest:
+
+- `tests/test_summary.py` regenerates every README and `index.json` from the committed
+  data (with the release `index.json` records) and fails on any difference, in CI's
+  unit tests. A change to a spec, a snapshot or the code that would change a status
+  fails there until `bench publish --index` is run and its output committed.
+- `bench staleness` prints every suite's status and reasons, looking up PyPI (exit 0
+  when every published suite is current, 1 when one is out of date, 2 when PyPI cannot
+  be read; `--offline` uses the recorded release). `--markdown FILE` writes the
+  out-of-date suites as an issue body; `--write` also regenerates the summaries.
+- `.github/workflows/staleness.yml` runs `bench staleness` every Monday, on every push
+  to main and on demand, and keeps one issue, "Published results are out of date",
+  open and up to date while a suite is out of date (closing it when none is). It
+  needs only the workflow's `GITHUB_TOKEN`, with `issues: write`; it does not push.
+
+`published/skipped-releases.json` maps each bngsim release skipped on purpose to why,
+with the date of the decision, e.g. `{"0.17.3": "skipped by decision 2026-11-25; the
+next measured release is 0.17.4"}`. A skipped release never makes a snapshot out of
+date; the next release that is not skipped does.
