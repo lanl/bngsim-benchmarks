@@ -19,6 +19,11 @@
 # branch exactly above the lower fold; the horizon and tolerances are the verification's (2e6 s,
 # rtol = atol = 1e-10). Its steady-state evidence is at BNGL-Models 7d6d366, where the .bngl is
 # byte-identical to the pinned one.
+# Also member 10 of the nf-xml-signaling suite (suites-stochastic.md §2.5), its high-particle
+# finite anchor: 925,633 particles on a 37-species network, so exact SSA on it is a reference. A
+# network-free trajectory of the ssa protocol's 600 s costs an engine 42-60 s (cost probe,
+# 2026-11-24), so 100 would outrun the hour each engine has; the nf protocol is its first 200 s,
+# output every 10 s, the same for every engine.
 id: tcr_signaling_bistability_lipniacki2008
 layer: core
 title: "TCR signaling bistability"
@@ -40,7 +45,7 @@ verification:
   steady_state_evidence: "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008_steady_state.ipynb at BNGL-Models 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab"
   steady_state_check: "equations: BNG2.pl (a primed cell given N agonists, and a ramp from steady state) vs the independent 37-state equations run the same way and Newton-polished, at 20 log-spaced N_agonist from 1 to 1000, both branches, 1e-6 relative asserted; data: digitized Fig. 7A (d = 0.05/s) ppERK at 19 doses on both branches, 0.024 decade asserted"
   steady_state_result: "37 species x 20 doses x 2 protocols, 7.9e-10; folds at N = 8.8452 and 772.11 by continuation (13 doses bistable); Fig. 7A max 0.0102 decade (2.4%)"
-capabilities: [ode, ssa, psa, steady_state]
+capabilities: [ode, ssa, psa, steady_state, nf]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -72,6 +77,13 @@ protocol:
     rtol: 1.0e-10
     atol: 1.0e-10
     scan: {parameter: N_agonist, min: 1, max: 1000, points: 20, log: true}
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>200,n_steps=>20,gml=>2147483647})
+    netgen: "generate_network({overwrite=>1})"
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
 size:
   species: 37
   reactions: 97
@@ -79,8 +91,10 @@ size:
   # Planning only: sized so the planned PSA job matches the probe (exact 4 s bngsim and
   # 8 s run_network per trajectory; scaled 0.1-2.5 s and up to about 2.5 s).
   psa_events: 600000
+  nf_events: 2000000
 suites:
   ode-net: 2
   ssa-net: 7
   psa-net: 5
   ss-net: 4
+  nf-xml-signaling: 10

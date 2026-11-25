@@ -1,0 +1,39 @@
+# BLBR aggregation with explicit ring closure (Posner, Wofsy and Goldstein 1995). A core problem:
+# member 7 of the nf-xml-aggregation suite (docs/DESIGN.md §3.2, suites-stochastic.md §2.4), the
+# suite's explicit-ring member. About 33,000 particles; open chains are unbounded, and rings close
+# by their own unimolecular rules. The protocol is the file's own action: one network-free run to
+# 3000 s in 300 steps, its seed replaced, with -bscb and -utl 5 (NFsim's automatic traversal limit
+# of 4 is too shallow for the ring patterns: RuleWorld/nfsim#52).
+id: blbr_rings_posner1995
+layer: core
+title: "Bivalent ligand and bivalent receptor with cyclic dimers"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/blbr_rings_posner1995/blbr_rings_posner1995.bngl
+  sha256: be2477299a88449edb23bb55e4f951e43032b625e1f9506193ee78231629a730
+  format: bngl
+publications:
+  - citation: "Posner RG, Wofsy C, Goldstein B (1995). The kinetics of bivalent ligand-bivalent receptor aggregation: ring formation and the breakdown of the equivalent site approximation. Math Biosci 126:171-190."
+    doi: 10.1016/0025-5564(94)00045-2
+verification:
+  kind: theory
+  evidence: >-
+    models/blbr_rings_posner1995/verify_posner1995.ipynb
+  check: >-
+    BNG2.pl NFsim, 60 distinct seeds at each of five conditions (three doses; two at R_T = 750): rings against chains through the identity d<R2>/dt = jp<C1(2)> - 4 koff <R2>, C1(2) counted by an added Species observable that leaves the trajectory unchanged (max |z| < 4); equilibrium against the closed form, which equals the steady state of Eqs. 14a-i, with the 1/R_T term extrapolated out (max |z| < 4); kinetics against Eqs. 14a-i (max |z| < 4.5); asserted
+  result: >-
+    ring identity max |z| 1.20 (ring-to-chain ratio 24.92-25.06 against 25); equilibrium 1.58; kinetics 2.37 over 49 comparisons. The old ring check was circular (it derived C1(2) from R2). Without -utl 5 (NFsim's automatic limit 4) the ring identity fails at z = -80.7, so -utl 5 is essential
+  pending: >-
+    BNGL-Models branch verify-blbr_rings_posner1995-asserts @ 78d7f9a (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: own
+    replicates: 250
+    timing_replicates: 5
+    seed: 1
+size:
+  nf_events: 950000
+suites:
+  nf-xml-aggregation: 7

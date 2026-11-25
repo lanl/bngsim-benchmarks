@@ -623,7 +623,12 @@ replays the same protocol: BNGsim's session sets them on the live session, and a
 after one with `get_final_state=>0` starts from the seed species again, as BNG2.pl's
 would. Only what every engine can follow is accepted: network-free `simulate` steps,
 `setParameter`, and inert actions (`generate_network`, `writeXML`, ...), which are
-dropped; anything else is refused by name. BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
+dropped; anything else is refused by name. Of NFsim's own flags (`param`), three are
+accepted: `-bscb` and `-cb`, which are the same in NFsim 1.14.3 -- both stop a
+bimolecular rule from binding two molecules of one complex, and one seed gives one
+trajectory under either (measured on `tlbr_yang2008` and `blbr_rings_posner1995`) --
+so either sets BNGsim's `block_same_complex_binding`, as `complex=>1`, BNG2.pl's
+default, does; and `-utl N`, the traversal limit. BNG2.pl execs `$BNGPATH/bin/NFsim` itself,
 so on a host whose glibc is too old the job points BNG2.pl at a mirror of the fetched
 distribution whose `NFsim` launches the unchanged binary under the loader swap.
 
@@ -631,7 +636,10 @@ distribution whose `NFsim` launches the unchanged binary under the loader swap.
 
 - `nfsim`: BNG2.pl and NFsim 1.14.3 (BioNetGen 2.9.3), one BNG2.pl process per
   trajectory, each step's seed replaced. Its NaN stop on a rate law that divides by a
-  single-copy count (RuleWorld/nfsim#115) is recorded as such.
+  single-copy count (RuleWorld/nfsim#115) is recorded as such. The protocol's last step
+  runs with `get_final_state=>0`: no step follows it to use NFsim's final state, and
+  BNG2.pl reading that species file back took it over three minutes per trajectory on
+  `blbr_dembo1978`'s chains, against NFsim's 3 s. The trajectory is the same.
 - `rulemonkey`: RuleMonkey's `rm_driver` v3.13.0, built from its pinned source with
   the environment's compiler (`bench fetch-rulemonkey`), one process per trajectory on
   the same XML. It is the **same code lineage** as BNGsim's `nf_exact` engine (bngsim
@@ -651,7 +659,28 @@ beside it. Each engine draws from a seed block of its own (`nf_reject` 0, `nf_ex
 1, NFsim 2, RuleMonkey 3, run_network 4, BNGsim SSA 5, times 10^7). A later
 network-free step's seed is 10^6 further on: BNG2.pl starts NFsim afresh for every step,
 while BNGsim's session carries its random stream on unless the step restarts from the
-seed species. The job passes only when BNGsim agrees with every reference that applies. Recorded beside the verdicts, never scored:
+seed species. The job passes only when BNGsim agrees with every reference that applies.
+
+**Independent references.** `rm_driver` is the upstream of BNGsim's own `nf_exact`
+engine (five same-seed trajectories in five identical on the CaMKII pilot), so alone it
+can neither pass nor refute BNGsim (`nf.verdict_outcome`, recorded per job as
+`verdict_basis`):
+
+- a PASS needs at least one *independent* reference that applies -- one not of BNGsim's
+  network-free code lineage: NFsim, which applies to every protocol, or, on a finite
+  network, exact SSA -- to have agreed, beside the agreement of every other;
+- a DIFF needs an independent reference to disagree. When `rm_driver` is the only one to
+  disagree, the disagreement is its own: REFERENCE_FAILED, its verdict marked
+  `refuted` in the gathered table;
+- with no independent reference compared, the outcome is REFERENCE_FAILED.
+
+BNGsim's own exact SSA on the generated network counts as independent here: another
+algorithm on another representation of the model, so a disagreement with it is a
+disagreement within BNGsim, which a DIFF should report. The rule is part of the
+verdict's definition (`independent_reference_rule`), so a change to it is re-scored
+from the stored ensembles.
+
+Recorded beside the verdicts, never scored:
 
 - **the other setting**: BNGsim's other network-free engine, from its own seeds,
   compared the same way, so the two embedded engines are checked against each other

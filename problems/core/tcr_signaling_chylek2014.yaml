@@ -1,0 +1,60 @@
+# Early T-cell receptor signaling, phosphorylation-site dynamics (Chylek et al. 2014). A core
+# problem: member 8 of the nf-xml-signaling suite (docs/DESIGN.md §3.2, suites-stochastic.md §2.5;
+# the bngsim paper's B34), its two-phase member: the file's own action block equilibrates the
+# basal state with ligand binding off for 500 s, then sets the ligand on-rates (kfl, kfl_m) and
+# follows the 60-s response at 1-s output. The suite replays that protocol at a quarter of the
+# file's subvolume, Fx = 0.0025 for 0.02, about 8,400 particles for 67,042: at Fx = 0.02 one
+# trajectory costs BNG2.pl's NFsim 125-138 s (and BNGsim's RuleMonkey more), so 100 would outrun
+# the hour each engine has. Every count and rate constant derived from Fx follows it; the two
+# on-rates the action block sets are literals for Fx = 0.02, so they are scaled by 0.02/Fx
+# (6e-6 -> 4.8e-5, 6e-4 -> 4.8e-3), as the record's own reduced-volume check does at Fx = 0.005
+# (which passes the same Fig. S6 data check, max z 1.29). Neither RuleMonkey can replay it:
+# rm_driver cannot change a parameter between runs (UNSUPPORTED), and BNGsim's
+# RuleMonkeySession refuses set_param on a live session ("Cannot set_param during active
+# session", probe 2026-11-24), so the nf_exact job records that refusal.
+id: tcr_signaling_chylek2014
+layer: core
+title: "Early TCR signaling: phosphorylation-site dynamics"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/tcr_signaling_chylek2014/tcr_signaling_chylek2014.bngl
+  sha256: 5dde783b3dd52c60528c9a8aafec10e94cdf821a44a9337b0d211043f59a59c9
+  format: bngl
+publications:
+  - citation: "Chylek LA, Akimov V, Dengjel J, Rigbolt KTG, Hu B, Hlavacek WS, Blagoev B (2014). Phosphorylation site dynamics of early T-cell receptor signaling. PLoS ONE 9:e104240."
+    doi: 10.1371/journal.pone.0104240
+verification:
+  kind: data
+  evidence: models/tcr_signaling_chylek2014/verify_tcr_chylek2014.ipynb
+  check: >-
+    144 BNG2.pl NFsim runs of the file's own two-phase protocol (Fx = 0.02) against the 16
+    published simulation lines of Fig. S6 (File S2, read as exact vector geometry; its measured
+    points match the authors' Table S1 source data within one grid step in 15 of 16 panels) at
+    5/15/30/60 s: max z <= 4 over 64 comparisons, with the published lines' own sampling error and
+    the PDF grid in the budget; a negative control (Fx cut 4x without rescaling the on-rates)
+    must fail; asserted
+  result: >-
+    max z 1.74; the negative control fails at 14.7; the committed reference/ run is a typical
+    draw (max deviation 3.01/3.32 against null maxima 5.10/4.29). The earlier standalone-vs-bngsim
+    disagreement (frac_pass 0.25) was a protocol artefact of that comparison: its standalone arm
+    started the response from the seed species instead of the equilibrated state
+  pending: >-
+    BNGL-Models branch verify-tcr_signaling_chylek2014-data @ 6261d32 (not merged; the .bngl is
+    unchanged): pin the merged sha in this evidence when it lands (TODO)
+capabilities: [nf]
+protocol:
+  nf:
+    actions: |
+      setParameter("Fx",0.0025)
+      simulate({suffix=>"equil",method=>"nf",t_start=>0,t_end=>500,n_steps=>5,get_final_state=>1})
+      setParameter("kfl",4.8e-5)
+      setParameter("kfl_m",4.8e-3)
+      simulate({suffix=>"tcr",method=>"nf",t_start=>0,t_end=>60,n_steps=>60,get_final_state=>0})
+    replicates: 100
+    timing_replicates: 1
+    seed: 1
+size:
+  nf_events: 1800000
+suites:
+  nf-xml-signaling: 8

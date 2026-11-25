@@ -43,6 +43,10 @@ SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     # ODE on Antimony converted at job time from ode-net and ode-sbml members (``derived``)
     "ode-antimony": ("ode", ("antimony",)),
     "sens-sbml": ("sens", ("sbml",)),  # forward sensitivities on SBML, from PEtab problems
+    # Network-free on the BNG-XML BNG2.pl writes from published BNGL: multivalent aggregation.
+    "nf-xml-aggregation": ("nf", ("bngl",)),
+    # Network-free on BNG-XML from published BNGL: signaling and gene circuits.
+    "nf-xml-signaling": ("nf", ("bngl",)),
 }
 
 # A PEtab problem's tables (a spec's ``petab:`` block): the YAML is optional.

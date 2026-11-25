@@ -15,6 +15,11 @@
 # Exact moments are not declared: the harness's linear-moment solver stops at 40 species (the
 # covariance system of 143 has 1e4 states). For a single molecule the variances follow from the
 # means alone (p(1 - p)), which a moments kind of that name could use (open item).
+# Also member 1 of the nf-xml-signaling suite (suites-stochastic.md §2.5), its smallest: one
+# molecule, finite network, so network-free simulation must sample exact SSA's law on it and both
+# exact-SSA engines are references. The enzyme is a component of the substrate and binds the
+# substrate's own sites; every network-free engine accepts that (cost probe, 2026-11-24). nf
+# protocol: the ssa one as a network-free run.
 id: membrane_anchored_multisite_phosphorylation_dushek2011
 layer: core
 title: "Membrane-anchored multisite phosphorylation"
@@ -32,7 +37,7 @@ verification:
   evidence: models/membrane_anchored_multisite_phosphorylation_dushek2011/verify_dushek2011.ipynb
   check: "level 1: BNG2.pl scans vs the exact null space of the linear network, 1e-6 asserted; level 2: digitized Fig. 2 A-D curves (80), RMSE 0.02 of full scale asserted"
   result: "level 1 max absolute difference 2.65e-8 (Fig. 2 D, the 41 scan points); level 2 RMSE max 0.0040, median 0.0021 of full scale"
-capabilities: [ssa, steady_state]
+capabilities: [ssa, steady_state, nf]
 protocol:
   ssa:
     netgen: "generate_network({overwrite=>1})"
@@ -48,10 +53,19 @@ protocol:
     rtol: 1.0e-10
     atol: 1.0e-12
     scan: {parameter: r, min: 0.01, max: 100, points: 41, log: true}
+  nf:
+    actions: |
+      simulate({method=>"nf",suffix=>"nf",t_start=>0,t_end=>1000,n_steps=>50,gml=>2147483647})
+    netgen: "generate_network({overwrite=>1})"
+    replicates: 2000
+    timing_replicates: 100
+    seed: 1
 size:
   species: 143
   reactions: 284
   ssa_events: 5000
+  nf_events: 30000
 suites:
   ssa-net: 9
   ss-net: 7
+  nf-xml-signaling: 1
