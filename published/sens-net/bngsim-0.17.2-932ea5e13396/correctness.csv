@@ -1,46 +1,46 @@
-suite,position,problem,species,reactions,outcome,agreement,engine,status,passed,failed_check,max_err_over_peak,max_rel,n_cells,cold_seconds,error
-sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),amici,ok,True,,,,,41.87484303594101,
-sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),copasi,DIFF,False,,,,,2.7145964599912986,
-sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),run_network_fd,ok,True,,,,,1.112387576024048,
-sens-net,2,igf1r_ligand_binding_erickson2019,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: crash),amici,ok,True,,,,,29.193915973068215,
-sens-net,2,igf1r_ligand_binding_erickson2019,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: crash),copasi,crash,,,,,,,"RuntimeError: COPASI time-course sensitivities run failed: >WARNING 2026-11-24T13:27:57<
+suite,position,problem,setting,species,reactions,outcome,agreement,engine,status,passed,failed_check,max_err_over_peak,max_rel,n_cells,cold_seconds,error
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,auto,7,15,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),amici,ok,True,,,,,41.87484303594101,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,auto,7,15,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),copasi,DIFF,False,,,,,2.7145964599912986,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,auto,7,15,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),run_network_fd,ok,True,,,,,1.112387576024048,
+sens-net,2,igf1r_ligand_binding_erickson2019,auto,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: crash),amici,ok,True,,,,,29.193915973068215,
+sens-net,2,igf1r_ligand_binding_erickson2019,auto,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: crash),copasi,crash,,,,,,,"RuntimeError: COPASI time-course sensitivities run failed: >WARNING 2026-11-24T13:27:57<
   SBML (91): The default substance unit has not been set in the model. COPASI will use mole as the default substance unit.
 >WARNING 2026-11-24T13:27:57<
   SBML (91): The default time unit has not been set in the model. COPASI will use second as the default time unit.
 >W"
-sens-net,2,igf1r_ligand_binding_erickson2019,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: crash),run_network_fd,ok,True,,,,,0.626768241985701,
-sens-net,2,igf1r_ligand_binding_erickson2019,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),amici,ok,True,,,,,40.6204923420446,
-sens-net,2,igf1r_ligand_binding_erickson2019,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),copasi,DIFF,False,,,,,10.50204714096617,
-sens-net,2,igf1r_ligand_binding_erickson2019,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),run_network_fd,ok,True,,,,,0.7584383960347623,
-sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,42.35626068699639,
-sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,FULL 2/2 (copasi: n/a),run_network_fd,ok,True,,,,,7.661012711934745,
-sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
-sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,42.233446744969115,
-sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,FULL 2/2 (copasi: n/a),run_network_fd,ok,True,,,,,1.42935159499757,
-sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
-sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),amici,ok,True,,,,,40.50828666891903,
-sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),copasi,timeout,,,,,,,TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve)
-sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),run_network_fd,ok,True,,,,,10.349100776016712,
-sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),amici,ok,True,,,,,55.013213949045166,
-sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),copasi,DIFF,False,,,,,101.3075886509614,
-sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),run_network_fd,ok,True,,,,,3.800088598043658,
-sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,62.1451836200431,
-sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,FULL 2/2 (copasi: n/a),run_network_fd,ok,True,,,,,27.7103040140355,
-sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
-sens-net,6,shp2_regulation_and_function_barua2007,149,1032,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),amici,ok,True,,,,,45.52107439597603,
-sens-net,6,shp2_regulation_and_function_barua2007,149,1032,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),copasi,timeout,,,,,,,TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve)
-sens-net,6,shp2_regulation_and_function_barua2007,149,1032,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),run_network_fd,ok,True,,,,,13.128347538993694,
-sens-net,7,cstar_trka_ngf_rukhlenko2022,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
-sens-net,7,cstar_trka_ngf_rukhlenko2022,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
-sens-net,7,cstar_trka_ngf_rukhlenko2022,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
-sens-net,7,cstar_trka_ngf_rukhlenko2022,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
-sens-net,8,cstar_trkb_bdnf_rukhlenko2022,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
-sens-net,8,cstar_trkb_bdnf_rukhlenko2022,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
-sens-net,8,cstar_trkb_bdnf_rukhlenko2022,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
-sens-net,8,cstar_trkb_bdnf_rukhlenko2022,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
-sens-net,9,cell_cycle_oscillator_lang2024,73,332,REFERENCE_FAILED,"PARTIAL 1/3 (amici: crash, copasi: timeout)",amici,crash,,,,,,,RuntimeError: AMICI simulation failed with status -1
-sens-net,9,cell_cycle_oscillator_lang2024,73,332,REFERENCE_FAILED,"PARTIAL 1/3 (amici: crash, copasi: timeout)",copasi,timeout,,,,,,,TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve)
-sens-net,9,cell_cycle_oscillator_lang2024,73,332,REFERENCE_FAILED,"PARTIAL 1/3 (amici: crash, copasi: timeout)",run_network_fd,ok,True,,,,,341.9178350530565,
-sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),amici,ok,True,,,,,291.487222739961,
-sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),copasi,timeout,,,,,,,TIMEOUT: no result within the 3600 s per-engine budget (stopped in: first solve)
-sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),run_network_fd,ok,True,,,,,622.8095736670075,
+sens-net,2,igf1r_ligand_binding_erickson2019,auto,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: crash),run_network_fd,ok,True,,,,,0.626768241985701,
+sens-net,2,igf1r_ligand_binding_erickson2019,fitted,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),amici,ok,True,,,,,40.6204923420446,
+sens-net,2,igf1r_ligand_binding_erickson2019,fitted,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),copasi,DIFF,False,,,,,10.50204714096617,
+sens-net,2,igf1r_ligand_binding_erickson2019,fitted,27,96,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),run_network_fd,ok,True,,,,,0.7584383960347623,
+sens-net,3,atf2_phosphoswitch_kirsch2020,auto,48,152,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,42.35626068699639,
+sens-net,3,atf2_phosphoswitch_kirsch2020,auto,48,152,PASS,FULL 2/2 (copasi: n/a),run_network_fd,ok,True,,,,,7.661012711934745,
+sens-net,3,atf2_phosphoswitch_kirsch2020,auto,48,152,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,3,atf2_phosphoswitch_kirsch2020,fitted,48,152,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,42.233446744969115,
+sens-net,3,atf2_phosphoswitch_kirsch2020,fitted,48,152,PASS,FULL 2/2 (copasi: n/a),run_network_fd,ok,True,,,,,1.42935159499757,
+sens-net,3,atf2_phosphoswitch_kirsch2020,fitted,48,152,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,auto,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),amici,ok,True,,,,,40.50828666891903,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,auto,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),copasi,timeout,,,,,,,TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve)
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,auto,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),run_network_fd,ok,True,,,,,10.349100776016712,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,fitted,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),amici,ok,True,,,,,55.013213949045166,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,fitted,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),copasi,DIFF,False,,,,,101.3075886509614,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,fitted,75,618,REFERENCE_FAILED,PARTIAL 2/3 (copasi: refuted),run_network_fd,ok,True,,,,,3.800088598043658,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,auto,44,56,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,62.1451836200431,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,auto,44,56,PASS,FULL 2/2 (copasi: n/a),run_network_fd,ok,True,,,,,27.7103040140355,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,auto,44,56,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,6,shp2_regulation_and_function_barua2007,auto,149,1032,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),amici,ok,True,,,,,45.52107439597603,
+sens-net,6,shp2_regulation_and_function_barua2007,auto,149,1032,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),copasi,timeout,,,,,,,TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve)
+sens-net,6,shp2_regulation_and_function_barua2007,auto,149,1032,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),run_network_fd,ok,True,,,,,13.128347538993694,
+sens-net,7,cstar_trka_ngf_rukhlenko2022,auto,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
+sens-net,7,cstar_trka_ngf_rukhlenko2022,auto,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,7,cstar_trka_ngf_rukhlenko2022,fitted,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
+sens-net,7,cstar_trka_ngf_rukhlenko2022,fitted,82,405,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,8,cstar_trkb_bdnf_rukhlenko2022,auto,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
+sens-net,8,cstar_trkb_bdnf_rukhlenko2022,auto,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,8,cstar_trkb_bdnf_rukhlenko2022,fitted,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",bngsim,crash,,,,,,,"RuntimeError: UNSUPPORTED: bngsim will not carry forward sensitivities across the species reset that starts phase 2 of 3: Simulation failed: carry_sensitivities=True, but no matching forward-sensitivity seed from a prior phase is available. Run the equilibration phase on the same Simulator with the same sensitivity_params (and no reset between phases) before the measurement phase. (pre-equilibrati"
+sens-net,8,cstar_trkb_bdnf_rukhlenko2022,fitted,114,645,UNSUPPORTED,"PARTIAL 0/1 (bngsim: crash, copasi: n/a)",copasi,not_applicable,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,9,cell_cycle_oscillator_lang2024,auto,73,332,REFERENCE_FAILED,"PARTIAL 1/3 (amici: crash, copasi: timeout)",amici,crash,,,,,,,RuntimeError: AMICI simulation failed with status -1
+sens-net,9,cell_cycle_oscillator_lang2024,auto,73,332,REFERENCE_FAILED,"PARTIAL 1/3 (amici: crash, copasi: timeout)",copasi,timeout,,,,,,,TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve)
+sens-net,9,cell_cycle_oscillator_lang2024,auto,73,332,REFERENCE_FAILED,"PARTIAL 1/3 (amici: crash, copasi: timeout)",run_network_fd,ok,True,,,,,341.9178350530565,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,auto,356,3749,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),amici,ok,True,,,,,291.487222739961,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,auto,356,3749,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),copasi,timeout,,,,,,,TIMEOUT: no result within the 3600 s per-engine budget (stopped in: first solve)
+sens-net,10,combinatorial_egfr_signaling_blinov2006,auto,356,3749,REFERENCE_FAILED,PARTIAL 2/3 (copasi: timeout),run_network_fd,ok,True,,,,,622.8095736670075,

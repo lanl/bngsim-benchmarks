@@ -7,8 +7,8 @@ results were measured on (``bngsim-<version>-<build commit>``):
 
     manifest.json        what was measured, on what, with which engines and harness,
                          and the suite's members with their provenance
-    correctness.csv      one row per (problem, reference engine)
-    timing.csv           one row per (problem, engine)
+    correctness.csv      one row per (problem, setting, reference engine)
+    timing.csv           one row per (problem, setting, engine)
     jobs/<job id>.json   every job's full result record
     jobs/<job id>.npz    the trajectories a correctness job stored, when the suite's
                          total is at most TRAJECTORIES_LIMIT_BYTES
@@ -53,12 +53,12 @@ _DROP = (
 )
 
 CORRECTNESS_COLUMNS = [
-    "suite", "position", "problem", "species", "reactions", "outcome", "agreement",
+    "suite", "position", "problem", "setting", "species", "reactions", "outcome", "agreement",
     "engine", "status", "passed", "failed_check", "max_err_over_peak", "max_rel", "n_cells",
     "cold_seconds", "error",
 ]
 TIMING_COLUMNS = [
-    "suite", "position", "problem", "species", "reactions", "outcome", "engine", "role",
+    "suite", "position", "problem", "setting", "species", "reactions", "outcome", "engine", "role",
     "status", "presim_seconds", "netgen_seconds", "codegen_seconds", "load_seconds",
     "backend", "sim_median_seconds", "sim_ci_low_seconds", "sim_ci_high_seconds",
     "rounds", "reproducible", "error",
@@ -172,13 +172,17 @@ def _not_applicable(rec: dict[str, Any], *, besides: set[str]) -> dict[str, str]
             if name not in besides}
 
 
-def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list[dict]:
+def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any],
+                     setting: str | None = None) -> list[dict]:
     """One row per reference engine: its verdict, or why it has none -- including a
-    reference that does not apply to the model, so no engine is left out."""
+    reference that does not apply to the model, so no engine is left out. ``setting``
+    is the job's (a member may have a job per setting: network-free ``nf_exact`` and
+    ``nf_reject``); the record's own when not given."""
     verdicts = rec.get("verdicts") or {}
     refs = (rec.get("measurements") or {}).get("references") or {}
     species, reactions = _size(rec, problem)
     base = {"suite": suite, "position": problem.suites[suite], "problem": problem.id,
+            "setting": setting or rec.get("setting"),
             "species": species, "reactions": reactions, "outcome": rec.get("outcome"),
             "agreement": reference_agreement(rec)}
     rows = []
@@ -205,9 +209,10 @@ def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) ->
     return rows
 
 
-def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list[dict]:
+def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any],
+                setting: str | None = None) -> list[dict]:
     """One row per engine: its one-time pre-sim cost and per-solve time, or why it
-    was not timed."""
+    was not timed. ``setting`` as in ``correctness_rows``."""
     m = rec.get("measurements") or {}
     times = m.get("times") or {}
     presim = _presim(m)
@@ -215,6 +220,7 @@ def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list
     rounds = (m.get("repetitions") or {}).get("rounds")
     species, reactions = _size(rec, problem)
     base = {"suite": suite, "position": problem.suites[suite], "problem": problem.id,
+            "setting": setting or rec.get("setting"),
             "species": species, "reactions": reactions, "outcome": rec.get("outcome")}
     rows = []
     for engine, t in times.items():
@@ -241,13 +247,14 @@ def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list
 
 
 def withheld_timing_row(suite: str, problem: specs.Problem, correctness: dict[str, Any],
-                        reason: str) -> dict:
-    """The one row of a timing the snapshot withholds: the member and its size, outcome
-    WITHHELD, status ``withheld`` and the reason (e.g. ``correctness DIFF``) in
-    ``error``; no engine, no numbers."""
+                        reason: str, setting: str | None = None) -> dict:
+    """The one row of a timing the snapshot withholds: the member, its setting and
+    size, outcome WITHHELD, status ``withheld`` and the reason (e.g. ``correctness
+    DIFF``) in ``error``; no engine, no numbers."""
     species, reactions = _size(correctness, problem)
     return {"suite": suite, "position": problem.suites[suite], "problem": problem.id,
-            "species": species, "reactions": reactions, "outcome": WITHHELD,
+            "setting": setting or correctness.get("setting"), "species": species,
+            "reactions": reactions, "outcome": WITHHELD,
             "engine": None, "status": "withheld", "error": reason}
 
 
@@ -382,15 +389,15 @@ def publish(
         p = by_problem[job.problem]
         if job.id in withheld:
             time_rows.append(withheld_timing_row(suite, p, scrubbed[job.requires],
-                                                 withheld[job.id]))
+                                                 withheld[job.id], job.setting))
             job_entries.append({"job_id": job.id, "problem": job.problem, "kind": job.kind,
                                 "outcome": WITHHELD, "withheld": withheld[job.id]})
             continue
         rec = scrubbed[job.id]
         if job.kind == CORRECTNESS:
-            corr_rows += correctness_rows(suite, p, rec)
+            corr_rows += correctness_rows(suite, p, rec, job.setting)
         else:
-            time_rows += timing_rows(suite, p, rec)
+            time_rows += timing_rows(suite, p, rec, job.setting)
         entry = {"job_id": job.id, "problem": job.problem, "kind": job.kind,
                  "outcome": rec.get("outcome"), "file": f"jobs/{job.id}.json"}
         if job.id in stored:

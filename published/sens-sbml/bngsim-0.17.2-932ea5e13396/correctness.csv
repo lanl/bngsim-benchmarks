@@ -1,31 +1,31 @@
-suite,position,problem,species,reactions,outcome,agreement,engine,status,passed,failed_check,max_err_over_peak,max_rel,n_cells,cold_seconds,error
-sens-sbml,1,sphingolipid_rheostat_apoptosis_armistead2024,4,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,37.70015729300212,
-sens-sbml,1,sphingolipid_rheostat_apoptosis_armistead2024,4,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.3211509640095755,
-sens-sbml,1,sphingolipid_rheostat_apoptosis_armistead2024,4,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,2,stat5_dimerization_isoforms_boehm2014,8,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,40.413374795927666,
-sens-sbml,2,stat5_dimerization_isoforms_boehm2014,8,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,0.20897058804985136,
-sens-sbml,2,stat5_dimerization_isoforms_boehm2014,8,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,3,ip3_receptor_type2_dynamics_sneyd2002,6,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,37.74183971399907,
-sens-sbml,3,ip3_receptor_type2_dynamics_sneyd2002,6,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.1972008859738708,
-sens-sbml,3,ip3_receptor_type2_dynamics_sneyd2002,6,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,4,akt_pathway_low_pass_filter_fujita2010,9,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,40.42427705496084,
-sens-sbml,4,akt_pathway_low_pass_filter_fujita2010,9,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,0.9452776690013707,
-sens-sbml,4,akt_pathway_low_pass_filter_fujita2010,9,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,5,il13_signaling_lymphoma_raia2011,14,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,38.018897093017586,
-sens-sbml,5,il13_signaling_lymphoma_raia2011,14,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.1092190199997276,
-sens-sbml,5,il13_signaling_lymphoma_raia2011,14,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,6,covid19_italy_interventions_giordano2020,13,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,37.79752086708322,
-sens-sbml,6,covid19_italy_interventions_giordano2020,13,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,0.9726707200752571,
-sens-sbml,6,covid19_italy_interventions_giordano2020,13,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,7,histone_h3_k27_k36_methylation_zheng2012,15,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,35.64228733105119,
-sens-sbml,7,histone_h3_k27_k36_methylation_zheng2012,15,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.5859240810386837,
-sens-sbml,7,histone_h3_k27_k36_methylation_zheng2012,15,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,8,jak2_stat5_dual_feedback_bachmann2011,25,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,40.371702524018474,
-sens-sbml,8,jak2_stat5_dual_feedback_bachmann2011,25,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,7.9346384960226715,
-sens-sbml,8,jak2_stat5_dual_feedback_bachmann2011,25,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,9,insulin_signalling_oxidative_stress_smith2013_petab,133,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,53.866179486969486,
-sens-sbml,9,insulin_signalling_oxidative_stress_smith2013_petab,133,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,70.96070892491844,
-sens-sbml,9,insulin_signalling_oxidative_stress_smith2013_petab,133,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
-sens-sbml,10,smad_complex_gene_expression_lucarelli2018,33,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,52.218487882986665,
-sens-sbml,10,smad_complex_gene_expression_lucarelli2018,33,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,10.813908353913575,
-sens-sbml,10,smad_complex_gene_expression_lucarelli2018,33,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+suite,position,problem,setting,species,reactions,outcome,agreement,engine,status,passed,failed_check,max_err_over_peak,max_rel,n_cells,cold_seconds,error
+sens-sbml,1,sphingolipid_rheostat_apoptosis_armistead2024,auto,4,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,37.70015729300212,
+sens-sbml,1,sphingolipid_rheostat_apoptosis_armistead2024,auto,4,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.3211509640095755,
+sens-sbml,1,sphingolipid_rheostat_apoptosis_armistead2024,auto,4,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,2,stat5_dimerization_isoforms_boehm2014,auto,8,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,40.413374795927666,
+sens-sbml,2,stat5_dimerization_isoforms_boehm2014,auto,8,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,0.20897058804985136,
+sens-sbml,2,stat5_dimerization_isoforms_boehm2014,auto,8,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,3,ip3_receptor_type2_dynamics_sneyd2002,auto,6,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,37.74183971399907,
+sens-sbml,3,ip3_receptor_type2_dynamics_sneyd2002,auto,6,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.1972008859738708,
+sens-sbml,3,ip3_receptor_type2_dynamics_sneyd2002,auto,6,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,4,akt_pathway_low_pass_filter_fujita2010,auto,9,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,40.42427705496084,
+sens-sbml,4,akt_pathway_low_pass_filter_fujita2010,auto,9,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,0.9452776690013707,
+sens-sbml,4,akt_pathway_low_pass_filter_fujita2010,auto,9,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,5,il13_signaling_lymphoma_raia2011,auto,14,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,38.018897093017586,
+sens-sbml,5,il13_signaling_lymphoma_raia2011,auto,14,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.1092190199997276,
+sens-sbml,5,il13_signaling_lymphoma_raia2011,auto,14,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,6,covid19_italy_interventions_giordano2020,auto,13,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,37.79752086708322,
+sens-sbml,6,covid19_italy_interventions_giordano2020,auto,13,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,0.9726707200752571,
+sens-sbml,6,covid19_italy_interventions_giordano2020,auto,13,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,7,histone_h3_k27_k36_methylation_zheng2012,auto,15,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,35.64228733105119,
+sens-sbml,7,histone_h3_k27_k36_methylation_zheng2012,auto,15,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,1.5859240810386837,
+sens-sbml,7,histone_h3_k27_k36_methylation_zheng2012,auto,15,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,8,jak2_stat5_dual_feedback_bachmann2011,auto,25,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,40.371702524018474,
+sens-sbml,8,jak2_stat5_dual_feedback_bachmann2011,auto,25,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,7.9346384960226715,
+sens-sbml,8,jak2_stat5_dual_feedback_bachmann2011,auto,25,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,9,insulin_signalling_oxidative_stress_smith2013_petab,auto,133,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,53.866179486969486,
+sens-sbml,9,insulin_signalling_oxidative_stress_smith2013_petab,auto,133,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,70.96070892491844,
+sens-sbml,9,insulin_signalling_oxidative_stress_smith2013_petab,auto,133,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path
+sens-sbml,10,smad_complex_gene_expression_lucarelli2018,auto,33,,PASS,FULL 2/2 (copasi: n/a),amici,ok,True,,,,,52.218487882986665,
+sens-sbml,10,smad_complex_gene_expression_lucarelli2018,auto,33,,PASS,FULL 2/2 (copasi: n/a),fd_roadrunner,ok,True,,,,,10.813908353913575,
+sens-sbml,10,smad_complex_gene_expression_lucarelli2018,auto,33,,PASS,FULL 2/2 (copasi: n/a),copasi,not_applicable,,,,,,,COPASI is not wired for PEtab conditions on the SBML path

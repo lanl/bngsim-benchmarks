@@ -8,8 +8,8 @@ is here.
 ```
 published/<suite>/bngsim-<version>-<build commit>/
     manifest.json        what was measured, on what, with which engines and harness
-    correctness.csv      one row per (problem, reference engine)
-    timing.csv           one row per (problem, engine)
+    correctness.csv      one row per (problem, setting, reference engine)
+    timing.csv           one row per (problem, setting, engine)
     jobs/<job id>.json   every job's full result record
     jobs/<job id>.npz    a correctness job's stored trajectories, when the suite's
                          total is at most 5 MB (see Trajectories below)
@@ -50,6 +50,7 @@ BNGsim's agreement with one reference.
 | column | meaning |
 |---|---|
 | `suite`, `position`, `problem` | the suite, the model's position in it (1-10), the problem id |
+| `setting` | the job's setting (the fourth part of its id): `auto` for most capabilities; a member has one job per setting where a capability runs several (network-free `nf_exact` and `nf_reject`; sens-net's `auto` and `fitted`) |
 | `species`, `reactions` | size of the generated network |
 | `outcome` | the job's outcome: `PASS` (agrees with every reference), `DIFF` (disagrees with one that ran, whatever else failed), `REFERENCE_FAILED` (BNGsim ran; some reference did not, and every one that ran agrees), `EXCEPTION` (BNGsim failed), `TIMEOUT` (BNGsim ran out of time), `BAD_TEST` (the model could not be prepared, or every engine failed) |
 | `agreement` | references agreed / attempted, e.g. `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`; a reference that does not apply is named (`run_network: n/a`) but not counted |
@@ -70,7 +71,7 @@ is a ratio of two rows, not stored.
 
 | column | meaning |
 |---|---|
-| `suite`, `position`, `problem`, `species`, `reactions`, `outcome` | as above; `outcome` is `PASS` when every timed engine reproduced its first run, and `WITHHELD` (not a job outcome) on the one row of a withheld timing |
+| `suite`, `position`, `problem`, `setting`, `species`, `reactions`, `outcome` | as above; `outcome` is `PASS` when every timed engine reproduced its first run, and `WITHHELD` (not a job outcome) on the one row of a withheld timing |
 | `engine`, `role` | the engine, and how it was timed (`warm, in-process`, or `fresh subprocess` when every solve is a new process) |
 | `status` | `timed`, or why it was not: `crash`, `timeout` (it ran past its budget in the correctness job), `n/a`, `not_applicable` (as in correctness.csv), or `withheld`: the member's correctness outcome does not let it be timed, so the row has no engine and no numbers |
 | `presim_seconds` | the one-time cost before the timed solve, measured cold (BNGsim: network generation + code generation + load; a reference: its own code generation + load); empty for a fresh subprocess, whose load is inside every solve |

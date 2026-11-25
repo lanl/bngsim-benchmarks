@@ -1,47 +1,47 @@
-suite,position,problem,species,reactions,outcome,engine,role,status,presim_seconds,netgen_seconds,codegen_seconds,load_seconds,backend,sim_median_seconds,sim_ci_low_seconds,sim_ci_high_seconds,rounds,reproducible,error
-nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,143,284,PASS,bngsim,"warm, in-process (system under test)",timed,0.2236174870049581,,,0.0068669309839606285,,6.529059543041512,6.524992172955535,6.532623625011183,5,True,
-nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,143,284,PASS,nfsim,fresh subprocess,timed,,,,,,25.90165677294135,25.563667171052657,26.360738239018247,5,True,
-nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,143,284,PASS,rulemonkey,fresh subprocess,timed,,,,,,7.4516636920161545,7.443650373956189,7.463273781002499,5,True,
-nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,143,284,PASS,bngsim,"warm, in-process (system under test)",timed,0.23010992596391588,,,0.013763866038061678,,2.8639936360996217,2.8576632289914414,2.872434442047961,5,True,
-nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,143,284,PASS,nfsim,fresh subprocess,timed,,,,,,26.017891922965646,25.825076146051288,27.4126844269922,5,True,
-nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,143,284,PASS,rulemonkey,fresh subprocess,timed,,,,,,7.457291872007772,7.447082806029357,7.471963502001017,5,True,
-nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,22,82,PASS,bngsim,"warm, in-process (system under test)",timed,0.2894620819715783,,,0.008157762000337243,,19.805531407007948,19.751437596976757,19.82754115294665,5,True,
-nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,22,82,PASS,nfsim,fresh subprocess,timed,,,,,,12.735279573011212,12.583759248023853,12.748376438976265,5,True,
-nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,22,82,PASS,rulemonkey,fresh subprocess,timed,,,,,,17.807551795965992,17.76671239803545,17.83073533908464,5,True,
-nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,22,82,PASS,bngsim,"warm, in-process (system under test)",timed,0.24506475205998868,,,0.017048193025402725,,11.66635011206381,11.614870177931152,11.672160002985038,5,True,
-nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,22,82,PASS,nfsim,fresh subprocess,timed,,,,,,12.729154055938125,12.650994872907177,12.800018087029457,5,True,
-nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,22,82,PASS,rulemonkey,fresh subprocess,timed,,,,,,17.78778546396643,17.756624266970903,17.820507357944734,5,True,
-nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.33936189906671643,,,0.033565527061000466,,1.7739509894745424,1.7708130675600842,1.779077350976877,20,True,
-nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,1.1188490555505268,1.1159017365425825,1.1194923449656926,20,True,
-nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,,,PASS,nfsim,,crash,,,,,,,,,,,RuntimeError: BNG2.pl/NFsim failed: ABORT: $TMPDIR/bench-job-lrj82w5i/nfsim/bngpath/bin/NFsim -xml ./model_nfp0.xml -o ./model_nfp0.gdat -sim 300 -oSteps 30 -gml 2147483647 -seed 20000001 -cb did not run successfully.
-nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.4181544870370999,,,0.08314284402877092,,16.79485907801427,16.740011779940687,16.836269504972734,7,True,
-nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,1.122952940990217,1.1147028419654816,1.12567436194513,7,True,
-nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,,,PASS,nfsim,,crash,,,,,,,,,,,RuntimeError: BNG2.pl/NFsim failed: ABORT: $TMPDIR/bench-job-gy0kewbi/nfsim/bngpath/bin/NFsim -xml ./model_nfp0.xml -o ./model_nfp0.gdat -sim 300 -oSteps 30 -seed 20000001 -cb -gml 2147483647 did not run successfully.
-nf-xml-signaling,4,p53_nhej_dolan2015,,,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
-nf-xml-signaling,4,p53_nhej_dolan2015,,,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
-nf-xml-signaling,5,early_fceri_signaling_faeder2003,354,3680,PASS,bngsim,"warm, in-process (system under test)",timed,0.24922080105170608,,,0.011318212025798857,,10.80421942495741,10.78039384202566,11.098125027958304,5,True,
-nf-xml-signaling,5,early_fceri_signaling_faeder2003,354,3680,PASS,nfsim,fresh subprocess,timed,,,,,,5.456150396959856,5.410721192951314,5.460975973051973,5,True,
-nf-xml-signaling,5,early_fceri_signaling_faeder2003,354,3680,PASS,rulemonkey,fresh subprocess,timed,,,,,,9.91133664699737,9.904328802949749,10.10747230798006,5,True,
-nf-xml-signaling,5,early_fceri_signaling_faeder2003,354,3680,PASS,bngsim,"warm, in-process (system under test)",timed,0.2564040729776025,,,0.027155928080901504,,6.1670166769763455,6.157325951964594,6.177019120019395,6,True,
-nf-xml-signaling,5,early_fceri_signaling_faeder2003,354,3680,PASS,nfsim,fresh subprocess,timed,,,,,,5.426772672042716,5.386048385524191,5.449653188523371,6,True,
-nf-xml-signaling,5,early_fceri_signaling_faeder2003,354,3680,PASS,rulemonkey,fresh subprocess,timed,,,,,,9.92157905100612,9.904969423485454,9.934824984986335,6,True,
-nf-xml-signaling,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
-nf-xml-signaling,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
-nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.5033374180784449,,,0.03887999302241951,,2.339519997010939,2.3383909789845347,2.342904472956434,11,True,
-nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,,,PASS,nfsim,fresh subprocess,timed,,,,,,6.644405724015087,6.629672253038734,6.670417414046824,11,True,
-nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,2.3666530010523275,2.363885918050073,2.371421698015183,11,True,
-nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.22512016212567687,,,0.00816406705416739,,3.3115610589738935,3.035287306003738,3.5285224249819294,10,True,
-nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,,,PASS,nfsim,fresh subprocess,timed,,,,,,6.573000323493034,6.553450633015018,6.695865416957531,10,True,
-nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,2.373042811988853,2.3649540550541133,2.3829960220027715,10,True,
-nf-xml-signaling,8,tcr_signaling_chylek2014,,,WITHHELD,,,withheld,,,,,,,,,,,correctness EXCEPTION
-nf-xml-signaling,8,tcr_signaling_chylek2014,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.5039388641016558,,,0.13569447805639356,,11.924325995496474,11.823639039532281,11.930951830523554,6,True,
-nf-xml-signaling,8,tcr_signaling_chylek2014,,,PASS,nfsim,fresh subprocess,timed,,,,,,8.689801573520526,8.679791643517092,8.75202856049873,6,True,
-nf-xml-signaling,8,tcr_signaling_chylek2014,,,PASS,rulemonkey,,n/a,,,,,,,,,,,"UNSUPPORTED: the protocol has 2 network-free steps; rm_driver cannot change a parameter between runs, so it cannot replay it"
-nf-xml-signaling,9,erbb_receptor_signaling_creamer2012,,,WITHHELD,,,withheld,,,,,,,,,,,correctness EXCEPTION
-nf-xml-signaling,9,erbb_receptor_signaling_creamer2012,,,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
-nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,37,97,PASS,bngsim,"warm, in-process (system under test)",timed,0.2467420279281214,,,0.011820353916846216,,16.335946505889297,16.01969977200497,16.4521841959795,5,True,
-nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,37,97,PASS,nfsim,fresh subprocess,timed,,,,,,13.411211164086126,13.370556073030457,13.51471047801897,5,True,
-nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,37,97,PASS,rulemonkey,fresh subprocess,timed,,,,,,20.206112763029523,20.198721521999687,20.359984415001236,5,True,
-nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,37,97,PASS,bngsim,"warm, in-process (system under test)",timed,0.26364589808508754,,,0.0290219810558483,,8.267846341943368,8.20975397399161,8.291714067105204,5,True,
-nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,37,97,PASS,nfsim,fresh subprocess,timed,,,,,,13.407316223019734,13.364658573991619,13.460026032989845,5,True,
-nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,37,97,PASS,rulemonkey,fresh subprocess,timed,,,,,,20.18340915197041,20.11981693096459,20.271286673960276,5,True,
+suite,position,problem,setting,species,reactions,outcome,engine,role,status,presim_seconds,netgen_seconds,codegen_seconds,load_seconds,backend,sim_median_seconds,sim_ci_low_seconds,sim_ci_high_seconds,rounds,reproducible,error
+nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,nf_exact,143,284,PASS,bngsim,"warm, in-process (system under test)",timed,0.2236174870049581,,,0.0068669309839606285,,6.529059543041512,6.524992172955535,6.532623625011183,5,True,
+nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,nf_exact,143,284,PASS,nfsim,fresh subprocess,timed,,,,,,25.90165677294135,25.563667171052657,26.360738239018247,5,True,
+nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,nf_exact,143,284,PASS,rulemonkey,fresh subprocess,timed,,,,,,7.4516636920161545,7.443650373956189,7.463273781002499,5,True,
+nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,nf_reject,143,284,PASS,bngsim,"warm, in-process (system under test)",timed,0.23010992596391588,,,0.013763866038061678,,2.8639936360996217,2.8576632289914414,2.872434442047961,5,True,
+nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,nf_reject,143,284,PASS,nfsim,fresh subprocess,timed,,,,,,26.017891922965646,25.825076146051288,27.4126844269922,5,True,
+nf-xml-signaling,1,membrane_anchored_multisite_phosphorylation_dushek2011,nf_reject,143,284,PASS,rulemonkey,fresh subprocess,timed,,,,,,7.457291872007772,7.447082806029357,7.471963502001017,5,True,
+nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,nf_exact,22,82,PASS,bngsim,"warm, in-process (system under test)",timed,0.2894620819715783,,,0.008157762000337243,,19.805531407007948,19.751437596976757,19.82754115294665,5,True,
+nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,nf_exact,22,82,PASS,nfsim,fresh subprocess,timed,,,,,,12.735279573011212,12.583759248023853,12.748376438976265,5,True,
+nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,nf_exact,22,82,PASS,rulemonkey,fresh subprocess,timed,,,,,,17.807551795965992,17.76671239803545,17.83073533908464,5,True,
+nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,nf_reject,22,82,PASS,bngsim,"warm, in-process (system under test)",timed,0.24506475205998868,,,0.017048193025402725,,11.66635011206381,11.614870177931152,11.672160002985038,5,True,
+nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,nf_reject,22,82,PASS,nfsim,fresh subprocess,timed,,,,,,12.729154055938125,12.650994872907177,12.800018087029457,5,True,
+nf-xml-signaling,2,lambda_switch_cortes2017_pergenome,nf_reject,22,82,PASS,rulemonkey,fresh subprocess,timed,,,,,,17.78778546396643,17.756624266970903,17.820507357944734,5,True,
+nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,nf_exact,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.33936189906671643,,,0.033565527061000466,,1.7739509894745424,1.7708130675600842,1.779077350976877,20,True,
+nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,nf_exact,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,1.1188490555505268,1.1159017365425825,1.1194923449656926,20,True,
+nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,nf_exact,,,PASS,nfsim,,crash,,,,,,,,,,,RuntimeError: BNG2.pl/NFsim failed: ABORT: $TMPDIR/bench-job-lrj82w5i/nfsim/bngpath/bin/NFsim -xml ./model_nfp0.xml -o ./model_nfp0.gdat -sim 300 -oSteps 30 -gml 2147483647 -seed 20000001 -cb did not run successfully.
+nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,nf_reject,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.4181544870370999,,,0.08314284402877092,,16.79485907801427,16.740011779940687,16.836269504972734,7,True,
+nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,nf_reject,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,1.122952940990217,1.1147028419654816,1.12567436194513,7,True,
+nf-xml-signaling,3,lambda_switch_arkin1998_fullcircuit_exact,nf_reject,,,PASS,nfsim,,crash,,,,,,,,,,,RuntimeError: BNG2.pl/NFsim failed: ABORT: $TMPDIR/bench-job-gy0kewbi/nfsim/bngpath/bin/NFsim -xml ./model_nfp0.xml -o ./model_nfp0.gdat -sim 300 -oSteps 30 -seed 20000001 -cb -gml 2147483647 did not run successfully.
+nf-xml-signaling,4,p53_nhej_dolan2015,nf_exact,,,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
+nf-xml-signaling,4,p53_nhej_dolan2015,nf_reject,,,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
+nf-xml-signaling,5,early_fceri_signaling_faeder2003,nf_exact,354,3680,PASS,bngsim,"warm, in-process (system under test)",timed,0.24922080105170608,,,0.011318212025798857,,10.80421942495741,10.78039384202566,11.098125027958304,5,True,
+nf-xml-signaling,5,early_fceri_signaling_faeder2003,nf_exact,354,3680,PASS,nfsim,fresh subprocess,timed,,,,,,5.456150396959856,5.410721192951314,5.460975973051973,5,True,
+nf-xml-signaling,5,early_fceri_signaling_faeder2003,nf_exact,354,3680,PASS,rulemonkey,fresh subprocess,timed,,,,,,9.91133664699737,9.904328802949749,10.10747230798006,5,True,
+nf-xml-signaling,5,early_fceri_signaling_faeder2003,nf_reject,354,3680,PASS,bngsim,"warm, in-process (system under test)",timed,0.2564040729776025,,,0.027155928080901504,,6.1670166769763455,6.157325951964594,6.177019120019395,6,True,
+nf-xml-signaling,5,early_fceri_signaling_faeder2003,nf_reject,354,3680,PASS,nfsim,fresh subprocess,timed,,,,,,5.426772672042716,5.386048385524191,5.449653188523371,6,True,
+nf-xml-signaling,5,early_fceri_signaling_faeder2003,nf_reject,354,3680,PASS,rulemonkey,fresh subprocess,timed,,,,,,9.92157905100612,9.904969423485454,9.934824984986335,6,True,
+nf-xml-signaling,6,car_cd3zeta_phosphorylation_rohrs2018,nf_exact,65,192,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
+nf-xml-signaling,6,car_cd3zeta_phosphorylation_rohrs2018,nf_reject,65,192,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
+nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,nf_exact,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.5033374180784449,,,0.03887999302241951,,2.339519997010939,2.3383909789845347,2.342904472956434,11,True,
+nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,nf_exact,,,PASS,nfsim,fresh subprocess,timed,,,,,,6.644405724015087,6.629672253038734,6.670417414046824,11,True,
+nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,nf_exact,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,2.3666530010523275,2.363885918050073,2.371421698015183,11,True,
+nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,nf_reject,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.22512016212567687,,,0.00816406705416739,,3.3115610589738935,3.035287306003738,3.5285224249819294,10,True,
+nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,nf_reject,,,PASS,nfsim,fresh subprocess,timed,,,,,,6.573000323493034,6.553450633015018,6.695865416957531,10,True,
+nf-xml-signaling,7,camkii_holoenzyme_activation_michalski2012_nfsim,nf_reject,,,PASS,rulemonkey,fresh subprocess,timed,,,,,,2.373042811988853,2.3649540550541133,2.3829960220027715,10,True,
+nf-xml-signaling,8,tcr_signaling_chylek2014,nf_exact,,,WITHHELD,,,withheld,,,,,,,,,,,correctness EXCEPTION
+nf-xml-signaling,8,tcr_signaling_chylek2014,nf_reject,,,PASS,bngsim,"warm, in-process (system under test)",timed,0.5039388641016558,,,0.13569447805639356,,11.924325995496474,11.823639039532281,11.930951830523554,6,True,
+nf-xml-signaling,8,tcr_signaling_chylek2014,nf_reject,,,PASS,nfsim,fresh subprocess,timed,,,,,,8.689801573520526,8.679791643517092,8.75202856049873,6,True,
+nf-xml-signaling,8,tcr_signaling_chylek2014,nf_reject,,,PASS,rulemonkey,,n/a,,,,,,,,,,,"UNSUPPORTED: the protocol has 2 network-free steps; rm_driver cannot change a parameter between runs, so it cannot replay it"
+nf-xml-signaling,9,erbb_receptor_signaling_creamer2012,nf_exact,,,WITHHELD,,,withheld,,,,,,,,,,,correctness EXCEPTION
+nf-xml-signaling,9,erbb_receptor_signaling_creamer2012,nf_reject,,,WITHHELD,,,withheld,,,,,,,,,,,correctness DIFF
+nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,nf_exact,37,97,PASS,bngsim,"warm, in-process (system under test)",timed,0.2467420279281214,,,0.011820353916846216,,16.335946505889297,16.01969977200497,16.4521841959795,5,True,
+nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,nf_exact,37,97,PASS,nfsim,fresh subprocess,timed,,,,,,13.411211164086126,13.370556073030457,13.51471047801897,5,True,
+nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,nf_exact,37,97,PASS,rulemonkey,fresh subprocess,timed,,,,,,20.206112763029523,20.198721521999687,20.359984415001236,5,True,
+nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,nf_reject,37,97,PASS,bngsim,"warm, in-process (system under test)",timed,0.26364589808508754,,,0.0290219810558483,,8.267846341943368,8.20975397399161,8.291714067105204,5,True,
+nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,nf_reject,37,97,PASS,nfsim,fresh subprocess,timed,,,,,,13.407316223019734,13.364658573991619,13.460026032989845,5,True,
+nf-xml-signaling,10,tcr_signaling_bistability_lipniacki2008,nf_reject,37,97,PASS,rulemonkey,fresh subprocess,timed,,,,,,20.18340915197041,20.11981693096459,20.271286673960276,5,True,

@@ -379,3 +379,22 @@ def test_a_diff_member_needs_no_timing_result_but_a_passing_one_does(suite, tmp_
     with open(dest / "timing.csv", encoding="utf-8") as fh:
         (row,) = [r for r in csv.DictReader(fh) if r["problem"] == "model_01"]
     assert row["status"] == "withheld" and row["error"] == "correctness DIFF"
+
+
+def test_every_row_names_its_jobs_setting(suite, tmp_path):
+    # A member has one job per setting where a capability runs several (network-free
+    # nf_exact and nf_reject), so a row is only identified with its setting.
+    problems, jobs = suite
+    results = tmp_path / "results"
+    _write_all(jobs, results)
+    corr, _ = _member_jobs(jobs)
+    _edit(results, corr, outcome="DIFF")
+    dest = publish("ode-net", problems, jobs, results, tmp_path / "published", FPS,
+                   root=tmp_path, now=NOW)
+    for name in ("correctness.csv", "timing.csv"):
+        with open(dest / name, encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+        assert rows and {r["setting"] for r in rows} == {"auto"}
+    with open(dest / "timing.csv", encoding="utf-8") as fh:
+        (row,) = [r for r in csv.DictReader(fh) if r["problem"] == "model_01"]
+    assert (row["status"], row["setting"]) == ("withheld", "auto")
