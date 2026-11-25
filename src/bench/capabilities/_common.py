@@ -353,21 +353,49 @@ def reproducibility(anchor: np.ndarray, others: list[np.ndarray], tol: float) ->
     }
 
 
+# The rule ``outcome`` applies. It is part of how stored trajectories score, so it
+# is in the correctness definition's ``verdict`` wherever it decides an outcome
+# (the ode verdict version, the ssa verdict and nf's copy of it): a change restales
+# those results and ``bench rescore`` re-scores them. steady and psa decide DIFF
+# before they call ``outcome``, so it does not change how they score.
+# 2: a disagreement is DIFF even when another reference failed (it was
+#    REFERENCE_FAILED, so a wrong answer could be timed).
+OUTCOME_RULE = 2
+
+
+def all_passed(verdicts: dict[str, Any]) -> bool | None:
+    """Whether BNGsim agrees with every reference it was compared with: None when
+    it was compared with none, so ``outcome`` can tell "nothing to compare" from
+    "a reference disagrees"."""
+    if not verdicts:
+        return None
+    return all(v.get("passed") for v in verdicts.values())
+
+
 def outcome(bn_error: str | None, ref_errors: dict[str, str], n_refs: int,
              passed: bool | None) -> str:
     """The outcome, attributing a failure to BNGsim or the references.
 
     BAD_TEST when BNGsim failed and so did every reference (the model, not an
-    engine, is the problem); EXCEPTION when only BNGsim failed; REFERENCE_FAILED
-    when BNGsim ran but some reference failed; otherwise PASS when BNGsim agrees
-    with every reference, else DIFF. ``n_refs`` counts the references that apply
-    to the model: one that does not (run_network on an SBML model with no
-    faithful network) is neither a failure nor an agreement.
+    engine, is the problem); EXCEPTION when only BNGsim failed. When BNGsim ran:
+    DIFF when a reference that ran disagrees with it, whatever else failed (the
+    failed references are still recorded, as ``<name>_error``), so a wrong answer
+    is never hidden behind a reference failure and never timed (docs/DESIGN.md
+    §5.2); REFERENCE_FAILED when some reference failed and every one that ran
+    agrees (or none ran); PASS when every reference ran and agreed.
+
+    ``passed`` is ``all_passed`` of the verdicts: True when BNGsim agrees with
+    every reference that ran, False when one disagrees, None when none ran.
+    ``n_refs`` counts the references that apply to the model: one that does not
+    (run_network on an SBML model with no faithful network) is neither a failure
+    nor an agreement.
     """
     if bn_error and len(ref_errors) == n_refs:
         return "BAD_TEST"
     if bn_error:
         return "EXCEPTION"
+    if passed is False and len(ref_errors) < n_refs:
+        return "DIFF"
     if ref_errors:
         return "REFERENCE_FAILED"
     return "PASS" if passed else "DIFF"

@@ -4,7 +4,10 @@
     reports/summary.md                 a readable table of the same
 
 A row records whether its result is current (its key matches this environment),
-so a report never silently mixes builds: a stale row is marked as such.
+so a report never silently mixes builds: a stale row is marked as such. A timing is
+reported only beside a current correctness result that lets it run (PASS or
+REFERENCE_FAILED); otherwise its row is ``WITHHELD``, with the reason and none of the
+numbers (``withheld_row``).
 """
 
 from __future__ import annotations
@@ -15,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from .jobs import CORRECTNESS, TIMING, Job
-from .results import freshness_key, read_result
+from .results import freshness_key, read_result, unmet_requirement
 
 
 def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
@@ -239,8 +242,16 @@ def gather(
     fingerprints: dict[str, dict[str, Any]],
 ) -> dict[str, list[dict[str, Any]]]:
     reports: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_id = {j.id: j for j in jobs}
     for job in jobs:
         rec = read_result(results_dir, job)
+        unmet = (unmet_requirement(job, results_dir, fingerprints, by_id)
+                 if job.kind == TIMING else None)
+        if unmet is not None:
+            row = withheld_row(job, rec, unmet, results_dir, by_id)
+            if row is not None:
+                reports[f"{job.capability}-{job.kind}"].append(row)
+            continue
         if rec is None:
             continue
         current = rec.get("key") == freshness_key(job, fingerprints[job.kind])
@@ -252,6 +263,31 @@ def gather(
                                           encoding="utf-8")
     (out / "summary.md").write_text(render(reports), encoding="utf-8")
     return dict(reports)
+
+
+# The outcome a gathered (or published) timing row reads when its numbers are
+# withheld: not a job outcome, but the report's refusal to show one.
+WITHHELD = "WITHHELD"
+
+
+def withheld_row(job: Job, rec: dict[str, Any] | None, unmet: tuple[str, str],
+                 results_dir: str | Path, by_id: dict[str, Job]) -> dict[str, Any] | None:
+    """The row of a timing job whose correctness result does not let it run: its
+    problem and size, ``outcome`` WITHHELD and the reason (``withheld``, e.g.
+    ``"correctness DIFF"``), and none of its numbers, even where an earlier run left
+    a timing record. ``current`` is whether that is final: true when a current
+    correctness result blocks the timing, false when the correctness result is
+    missing or stale, so the row may still change. None when there is neither a
+    timing record nor a correctness outcome to report (nothing was decided)."""
+    state, reason = unmet
+    req = by_id.get(job.requires or "")
+    req_rec = read_result(results_dir, req) if req is not None else None
+    if rec is None and state != "blocked":
+        return None
+    m = (req_rec or {}).get("measurements") or (rec or {}).get("measurements") or {}
+    return {"job_id": job.id, "problem": job.problem, "setting": job.setting,
+            "outcome": WITHHELD, "withheld": reason, "current": state == "blocked",
+            "network": m.get("network")}
 
 
 def _fmt(x: Any, spec: str) -> str:
@@ -667,6 +703,14 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
              + ("---:|" if solve else "") + "---:|---|---:|---|"]
     for r in rows:
         sp = (r.get("network") or {}).get("species")
+        if r.get("withheld"):
+            # No numbers, only why: the correctness result does not let it be timed.
+            lines.append("| " + " | ".join([
+                _problem_cell(r), _fmt(sp, "d"), "", r["outcome"], "", "",
+                f"withheld: {r['withheld']}", "", *([""] if per_trajectory else []),
+                *([""] if solve else []), "", "", "", "yes" if r["current"] else "no",
+            ]) + " |")
+            continue
         times = r.get("times") or {}
         per_traj = r.get("times_per_trajectory") or {}
         presim = r.get("presim") or {}
@@ -720,7 +764,9 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
               "from the timed set (its error is in the JSON row); *timeout*: it ran "
               "past its per-engine wall budget in the correctness job, so it was not "
               "timed; *n/a*: the engine does not apply to the model (its reason is in "
-              "the JSON row)."]
+              "the JSON row). *WITHHELD*: a timing is shown only beside a current PASS or "
+              "REFERENCE_FAILED correctness result; the row says why it is not (e.g. "
+              "*correctness DIFF*), and none of its numbers are shown."]
     if per_trajectory:
         n = sorted({r.get("timing_replicates") for r in rows if r.get("timing_replicates")})
         lines += ["", "A timed repetition is an *ensemble* of "

@@ -17,6 +17,12 @@ published/<suite>/bngsim-<version>-<build commit>/
 
 A snapshot is complete: every job of the suite has a current result, all from one
 BNGsim build, and every timing from one node type. `bench publish` refuses otherwise.
+The one exception is a member whose correctness outcome does not let its timing run
+(`DIFF`, `EXCEPTION`, `BAD_TEST`, `TIMEOUT`). Its timing is **withheld**: it is not
+demanded, and its record is not in `jobs/`, even where an earlier run left one. It
+gets one `timing.csv` row saying why, with no numbers. A timing is published only
+beside a current `PASS` or `REFERENCE_FAILED` correctness result (docs/DESIGN.md
+§5.2).
 Records are scrubbed of where they ran (host names, scheduler job ids, local paths;
 paths are rewritten to `.` for the repository, `~` for home and `$TMPDIR` for a job's
 scratch directory), and `bench publish` refuses if anything of that kind survives.
@@ -33,7 +39,7 @@ scratch directory), and `bench publish` refuses if anything of that kind survive
 | `node_type` | the CPU model, architecture and OS of the timing node |
 | `harness` | the harness version, the vendored verdict code, and the git commits of the harness that ran the jobs |
 | `members` | the suite's models in position order: source pin (repo, commit, path, sha256), publications, verification evidence, size |
-| `jobs` | every job: id, problem, kind, outcome, and the path of its record; for a correctness job that stored trajectories, `trajectories` (the `.npz` path, `in_snapshot`, `bytes`, `sha256`) |
+| `jobs` | every job: id, problem, kind, outcome, and the path of its record; for a correctness job that stored trajectories, `trajectories` (the `.npz` path, `in_snapshot`, `bytes`, `sha256`); for a withheld timing, `outcome` `WITHHELD`, `withheld` (the reason, e.g. `correctness DIFF`) and no record |
 | `trajectories` | the suite's stored trajectories: `in_snapshot`, the number of `files`, their `total_bytes`, and the `limit_bytes` that decides (5,000,000) |
 
 ## correctness.csv
@@ -45,7 +51,7 @@ BNGsim's agreement with one reference.
 |---|---|
 | `suite`, `position`, `problem` | the suite, the model's position in it (1-10), the problem id |
 | `species`, `reactions` | size of the generated network |
-| `outcome` | the job's outcome: `PASS` (agrees with every reference), `DIFF` (disagrees with one), `REFERENCE_FAILED` (BNGsim ran; some reference did not), `EXCEPTION` (BNGsim failed), `TIMEOUT` (BNGsim ran out of time), `BAD_TEST` (the model could not be prepared, or every engine failed) |
+| `outcome` | the job's outcome: `PASS` (agrees with every reference), `DIFF` (disagrees with one that ran, whatever else failed), `REFERENCE_FAILED` (BNGsim ran; some reference did not, and every one that ran agrees), `EXCEPTION` (BNGsim failed), `TIMEOUT` (BNGsim ran out of time), `BAD_TEST` (the model could not be prepared, or every engine failed) |
 | `agreement` | references agreed / attempted, e.g. `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`; a reference that does not apply is named (`run_network: n/a`) but not counted |
 | `engine` | the reference engine |
 | `status` | `ok` (agrees), `DIFF` (ran, disagrees), `crash` (failed to run), `timeout` (ran past its per-engine wall budget), `n/a` (it cannot simulate this model faithfully, an `UNSUPPORTED` error; counted as attempted), `not_applicable` (the comparison does not exist for this model, so the reference was not run and is not counted: run_network on an SBML model with no faithful BNGL form) |
@@ -64,16 +70,16 @@ is a ratio of two rows, not stored.
 
 | column | meaning |
 |---|---|
-| `suite`, `position`, `problem`, `species`, `reactions`, `outcome` | as above; `outcome` is `PASS` when every timed engine reproduced its first run |
+| `suite`, `position`, `problem`, `species`, `reactions`, `outcome` | as above; `outcome` is `PASS` when every timed engine reproduced its first run, and `WITHHELD` (not a job outcome) on the one row of a withheld timing |
 | `engine`, `role` | the engine, and how it was timed (`warm, in-process`, or `fresh subprocess` when every solve is a new process) |
-| `status` | `timed`, or why it was not: `crash`, `timeout` (it ran past its budget in the correctness job), `n/a`, `not_applicable` (as in correctness.csv) |
+| `status` | `timed`, or why it was not: `crash`, `timeout` (it ran past its budget in the correctness job), `n/a`, `not_applicable` (as in correctness.csv), or `withheld`: the member's correctness outcome does not let it be timed, so the row has no engine and no numbers |
 | `presim_seconds` | the one-time cost before the timed solve, measured cold (BNGsim: network generation + code generation + load; a reference: its own code generation + load); empty for a fresh subprocess, whose load is inside every solve |
 | `netgen_seconds`, `codegen_seconds`, `load_seconds`, `backend` | the parts of `presim_seconds`, and BNGsim's code-generation backend |
 | `sim_median_seconds` | median warm solve over the timed rounds |
 | `sim_ci_low_seconds`, `sim_ci_high_seconds` | bootstrap 95% confidence interval of that median |
 | `rounds` | timed rounds (engines interleaved round-robin, docs/DESIGN.md section 7) |
 | `reproducible` | whether every timed repetition reproduced the engine's first run |
-| `error` | why the engine was not timed; for `not_applicable`, why it does not apply |
+| `error` | why the engine was not timed; for `not_applicable`, why it does not apply; for `withheld`, the correctness outcome that withholds the timing (`correctness DIFF`) |
 
 The full record of each job, under `jobs/`, carries everything the CSVs summarize, plus
 the per-repetition times, the per-engine configuration and the environment.

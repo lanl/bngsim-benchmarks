@@ -352,12 +352,22 @@ Correctness jobs and timing jobs are separate:
 - **Timing jobs** follow the protocol of section 7.
 
 A timing job runs on problems whose correctness job passed, and on problems it
-marked REFERENCE_FAILED -- BNGsim ran and was anchored by the surviving
-references, so there is still a comparison worth timing. The timing job then
+marked REFERENCE_FAILED -- BNGsim ran and every surviving reference agreed with
+it, so there is still a comparison worth timing. A disagreement takes precedence
+over a failure in every capability: when a reference that ran disagrees with
+BNGsim the outcome is DIFF, whatever else failed (each failed reference is still
+recorded as `<name>_error`), so a wrong answer is never timed. The timing job then
 gives each reference a trial run and drops any that crash (recording a
 `<name>_error`, exactly as correctness does), timing BNGsim against the engines
 that survive. Any other correctness outcome (DIFF, EXCEPTION, BAD_TEST, …) blocks
 the timing job.
+
+The same rule decides whether a timing is reported. A timing record can outlive the
+decision that let it run: a correctness result re-scored from REFERENCE_FAILED to
+DIFF leaves the earlier timing current by its own key. So `gather` and `publish` use
+a timing only beside a current correctness result whose outcome lets it run.
+Otherwise the timing reads WITHHELD, with the reason (`correctness DIFF`,
+`correctness not current`) and none of its numbers (§6.3).
 
 ### 5.3 Stochastic verdicts (SSA)
 
@@ -783,9 +793,10 @@ Each job writes one JSON file, atomically, under a path derived from its job ID.
 file holds:
 
 - the outcome, using bngsim's outcome vocabulary across all capabilities: PASS,
-  DIFF, EXCEPTION (BNGsim failed where the reference ran), REFERENCE_FAILED (the
-  reference failed where BNGsim ran), BAD_TEST (both failed, or the model could not
-  be prepared), TIMEOUT, UNSUPPORTED, SKIP;
+  DIFF, EXCEPTION (BNGsim failed where the reference ran), REFERENCE_FAILED (a
+  reference failed where BNGsim ran, and every reference that ran agrees; one that
+  disagrees makes it DIFF, §5.2), BAD_TEST (both failed, or the model could not be
+  prepared), TIMEOUT, UNSUPPORTED, SKIP;
 - the measured values, and every timing repetition rather than only the summary;
 - provenance:
   - the BNGsim version and compiled build commit;
@@ -862,6 +873,13 @@ reason, or that stored no trajectories, is left to re-run.
   re-simulation claim of §1 (claim 2) needs both; see §7.3. An engine run as a fresh
   subprocess per solve (run_network) has its load inside every rep, and is labelled
   so rather than split.
+- **A timing is reported only beside a current correctness result that lets it run**
+  (PASS or REFERENCE_FAILED, §5.2). Otherwise its row is WITHHELD, with the reason
+  and no numbers, even where an earlier run left a timing record. A suite still
+  publishes when a member's correctness blocks its timing (DIFF, EXCEPTION,
+  BAD_TEST, TIMEOUT). That member's timing is not demanded and its record is not
+  shipped. It gets one `timing.csv` row reading `withheld`, with the reason
+  ([published_format.md](published_format.md)).
 - **Correctness reads agreed/attempted references** beside the outcome enum:
   `FULL 4/4`, `PARTIAL 3/4 (copasi: crash)`, `DIFF 3/4 (roadrunner: diff)`, so one
   broken reference does not hide the others behind a single REFERENCE_FAILED.
@@ -932,7 +950,8 @@ ode-sbml correctness jobs.
 
   The known-bad comparisons are past it by 13× or more: AMICI on Smith 2013 (1.0 of
   the insulin's peak, from the dose it never gives), and COPASI (1.0) and
-  libRoadRunner (0.13) on Winter 2017.
+  libRoadRunner (0.13) on Winter 2017, whose integrators step over the model's
+  stimulus (in each case the reference is wrong; see core_suites.md).
 - **10 × atol** is the vendored movement gate's floor. bngsim's own census of
   BioModels found solvers that agree differing by up to 3.8 atol on a species near
   zero. On the suites here, a species of a passing comparison is never further off
@@ -958,8 +977,10 @@ Both keep deciding on the vendored verdict alone, so the timing job decides as b
 The correctness record carries the per-species check of each beside it.
 
 **Versioning.** The check's version is `VERDICT_VERSION`, part of the correctness
-job's definition only (§6.2). Changing the check, its constants, or how the two
-checks combine bumps it. Every correctness result then goes stale and is re-scored
+job's definition only (§6.2). Changing the check, its constants, how the two
+checks combine, or how the verdicts become an outcome (§5.2) bumps it. Version 2
+made a disagreement DIFF even when another reference failed; it had been
+REFERENCE_FAILED, so a wrong answer could be timed (Winter 2017, Smith 2013). Every correctness result then goes stale and is re-scored
 with `bench rescore`, from the trajectories it stored (§6.1).
 
 ## 7. Timing protocol

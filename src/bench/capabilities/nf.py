@@ -86,6 +86,7 @@ from ..jobs import CORRECTNESS, TIMING, Job
 from ..specs import Problem
 from ..timing import absolute_time_stats, round_robin_interleaved
 from ._common import (
+    all_passed,
     correctness_timeouts,
     engine_role,
     generate_network,
@@ -802,26 +803,25 @@ def verdict_outcome(bn_error: str | None, ref_errors: dict[str, str], applicable
     """The outcome, with the same-lineage rule on top of ``_common.outcome``.
 
     A BNGsim failure is EXCEPTION (TIMEOUT when it ran out of time), BAD_TEST when
-    every reference failed too. Otherwise any reference that failed to run makes it
-    REFERENCE_FAILED, as before. With every reference compared: PASS needs BNGsim to
-    agree with all of them *and* at least one independent reference to apply; DIFF
-    needs an independent reference to disagree. A same-lineage reference alone
-    (``rm_driver``, the upstream of the embedded ``nf_exact``) decides neither: with
-    no independent reference, or when it is the only one to disagree, the outcome is
-    REFERENCE_FAILED.
+    every reference failed too. An independent reference that ran and disagrees
+    makes it DIFF, even when another reference failed to run (``OUTCOME_RULE``: a
+    disagreement is never masked). Otherwise any reference that failed to run makes
+    it REFERENCE_FAILED. With every reference compared: PASS needs BNGsim to agree
+    with all of them *and* at least one independent reference to apply. A
+    same-lineage reference alone (``rm_driver``, the upstream of the embedded
+    ``nf_exact``) decides neither: with no independent reference, or when it is the
+    only one to disagree, the outcome is REFERENCE_FAILED.
     """
     if bn_error:
         result = outcome(bn_error, ref_errors, len(applicable), False)
         return "TIMEOUT" if bn_error.startswith("TIMEOUT") and result == "EXCEPTION" else result
-    if ref_errors or not verdicts:
-        return "REFERENCE_FAILED"
     judges = [name for name in independent(applicable) if name in verdicts]
-    if not judges:
+    if any(not verdicts[name].get("passed") for name in judges):
+        return "DIFF"
+    if ref_errors or not verdicts or not judges:
         return "REFERENCE_FAILED"
     if all(verdicts[name].get("passed") for name in applicable if name in verdicts):
         return "PASS"
-    if any(not verdicts[name].get("passed") for name in judges):
-        return "DIFF"
     return "REFERENCE_FAILED"
 
 

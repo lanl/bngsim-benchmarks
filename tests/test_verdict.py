@@ -175,6 +175,22 @@ def test_a_result_scored_before_the_per_species_check_is_rescored(tmp_path, corr
     assert (st.state, st.outcome) == ("fresh", "DIFF")
 
 
+def test_a_reference_failed_record_hiding_a_disagreement_is_rescored_as_a_diff(tmp_path, corr):
+    # Verdict 1 scored a job REFERENCE_FAILED when any reference failed, even with a
+    # survivor disagreeing (Winter 2017); verdict 2 makes that DIFF, by re-scoring.
+    bn, ref = pair(301, err=0.06)
+    stored(tmp_path, corr, bn=bn, ref=ref, outcome="REFERENCE_FAILED",
+           definition={**corr.definition, "verdict": 1})
+    rec = results.read_result(tmp_path, corr)
+    rec["amici_error"] = "AttributeError: 'Compartment' object has no attribute 'getValue'"
+    results.write_result(tmp_path, corr, rec)
+    r = rescore_one(corr, tmp_path, FP)
+    assert (r.state, r.before, r.after) == ("rescored", "REFERENCE_FAILED", "DIFF")
+    after = results.read_result(tmp_path, corr)
+    assert after["amici_error"].startswith("AttributeError")
+    assert after["rescored"][-1]["verdict"] == ode.VERDICT_VERSION >= 2
+
+
 def test_a_dry_run_reports_the_new_outcome_and_writes_nothing(tmp_path, corr):
     bn, ref = pair(301, err=0.06)
     before = stored(tmp_path, corr, bn=bn, ref=ref, definition=_before_the_check(corr))

@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 from bench import nfactions, specs
-from bench.capabilities import nf
+from bench.capabilities import nf, ssa
 
 ACTIONS = 'simulate({method=>"nf",t_end=>10,n_steps=>10,seed=>4})'
 PROTOCOL = {"actions": ACTIONS, "replicates": 200}
@@ -294,6 +294,18 @@ def test_a_failing_or_unsupported_reference_is_a_reference_failure(monkeypatch, 
     assert "same_seed" not in rec["measurements"]
 
 
+def test_an_independent_disagreement_is_a_diff_even_when_another_reference_failed(
+        monkeypatch, tmp_path):
+    # The outcome rule (DIFF is never masked) on top of the independent-reference rule.
+    _install(monkeypatch, {"nfsim": _fake_reference(shift=1.5),
+                           "rulemonkey": _fake_reference(boom="crashed")})
+    rec = nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))
+    assert rec["outcome"] == "DIFF"
+    assert "crashed" in rec["rulemonkey_error"]
+    assert not rec["verdicts"]["nfsim"]["passed"]
+    assert nf.VERDICT["outcome_rule"] == ssa.VERDICT["outcome_rule"]
+
+
 def test_rm_driver_alone_disagreeing_is_its_own_failure_not_a_diff(monkeypatch, tmp_path):
     # rm_driver is the upstream of nf_exact: a disagreement only it finds is the
     # reference's, while NFsim, the independent reference, agrees with BNGsim.
@@ -346,6 +358,10 @@ def test_rm_driver_alone_can_never_pass_bngsim(monkeypatch, tmp_path):
     ({"rulemonkey": True}, {"nfsim": "NaN stop"}, "REFERENCE_FAILED"),
     ({"rulemonkey": False}, {"nfsim": "NaN stop"}, "REFERENCE_FAILED"),
     ({"nfsim": True}, {"rulemonkey": "UNSUPPORTED: two steps"}, "REFERENCE_FAILED"),
+    # An independent disagreement is a DIFF even when another reference failed.
+    ({"nfsim": False}, {"rulemonkey": "UNSUPPORTED: two steps"}, "DIFF"),
+    ({"nfsim": True, "rulemonkey": True, "bngsim_ssa": False}, {"run_network": "crashed"},
+     "DIFF"),
 ])
 def test_the_outcome_needs_an_independent_reference_to_pass_or_refute(passed, errors, expected):
     applicable = [*passed, *errors]

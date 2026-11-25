@@ -15,7 +15,10 @@ results were measured on (``bngsim-<version>-<build commit>``):
 
 A snapshot is all or nothing. Every job of the suite must have a current result
 (a timing judged on the node type it was measured on), so a published set never
-mixes BNGsim builds or misses a model. Records are scrubbed of where they ran --
+mixes BNGsim builds or misses a model. The one exception is a timing its member's
+correctness result does not let run (DIFF, EXCEPTION, BAD_TEST, TIMEOUT, ...): it is
+not demanded, and the snapshot withholds it -- one timing.csv row with the reason,
+no numbers and no record -- even where an earlier run left one. Records are scrubbed of where they ran --
 host names, scheduler job ids, local paths -- and publishing refuses outright if
 any of that survives the scrub, rather than leak it. The column meanings are in
 docs/published_format.md.
@@ -34,10 +37,11 @@ from pathlib import Path
 from typing import Any
 
 from . import specs
-from .gather import (_errored_engines, _presim, _presim_total, _why, failed_check,
+from .gather import (WITHHELD, _errored_engines, _presim, _presim_total, _why, failed_check,
                      reference_agreement)
 from .jobs import CORRECTNESS, TIMING, Job
-from .results import _sha256, freshness_key, read_result, result_path, trajectories_path
+from .results import (_sha256, freshness_key, read_result, result_path, trajectories_path,
+                      unmet_requirement)
 
 SCHEMA = 1
 
@@ -236,6 +240,17 @@ def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list
     return rows
 
 
+def withheld_timing_row(suite: str, problem: specs.Problem, correctness: dict[str, Any],
+                        reason: str) -> dict:
+    """The one row of a timing the snapshot withholds: the member and its size, outcome
+    WITHHELD, status ``withheld`` and the reason (e.g. ``correctness DIFF``) in
+    ``error``; no engine, no numbers."""
+    species, reactions = _size(correctness, problem)
+    return {"suite": suite, "position": problem.suites[suite], "problem": problem.id,
+            "species": species, "reactions": reactions, "outcome": WITHHELD,
+            "engine": None, "status": "withheld", "error": reason}
+
+
 def _write_csv(path: Path, columns: list[str], rows: list[dict]) -> None:
     with open(path, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=columns, extrasaction="ignore", lineterminator="\n")
@@ -280,9 +295,22 @@ def publish(
     suite_jobs = [j for j in jobs if j.problem in member_ids and j.capability == capability]
     by_problem = {p.id: p for p in members}
 
+    # A timing whose member's current correctness result blocks it is withheld: not
+    # demanded, not read, not shipped. (One whose correctness result is missing or
+    # stale is not withheld: the correctness job makes the snapshot incomplete.)
+    by_id = {j.id: j for j in jobs}
+    withheld: dict[str, str] = {}
+    for job in suite_jobs:
+        unmet = (unmet_requirement(job, results_dir, fingerprints, by_id)
+                 if job.kind == TIMING else None)
+        if unmet is not None and unmet[0] == "blocked":
+            withheld[job.id] = unmet[1]
+
     raw: dict[str, dict[str, Any]] = {}
     missing: list[str] = []
     for job in suite_jobs:
+        if job.id in withheld:
+            continue
         rec = read_result(results_dir, job)
         if rec is None:
             missing.append(f"{job.id}: no result")
@@ -307,8 +335,8 @@ def publish(
 
     # Stored trajectories: in the snapshot when the suite's total is small enough,
     # each checked against the sha256 its record names; otherwise named, not shipped.
-    stored = {j.id: raw[j.id]["trajectories"] for j in suite_jobs
-              if isinstance(raw[j.id].get("trajectories"), dict)
+    stored = {j.id: raw[j.id]["trajectories"] for j in suite_jobs if j.id in raw
+              and isinstance(raw[j.id].get("trajectories"), dict)
               and raw[j.id]["trajectories"].get("file")}
     total = sum(int(meta.get("bytes") or 0) for meta in stored.values())
     ship = bool(stored) and total <= TRAJECTORIES_LIMIT_BYTES
@@ -351,8 +379,14 @@ def publish(
     time_rows: list[dict] = []
     job_entries = []
     for job in sorted(suite_jobs, key=lambda j: (by_problem[j.problem].suites[suite], j.kind)):
-        rec = scrubbed[job.id]
         p = by_problem[job.problem]
+        if job.id in withheld:
+            time_rows.append(withheld_timing_row(suite, p, scrubbed[job.requires],
+                                                 withheld[job.id]))
+            job_entries.append({"job_id": job.id, "problem": job.problem, "kind": job.kind,
+                                "outcome": WITHHELD, "withheld": withheld[job.id]})
+            continue
+        rec = scrubbed[job.id]
         if job.kind == CORRECTNESS:
             corr_rows += correctness_rows(suite, p, rec)
         else:
@@ -402,6 +436,8 @@ def publish(
         shutil.rmtree(dest)
     (dest / "jobs").mkdir(parents=True)
     for job in suite_jobs:
+        if job.id in withheld:
+            continue
         path = result_path(dest / "jobs", job)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(scrubbed[job.id], indent=1, sort_keys=True) + "\n",
