@@ -55,7 +55,9 @@ def test_bng2pls_nfsim_runs_under_the_harness_and_writes_the_same_xml(prep):
     stack = ref.ensemble(2, 11)
     assert stack.shape == (2, 61, 4) and np.isfinite(stack).all()
     cfg = ref.config()
-    assert cfg["version"] == "1.14.3" and cfg["xml_matches_harness"] is True
+    # The NFsim the fetched BioNetGen bundles (2.9.4: NFsim 2.0.1).
+    want = env.NFSIM_VERSION[env.bionetgen_identity()["version"]]
+    assert cfg["version"] == want and cfg["xml_matches_harness"] is True
     assert "-cb" in cfg["nfsim_command"].split()
 
 

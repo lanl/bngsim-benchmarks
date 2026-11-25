@@ -12,14 +12,16 @@ Both read the BNG-XML that BNG2.pl's ``writeXML()`` writes from the published
 BNGL, and both are compared with every reference in ``REFERENCE_ENGINES`` on the
 same protocol:
 
-- **nfsim** -- standalone NFsim 1.14.3 (bundled with BioNetGen 2.9.3) as BNG2.pl
+- **nfsim** -- standalone NFsim 2.0.1 (bundled with BioNetGen 2.9.4) as BNG2.pl
   drives it: BNG2.pl runs the protocol's own actions (``bench.nfactions``), writing
   the XML and starting NFsim for each network-free step, with any ``setParameter``
   between steps applied by BNG2.pl, as NFsim's command line cannot change a
   parameter mid-run. A fresh BNG2.pl process per trajectory, its seed replaced.
   BNG2.pl execs ``$BNGPATH/bin/NFsim`` itself, so on an old-glibc host the job runs
   it under a mirror of the distribution whose ``NFsim`` wraps the loader swap
-  (``env.bng_launch_tree``); the binary's bytes are untouched.
+  (``env.bng_launch_tree``); the binary's bytes are untouched. NFsim 1.14.3
+  (BioNetGen 2.9.3) is for comparison runs only (``BNGPATH`` naming that
+  distribution); which ran is in the key, through BioNetGen's sha256.
 - **rulemonkey** -- standalone RuleMonkey's ``rm_driver`` (v3.13.0, built from its
   pinned source by ``bench fetch-rulemonkey``), a fresh process per trajectory, on
   the same XML. It is the **same code lineage** as BNGsim's embedded ``nf_exact``
@@ -50,13 +52,17 @@ not a DIFF. Recorded beside the verdicts, and not gating:
 - the other network-free setting of BNGsim, drawn from its own seeds and compared
   the same way (``cross_setting``): the two embedded engines against each other;
 - a same-seed check of the embedding (``same_seed``): BNGsim's ``nf_exact`` against
-  ``rm_driver``, and BNGsim's ``nf_reject`` in its NFsim v1.14.3 compatibility mode
-  against BNG2.pl's NFsim, on the first trajectories of the reference's own seeds.
-  Two copies of one code fed one seed should give one trajectory.
+  ``rm_driver``, and BNGsim's ``nf_reject`` against BNG2.pl's NFsim (in BNGsim's NFsim
+  v1.14.3 compatibility mode where that NFsim is 1.14.3, a comparison run), on the
+  first trajectories of the reference's own seeds. Two copies of one code fed one
+  seed should give one trajectory.
 
 Known reference gaps are recorded, never worked around: NFsim stops with NaN on a
 rate law that divides by a single-copy count (RuleWorld/nfsim#115), which the
-``nfsim`` adapter reports as such.
+``nfsim`` adapter reports as such. Nor is BNGsim's own refusal: ``nf_exact`` cannot
+change a parameter between network-free steps (``RuleMonkeySession`` takes
+``set_param`` before ``initialize`` only), and that is UNSUPPORTED, in BNGsim's words
+(``BNGSIM_REFUSALS``).
 
 **Timing.** As in ``ssa``: one timed unit is an ensemble of ``timing_replicates``
 trajectories from the same seeds every round, interleaved round-robin with the
@@ -104,7 +110,8 @@ from .ssa import VERDICT as SSA_VERDICT
 
 CAPABILITY = "nf"
 # Bump when this module's computation changes; every result it wrote goes stale.
-HARNESS_VERSION = "2"
+# 3: run_network's edgepop questions answered as BNG2.pl does (EDGEPOP_REPLY).
+HARNESS_VERSION = "3"
 # BNGsim's two network-free engines: each is the system under test of one setting.
 SETTINGS = ("nf_reject", "nf_exact")
 SESSION = {"nf_reject": "NfsimSession", "nf_exact": "RuleMonkeySession"}
@@ -117,7 +124,15 @@ REPRO_TOL = 1e-9
 # verdicts combine into the outcome (``verdict_outcome``): in the correctness
 # definition, so a change restales every correctness result (re-scored by
 # ``bench rescore`` from its stored ensembles).
-VERDICT = {**SSA_VERDICT, "independent_reference_rule": 1}
+VERDICT = {**SSA_VERDICT, "independent_reference_rule": 1, "bngsim_refusal_rule": 1}
+# BNGsim refusing a protocol in its own words (a feature it does not have) is its
+# result, UNSUPPORTED, as in the sens capability -- never EXCEPTION, and never worked
+# around. RuleMonkeySession takes set_param before initialize only (RuleMonkey's own
+# library refuses a parameter change on a live session), so nf_exact cannot run a
+# protocol that sets a parameter between network-free steps. The message is matched
+# as well as the adapter's UNSUPPORTED prefix, so ``bench rescore`` reclassifies a
+# record written before the rule (``bngsim_refusal_rule``).
+BNGSIM_REFUSALS = ("Cannot set_param during active session",)
 
 DEFAULT_SEED = 1
 DEFAULT_TIMING_REPLICATES = 20
@@ -414,7 +429,16 @@ class BngsimNF:
         for p in self.nf.phases:
             if p.index > 0:
                 for change in p.sets:
-                    s.set_param(change.name, self._value(change.value))
+                    try:
+                        s.set_param(change.name, self._value(change.value))
+                    except Exception as exc:
+                        if bngsim_refused(str(exc)):
+                            raise RuntimeError(
+                                f"UNSUPPORTED: bngsim's {SESSION[self.setting]} will not change "
+                                f"a parameter after initialize, and the protocol sets "
+                                f"{change.name} before network-free step {p.index + 1}: "
+                                f"{exc}") from exc
+                        raise
             if p.index == 0 or not self.nf.phases[p.index - 1].get_final_state:
                 t0 = time.perf_counter()
                 s.initialize(seed=phase_seed(seed, p.index))
@@ -610,17 +634,46 @@ def _single_step_ssa(prep: dict[str, Any]) -> str | None:
     return None
 
 
+# BNG2.pl's answer to run_network's ``edgepop: <species>`` (as in the ssa
+# capability). run_network's stochastic methods write that line when a species no
+# reaction consumes (the network's edge, as on-the-fly generation sees it) first
+# becomes populated, and then read their stdin for BNG2.pl's reply: ``read`` and new
+# network blocks, or ``continue``. BNG2.pl, running a simulation from a finished
+# network, replies ``continue`` (BNGAction.pm, simulate). A run_network given no
+# reply reads end of file and crashes (signal 11; Rohrs 2018's fully phosphorylated
+# CD3z). So every trajectory gets BNG2.pl's reply on stdin once per species, more
+# than it can ask for.
+EDGEPOP_REPLY = "continue\n"
+
+
 class RunNetworkSSA:
     """BioNetGen's ``run_network -p ssa`` on the generated network, a fresh
-    process per trajectory, read back from its observables (``.gdat``)."""
+    process per trajectory, read back from its observables (``.gdat``). Each
+    process is driven as BNG2.pl drives it, its ``edgepop`` questions answered on
+    stdin (``EDGEPOP_REPLY``), in the job's scratch directory (a crash's core file
+    stays there)."""
 
     NAME = "run_network"
     unsupported = staticmethod(_single_step_ssa)
 
     def __init__(self, prep: dict[str, Any], out_prefix: Path, *, timeout: float):
-        self.net, self.nf, self.names, self.timeout = prep["net"], prep["nf"], prep["names"], timeout
-        self.out_prefix = out_prefix
-        out_prefix.parent.mkdir(parents=True, exist_ok=True)
+        self.nf, self.names, self.timeout = prep["nf"], prep["names"], timeout
+        # Absolute: each trajectory runs in the scratch directory, not the job's.
+        self.net = Path(prep["net"]).absolute() if prep.get("net") is not None else None
+        self.out_prefix = Path(out_prefix).absolute()
+        self.out_prefix.parent.mkdir(parents=True, exist_ok=True)
+        self._replies: str | None = None
+
+    def replies(self) -> str:
+        """What every trajectory reads on stdin: BNG2.pl's ``EDGEPOP_REPLY`` once per
+        species and once more, since each species can reach the edge only once."""
+        if self._replies is None:
+            try:
+                n = network_size(self.net).get("species", 0)
+            except OSError:
+                n = 0  # no network to read: run_network fails on it first
+            self._replies = EDGEPOP_REPLY * (n + 1)
+        return self._replies
 
     def command(self, seed: int) -> list[str]:
         p = self.nf.phases[0]
@@ -629,8 +682,9 @@ class RunNetworkSSA:
                 "-g", str(self.net), str(self.net), repr(p.duration / p.n_steps), str(p.n_steps)]
 
     def trajectory(self, seed: int) -> np.ndarray:
-        proc = subprocess.run(self.command(seed), capture_output=True, text=True,
-                              timeout=self.timeout, check=False)
+        proc = subprocess.run(self.command(seed), input=self.replies(), capture_output=True,
+                              text=True, timeout=self.timeout, check=False,
+                              cwd=self.out_prefix.parent)
         if proc.returncode != 0:
             raise RuntimeError(f"run_network failed: {_tail(proc)}")
         gdat = Path(f"{self.out_prefix}.gdat")
@@ -798,12 +852,23 @@ def independent(applicable: list[str]) -> list[str]:
     return [name for name in applicable if name not in SAME_LINEAGE_REFERENCES]
 
 
+def bngsim_refused(bn_error: str | None) -> bool:
+    """Whether BNGsim's error is its own refusal of the protocol (``BNGSIM_REFUSALS``,
+    or an error the adapter marked UNSUPPORTED), not a failure."""
+    if not bn_error:
+        return False
+    if any(part.strip() == "UNSUPPORTED" for part in bn_error.split(":")[:2]):
+        return True
+    return any(s in bn_error for s in BNGSIM_REFUSALS)
+
+
 def verdict_outcome(bn_error: str | None, ref_errors: dict[str, str], applicable: list[str],
                     verdicts: dict[str, Any]) -> str:
     """The outcome, with the same-lineage rule on top of ``_common.outcome``.
 
     A BNGsim failure is EXCEPTION (TIMEOUT when it ran out of time), BAD_TEST when
-    every reference failed too. An independent reference that ran and disagrees
+    every reference failed too; BNGsim refusing the protocol in its own words is
+    UNSUPPORTED (``bngsim_refused``). An independent reference that ran and disagrees
     makes it DIFF, even when another reference failed to run (``OUTCOME_RULE``: a
     disagreement is never masked). Otherwise any reference that failed to run makes
     it REFERENCE_FAILED. With every reference compared: PASS needs BNGsim to agree
@@ -814,6 +879,8 @@ def verdict_outcome(bn_error: str | None, ref_errors: dict[str, str], applicable
     """
     if bn_error:
         result = outcome(bn_error, ref_errors, len(applicable), False)
+        if result in ("EXCEPTION", "BAD_TEST") and bngsim_refused(bn_error):
+            return "UNSUPPORTED"
         return "TIMEOUT" if bn_error.startswith("TIMEOUT") and result == "EXCEPTION" else result
     judges = [name for name in independent(applicable) if name in verdicts]
     if any(not verdicts[name].get("passed") for name in judges):
@@ -858,6 +925,12 @@ def _score(bn: np.ndarray | None, ensembles: dict[str, np.ndarray], seed: int,
                 verdicts[name]["same_lineage"] = True
     result = verdict_outcome(bn_error, ref_errors, applicable, verdicts)
     return verdicts, result, verdict_basis(applicable, verdicts, result)
+
+
+def v1143_reference() -> bool:
+    """Whether the standalone NFsim is a 1.14 release (BioNetGen 2.9.3's, for a
+    comparison run), which BNGsim's ``v1143_compat`` mode reproduces seed for seed."""
+    return str(env.nfsim_identity().get("version") or "").startswith("1.14.")
 
 
 def other_setting(setting: str) -> str:
@@ -926,18 +999,22 @@ def run_correctness(job: Job, problem: Problem, ctx: dict[str, Any]) -> dict[str
         info["cross_setting"] = {"setting": other, "config": cross["config"]}
 
     # The embedding, same seed for same seed: bngsim nf_exact against rm_driver;
-    # bngsim nf_reject in its v1.14.3 compatibility mode against BNG2.pl's NFsim.
+    # bngsim nf_reject against BNG2.pl's NFsim, in its v1.14.3 compatibility mode
+    # where that NFsim is 1.14.3.
     twin = "rulemonkey" if setting == "nf_exact" else "nfsim"
     if twin in ensembles and nf.single:
         k = min(SAME_SEED_TRAJECTORIES, n)
+        compat = setting == "nf_reject" and v1143_reference()
         out = isolated(f"{setting} (same seeds as {twin})",
                        _cold_bngsim(setting, prep, k, seed_for(twin, seed),
-                                    v1143_compat=setting == "nf_reject"))
+                                    v1143_compat=compat))
         if "error" in out:
             info["same_seed"] = {"engine": twin, "error": out["error"]}
         else:
             info["same_seed"] = {"engine": twin, **_same_seed(out["trajectory"],
                                                               ensembles[twin][:k])}
+        if setting == "nf_reject":
+            info["same_seed"]["v1143_compat"] = compat
 
     verdicts, result, basis = _score(bn, ensembles, seed, grid, names, bn_error, ref_errors,
                                      applicable)

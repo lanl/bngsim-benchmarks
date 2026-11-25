@@ -48,8 +48,10 @@
      "REFERENCE_FAILED": 6
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]
@@ -77,8 +79,10 @@
      "REFERENCE_FAILED": 3
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]
@@ -131,8 +135,10 @@
      "REFERENCE_FAILED": 3
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]
@@ -172,8 +178,10 @@
      "REFERENCE_FAILED": 3
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]
@@ -201,8 +209,10 @@
      "UNSUPPORTED": 4
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]
@@ -241,8 +251,10 @@
      "PASS": 10
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]
@@ -269,8 +281,12 @@
      "PASS": 15
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "harness changed: all 10 members",
+    "verdict changed: all 10 members",
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]
@@ -299,8 +315,12 @@
      "REFERENCE_FAILED": 3
     }
    },
-   "status": "CURRENT",
-   "reasons": [],
+   "status": "OUT OF DATE",
+   "reasons": [
+    "harness changed: all 10 members",
+    "verdict changed: all 10 members",
+    "BioNetGen is now 2.9.4 (snapshot: 2.9.3)"
+   ],
    "notes": [
     "bngsim 0.17.3 skipped: skipped by decision 2026-11-25; the next measured release is 0.17.4"
    ]

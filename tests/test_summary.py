@@ -155,11 +155,17 @@ def test_a_skipped_release_leaves_the_snapshot_current_and_says_so(spec_data, wr
     assert f"| 10 PASS | CURRENT (bngsim 0.17.3 skipped: {why}) |" in summary.index_readme(idx)
 
 
-def test_the_committed_snapshots_are_current_but_for_skipped_releases():
-    """What the first run of the staleness workflow should find."""
+def test_no_committed_snapshot_is_out_of_date_for_a_skipped_release():
+    """A release skipped on purpose (skipped-releases.json) never makes a snapshot out
+    of date; other reasons (an engine or harness change awaiting the next run) may."""
     idx = json.loads((PUBLISHED / summary.INDEX_JSON).read_text())
     published = [e for e in idx["suites"] if e["snapshot"]]
-    assert published and {e["status"] for e in published} == {staleness.CURRENT}
+    skipped = json.loads((PUBLISHED / "skipped-releases.json").read_text())
+    assert published
+    for e in published:
+        text = json.dumps(e)
+        for version in skipped:
+            assert f"bngsim {version} is on PyPI" not in text, e["suite"]
 
 
 def test_publish_index_and_staleness_commands(spec_data, write_spec, tmp_path, monkeypatch):

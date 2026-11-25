@@ -37,7 +37,10 @@ RUN_OPTIONS = ("gml", "utl", "complex", "param")
 # (block same-complex binding) and -cb, the same thing in NFsim 1.14.3 (one seed
 # gives one trajectory under -cb, -bscb or both; without either NFsim lets a
 # bimolecular rule bind within one complex), and -utl N, the traversal limit.
-# BNG2.pl appends the string to NFsim's command line as written.
+# BNG2.pl appends the string to NFsim's command line as written. NFsim 2.0
+# (BioNetGen 2.9.4's) blocks same-complex binding by default and takes -cb and
+# -bscb as no-ops, so a complex=>0 run (BNG2.pl then omits -cb) still blocks it
+# there unless -no-bscb is passed; every core member runs complex=>1.
 PARAM_SWITCHES = frozenset({"-bscb", "-cb"})
 PARAM_VALUED = frozenset({"-utl"})
 

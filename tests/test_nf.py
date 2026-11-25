@@ -147,6 +147,69 @@ def test_rulemonkey_and_exact_ssa_cannot_replay_a_multi_step_protocol():
     assert nf.RuleMonkeyCLI.unsupported({"nf": nfactions.protocol(ACTIONS)}) is None
 
 
+# B is produced and never consumed, so run_network asks BNG2.pl about it ("edgepop")
+# when it first becomes populated.
+EDGE_NET = """begin parameters
+    1 k 1
+end parameters
+begin species
+    1 A() 10
+    2 B() 0
+end species
+begin reactions
+    1 1 2 k #R1
+end reactions
+begin groups
+    1 A 1
+    2 B 2
+end groups
+"""
+EDGE_ACTIONS = 'simulate({method=>"nf",t_end=>10,n_steps=>5})'
+
+
+def _edge_prep(tmp_path):
+    net = tmp_path / "netgen" / "m.net"
+    net.parent.mkdir(parents=True)
+    net.write_text(EDGE_NET, encoding="utf-8")
+    return {"net": net, "nf": nfactions.protocol(EDGE_ACTIONS), "names": ["B", "A"]}
+
+
+def test_run_network_is_answered_as_bng2pl_answers_an_edgepop(monkeypatch, tmp_path):
+    # A stand-in that asks once, crashes unless BNG2.pl's reply comes, and counts
+    # the replies it was given.
+    script = tmp_path / "bin" / "run_network"
+    script.parent.mkdir()
+    script.write_text("#!/bin/sh\nulimit -c 0\necho 'edgepop: B()'\nread reply\n"
+                      "[ \"$reply\" = continue ] || kill -SEGV $$\n"
+                      "n=1; while read r; do n=$((n+1)); done; echo $n > replies.txt\n"
+                      "out=$2\n{ echo '# time A B'; for t in 0 2 4 6 8 10; do echo \"$t 10 0\"; "
+                      "done; } > $out.gdat\n")
+    script.chmod(0o755)
+    monkeypatch.setattr(nf.env, "run_network_bin", lambda: script)
+    monkeypatch.setattr(nf.env, "run_network_launch", lambda: [])
+    eng = nf.RunNetworkSSA(_edge_prep(tmp_path), tmp_path / "out" / "rn", timeout=10)
+    values = eng.trajectory(7)
+    # Read back by name (B, then A), in the scratch directory the job gave it.
+    assert values.shape == (6, 2) and values[0].tolist() == [0.0, 10.0]
+    # One reply per species and one more.
+    assert (tmp_path / "out" / "replies.txt").read_text().strip() == "3"
+
+
+@pytest.mark.integration
+def test_the_real_run_network_completes_once_its_edgepop_is_answered(tmp_path):
+    # Without a reply run_network reads end of file and is killed by signal 11
+    # (stock BioNetGen 2.9.3 and 2.9.4); with BNG2.pl's, it finishes.
+    import subprocess
+
+    prep = _edge_prep(tmp_path)
+    eng = nf.RunNetworkSSA(prep, tmp_path / "rn" / "rn", timeout=60)
+    bare = subprocess.run(eng.command(1), stdin=subprocess.DEVNULL, capture_output=True,
+                          text=True, cwd=tmp_path, check=False)
+    assert bare.returncode == -11 and "edgepop: B()" in bare.stdout
+    values = eng.trajectory(1)
+    assert values.shape == (6, 2) and values[-1].sum() == 10
+
+
 def test_the_grid_is_every_steps_points_from_its_own_start():
     assert nf.times(TWO_STEP).tolist() == [0, 1, 2, 3, 4, 5] * 2
 
@@ -261,10 +324,16 @@ def test_correctness_passes_and_records_cross_setting_and_same_seed(monkeypatch,
     assert arrays["bngsim"].shape == (200, N_T, N_OBS)
 
 
-def test_the_reject_setting_checks_its_embedding_against_nfsim(monkeypatch, tmp_path):
+@pytest.mark.parametrize("version, compat", [("2.0.1", False), ("1.14.3", True)])
+def test_the_reject_setting_checks_its_embedding_against_nfsim(monkeypatch, tmp_path, version,
+                                                                compat):
+    # BNGsim's v1.14.3 compatibility mode only where the reference is NFsim 1.14.3
+    # (BioNetGen 2.9.3, a comparison run); against NFsim 2 (2.9.4) BNGsim as it is.
     _install(monkeypatch, {"nfsim": _fake_reference(), "rulemonkey": _fake_reference()})
+    monkeypatch.setattr(nf.env, "nfsim_identity", lambda: {"version": version})
     rec = nf.run_correctness(_job("nf_reject"), None, _ctx(tmp_path))
     assert rec["measurements"]["same_seed"]["engine"] == "nfsim"
+    assert rec["measurements"]["same_seed"]["v1143_compat"] is compat
     assert rec["measurements"]["cross_setting"]["setting"] == "nf_exact"
 
 
@@ -371,8 +440,9 @@ def test_the_outcome_needs_an_independent_reference_to_pass_or_refute(passed, er
 
 def test_the_rule_is_in_the_verdict_so_a_change_restales_and_rescores():
     assert nf.VERDICT["independent_reference_rule"] == 1
-    assert {k: v for k, v in nf.VERDICT.items() if k != "independent_reference_rule"} \
-        == nf.SSA_VERDICT
+    assert nf.VERDICT["bngsim_refusal_rule"] == 1
+    rules = ("independent_reference_rule", "bngsim_refusal_rule")
+    assert {k: v for k, v in nf.VERDICT.items() if k not in rules} == nf.SSA_VERDICT
     assert nf.independent(["nfsim", "rulemonkey", "run_network", "bngsim_ssa"]) == \
         ["nfsim", "run_network", "bngsim_ssa"]
 
@@ -387,6 +457,64 @@ def test_bngsim_failing_is_an_exception_and_with_every_reference_a_bad_test(monk
                            "rulemonkey": _fake_reference(boom="y")},
              bngsim=_fake_bngsim(boom={"nf_exact": "no"}))
     assert nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))["outcome"] == "BAD_TEST"
+
+
+REFUSAL = ("ParameterError: Failed to set RuleMonkey parameter 'lig': Cannot set_param during "
+           "active session")
+
+
+@pytest.mark.parametrize("bn_error, refs, expected", [
+    # As a record written before the rule has it, and as the adapter words it now.
+    (REFUSAL, {"rulemonkey": "UNSUPPORTED: two steps"}, "UNSUPPORTED"),
+    (f"RuntimeError: UNSUPPORTED: bngsim's RuleMonkeySession will not change a parameter "
+     f"after initialize: {REFUSAL}", {}, "UNSUPPORTED"),
+    # Every reference failing too does not make a refusal a BAD_TEST.
+    (REFUSAL, {"nfsim": "x", "rulemonkey": "y"}, "UNSUPPORTED"),
+    ("RuntimeError: NFsim error in NFcore/system.cpp", {}, "EXCEPTION"),
+    ("TIMEOUT: bngsim ran past its budget", {}, "TIMEOUT"),
+])
+def test_bngsims_own_refusal_is_unsupported_not_an_exception(bn_error, refs, expected):
+    assert nf.verdict_outcome(bn_error, refs, ["nfsim", "rulemonkey"], {}) == expected
+
+
+class _RefusingSession:
+    def __init__(self):
+        self.calls = []
+
+    def clear_param_overrides(self):
+        pass
+
+    def initialize(self, seed):
+        self.calls.append(("initialize", seed))
+
+    def set_param(self, name, value):
+        raise ValueError(f"Failed to set RuleMonkey parameter '{name}': Cannot set_param "
+                         "during active session")
+
+    def simulate(self, t0, t1, n):
+        return types.SimpleNamespace(observables=np.zeros((n, 2)), observable_names=NAMES)
+
+
+def test_the_adapter_reports_the_refusal_in_bngsims_words():
+    # The two-step protocol sets k between its steps; RuleMonkeySession refuses.
+    eng = object.__new__(nf.BngsimNF)
+    eng.setting, eng.nf, eng.names = "nf_exact", TWO_STEP, NAMES
+    eng.session, eng.sets_live = _RefusingSession(), True
+    eng.split = {"initialize_seconds": 0.0, "simulate_seconds": 0.0}
+    with pytest.raises(RuntimeError, match=r"^UNSUPPORTED: bngsim's RuleMonkeySession .* sets k "
+                                           r"before network-free step 2: .*active session"):
+        eng.trajectory(7)
+
+
+def test_a_refusal_rescores_to_unsupported():
+    # A stored record from before the rule: EXCEPTION, its error BNGsim's own words.
+    job = _job("nf_exact")
+    stack = _fake_stack(20, 3)
+    arrays = {"nfsim": stack, "observables": np.asarray(NAMES),
+              "times": np.linspace(0.0, 10.0, N_T)}
+    rec = {"outcome": "EXCEPTION", "bngsim_error": REFUSAL,
+           "rulemonkey_error": "UNSUPPORTED: two steps", "measurements": {}}
+    assert nf.rescore(job, rec, arrays)["outcome"] == "UNSUPPORTED"
 
 
 def test_preparation_failure_is_a_bad_test(monkeypatch, tmp_path):

@@ -147,6 +147,10 @@ Confirm the result before trusting it:
 
 ## run_network on aarch64 (BioNetGen 2.9.3 from source)
 
+The x86-64 harness now pins BioNetGen 2.9.4; the recipe below was verified on 2.9.3's
+tag and has not yet been re-run on 2.9.4's (its run_network changes `if()`, bionetgen
+#342, and the writing of `(-2)^k`, #341).
+
 The BioNetGen 2.9.3 **release tarball is x86-only and ships no source**, so the
 source has to come from the tagged commit in the repository. The build vendors
 its own solvers (CVODE 2.6.0 + muparser via `bng2/libsource`) — there is no
@@ -385,9 +389,11 @@ engines beside BNGsim's embedded copies. Neither is in the pinned environment.
 
 ### NFsim: the binary BioNetGen bundles, under the loader swap
 
-BioNetGen 2.9.3's `bin/NFsim` is NFsim 1.14.3, and like `run_network` it needs glibc
-≥ 2.34 and `GLIBCXX_3.4.29`; on an older host (RHEL 8, glibc 2.28) it fails to start
-with `GLIBC_2.34 not found`. It is run, unchanged, under the same newer loader
+BioNetGen 2.9.4's `bin/NFsim` is NFsim 2.0.1 (2.9.4 is the first BioNetGen release to
+bundle NFsim 2; 2.9.3's, NFsim 1.14.3, is kept for comparison runs only, by pointing
+`BNGPATH` at an unpacked 2.9.3). Like `run_network` it needs glibc ≥ 2.34 and
+`GLIBCXX_3.4.29` (2.9.3's and 2.9.4's binaries alike); on an older host (RHEL 8,
+glibc 2.28) it fails to start with `GLIBC_2.34 not found`. It is run, unchanged, under the same newer loader
 `pixi run fetch-glibc` installs for `run_network` (section "run_network" above). The
 twist is that the capability runs NFsim through BNG2.pl, which execs
 `$BNGPATH/bin/NFsim` itself, so the loader prefix cannot be put on its command line.
@@ -398,8 +404,8 @@ unchanged binary under the loader. BNG2.pl is run with `BNGPATH` naming the mirr
 The binaries' bytes, and so BioNetGen's sha256 in every fingerprint, are untouched.
 Where no loader swap is configured (a host whose glibc is new enough, macOS), the
 distribution is used as it is. Nothing to install beyond `fetch-bionetgen` and
-`fetch-glibc`; `bench doctor` launches NFsim and checks that its banner reports
-v1.14.3.
+`fetch-glibc`; `bench doctor` launches NFsim and checks that its banner reports the
+version the distribution bundles (v2.0.1 for 2.9.4).
 
 ### RuleMonkey: built from its pinned source
 

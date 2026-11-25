@@ -170,11 +170,12 @@ def test_an_engine_pin_bngsim_pin_or_harness_change_is_out_of_date(spec_data, wr
 
 
 def test_a_new_bionetgen_is_an_engine_change(spec_data, write_spec, tmp_path):
-    # BioNetGen 2.9.4 (which bundles NFsim 2.0.1) once its fetch pin moves.
+    # A later BioNetGen than the one the snapshot was measured on, once the fetch pin moves.
     dest = _publish(tmp_path, spec_data, write_spec)
-    pins = {**PINS, "bionetgen": {"version": "2.9.4", "sha256": ["f" * 64]}}
+    later = fetch.BIONETGEN_VERSION + ".1"
+    pins = {**PINS, "bionetgen": {"version": later, "sha256": ["f" * 64]}}
     assert _reasons(dest, tmp_path, pins=pins) == [
-        f"BioNetGen is now 2.9.4 (snapshot: {fetch.BIONETGEN_VERSION})"]
+        f"BioNetGen is now {later} (snapshot: {fetch.BIONETGEN_VERSION})"]
 
 
 def test_every_real_jobs_engine_versions_have_a_pin():
