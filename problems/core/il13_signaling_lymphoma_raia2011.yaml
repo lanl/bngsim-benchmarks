@@ -1,0 +1,78 @@
+# IL13-induced signaling in Hodgkin and primary mediastinal B-cell lymphoma (PEtab Raia_CancerResearch2011).
+# A core problem: member 5 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# kept from the paper's set (P05); the paper ran the unstimulated condition, this suite all four.
+# The PEtab problem as the harness applies it (bench.petab_problem): 4 simulation condition(s), 205 measurements of 8 observables; 39 estimated parameters, of which
+# the 18 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: scaling_CD274mRNA, scaling_IL13_cell, scaling_SOCS3mRNA, scaling_pIL4Ra, scaling_pJAK2, sd_SOCS3mRNA_abs and 15 more.
+id: il13_signaling_lymphoma_raia2011
+layer: core
+title: IL13-induced signaling in Hodgkin and primary mediastinal B-cell lymphoma
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Raia_CancerResearch2011/model_Raia_CancerResearch2011.xml
+  sha256: 62c639dd80abbd243a5f2ce9aa804226d436cd65c1561a05e27e6cfd6eb0f8ef
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Raia_CancerResearch2011/Raia_CancerResearch2011.yaml
+    sha256: b251943eab3f56ac78ea8c29bd4eeaaf67234b52075f4d687d70fcd995efec22
+  conditions:
+    path: Benchmark-Models/Raia_CancerResearch2011/experimentalCondition_Raia_CancerResearch2011.tsv
+    sha256: fbf4b549c174fc9020e465219c1d462f188cdf383541c51f510d3ceb3176788d
+  measurements:
+    path: Benchmark-Models/Raia_CancerResearch2011/measurementData_Raia_CancerResearch2011.tsv
+    sha256: 0e056c3a1a26ca9bcfa4b56e6b6a64c2932bdf4588ced0f08ddbc8a6d3effdf0
+  observables:
+    path: Benchmark-Models/Raia_CancerResearch2011/observables_Raia_CancerResearch2011.tsv
+    sha256: bf44808d29e2fffacb15d2900d11a0a1344c689e93dd5fe331a1ac298e3d8a6e
+  parameters:
+    path: Benchmark-Models/Raia_CancerResearch2011/parameters_Raia_CancerResearch2011.tsv
+    sha256: 099858bd1e0e146646c3a296e9260e7559de8c99388167c777bdb153effbac0f
+publications:
+- citation: Raia V, Schilling M, Boehm M, Hahn B, Kowarsch A, Raue A et al. (2011). Dynamic mathematical
+    modeling of IL13-induced signaling in Hodgkin and primary mediastinal B-cell lymphoma allows prediction
+    of therapeutic targets. Cancer Res 71:693-704.
+  doi: 10.1158/0008-5472.CAN-10-2987
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Raia_CancerResearch2011 at Benchmark-Models-PEtab 4d20850 (the authors''
+    model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark
+    test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; no stored log-likelihood (gradient check only)
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    parameters:
+    - CD274mRNA_production
+    - DecoyR_binding
+    - JAK2_p_inhibition
+    - JAK2_phosphorylation
+    - Kon_IL13Rec
+    - Rec_intern
+    - Rec_phosphorylation
+    - Rec_recycle
+    - SOCS3_accumulation
+    - SOCS3_degradation
+    - SOCS3_translation
+    - SOCS3mRNA_production
+    - STAT5_phosphorylation
+    - init_Rec_i
+    - pJAK2_dephosphorylation
+    - pRec_degradation
+    - pRec_intern
+    - pSTAT5_dephosphorylation
+size:
+  species: 14
+  reactions: 16
+  conditions: 4
+  measurements: 205
+  sens_parameters: 18
+suites:
+  sens-sbml: 5

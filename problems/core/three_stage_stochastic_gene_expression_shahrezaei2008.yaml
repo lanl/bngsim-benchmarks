@@ -1,16 +1,17 @@
-# Three-stage stochastic gene expression. A provisional pilot problem for exact SSA: it exercises
-# the SSA capability until its core suite is chosen and audited (docs/DESIGN.md §3.2).
+# Three-stage stochastic gene expression. A core problem: member 3 of the ssa-net suite
+# (docs/DESIGN.md §3.2); it entered as a pilot and keeps the pilot's protocol, so its pilot
+# results stay current.
 # Every reaction is of first order, so the network's exact means and variances are a reference of
 # their own (moments: linear). Copy numbers are low: the promoter is 0 or 1, mRNA a few, protein
 # tens. The protocol is ours, not the record's: an ensemble relaxing from the network's seed species
 # (promoter inactive, no mRNA or protein) over ten protein lifetimes (1/d1 = 2000 s), where the
-# record samples its stationary distribution from one long trajectory.
+# record samples its stationary distribution from one long trajectory (2.1e8 s).
 id: three_stage_stochastic_gene_expression_shahrezaei2008
-layer: pilot
+layer: core
 title: "Three-stage stochastic gene expression"
 source:
   repo: wshlavacek/BNGL-Models
-  commit: 9ab070db47faf63853c7376cb715c3ff4f9c67bd
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
   path: models/three_stage_stochastic_gene_expression_shahrezaei2008/three_stage_stochastic_gene_expression_shahrezaei2008.bngl
   sha256: 15f14b493f94c012cbf4addb16c2a3065661d4180420a4fa0b0354941a09b30b
   format: bngl
@@ -20,8 +21,11 @@ publications:
   - citation: "Shahrezaei V, Swain PS (2009). Correction. PNAS 106:346."
     doi: 10.1073/pnas.0811545106
 verification:
-  kind: pending
+  kind: theory
   evidence: models/three_stage_stochastic_gene_expression_shahrezaei2008/verify_shahrezaei2008.ipynb
+  check: "the record's seeded BioNetGen SSA stationary protein distribution vs an independent finite-state chemical master equation, total variation < 0.06 asserted"
+  result: "total variation 0.038"
+  supporting: "data: digitized Fig. 3D, RMSE < 0.0015 asserted"
 capabilities: [ssa]
 protocol:
   ssa:
@@ -36,3 +40,5 @@ size:
   species: 4
   reactions: 6
   ssa_events: 600
+suites:
+  ssa-net: 3

@@ -191,6 +191,21 @@ def amici_identity() -> dict[str, Any]:
     return ident
 
 
+@lru_cache(maxsize=1)
+def antimony_identity() -> dict[str, Any]:
+    """Version of libantimony (the ``antimony`` package), which converts an
+    ode-antimony member to Antimony at job time and back to SBML for the engines
+    that read only SBML. Read from package metadata, without the import.
+    ``{version: None, error}`` when absent."""
+    try:
+        from importlib.metadata import version
+
+        ident: dict[str, Any] = {"version": version("antimony")}
+    except Exception as exc:  # noqa: BLE001 - any failure means "absent/unreadable"
+        ident = {"version": None, "error": f"{type(exc).__name__}: {exc}"}
+    return ident
+
+
 def _preload_libpython() -> None:
     """Make this interpreter's ``libpython`` findable by extensions that need it.
 
@@ -532,11 +547,11 @@ def harness_identity() -> dict[str, Any]:
     return {"bench": __version__, "parity_core": parity_core_identity(), "forced_env": HARNESS_ENV}
 
 
-@lru_cache(maxsize=1)
-def harness_source() -> dict[str, Any]:
-    """The git commit of the harness checkout that ran a job, and whether its
-    tracked files had local changes. Provenance only: it is recorded, never part
-    of a freshness key (``harness_identity`` is). Empty outside a git checkout."""
+def read_harness_source() -> dict[str, Any]:
+    """The harness checkout as it is now: its git commit, whether its tracked
+    files have local changes, and the sha256 of its Python source
+    (``source_sha256``, see ``source_digest``), which names the code exactly even
+    when they do. Empty outside a git checkout."""
     root = Path(__file__).resolve().parents[2]
 
     def git(*argv: str) -> str | None:
@@ -551,7 +566,50 @@ def harness_source() -> dict[str, Any]:
     if not commit:
         return {}
     status = git("status", "--porcelain", "--untracked-files=no")
-    return {"commit": commit, "dirty": bool(status) if status is not None else None}
+    out: dict[str, Any] = {"commit": commit, "dirty": bool(status) if status is not None else None}
+    try:
+        out["source_sha256"] = source_digest()
+    except OSError:
+        pass
+    return out
+
+
+def source_digest() -> str:
+    """sha256 of the harness's Python source: every ``.py`` file of the ``bench``
+    package, by its path in the package and its bytes, in path order."""
+    import hashlib
+
+    pkg = Path(__file__).resolve().parent
+    h = hashlib.sha256()
+    for path in sorted(pkg.rglob("*.py")):
+        data = path.read_bytes()
+        h.update(f"{path.relative_to(pkg).as_posix()}\0{len(data)}\0".encode())
+        h.update(data)
+    return h.hexdigest()
+
+
+# The harness source this process runs, once read (capture_harness_source).
+_HARNESS_SOURCE: dict[str, Any] | None = None
+
+
+def capture_harness_source() -> dict[str, Any]:
+    """Read the harness checkout now and keep it as the code this process runs.
+
+    A worker calls this as its job starts, before it loads the job's code
+    (``bench.worker``), so its result names the code the job ran: a long job's
+    result is written hours later, by which time the checkout may have moved on."""
+    global _HARNESS_SOURCE
+    _HARNESS_SOURCE = read_harness_source()
+    return _HARNESS_SOURCE
+
+
+def harness_source() -> dict[str, Any]:
+    """The harness source this process runs: as captured when its job started
+    (``capture_harness_source``), else read now, once, and kept. Provenance only:
+    it is recorded, never part of a freshness key (``harness_identity`` is)."""
+    if _HARNESS_SOURCE is None:
+        capture_harness_source()
+    return _HARNESS_SOURCE
 
 
 def environment() -> dict[str, Any]:

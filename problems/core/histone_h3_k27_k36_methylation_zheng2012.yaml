@@ -1,0 +1,106 @@
+# Combinatorial methylation of histone H3 lysines 27 and 36 (PEtab Zheng_PNAS2012).
+# A core problem: member 7 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# top-up (pre-equilibration).
+# The PEtab problem as the harness applies it (bench.petab_problem): 1 simulation condition(s), 1 with pre-equilibration, 60 measurements of 15 observables; 46 estimated parameters, of which
+# the 45 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: sigma.
+id: histone_h3_k27_k36_methylation_zheng2012
+layer: core
+title: Combinatorial methylation of histone H3 lysines 27 and 36
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Zheng_PNAS2012/model_Zheng_PNAS2012.xml
+  sha256: 68e26bf1ac80f59241f43e1c8072649f2369140b4499b80393f8869d45cbb2cb
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Zheng_PNAS2012/Zheng_PNAS2012.yaml
+    sha256: 380725a498690fa7e70432d9d18a0bdbc55a21a85012097a24e606d4dca7e2ca
+  conditions:
+    path: Benchmark-Models/Zheng_PNAS2012/experimentalCondition_Zheng_PNAS2012.tsv
+    sha256: d911510c50221295446b6893ac7afdc8be903b15a0968410d84f3cc2706cbd11
+  measurements:
+    path: Benchmark-Models/Zheng_PNAS2012/measurementData_Zheng_PNAS2012.tsv
+    sha256: 11c70b8976f862b3d4d13111318605efa9a74d9f4a6e0edca13a71acdd4803f4
+  observables:
+    path: Benchmark-Models/Zheng_PNAS2012/observables_Zheng_PNAS2012.tsv
+    sha256: bfee2b048adfa4f70a0699267283af96f638f42d6b9e350b8c383b2895e6f997
+  parameters:
+    path: Benchmark-Models/Zheng_PNAS2012/parameters_Zheng_PNAS2012.tsv
+    sha256: d01a378eef08d494184081f54800649b39afc0aac0d8beb14498ecdd21d04ce0
+publications:
+- citation: Zheng Y, Sweet SMM, Popovic R, Martinez-Garcia E, Tipton JD, Thomas PM et al. (2012). Total
+    kinetic analysis reveals how combinatorial methylation patterns are established on lysines 27 and
+    36 of histone H3. Proc Natl Acad Sci USA 109:13549-13554.
+  doi: 10.1073/pnas.1205707109
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Zheng_PNAS2012 at Benchmark-Models-PEtab 4d20850 (the authors'' model,
+    data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark test
+    (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 278.33353271001477
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: 278.33353271001477
+    parameters:
+    - inflowp
+    - k00_01
+    - k00_10
+    - k01_00
+    - k01_02
+    - k01_11
+    - k02_01
+    - k02_03
+    - k02_12
+    - k03_02
+    - k03_13
+    - k10_00
+    - k10_11
+    - k10_20
+    - k11_01
+    - k11_10
+    - k11_12
+    - k11_21
+    - k12_02
+    - k12_11
+    - k12_13
+    - k12_22
+    - k13_03
+    - k13_12
+    - k13_23
+    - k20_10
+    - k20_21
+    - k20_30
+    - k21_11
+    - k21_20
+    - k21_22
+    - k21_31
+    - k22_12
+    - k22_21
+    - k22_23
+    - k22_32
+    - k23_13
+    - k23_22
+    - k30_20
+    - k30_31
+    - k31_21
+    - k31_30
+    - k31_32
+    - k32_22
+    - k32_31
+size:
+  species: 15
+  reactions: 60
+  conditions: 1
+  measurements: 60
+  sens_parameters: 45
+suites:
+  sens-sbml: 7

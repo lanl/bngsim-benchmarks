@@ -3,6 +3,13 @@
 # condition, written mechanically from their release; the BNGsim paper's table used the
 # `_fused` file, which carries the pre-fit nominal values (docs/core_suites.md).
 # The protocol is the model's own ODE simulate action, at the same commit (time in seconds).
+# Also member 9 of the sens-net suite: forward sensitivities over the same 0-136471.6 s horizon
+# (two cell cycles) on a 300-step grid (every fourth point of the ODE protocol's 1200, which would
+# hold about 1201 x 73 x 158 sensitivities per engine), at the ODE protocol's tolerances, the
+# finite differences tighter still. The authors' fitted set is differentiated: the 114 kinetic
+# rate constants and the 47 estimated initial concentrations of the PEtab wt condition (161; the
+# 16 observation-model parameters reach no species). Three fitted rate constants sit at 0 at the
+# optimum (kDpApc_1, kDpE2f1, kPhC25A) and are left out, as a zero has no relative step: 158.
 id: cell_cycle_oscillator_lang2024
 layer: core
 title: "RPE-1 cell-cycle oscillator (fitted)"
@@ -21,7 +28,7 @@ verification:
   check: "network and all 205 values mechanically identical to the authors' v3.2.0 release (paulflang/cell_cycle_petab @ 362b666: optimized table, PEtab wt condition); the 8 observables integrated from the generated .net vs the authors' AMICI output results_20220421/optimisation.tsv (8 x 600 points), tolerance 5e-5"
   result: "max relative error 5.4e-6"
   supporting: "equations: an ODE built only from the authors' SBML and PEtab tables agrees with the generated network to 8e-12"
-capabilities: [ode]
+capabilities: [ode, sens]
 protocol:
   ode:
     netgen: "generate_network({overwrite=>1})"
@@ -30,8 +37,181 @@ protocol:
     n_steps: 1200
     rtol: 1.0e-10
     atol: 1.0e-12
+  sens:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 136471.6126
+    n_steps: 300
+    rtol: 1.0e-10
+    atol: 1.0e-12
+    fd_rtol: 1.0e-12
+    fd_atol: 1.0e-14
+    parameters: fitted
+    fitted:
+      - kPhRbD
+      - kPhRbE
+      - kDpRb
+      - kPhRb
+      - kSyCe1
+      - kSyCe2
+      - kDeCe
+      - kDiE2fRb
+      - kAsE2fRb
+      - kSyE2f1
+      - kSyE2f2
+      - kDeE2f1
+      - kDeE2f2
+      - kPhE2f
+      - kDpE2f2
+      - kSyEmi1
+      - kSyEmi2
+      - kDeEmi1
+      - kDeEmi2
+      - kDeEmi3
+      - kPhEmiA
+      - kPhEmiB
+      - kDpEmi
+      - kSyCa1
+      - kSyCa2
+      - kDeCa1
+      - kDeCa2
+      - kDeCa3
+      - kDpCdh
+      - kPhCdhA
+      - kPhCdhE
+      - kPhCdhB
+      - kDiACE
+      - kAsACE
+      - kDiACdh
+      - kAsACdh
+      - kPhCeA
+      - kPhCeE
+      - kPhFoxE
+      - kPhFoxA
+      - kPhFoxB
+      - kDpFox
+      - kSyCb1
+      - kSyCb2
+      - kDeCb1
+      - kDeCb2
+      - kDeCb3
+      - kPhEnsa
+      - kDpEnsa
+      - kPhGw
+      - kDpGw1
+      - kDpGw2
+      - kWee1
+      - kWee2
+      - kPhWeeA
+      - kPhWeeB
+      - kDpWee
+      - kCdc25_1
+      - kCdc25_2
+      - kDpCdc25
+      - kDipEB55
+      - kAspEB55
+      - kSyCdc_1
+      - kSyCdc_2
+      - kDeCdc_1
+      - kDeCdc_2
+      - kDipACdc
+      - kAspACdc
+      - kPhApcA
+      - kDpApc_1
+      - kDpApc_2
+      - kSyFox1
+      - kSyFox2
+      - kDeFox1
+      - kDeFox2
+      - kAsEPx
+      - kDiEPx
+      - kAsFPcb
+      - kDiFPcb
+      - kAsFPcdc
+      - kDiFPcdc
+      - kPhC25B
+      - kPhCAEE
+      - kPhCAEA
+      - kPhCAEB
+      - kDpE2f1
+      - kPhC25A
+      - kSySkp2
+      - kDeSkp2_1
+      - kDeSkp2_2
+      - kAsTP53PCDKN1A
+      - kDiTP53PCDKN1A
+      - kSyCDKN1A_1
+      - kSyCDKN1A_2
+      - kDeCDKN1A_1
+      - kDeCDKN1A_2
+      - kAsCdkn1aC
+      - kDiCdkn1aC
+      - kPhCDKN1AByCe
+      - kPhCDKN1AByCa
+      - kPhCDKN1AByCb
+      - kDpCDKN1A
+      - kAsFOXOPCDKN1B
+      - kDiFOXOPCDKN1B
+      - kSyCDKN1B_1
+      - kSyCDKN1B_2
+      - kDeCDKN1B_1
+      - kDeCDKN1B_2
+      - kAsCdkn1bC
+      - kDiCdkn1bC
+      - kPhCDKN1BByCe
+      - kPhCDKN1BByCa
+      - kPhCDKN1BByCb
+      - kDpCDKN1B
+      - ic_wt_cell__CCND
+      - ic_wt_cell__CCNE_CDKN1A_B_
+      - ic_wt_cell__E2F_DBD_RB1_Ser332u_
+      - ic_wt_cell__E2F_DBD_RB1_Ser332p_
+      - ic_wt_cell__CCNA_CDKN1A_B_
+      - ic_wt_cell__CCNB_CDK1_Thr14_Tyr15u_CDKN1A_
+      - ic_wt_cell__E2F_DBD_RB1_1_Ser332u__RB1_E2F_1_Ser807_Ser811u_
+      - ic_wt_cell__E2F_DBD_RB1_1_Ser332p__RB1_E2F_1_Ser807_Ser811u_
+      - ic_wt_cell__RB1_E2F_Ser807_Ser811u_
+      - ic_wt_cell__RB1_E2F_Ser807_Ser811p_
+      - ic_wt_cell__PPP2R2B_ENSA_ARPP19_
+      - ic_wt_cell__APC_FBXO5_FZR1_CDC20_Ser355u_
+      - ic_wt_cell__CDC20_APC_
+      - ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355p__CDC20_APC_1_
+      - ic_wt_cell__APC_FBXO5_FZR1_CDC20_Ser355p_
+      - ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355u__FZR1_APC_1_FBXO5_nTermu_
+      - ic_wt_cell__FZR1_APC_FBXO5_nTermu_
+      - ic_wt_cell__FZR1_APC_FBXO5_nTermp_
+      - ic_wt_cell__APC_FBXO5_1_FZR1_CDC20_2_Ser355u__FBXO5_APC_1_FZR1_3_Ser182u__FZR1_APC_2_FBXO5_3_nTermu_
+      - ic_wt_cell__FBXO5_APC_FZR1_Ser182u_
+      - ic_wt_cell__APC_FBXO5_1_FZR1_CDC20_2_Ser355p__FBXO5_APC_1_FZR1_3_Ser182u__FZR1_APC_2_FBXO5_3_nTermu_
+      - ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355p__FZR1_APC_1_FBXO5_nTermu_
+      - ic_wt_cell__FBXO5_APC_FZR1_Ser182p_
+      - ic_wt_cell__FOXM1_DBD_Thr600u_
+      - ic_wt_cell__FOXM1_DBD_Thr600p_
+      - ic_wt_cell__WEE1_Ser123u_
+      - ic_wt_cell__CCNB_CDK1_Thr14_Tyr15p_CDKN1A_
+      - ic_wt_cell__WEE1_Ser123p_
+      - ic_wt_cell__CDC25_pSitesp_
+      - ic_wt_cell__CDC25_pSitesu_
+      - ic_wt_cell__MASTL_Thr198u_
+      - ic_wt_cell__MASTL_Thr198p_
+      - ic_wt_cell__ENSA_ARPP19_PPP2R2B_Ser62_Ser67u_
+      - ic_wt_cell__ENSA_ARPP19_PPP2R2B_Ser62_Ser67p_
+      - ic_wt_cell__ENSA_ARPP19_PPP2R2B_1_Ser62_Ser67p__PPP2R2B_ENSA_ARPP19_1_
+      - ic_wt_cell__CDKN1A_CCNE_A_B_Ser130u_
+      - ic_wt_cell__CDKN1B_CCNE_A_Thr187u_
+      - ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1A_CCNE_A_B_1_Ser130u_
+      - ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1A_CCNE_A_B_1_Ser130u_
+      - ic_wt_cell__CCNB_CDK1_Thr14_Tyr15u_CDKN1A_1__CDKN1A_CCNE_A_B_1_Ser130u_
+      - ic_wt_cell__CCNB_CDK1_Thr14_Tyr15p_CDKN1A_1__CDKN1A_CCNE_A_B_1_Ser130u_
+      - ic_wt_cell__CDKN1A_CCNE_A_B_Ser130p_
+      - ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187u_
+      - ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187u_
+      - ic_wt_cell__CDKN1B_CCNE_A_Thr187p_
+      - ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187p_
+      - ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187p_
 size:
   species: 73
   reactions: 332
+  sens_parameters: 158
 suites:
   ode-net: 3
+  sens-net: 9

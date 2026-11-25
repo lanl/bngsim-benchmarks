@@ -1,0 +1,45 @@
+# Aspartate metabolism in Arabidopsis from measured kinetic parameters (BioModels
+# BIOMD0000000212). A core problem: member 9 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000212/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# A metabolic network (8 dynamic species, 23 boundary metabolites and enzymes). The scan is
+# V_AA_RS, which three assignment rules pass to the Lys, Thr and Ile tRNA synthetases. At the
+# low end the threonine pool takes about 1e7 s to settle, hence t_end = 1e8.
+id: aspartate_metabolism_curien2009
+layer: core
+title: "Aspartate metabolism in Arabidopsis from measured kinetic parameters"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000212/BIOMD0000000212_url.xml
+  sha256: 249d919a20eb71e64af3d208dd746cba135571f1d363009f262e302a57c50340
+  format: sbml
+publications:
+  - citation: "Curien G, Bastien O, Robert-Genthon M, Cornish-Bowden A, Cardenas ML, Dumas R (2009). Understanding the regulation of aspartate metabolism using a model based on measured kinetic parameters. Mol Syst Biol 5:271."
+    doi: 10.1038/msb.2009.29
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000212: its curation figure and curation notes (final/BIOMD0000000212/curation_notes.txt at the pinned commit): 'Reproduction of figure 7c of the original publication using Copasi 4.6. Steady states were calculated over a range of values for the maximal velocity of tRNA synthetase, V_max_AA_RS using the parameter scan task of Copasi (250 intervals from 0.15 to 2 uM/s). As steady state fluxes in the protein branches, the fluxes through the Lys, Thr, and Ile tRNA synthetase reactions were taken.'"
+  check: "BioModels curation: the curators reproduced Fig. 7c of the paper from this file in COPASI 4.6, steady states over V_max of the tRNA synthetases (V_AA_RS) from 0.15 to 2 uM/s"
+  result: "curated; the curation figure reproduces Fig. 7c"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+8
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    scan:
+      parameter: V_AA_RS
+      min: 0.15
+      max: 2
+      points: 20
+      log: false
+size:
+  species: 31
+  reactions: 18
+suites:
+  ss-sbml: 9

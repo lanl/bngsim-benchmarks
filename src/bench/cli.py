@@ -46,12 +46,15 @@ def _common(ap: argparse.ArgumentParser) -> None:
 
 
 def _expand_suites(patterns: list[str] | None, problems: list[specs.Problem]) -> list[str]:
-    """Patterns with each suite name (``ode-net``) replaced by its members' problems."""
+    """Patterns with each suite name (``ode-net``) replaced by its members' jobs of
+    the suite's capability: a problem in two suites (an ODE and a steady-state one)
+    has jobs of each, and a suite selects its own."""
     members = specs.suite_members(problems)
     out: list[str] = []
     for pat in patterns or []:
         if pat in members:
-            out.extend(f"/{p.id}/" for p in members[pat])
+            cap = specs.SUITES[pat][0]
+            out.extend(f"{cap}/{p.id}/" for p in members[pat])
         else:
             out.append(pat)
     return out

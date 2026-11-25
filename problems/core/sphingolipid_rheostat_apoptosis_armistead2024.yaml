@@ -1,0 +1,70 @@
+# A sphingolipid rheostat controls apoptosis versus apical cell extrusion (PEtab Armistead_CellDeathDis2024).
+# A core problem: member 1 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# kept from the paper's set (P04); the paper ran the SBML's 1.0 placeholders, this suite the PEtab nominal values and both conditions.
+# The PEtab problem as the harness applies it (bench.petab_problem): 2 simulation condition(s), 58 measurements of 4 observables; 14 estimated parameters, of which
+# the 10 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: sd_Sphinga_obs, sd_Cer_obs, sd_Sphingo_obs, sd_S1P_obs.
+id: sphingolipid_rheostat_apoptosis_armistead2024
+layer: core
+title: A sphingolipid rheostat controls apoptosis versus apical cell extrusion
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Armistead_CellDeathDis2024/model_Armistead_CellDeathDis2024.xml
+  sha256: 09ee7897c13f94de0fb0c9fa5c9e3ebce88f04b86076abe325eb4c63c474e734
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Armistead_CellDeathDis2024/Armistead_CellDeathDis2024.yaml
+    sha256: 5b84025116f79e1e8218218fd491c680b8f89a2646f644b28cdadf7fe8b9775f
+  conditions:
+    path: Benchmark-Models/Armistead_CellDeathDis2024/experimentalConditions_Armistead_CellDeathDis2024.tsv
+    sha256: 2f445469d1f174e5f41cb3a10b9013bae71a17f955856274c8807ae41da72796
+  measurements:
+    path: Benchmark-Models/Armistead_CellDeathDis2024/measurementData_Armistead_CellDeathDis2024.tsv
+    sha256: f8fc66c554581b61fe9cb98451aeb9ac123ac23476d2bc641aebc684f573b59e
+  observables:
+    path: Benchmark-Models/Armistead_CellDeathDis2024/observables_Armistead_CellDeathDis2024.tsv
+    sha256: b3d4e161d1755ad5cfd0b36dfaf1d11100ed1dd7b09d781f0da1986eca63b6db
+  parameters:
+    path: Benchmark-Models/Armistead_CellDeathDis2024/parameters_Armistead_CellDeathDis2024.tsv
+    sha256: cd25ec9bd9934b41ce31d146065c695125b3a805fa9dd05fba22be48a25884eb
+publications:
+- citation: Armistead J, Hoepfl S, Goldhausen P, Mueller-Hartmann A, Fahle E, Hatzold J et al. (2024).
+    A sphingolipid rheostat controls apoptosis versus apical cell extrusion as alternative tumour-suppressive
+    mechanisms. Cell Death Dis 15:746.
+  doi: 10.1038/s41419-024-07134-2
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Armistead_CellDeathDis2024 at Benchmark-Models-PEtab 4d20850 (the
+    authors'' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own
+    benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; no stored log-likelihood (gradient check only)
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    parameters:
+    - k00
+    - k0
+    - k_d
+    - k1
+    - k2
+    - k3
+    - k4
+    - k5
+    - alpha_hai1a
+    - alpha_cer
+size:
+  species: 4
+  reactions: 8
+  conditions: 2
+  measurements: 58
+  sens_parameters: 10
+suites:
+  sens-sbml: 1

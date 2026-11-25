@@ -1,0 +1,49 @@
+# Bistability from multisite phosphorylation: MAPK double phosphorylation, random elementary-
+# step form (BioModels BIOMD0000000028). A core problem: member 7 of the
+# ss-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.4). The file
+# is the curated BioModels file as sys-bio/temp-biomodels holds it, at the commit ode-sbml pins;
+# its curation note (final/BIOMD0000000028/curation_notes.txt there) names a steady-state
+# figure. The dose grid follows the curation note; the protocol's horizon and tolerances are
+# the suite's (docs/core_suites.md, ss-sbml).
+# Elementary mass action: ERK in four phosphoforms and eight enzyme complexes, three
+# conservation laws (ERK, MEK and MKP3 totals). The curation's MEK scan: ERK total 1000 nM
+# (all unphosphorylated, M = 1000) and MKP3 180 nM, set at every point; the file's own
+# initial values are M = 800, MKP3 = 100.
+id: mapk_double_phosphorylation_random_markevich2004
+layer: core
+title: "Bistability from multisite phosphorylation: MAPK double phosphorylation, random elementary-step form"
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000028/BIOMD0000000028_url.xml
+  sha256: 4b043fc91b4c688e4caf779ba736eb4a8a0b9e5acdbdce7278433750b5ec8e0b
+  format: sbml
+publications:
+  - citation: "Markevich NI, Hoek JB, Kholodenko BN (2004). Signaling switches and bistability arising from multisite phosphorylation in protein kinase cascades. J Cell Biol 164:353-359."
+    doi: 10.1083/jcb.200308060
+verification:
+  kind: author_file
+  evidence: "BioModels BIOMD0000000028: its curation figure and curation notes (final/BIOMD0000000028/curation_notes.txt at the pinned commit): 'Reproduction of figure 5 from the original publication using Copasi 4.6. The total concentration of ERK was 1000 nM, the one of MKP 180 nM. To obtain all steady states, two parameter scan were performed. One over the initial concentration of MEK from 300 to 400 nM with 100 intervals, and one over the initial concentration of ERK from 100 to 600 nM with 10 intervals. To assure the total concentration of ERK was 1000, ERKpp was set by the initial condition: 1000 - ERK(t=0).'"
+  check: "BioModels curation: the curators reproduced Fig. 5 of the paper from this file in COPASI 4.6, scanning the initial MEK from 300 to 400 nM with ERK total 1000 nM and MKP 180 nM"
+  result: "curated; the curation figure reproduces Fig. 5"
+capabilities: [steady_state]
+protocol:
+  steady_state:
+    t_end: 1.0e+6
+    n_steps: 20
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    species:
+      M: 1000
+      MKP3: 180
+    scan:
+      species: MEK
+      min: 300
+      max: 400
+      points: 20
+      log: false
+size:
+  species: 16
+  reactions: 17
+suites:
+  ss-sbml: 7

@@ -34,11 +34,30 @@ SUITE_SIZE = 10
 SUITES: dict[str, tuple[str, tuple[str, ...]]] = {
     "ode-net": ("ode", ("bngl",)),  # ODE on the .net generated from published BNGL
     "ode-sbml": ("ode", ("sbml",)),  # ODE on published SBML, read as it is
+    "ssa-sbml": ("ssa", ("sbml",)),  # exact SSA on published SBML, amounts as molecule counts
+    "ss-net": ("steady_state", ("bngl",)),  # steady state on the .net generated from published BNGL
+    "ss-sbml": ("steady_state", ("sbml",)),  # steady state on published SBML, read as it is
+    "ssa-net": ("ssa", ("bngl",)),  # exact SSA on the .net generated from published BNGL
+    "psa-net": ("psa", ("bngl",)),  # partial scaling (PSA) on the .net from published BNGL
+    "sens-net": ("sens", ("bngl",)),  # forward sensitivities on the .net from published BNGL
+    # ODE on Antimony converted at job time from ode-net and ode-sbml members (``derived``)
+    "ode-antimony": ("ode", ("antimony",)),
+    "sens-sbml": ("sens", ("sbml",)),  # forward sensitivities on SBML, from PEtab problems
     # Network-free on the BNG-XML BNG2.pl writes from published BNGL: multivalent aggregation.
     "nf-xml-aggregation": ("nf", ("bngl",)),
     # Network-free on BNG-XML from published BNGL: signaling and gene circuits.
     "nf-xml-signaling": ("nf", ("bngl",)),
 }
+
+# A PEtab problem's tables (a spec's ``petab:`` block): the YAML is optional.
+PETAB_ROLES = ("yaml", "conditions", "measurements", "observables", "parameters")
+PETAB_REQUIRED = ("conditions", "measurements", "observables", "parameters")
+
+# Formats a member may be converted to from its pinned source (a spec's ``derived``
+# block), and the capabilities that read each. A derived member is the model of
+# another suite's member, converted at job time and read in the new format; its
+# source and protocol are that member's (``check_derived``).
+DERIVED_FORMATS: dict[str, tuple[str, ...]] = {"antimony": ("ode",)}
 
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.=@-]*$")
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -68,9 +87,20 @@ class Problem:
     size: dict[str, int] = field(default_factory=dict)
     suites: dict[str, int] = field(default_factory=dict)
     path: str = ""
+    # A PEtab problem's tables, by role (``PETAB_ROLES``), each {path, sha256} in the
+    # source's repository at the source's commit (decision D12). Empty otherwise.
+    petab: dict[str, dict[str, str]] = field(default_factory=dict)
+    # A member converted from another suite's member: {from, suite, position, format}.
+    derived: dict[str, Any] = field(default_factory=dict)
 
     def protocol_for(self, capability: str) -> dict[str, Any]:
         return self.protocol[capability]
+
+    @property
+    def input_format(self) -> str | None:
+        """The format the engines read: the source's, or the format a derived
+        member is converted to."""
+        return self.derived.get("format") or self.source.get("format")
 
 
 def _validate_ode_protocol(p: Any, where: str, errs: list[str],
@@ -143,22 +173,30 @@ SSA_MOMENTS_MIN_REPLICATES = 10_000
 
 def _validate_ssa_protocol(p: Any, where: str, errs: list[str],
                            source_format: str | None = None) -> None:
-    """Exact SSA on the generated network: the grid ``0..t_end`` in ``n_steps``, the
-    ensemble size per engine for correctness (``replicates``) and per timed
-    repetition (``timing_replicates``), the base ``seed`` every engine's seeds derive
-    from, and optionally ``moments: linear`` -- exact moments of a first-order network
-    as a further reference (bench.capabilities.ssa)."""
+    """Exact SSA: the grid ``0..t_end`` in ``n_steps``, the ensemble size per engine
+    for correctness (``replicates``) and per timed repetition (``timing_replicates``),
+    the base ``seed`` every engine's seeds derive from, and optionally exact moments
+    as a further reference (bench.capabilities.ssa). A BNGL model names its network
+    generation (``netgen``) and may declare ``moments: linear`` (exact moments of a
+    first-order network); an SBML model is read as it is, and its exact moments, if
+    any, are a pinned table (``moments: {kind: table, ...}``, as DSMTS publishes them)."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_end", "n_steps", "replicates", "timing_replicates", "seed", "moments"}
+    sbml = source_format == "sbml"
+    allowed = {"t_end", "n_steps", "replicates", "timing_replicates", "seed", "moments"}
+    required = ["t_end", "n_steps", "replicates"]
+    if not sbml:
+        allowed.add("netgen")
+        required.insert(0, "netgen")
     for k in sorted(set(p) - allowed):
-        errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "n_steps", "replicates"):
+        errs.append(f"{where}: unknown key {k!r}"
+                    + (" (an SBML model is read as it is)" if sbml and k == "netgen" else ""))
+    for k in required:
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
     netgen = p.get("netgen")
-    if netgen is not None and not (
+    if netgen is not None and not sbml and not (
         isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
     ):
         errs.append(f"{where}.netgen: must be a generate_network(...) call")
@@ -178,11 +216,43 @@ def _validate_ssa_protocol(p: Any, where: str, errs: list[str],
     if "seed" in p and not _int_in(p["seed"], 0, 2**30):
         errs.append(f"{where}.seed: an integer from 0 to 2**30")
     if "moments" in p:
-        if p["moments"] != "linear":
+        before = len(errs)
+        if sbml:
+            _validate_moments_table(p["moments"], f"{where}.moments", errs)
+        elif p["moments"] != "linear":
             errs.append(f"{where}.moments: 'linear' (exact moments of a first-order network)")
-        elif _int_in(p.get("replicates"), 0, SSA_MOMENTS_MIN_REPLICATES - 1):
+        if len(errs) == before and _int_in(p.get("replicates"), 0, SSA_MOMENTS_MIN_REPLICATES - 1):
             errs.append(f"{where}: a test against exact moments needs replicates >= "
                         f"{SSA_MOMENTS_MIN_REPLICATES}")
+
+
+def _validate_moments_table(m: Any, where: str, errs: list[str]) -> None:
+    """A pinned table of exact means and standard deviations (``kind: table``): two
+    CSV files in one GitHub repository at one commit, each sha256-checked, whose
+    first column is the time and whose other columns are species ids (the DSMTS
+    ``-mean.csv`` / ``-sd.csv`` layout)."""
+    if not isinstance(m, dict) or m.get("kind") != "table":
+        errs.append(f"{where}: a mapping with kind: table, repo, commit, mean and sd "
+                    "(an SBML model's exact moments are a pinned table)")
+        return
+    for k in sorted(set(m) - {"kind", "repo", "commit", "mean", "sd"}):
+        errs.append(f"{where}: unknown key {k!r}")
+    if not _REPO_RE.match(str(m.get("repo", ""))):
+        errs.append(f"{where}.repo: GitHub owner/name")
+    if not _SHA1_RE.match(str(m.get("commit", ""))):
+        errs.append(f"{where}.commit: a full 40-character commit hash")
+    for k in ("mean", "sd"):
+        f = m.get(k)
+        if not isinstance(f, dict):
+            errs.append(f"{where}.{k}: a mapping with path and sha256")
+            continue
+        for extra in sorted(set(f) - {"path", "sha256"}):
+            errs.append(f"{where}.{k}: unknown key {extra!r}")
+        fpath = f.get("path")
+        if not isinstance(fpath, str) or not fpath or fpath.startswith("/") or ".." in fpath:
+            errs.append(f"{where}.{k}.path: a relative path inside the repository")
+        if not _SHA256_RE.match(str(f.get("sha256", ""))):
+            errs.append(f"{where}.{k}.sha256: 64 lowercase hex characters")
 
 
 def _number(v: Any) -> bool:
@@ -209,14 +279,21 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
     grid ``n_steps`` for the integration references, the integrators' ``rtol`` and
     ``atol``, parameters set for every point (``parameters``), and optionally a
     dose-response ``scan`` of one parameter -- explicit ``values``, or ``min``,
-    ``max`` and ``points``, spaced on a ``log`` scale or linearly."""
+    ``max`` and ``points``, spaced on a ``log`` scale or linearly -- and the
+    problem's own per-engine wall budget (``engine_budget_seconds``, planning only).
+
+    An SBML model (the ss-sbml suite) has no ``netgen``; it may set species'
+    initial concentrations for every point (``species``, SBML ids), and its scan
+    may set one (``scan.species``) instead of a parameter."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
-    allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "scan"}
+    sbml = source_format == "sbml"
+    allowed = {"t_end", "n_steps", "rtol", "atol", "parameters", "scan", "engine_budget_seconds"}
+    allowed.add("species" if sbml else "netgen")
     for k in sorted(set(p) - allowed):
         errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "rtol", "atol"):
+    for k in ("t_end", "rtol", "atol") if sbml else ("netgen", "t_end", "rtol", "atol"):
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
     netgen = p.get("netgen")
@@ -230,7 +307,7 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
     # output, so the grid needs a point inside it besides the last.
     if "n_steps" in p and not _int_in(p["n_steps"], 2, 10**5):
         errs.append(f"{where}.n_steps: an integer from 2 to 100000")
-    for k in ("rtol", "atol"):
+    for k in ("rtol", "atol", "engine_budget_seconds"):
         if k in p and not (_number(p[k]) and p[k] > 0):
             errs.append(f"{where}.{k}: must be a positive number")
     params = p.get("parameters", {})
@@ -242,19 +319,35 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
             errs.append(f"{where}.parameters: {name!r} is not a parameter name")
         if not _number(v):
             errs.append(f"{where}.parameters.{name}: must be a number")
+    species = p.get("species", {})
+    if not isinstance(species, dict):
+        errs.append(f"{where}.species: a mapping of species id to initial concentration")
+        species = {}
+    for name, v in species.items():
+        if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
+            errs.append(f"{where}.species: {name!r} is not an SBML id")
+        elif name in params:
+            errs.append(f"{where}.species: {name!r} is also set in parameters")
+        if not (_number(v) and v >= 0):
+            errs.append(f"{where}.species.{name}: must be a non-negative number")
+    params = {**params, **species}
     scan = p.get("scan")
     if scan is None:
         return
     if not isinstance(scan, dict):
         errs.append(f"{where}.scan: a mapping (parameter, and values or min/max/points)")
         return
-    for k in sorted(set(scan) - {"parameter", "values", "min", "max", "points", "log"}):
+    target_keys = {"parameter", "species"} if sbml else {"parameter"}
+    for k in sorted(set(scan) - target_keys - {"values", "min", "max", "points", "log"}):
         errs.append(f"{where}.scan: unknown key {k!r}")
-    name = scan.get("parameter")
+    target = "species" if sbml and "species" in scan else "parameter"
+    if sbml and "species" in scan and "parameter" in scan:
+        errs.append(f"{where}.scan: a parameter or a species, not both")
+    name = scan.get(target)
     if not (isinstance(name, str) and _PARAM_NAME_RE.match(name)):
-        errs.append(f"{where}.scan.parameter: the name of the parameter scanned")
+        errs.append(f"{where}.scan.{target}: the name of the {target} scanned")
     elif name in params:
-        errs.append(f"{where}.scan.parameter: {name!r} is also set in parameters")
+        errs.append(f"{where}.scan.{target}: {name!r} is also set in parameters")
     if "values" in scan:
         if any(k in scan for k in ("min", "max", "points", "log")):
             errs.append(f"{where}.scan: values, or min/max/points/log, not both")
@@ -286,20 +379,36 @@ def _validate_steady_protocol(p: Any, where: str, errs: list[str],
 PSA_MAX_POPLEVELS = 10
 
 
+# The fewest trajectories an exact-SSA ensemble of a PSA job may hold: the permutation
+# test's false-alarm rate is exact at any size; below this it has little power.
+PSA_MIN_EXACT_REPLICATES = 20
+
+
 def _validate_psa_protocol(p: Any, where: str, errs: list[str],
                            source_format: str | None = None) -> None:
     """Partial scaling (PSA) on the generated network against exact SSA: the ssa
     protocol (grid, ensemble sizes, seed) without exact moments -- PSA's law is an
     approximation -- plus the critical population sizes ``poplevels``, a strictly
-    increasing list of numbers above 1 (bench.capabilities.psa)."""
+    increasing list of numbers above 1 (bench.capabilities.psa), and optionally
+    ``exact_replicates``, a smaller ensemble for the two exact-SSA (N_c = infinity)
+    ensembles where an exact trajectory costs far more than a scaled one."""
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
     if "moments" in p:
         errs.append(f"{where}: unknown key 'moments' (PSA samples an approximate law; "
                     "exact moments belong to the ssa protocol)")
-    _validate_ssa_protocol({k: v for k, v in p.items() if k not in ("poplevels", "moments")},
+    _validate_ssa_protocol({k: v for k, v in p.items()
+                            if k not in ("poplevels", "moments", "exact_replicates")},
                            where, errs)
+    # Fewer trajectories for the two exact-SSA ensembles, where an exact trajectory
+    # costs minutes and a scaled one seconds (the N_c = infinity rows).
+    if "exact_replicates" in p:
+        n = p.get("replicates")
+        if not _int_in(p["exact_replicates"], PSA_MIN_EXACT_REPLICATES, 10**6) or (
+                _int_in(n, 1, 10**6) and p["exact_replicates"] > n):
+            errs.append(f"{where}.exact_replicates: an integer from "
+                        f"{PSA_MIN_EXACT_REPLICATES} to replicates")
     if "poplevels" in p:
         lv = p["poplevels"]
         if not (isinstance(lv, list) and 1 <= len(lv) <= PSA_MAX_POPLEVELS
@@ -396,6 +505,41 @@ def _values(v: Any, where: str, errs: list[str], *, positive: bool = False) -> d
     return v
 
 
+# What a sens protocol on an SBML source (a PEtab problem, bench.capabilities.sens_sbml)
+# may hold: the solves' tolerances, the sensitivity set as the PEtab tables give it
+# (re-derived from them by the harness and a unit test, so a spec cannot drift from
+# the problem), the finite differences' step and tolerances, how long a
+# pre-equilibration may integrate, and AMICI's v1.1.0 benchmark log-likelihood.
+_SENS_SBML_KEYS = {"rtol", "atol", "parameters", "fd_step", "fd_rtol", "fd_atol",
+                   "preeq_max_time", "llh_reference", "max_steps"}
+
+
+def _validate_sens_sbml_protocol(p: Any, where: str, errs: list[str]) -> None:
+    if not isinstance(p, dict):
+        errs.append(f"{where}: must be a mapping")
+        return
+    for k in sorted(set(p) - _SENS_SBML_KEYS):
+        errs.append(f"{where}: unknown key {k!r} (a PEtab problem's conditions, times and "
+                    "observables come from its tables)")
+    for k in ("rtol", "atol", "parameters"):
+        if k not in p:
+            errs.append(f"{where}: missing {k!r}")
+    for k in ("rtol", "atol", "fd_rtol", "fd_atol", "preeq_max_time"):
+        if k in p and not _positive(p[k]):
+            errs.append(f"{where}.{k}: must be a positive number")
+    if "fd_step" in p and not (_positive(p["fd_step"]) and p["fd_step"] <= 0.1):
+        errs.append(f"{where}.fd_step: a relative step in (0, 0.1]")
+    for fd, k in (("fd_rtol", "rtol"), ("fd_atol", "atol")):
+        if _positive(p.get(fd)) and _positive(p.get(k)) and not p[fd] <= p[k]:
+            errs.append(f"{where}.{fd}: must not be looser than {k}")
+    if "parameters" in p:
+        _names(p["parameters"], f"{where}.parameters", errs)
+    if "llh_reference" in p and not _finite(p["llh_reference"]):
+        errs.append(f"{where}.llh_reference: a finite number")
+    if "max_steps" in p and not _int_in(p["max_steps"], 1, 10**9):
+        errs.append(f"{where}.max_steps: a positive integer")
+
+
 def _validate_sens_protocol(p: Any, where: str, errs: list[str],
                             source_format: str | None = None) -> None:
     """Forward sensitivities on the generated network (bench.capabilities.sens).
@@ -403,22 +547,31 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     The measured grid ``0..t_end`` in ``n_steps`` and the solves' tolerances; which
     ``parameters`` to differentiate -- a convention or a list -- with the problem's
     ``fitted`` set beside it; a scale for any parameter whose value is zero
-    (``parameter_scales``); the finite differences' step and tolerances; and,
-    optionally, a two-phase protocol: a ``preequilibration`` phase of a given
-    ``duration`` (with parameter values of its own, ``set``) before t = 0, and the
-    ``stimulus``, the parameter values from t = 0 on. The capability builds its jobs
-    from BNGL only, so the source format changes nothing here."""
+    (``parameter_scales``); the finite differences' step and tolerances; and the
+    protocol: one measured phase of ``t_end`` in ``n_steps``, or an ordered list of
+    ``phases``, each of a ``duration``, measured on ``n_steps`` or not at all, with
+    parameter values it ``set``s and species it ``reset``s (to a number or an
+    expression of the parameters) as it starts. An SBML source is a PEtab problem,
+    whose protocol is its tables (``_validate_sens_sbml_protocol``)."""
+    if source_format == "sbml":
+        _validate_sens_sbml_protocol(p, where, errs)
+        return
     if not isinstance(p, dict):
         errs.append(f"{where}: must be a mapping")
         return
     allowed = {"netgen", "t_end", "n_steps", "rtol", "atol", "parameters", "fitted",
-               "parameter_scales", "preequilibration", "stimulus",
-               "fd_step", "fd_rtol", "fd_atol"}
+               "parameter_scales", "phases", "fd_step", "fd_rtol", "fd_atol"}
     for k in sorted(set(p) - allowed):
         errs.append(f"{where}: unknown key {k!r}")
-    for k in ("netgen", "t_end", "n_steps", "rtol", "atol", "parameters"):
+    phased = "phases" in p
+    for k in ("netgen", "rtol", "atol", "parameters", *(() if phased else ("t_end", "n_steps"))):
         if k not in p:
             errs.append(f"{where}: missing {k!r}")
+    if phased:
+        for k in ("t_end", "n_steps"):
+            if k in p:
+                errs.append(f"{where}.{k}: the phases give the grid (each measured phase its "
+                            "own duration and n_steps)")
     netgen = p.get("netgen")
     if netgen is not None and not (
         isinstance(netgen, str) and netgen.strip().startswith("generate_network(")
@@ -460,23 +613,56 @@ def _validate_sens_protocol(p: Any, where: str, errs: list[str],
     if "parameter_scales" in p:
         _values(p["parameter_scales"], f"{where}.parameter_scales", errs, positive=True)
 
-    pre, stim = p.get("preequilibration"), p.get("stimulus")
-    if (pre is None) != (stim is None):
-        errs.append(f"{where}: preequilibration and stimulus come together (a two-phase "
-                    "protocol)")
-    if pre is not None:
-        if not isinstance(pre, dict):
-            errs.append(f"{where}.preequilibration: a mapping (duration, set)")
-        else:
-            for k in sorted(set(pre) - {"duration", "set"}):
-                errs.append(f"{where}.preequilibration: unknown key {k!r}")
-            if not _positive(pre.get("duration")):
-                errs.append(f"{where}.preequilibration.duration: a positive time, the "
-                            "length of the phase before t = 0")
-            if "set" in pre:
-                _values(pre["set"], f"{where}.preequilibration.set", errs)
-    if stim is not None:
-        _values(stim, f"{where}.stimulus", errs)
+    if phased:
+        _validate_sens_phases(p["phases"], f"{where}.phases", errs)
+
+
+# A species as a reset names it: a BioNetGen species string, as the .net writes it.
+_SPECIES_NAME_RE = re.compile(r"^\$?[A-Za-z_][^\s#]*$")
+# A reset's expression: parameter names, numbers and arithmetic, no spaces or comments.
+_RESET_EXPR_RE = re.compile(r"^[A-Za-z0-9_.+\-*/^()]+$")
+
+
+def _validate_sens_phases(phases: Any, where: str, errs: list[str]) -> None:
+    """An ordered list of finite phases, run back to back: each a ``duration``,
+    ``n_steps`` when it is measured, the parameters it ``set``s and the species it
+    ``reset``s as it starts. At least one is measured."""
+    if not isinstance(phases, list) or not phases:
+        errs.append(f"{where}: a non-empty list of phases")
+        return
+    measured = 0
+    for i, ph in enumerate(phases):
+        at = f"{where}[{i}]"
+        if not isinstance(ph, dict):
+            errs.append(f"{at}: a mapping (duration, n_steps, set, reset)")
+            continue
+        for k in sorted(set(ph) - {"duration", "n_steps", "set", "reset"}):
+            errs.append(f"{at}: unknown key {k!r}"
+                        + (" (a steady-state phase is not supported yet: give a duration)"
+                           if k == "steady_state" else ""))
+        if not _positive(ph.get("duration")):
+            errs.append(f"{at}.duration: a positive time")
+        if "n_steps" in ph:
+            measured += 1
+            if not _int_in(ph["n_steps"], 1, 10**5):
+                errs.append(f"{at}.n_steps: an integer from 1 to 100000")
+        if "set" in ph:
+            _values(ph["set"], f"{at}.set", errs)
+        reset = ph.get("reset")
+        if reset is None:
+            continue
+        if not isinstance(reset, dict) or not reset:
+            errs.append(f"{at}.reset: a non-empty mapping of species to a number or an "
+                        "expression of the parameters")
+            continue
+        for name, v in reset.items():
+            if not (isinstance(name, str) and _SPECIES_NAME_RE.match(name)):
+                errs.append(f"{at}.reset: {name!r} is not a species name")
+            elif not (_finite(v) or (isinstance(v, str) and _RESET_EXPR_RE.match(v))):
+                errs.append(f"{at}.reset.{name}: a finite number or an expression of the "
+                            "parameters")
+    if not measured:
+        errs.append(f"{where}: no phase is measured (give one an n_steps)")
 
 
 # One validator per capability's protocol. A capability without one cannot be
@@ -492,6 +678,36 @@ PROTOCOL_VALIDATORS = {
 }
 
 
+def _validate_derived(d: Any, caps: Any, errs: list[str]) -> None:
+    """A derived member's ``derived`` block: the member it is converted from
+    (``from``, the problem id, and that member's ``suite`` and ``position``) and
+    the ``format`` it is converted to. Only a capability that reads that format
+    may be listed, so the member has no jobs that would repeat its source's."""
+    if d == {}:
+        return
+    if not isinstance(d, dict):
+        errs.append("derived: a mapping (from, suite, position, format)")
+        return
+    for k in sorted(set(d) - {"from", "suite", "position", "format", "conversion"}):
+        errs.append(f"derived: unknown key {k!r}")
+    if not isinstance(d.get("from"), str) or not _ID_RE.match(d.get("from") or ""):
+        errs.append("derived.from: the id of the problem it is converted from")
+    if d.get("suite") not in SUITES:
+        errs.append(f"derived.suite: the source member's suite (one of {', '.join(SUITES)})")
+    pos = d.get("position")
+    if not isinstance(pos, int) or isinstance(pos, bool) or not 1 <= pos <= SUITE_SIZE:
+        errs.append(f"derived.position: an integer from 1 to {SUITE_SIZE}")
+    fmt = d.get("format")
+    if fmt not in DERIVED_FORMATS:
+        errs.append(f"derived.format: one of {', '.join(DERIVED_FORMATS)}")
+    elif isinstance(caps, list):
+        for cap in caps:
+            if cap not in DERIVED_FORMATS[fmt]:
+                errs.append(f"derived: capability {cap!r} does not read {fmt}")
+    if "conversion" in d and not (isinstance(d["conversion"], str) and d["conversion"].strip()):
+        errs.append("derived.conversion: a description of the conversion")
+
+
 def validate(data: Any, path: Path | str = "<spec>") -> Problem:
     errs: list[str] = []
     if not isinstance(data, dict):
@@ -499,7 +715,7 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
 
     allowed = {
         "id", "layer", "title", "source", "publications", "verification",
-        "capabilities", "protocol", "size", "suites",
+        "capabilities", "protocol", "size", "suites", "petab", "derived",
     }
     for k in sorted(set(data) - allowed):
         errs.append(f"unknown key {k!r}")
@@ -586,6 +802,31 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         errs.append("size: a mapping of non-negative integers")
         size = {}
 
+    petab = data.get("petab", {})
+    if not isinstance(petab, dict):
+        errs.append("petab: a mapping of table role to {path, sha256}")
+        petab = {}
+    elif petab:
+        if isinstance(source, dict) and source.get("format") != "sbml":
+            errs.append("petab: only an SBML source is a PEtab problem's model")
+        for role in sorted(set(petab) - set(PETAB_ROLES)):
+            errs.append(f"petab: unknown table {role!r} (one of {', '.join(PETAB_ROLES)})")
+        for role in PETAB_REQUIRED:
+            if role not in petab:
+                errs.append(f"petab: missing the {role} table")
+        for role, f in petab.items():
+            fpath = f.get("path") if isinstance(f, dict) else None
+            if not isinstance(fpath, str) or not fpath or fpath.startswith("/") or ".." in fpath:
+                errs.append(f"petab.{role}.path: a relative path inside the source's repository")
+            if not isinstance(f, dict) or not _SHA256_RE.match(str(f.get("sha256", ""))):
+                errs.append(f"petab.{role}.sha256: 64 lowercase hex characters")
+    if "sens" in (caps or []) and isinstance(source, dict) and source.get("format") == "sbml" \
+            and not petab:
+        errs.append("petab: an SBML sens problem is a PEtab problem (its tables are required)")
+
+    derived = data.get("derived", {})
+    _validate_derived(derived, caps, errs)
+
     suites = data.get("suites", {})
     if not isinstance(suites, dict):
         errs.append("suites: a mapping of suite name to position")
@@ -599,7 +840,11 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
             errs.append(f"suites.{name}: only a core problem may belong to a suite")
         if cap not in caps:
             errs.append(f"suites.{name}: a member must list capability {cap!r}")
-        if isinstance(source, dict) and source.get("format") not in formats:
+        if isinstance(derived, dict) and derived.get("format"):
+            if derived.get("format") not in formats:
+                errs.append(f"suites.{name}: a derived member's format must be one of "
+                            f"{', '.join(formats)}")
+        elif isinstance(source, dict) and source.get("format") not in formats:
             errs.append(f"suites.{name}: source.format must be one of {', '.join(formats)}")
         if not isinstance(pos, int) or isinstance(pos, bool) or not 1 <= pos <= SUITE_SIZE:
             errs.append(f"suites.{name}: position must be an integer from 1 to {SUITE_SIZE}")
@@ -618,6 +863,8 @@ def validate(data: Any, path: Path | str = "<spec>") -> Problem:
         size=dict(size),
         suites=dict(suites),
         path=str(path),
+        petab={k: {kk: str(vv) for kk, vv in v.items()} for k, v in petab.items()},
+        derived=dict(derived) if isinstance(derived, dict) else {},
     )
 
 
@@ -651,7 +898,7 @@ def load_all(root: str | Path) -> list[Problem]:
         seen[p.id] = p.path
     if dups:
         raise SpecError(root, dups)
-    suite_errs = check_suites(problems)
+    suite_errs = check_suites(problems) + check_derived(problems)
     if suite_errs:
         raise SpecError(root, suite_errs)
     return sorted(problems, key=lambda p: p.id)
@@ -681,4 +928,31 @@ def check_suites(problems: list[Problem]) -> list[str]:
         if missing:
             errs.append(f"suite {name!r}: {len(members)} of {SUITE_SIZE} members; "
                         f"no member at position {', '.join(map(str, missing))}")
+    return errs
+
+
+def check_derived(problems: list[Problem]) -> list[str]:
+    """Every derived member names a problem that holds the named position of the
+    named suite, and has that problem's source and, for each capability it
+    lists, that problem's protocol: a derived member is the same model run the
+    same way, only read in another format."""
+    by_id = {p.id: p for p in problems}
+    errs: list[str] = []
+    for p in problems:
+        if not p.derived:
+            continue
+        src = by_id.get(p.derived.get("from"))
+        if src is None:
+            errs.append(f"{p.id}: derived from {p.derived.get('from')!r}, which no spec defines")
+            continue
+        if src.derived:
+            errs.append(f"{p.id}: derived from {src.id}, which is itself derived")
+        suite, pos = p.derived.get("suite"), p.derived.get("position")
+        if src.suites.get(suite) != pos:
+            errs.append(f"{p.id}: {src.id} is not member {pos} of {suite}")
+        if dict(src.source) != dict(p.source):
+            errs.append(f"{p.id}: its source is not {src.id}'s")
+        for cap in p.capabilities:
+            if src.protocol.get(cap) != p.protocol.get(cap):
+                errs.append(f"{p.id}: its {cap} protocol is not {src.id}'s")
     return errs

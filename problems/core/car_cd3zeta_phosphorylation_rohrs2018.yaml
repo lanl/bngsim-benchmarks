@@ -55,4 +55,5 @@ size:
   psa_events: 64000
   nf_events: 260000
 suites:
+  psa-net: 6
   nf-xml-signaling: 6

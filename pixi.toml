@@ -58,6 +58,15 @@ bngsim = "==0.17.2"
 # leaving this pin untouched. See docs/BUILD_NOTES.md; the ARM leg is the
 # cross-platform gate's (docs/DESIGN.md section 9.1).
 libroadrunner = "==2.11.0"
+# Antimony, the third ODE input format (the ode-antimony suite): bngsim reads it
+# through libantimony (bngsim's own `antimony` extra asks for >= 3.1.3), and the
+# suite converts its SBML members with it. 3.3.0 ships py3-none wheels for both
+# platforms of this lock (manylinux_2_28 x86_64, macosx_14_0_arm64).
+antimony = "==3.3.0"
+# PEtab, for the sens-sbml suite: each benchmark problem's conditions, nominal
+# parameters, pre-equilibration and observables, read by AMICI's PEtab (v1)
+# importer. 0.10.0 is the latest release; AMICI 1.1.0's importer runs with it.
+petab = "==0.10.0"
 # COPASI, a third reference ODE engine, driven through BASICO (`copasi-basico`,
 # imported as `basico`), a pure-Python wrapper over the SWIG bindings. basico 0.92
 # is `py3-none-any`; the native code lives in `python-copasi`, pinned explicitly so
@@ -94,6 +103,12 @@ BNGPATH = "$PIXI_PROJECT_ROOT/.cache/bionetgen/BioNetGen-2.9.3"
 # corpus BNGL files have one). This covers BNGsim's own reads too, not just the
 # harness's. It is not part of a result's freshness key.
 PYTHONUTF8 = "1"
+# Ignore the user's own site-packages (~/.local/lib/pythonX.Y/site-packages). Python
+# puts that directory ahead of the environment's, so anything a user once installed
+# with `pip install --user` (numpy, pandas, sympy, pyyaml, ...) silently replaces the
+# locked version in every run, Slurm workers included, and a result no longer comes
+# from the environment pixi.lock describes. Not part of a result's freshness key.
+PYTHONNOUSERSITE = "1"
 # Build AMICI without HDF5. AMICI uses HDF5 only to read/write simulation data as
 # files; the suite drives it in-process through numpy and never touches that path.
 # Left to its default (ON "if available"), AMICI's CMake half-finds HDF5 -- the C

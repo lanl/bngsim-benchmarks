@@ -1,0 +1,103 @@
+# Modelling the COVID-19 epidemic and population-wide interventions in Italy (SIDARTHE) (PEtab Giordano_Nature2020).
+# A core problem: member 6 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# top-up (time-dependent piecewise rates).
+# The PEtab problem as the harness applies it (bench.petab_problem): 1 simulation condition(s), 313 measurements of 7 observables; 50 estimated parameters, of which
+# the 43 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: sd_TotalCases, sd_Deaths, sd_Recovered, sd_CurrentCases, sd_DiagHome, sd_Hospit and 1 more.
+id: covid19_italy_interventions_giordano2020
+layer: core
+title: Modelling the COVID-19 epidemic and population-wide interventions in Italy (SIDARTHE)
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Giordano_Nature2020/model_Giordano_Nature2020.xml
+  sha256: 1855fb5673300b7b1fc0890d5d5d810deb7731101dc227b6cb16042b0c615675
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Giordano_Nature2020/Giordano_Nature2020.yaml
+    sha256: 3649183d6898cd096eef39913095c2efef4db81ac16011671567d120cb412b3b
+  conditions:
+    path: Benchmark-Models/Giordano_Nature2020/experimentalCondition_Giordano_Nature2020.tsv
+    sha256: 29bd52be19e6cfe7a7a46fe0780e1b29e68ce6ce807c0b4851614c03cfc717f7
+  measurements:
+    path: Benchmark-Models/Giordano_Nature2020/measurementData_Giordano_Nature2020.tsv
+    sha256: a81b7192cda7fabefa1eeb2773d813836bbd263210d4fc90f70c259c56b53bbc
+  observables:
+    path: Benchmark-Models/Giordano_Nature2020/observables_Giordano_Nature2020.tsv
+    sha256: b04ab92db882b3bad0e367baaa48d4a73decebae4e2094c9b16a3e6265de4b27
+  parameters:
+    path: Benchmark-Models/Giordano_Nature2020/parameters_Giordano_Nature2020.tsv
+    sha256: c7b0c7958818d13489bb426fd1daf01e29bf324fd512b51e5dcc29a8cdc1588c
+publications:
+- citation: Giordano G, Blanchini F, Bruno R, Colaneri P, Di Filippo A, Di Matteo A, Colaneri M (2020).
+    Modelling the COVID-19 epidemic and implementation of population-wide interventions in Italy. Nat
+    Med 26:855-860.
+  doi: 10.1038/s41591-020-0883-7
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Giordano_Nature2020 at Benchmark-Models-PEtab 4d20850 (the authors''
+    model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark
+    test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; no stored log-likelihood (gradient check only)
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    parameters:
+    - alpha_0
+    - beta_0
+    - delta_0
+    - epsilon_0
+    - eta_0
+    - gamma_0
+    - kappa_0
+    - lam_0
+    - mu_0
+    - nu_0
+    - rho_0
+    - sigma_0
+    - tau
+    - theta
+    - xi_0
+    - zeta_0
+    - alpha_4
+    - alpha_22
+    - alpha_28
+    - beta_4
+    - beta_22
+    - delta_4
+    - delta_22
+    - epsilon_12
+    - epsilon_38
+    - eta_22
+    - eta_38
+    - gamma_4
+    - gamma_22
+    - gamma_28
+    - kappa_22
+    - kappa_38
+    - lam_22
+    - mu_22
+    - nu_22
+    - rho_22
+    - rho_38
+    - sigma_22
+    - sigma_38
+    - xi_22
+    - xi_38
+    - zeta_22
+    - zeta_38
+size:
+  species: 13
+  reactions: 13
+  conditions: 1
+  measurements: 313
+  sens_parameters: 43
+suites:
+  sens-sbml: 6

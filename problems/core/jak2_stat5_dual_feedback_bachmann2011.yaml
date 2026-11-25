@@ -1,0 +1,88 @@
+# Dual feedback regulators of JAK2/STAT5 signaling over a broad ligand range (PEtab Bachmann_MSB2011).
+# A core problem: member 8 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# top-up (36 conditions, initial values set per condition).
+# The PEtab problem as the harness applies it (bench.petab_problem): 36 simulation condition(s), 541 measurements of 20 observables; 113 estimated parameters, of which
+# the 27 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: offset_CIS_actd, offset_CIS_cisoe, offset_CIS_long, offset_CIS_shp1oe, offset_CIS_socs3oe, offset_SOCS3_cisoe and 80 more.
+id: jak2_stat5_dual_feedback_bachmann2011
+layer: core
+title: Dual feedback regulators of JAK2/STAT5 signaling over a broad ligand range
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Bachmann_MSB2011/model_Bachmann_MSB2011.xml
+  sha256: cd7c0cead0b4b7d368b08c6b43e45d84042f799415dd47133e192ef364d18553
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Bachmann_MSB2011/Bachmann_MSB2011.yaml
+    sha256: 49443972f0c45231d190dbf7fcb73073624bb42331a7f4c524dd914fabb157da
+  conditions:
+    path: Benchmark-Models/Bachmann_MSB2011/experimentalCondition_Bachmann_MSB2011.tsv
+    sha256: d70bcbbf355afdcc304ded0948d0583ee2bcae99326e58bd1603acf4b98a7890
+  measurements:
+    path: Benchmark-Models/Bachmann_MSB2011/measurementData_Bachmann_MSB2011.tsv
+    sha256: e9ceb7b76e2d352b133359a6013da61048f236633c5eba2a1fe4eb14e2444fd5
+  observables:
+    path: Benchmark-Models/Bachmann_MSB2011/observables_Bachmann_MSB2011.tsv
+    sha256: 54aea4be1e910e6c462b41d8e1551627271dc56a4c2b09d1356e0869c0c0c92d
+  parameters:
+    path: Benchmark-Models/Bachmann_MSB2011/parameters_Bachmann_MSB2011.tsv
+    sha256: e723a6305743be9c84d03985065688eccb616ff92ecea63dffecf9a76305dcc4
+publications:
+- citation: Bachmann J, Raue A, Schilling M, Boehm ME, Kreutz C, Kaschek D et al. (2011). Division of
+    labor by dual feedback regulators controls JAK2/STAT5 signaling over broad ligand range. Mol Syst
+    Biol 7:516.
+  doi: 10.1038/msb.2011.50
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Bachmann_MSB2011 at Benchmark-Models-PEtab 4d20850 (the authors''
+    model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own benchmark
+    test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: L (G skipped for runtime)'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 418.40573341425295
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: 418.40573341425295
+    parameters:
+    - CISEqc
+    - CISEqcOE
+    - CISInh
+    - CISRNADelay
+    - CISRNATurn
+    - CISTurn
+    - EpoRActJAK2
+    - EpoRCISInh
+    - EpoRCISRemove
+    - JAK2ActEpo
+    - JAK2EpoRDeaSHP1
+    - SHP1ActEpoR
+    - SHP1Dea
+    - SHP1ProOE
+    - SOCS3Eqc
+    - SOCS3EqcOE
+    - SOCS3Inh
+    - SOCS3RNADelay
+    - SOCS3RNATurn
+    - SOCS3Turn
+    - STAT5ActEpoR
+    - STAT5ActJAK2
+    - STAT5Exp
+    - STAT5Imp
+    - init_EpoRJAK2
+    - init_SHP1
+    - init_STAT5
+size:
+  species: 25
+  reactions: 36
+  conditions: 36
+  measurements: 541
+  sens_parameters: 27
+suites:
+  sens-sbml: 8

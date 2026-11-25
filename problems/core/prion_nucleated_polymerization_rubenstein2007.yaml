@@ -56,4 +56,5 @@ size:
   ssa_events: 2600000
   nf_events: 2500000
 suites:
+  ssa-net: 8
   nf-xml-aggregation: 2

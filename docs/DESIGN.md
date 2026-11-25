@@ -16,9 +16,10 @@ Implemented so far:
 - one capability: ODE simulation of BNGL and SBML models, comparing BNGsim against
   a registry of reference engines (`run_network`, libRoadRunner, COPASI and AMICI),
   on two core suites, `ode-net` and `ode-sbml` (section 3.2).
-- a second capability: exact stochastic simulation (SSA) of BNGL models, comparing
-  BNGsim's ensembles against `run_network`, libRoadRunner and COPASI, and against
-  exact moments where a model has them (§5.3), on two provisional pilot models.
+- a second capability: exact stochastic simulation (SSA) of BNGL and SBML models,
+  comparing BNGsim's ensembles against `run_network`, libRoadRunner and COPASI, and
+  against exact moments where a model has them (§5.3), on two provisional pilot
+  models and the core suite `ssa-sbml` (section 3.2).
 - a third: partial scaling (PSA) of BNGL models, comparing BNGsim's PSA with
   `run_network`'s at each critical population size N_c, and with exact SSA, its
   N_c = infinity limit (§5.4), on two provisional pilot models.
@@ -124,8 +125,9 @@ Each suite has its own models, rather than one shared set serving every feature:
   would be a compromise that serves none of them well.
 - **Each format is its own code path, with its own references.** bngsim reads `.net`,
   SBML and Antimony through separate readers, and the reference engines differ by
-  format: `run_network` reads only `.net`; COPASI and AMICI read SBML; libRoadRunner
-  reads SBML and Antimony. One format per suite keeps every row of a suite against the
+  format: `run_network` reads only `.net`; COPASI, AMICI and libRoadRunner read SBML
+  (Antimony through libantimony, as tellurium reads it for libRoadRunner). One format
+  per suite keeps every row of a suite against the
   same engines, and a slow or wrong reader shows up as that suite's result.
 
 A model may still sit in several suites; a `.net` ODE model is often a steady-state
@@ -153,7 +155,8 @@ interleaves the other two ODE suites:
 - its even positions are the SBML suite's models 2, 4, 6, 8 and 10, converted to
   Antimony.
 
-The conversion tools are pinned, and the converted file's sha256 is recorded. A
+The conversion tools are pinned, the conversion runs at job time as network generation
+does, and the converted file's sha256 is recorded in every result. A
 derived model is as published and verified as the model it came from. It also gives a
 cross-format check: the same model read from two formats must agree. Handcrafted
 Antimony test sets are left to the breadth tier: they are small models, and a suite
@@ -371,10 +374,38 @@ false-alarm rate, and every number it rests on is reproducible.
 | `replicates` | trajectories per engine in the correctness job (100 to 10^6) |
 | `timing_replicates` | trajectories per timed repetition (default 100) |
 | `seed` | the base seed every engine's seeds derive from (default 1) |
-| `moments` | `linear`: compare also against the network's exact moments (needs `replicates` >= 10^4) |
+| `moments` | `linear`: compare also against the network's exact moments (needs `replicates` >= 10^4); for an SBML model, a pinned table (below) |
 
 `size.ssa_events`, the mean reaction events per trajectory, is a planning estimate
-only, like the rest of `size`.
+only, like the rest of `size`; so is `size.ssa_ms_<engine>`, an engine's measured
+milliseconds per trajectory, which replaces the estimate from events where given.
+
+**SBML models** (the `ssa-sbml` suite; `bench.capabilities.ssa_sbml`) have no
+`netgen`: BNGsim, libRoadRunner and COPASI read the pinned SBML, its amounts as
+molecule counts (every compartment of size 1; COPASI's quantity unit set to `#`, and
+the unit it imported recorded). What is compared is every **changing** species, by
+SBML id -- one a reaction (net stoichiometry not zero, not a boundary species), a
+rate rule or an event changes; the census records the rest. An output time that is
+exactly an instant a time-triggered event fires is left out of every comparison
+(before or after the event is a convention), and named. libRoadRunner's gillespie
+fires a time-triggered event at its first reaction event after the trigger; it is
+run, and its warning recorded. run_network reads a network derived from the SBML
+(the ODE suite's derivation, §6.4) only where the derived network also has the
+SBML's **jumps** -- every derived reaction's net change of the compared species is an
+SBML reaction's, with multiplicity, no derived reaction consumes a species twice,
+and every value set between phases is a whole number of molecules; a converter that
+writes a law that is not mass action as per-species flux reactions keeps the ODE but
+not the jump process. Otherwise run_network is not applicable, with the reason. An
+SBML model's exact moments are a pinned table, `moments: {kind: table, repo, commit,
+mean: {path, sha256}, sd: {path, sha256}}`, as DSMTS publishes them (time, then one
+column per species), sha256-checked like a model file.
+
+**Parts.** The engines' ensembles are independent, so they are the correctness job's
+parts (`Job.parts`): `bench submit` splits a job past half an allocation into one
+array-task unit per engine (`<job id>#<engine>` in a task file). Each part stores
+its ensemble beside the job's result, under the job's freshness key; the run that
+stores the last part then runs the job, which scores the stored ensembles rather
+than sampling them again, so the result is the same as an unsplit run's.
 
 **Seeds.** Each engine draws from a fixed block of its own, `seed + 10^7 k` (BNGsim
 k = 0, run_network 1, libRoadRunner 2, COPASI 3), so no two ensembles share a
@@ -432,7 +463,10 @@ comparisons, so a correct BNGsim fails it with probability at most 4 x 10^-3, an
 ten-problem suite at most 0.04. A reference that cannot simulate a model's exact
 SSA at all is recorded as `UNSUPPORTED` and not run: libRoadRunner's gillespie fires
 the SBML rate law as the propensity, which for a repeated reactant (`A + A`) is
-`k A^2` where the exact propensity is `k A (A - 1)`.
+`k A^2` where the exact propensity is `k A (A - 1)`; and it starts from an initial
+amount as written, where the other engines start from whole molecules, so it is not
+run on a network with a non-integer initial count either (Munsky 2012's
+24.999999999999996).
 
 bngsim's own parity suites judge ensembles by a K-sigma test on the means that
 passes when 99% of cells pass (`parity_core.differ.ensemble_verdict`). It has no
@@ -449,6 +483,18 @@ cost before sampling -- BNGsim's load and propensity compile, libRoadRunner's SB
 load and JIT, COPASI's import -- is measured once, cold, beside it (§6.3);
 run_network loads the `.net` in every trajectory, so its load is inside its time.
 
+COPASI has a fixed cost inside every trajectory as well. Each trajectory is one run
+of its time-course task, with its own seed. COPASI calls the direct method's
+`start()` at the start of every run, including each repeat of its own Scan task.
+`start()` reads the seed, resets the method's propensity search order and rebuilds
+one dependency update sequence per reaction. COPASI's API has no cheaper way to
+start a trajectory from a seed, so this cost is COPASI's own and is timed as part
+of its trajectories, not worked around. It is 0.1-0.3 ms on 2-6 reactions, 0.2 s
+on Dushek 2011's 284 and 17-20 s on Faeder 2003's 3680, where the 2-minute
+simulation itself takes about 2.5 s. COPASI's configuration records `start_seconds`: one `start()`, timed once
+after the build, so a reader can see how much of COPASI's per-trajectory time it
+is.
+
 ### 5.4 Partial scaling (PSA)
 
 PSA (Lin, Feng & Hlavacek 2019, *J Chem Phys* 150:244101, doi:10.1063/1.5096774)
@@ -461,7 +507,10 @@ under test is BNGsim's `Simulator(method="psa", poplevel=N_c)`.
 **Protocol fields** (`protocol.psa`, validated in `specs.py`): those of the SSA
 protocol (§5.3) except `moments`, plus `poplevels`, the N_c grid -- a strictly
 increasing list of up to 10 numbers above 1, by default 10, 30, 100, 300 and 1000,
-as in bngsim's `psa` suite and Lin et al. `size.psa_events`, the exact-SSA events per
+as in bngsim's `psa` suite and Lin et al. Optionally `exact_replicates` (at least 20, at
+most `replicates`) sizes the two exact-SSA ensembles alone, for a model whose exact
+trajectory costs minutes where a scaled one costs seconds; the permutation tests take
+unequal ensembles, so only their power changes. `size.psa_events`, the exact-SSA events per
 trajectory under this protocol, is a planning estimate (else `size.ssa_events`).
 
 **Ensembles.** A job draws `2 (K + 1)` ensembles of `replicates` trajectories: BNGsim
@@ -668,11 +717,12 @@ sensitivities task.
 
 | Field | Meaning |
 |---|---|
-| `netgen`, `t_end`, `n_steps`, `rtol`, `atol` | as for ODE; every engine runs at these tolerances |
+| `netgen`, `rtol`, `atol` | as for ODE; every engine runs at these tolerances |
+| `t_end`, `n_steps` | one measured phase from the network's initial state (or `phases`) |
 | `parameters` | the problem's convention: `independent` (every number in the `.net` that reaches a rate or an initial amount), `rate_constants`, `fitted`, or a list |
 | `fitted` | the problem's fitted set; beside another convention it is a job setting of its own (`.../fitted`) |
 | `parameter_scales` | a scale for a parameter whose value is zero (a dose not given, a switch off) |
-| `preequilibration`, `stimulus` | a two-phase protocol: a phase of `duration` before t = 0 at its own parameter values (`set`), then the `stimulus` values from t = 0 |
+| `phases` | an ordered list of finite phases run back to back, each a `duration`, an `n_steps` grid when it is measured, and, as it starts, the parameter values it `set`s and the species it `reset`s (to a number or an expression of the parameters); t = 0 is the start of the first measured phase |
 | `fd_step`, `fd_rtol`, `fd_atol` | the finite differences' step (relative to each parameter's scale) and their tighter tolerances |
 
 **The verdict.** Columns -- one output's sensitivity to one parameter over time -- are
@@ -691,15 +741,32 @@ another reference agrees with BNGsim and disagrees with it (two independent engi
 against one), is refuted -- its own failure (REFERENCE_FAILED), as a crash or a
 timeout is. Any other disagreement is a DIFF. A significant column no agreeing
 reference judged is REFERENCE_FAILED too. A reference that cannot run the protocol at
-all (COPASI on a two-phase one: its task cannot start from an equilibration's
-sensitivities) is `not_applicable`: named, not run, not counted.
+all (COPASI on a multi-phase one: its task cannot start from an earlier phase's
+sensitivities) is `not_applicable`: named, not run, not counted. BNGsim refusing a
+protocol in its own words (it will not carry sensitivities across a species reset)
+is UNSUPPORTED; the references still run, and whether they agree with each other is
+recorded beside it.
 
-**Two phases.** The equilibration runs over `[-duration, 0]`; BNGsim carries its
-sensitivities into the measured phase on one Simulator (`carry_sensitivities=True`),
-AMICI by its own pre-simulation (`t_presim`, the set parameters compiled as fixed),
-the finite differences by a second `run_network` started from the first's state. The
-phase has a duration rather than a steady-state criterion: a model need not reach a
-steady state (the p38-ATF2 network has an absorbing state).
+**Phases.** A protocol is one measured phase or an ordered list of finite phases
+(decision D3b, refined): the phases before the first measured one run at negative
+times, as AMICI's pre-simulation does. The state and its sensitivities are carried
+from each phase into the next; a reset species starts its phase at its new value
+with, as its sensitivity row, the derivative of that value (`S = 2*S0` gives
+`dS/dS0 = 2` and 0 for every other parameter). BNGsim runs the phases on one
+Simulator (`carry_sensitivities=True`; a reset at the start of the first phase is an
+initial condition, `declare_ic_sensitivity`); AMICI an equilibration then a measured
+phase by its own pre-simulation (`t_presim`, the set parameters compiled as fixed),
+any other protocol as a chain of simulations, each from the last one's state and
+state sensitivities (compiled without conservation laws, whose totals a reset would
+change); the finite differences by a fresh `run_network` per phase, each started from
+the last one's state, a reset written into the file as a derived parameter so that
+`run_network` evaluates it at every perturbed point. A phase has a duration rather
+than a steady-state criterion: a model need not reach a steady state (the p38-ATF2
+network has an absorbing state; cSTAR's TrkA and TrkB protocols, 50000 s, then
+`S = 2*S0`, then 50000 s, are far from one). A parameter a phase sets is the
+protocol's and is not differentiated; it must reach a rate and no initial amount,
+and a multi-phase protocol refuses a network that reads the clock (`run_network`
+starts each phase at 0).
 
 **Timing.** Each engine's forward-sensitivity solve of the protocol, interleaved
 (section 7), beside plain solves of the same protocol by BNGsim and `run_network`, the
@@ -723,7 +790,12 @@ file holds:
 - provenance:
   - the BNGsim version and compiled build commit;
   - the reference engines' versions;
-  - this repository's commit;
+  - this repository's commit, whether its tracked files had local changes, and the
+    sha256 of its Python source, all read as the job started, before its code loaded
+    (a long job's result is written hours later, when the checkout may have moved
+    on). The worker loads every module a job could import at that moment, so the job
+    runs that code throughout. A TIMEOUT record names the source as the runner
+    launched the worker, and a stored part of a split job names its own;
   - the environment lock or container digest;
   - the node name and hardware (section 7);
   - start and end time;
@@ -733,7 +805,24 @@ A correctness job also stores the trajectories its verdict was computed from, be
 its JSON file as `<job id>.npz` (compressed float64): every engine's compared
 trajectory, the output times and the compared species. The JSON file names it, with
 its size and sha256, so an `.npz` left by another run of the job is never read as
-this one's. On the core suites each is a few MB, and none is above about 10 MB.
+this one's. On the ODE core suites each is a few MB, and none is above about 10 MB.
+
+A stochastic job (ssa, nf) stores its ensembles the same way: each engine's
+`(replicates, times, species)` array as scored. An ssa job also stores the rows
+every comparison uses (`keep`) and, where the spec declares them, the exact moments
+on the grid. These files are larger. How well counts compress depends on the
+model: about 4.5 times for the repressilator, 7.7 times for Vilar 2002, 72 times
+for Faeder 2003 and 340 times for Dushek 2011's mostly empty species. Per engine,
+the largest ssa-net and ssa-sbml members are:
+
+- Proctor 2007's ubiquitin-proteasome system (SBML, 10^4 x 101 x 33): 35 MB;
+- Vilar 2002 (SBML, 10^4 x 201 x 9): 19 MB;
+- Munsky 2012 (10^4 x 201 x 10): 13 MB;
+- the repressilator (SBML, 10^4 x 101 x 6): 11 MB.
+
+Every other member is under 10 MB per engine. A job stores one ensemble per engine
+that ran, so the largest file is about 100 MB. The suite snapshot ships them only
+under its size limit (§6.3).
 
 ### 6.2 Freshness
 
@@ -756,9 +845,9 @@ definition, id and key as they were.
 A correctness result can be stale only in how it is scored: the vendored comparison
 core, or the verdict version in its definition (§6.4). Such a result does not need to
 re-run. `bench rescore` recomputes its verdicts and outcome from its stored
-trajectories and rewrites it with the current key, keeping a history of the outcomes
-it replaced. A result that is stale for any other reason, or that stored no
-trajectories, is left to re-run.
+trajectories (ode) or ensembles (ssa, nf) and rewrites it with the current key,
+keeping a history of the outcomes it replaced. A result that is stale for any other
+reason, or that stored no trajectories, is left to re-run.
 
 ### 6.3 Gathering and publishing
 

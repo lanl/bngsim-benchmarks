@@ -1,0 +1,131 @@
+# Combinatorial complexity of Smad complex formation and its link to gene expression (PEtab Lucarelli_CellSystems2018).
+# A core problem: member 10 of the sens-sbml suite (docs/DESIGN.md §3.2; ~/wt/proposals/suites-deterministic.md §2.2).
+# top-up (three estimated totals set through the condition table, log10 observables).
+# The PEtab problem as the harness applies it (bench.petab_problem): 16 simulation condition(s), 1755 measurements of 65 observables; 84 estimated parameters, of which
+# the 69 below are SBML parameters that reach the state (the sensitivity set, re-derived from the tables by
+# the harness and by tests/test_sens_sbml.py); left out: S2tot, S3tot, S4tot, sd_Bmp4_nExpID100, sd_Cxcl15_nExpID100, sd_Dnmt3a_nExpID100 and 9 more.
+id: smad_complex_gene_expression_lucarelli2018
+layer: core
+title: Combinatorial complexity of Smad complex formation and its link to gene expression
+source:
+  repo: Benchmarking-Initiative/Benchmark-Models-PEtab
+  commit: 4d2085084b289f6215a95475b1ee639fd7d42283
+  path: Benchmark-Models/Lucarelli_CellSystems2018/model_Lucarelli_CellSystems2018.xml
+  sha256: a14987b1192e1af361fc2c772b73c4b599233fd55c3fb4af7de3b305e6690742
+  format: sbml
+petab:
+  yaml:
+    path: Benchmark-Models/Lucarelli_CellSystems2018/Lucarelli_CellSystems2018.yaml
+    sha256: c32223cb73dca169d2d45702f7f3b7faf4d63bf0f4c7a66edc48f385a2400af8
+  conditions:
+    path: Benchmark-Models/Lucarelli_CellSystems2018/experimentalCondition_Lucarelli_CellSystems2018.tsv
+    sha256: e0137aa13ffb3eee324a13ed6204137d42d3412ae438811d0cc940fe4a1024d0
+  measurements:
+    path: Benchmark-Models/Lucarelli_CellSystems2018/measurementData_Lucarelli_CellSystems2018.tsv
+    sha256: cf9753d969c930c8054c33fb4c318cadb67862df31050491ae80b2b399ef8134
+  observables:
+    path: Benchmark-Models/Lucarelli_CellSystems2018/observables_Lucarelli_CellSystems2018.tsv
+    sha256: 853c104cd7b1cd4f7915cbb9af11dc0baf75b3a35bdfca7fd4d98e2ef941fcda
+  parameters:
+    path: Benchmark-Models/Lucarelli_CellSystems2018/parameters_Lucarelli_CellSystems2018.tsv
+    sha256: 27395d0672ec619f68112192493aca1da1828e3cc03851c4f8947f1b44945c81
+publications:
+- citation: Lucarelli P, Schilling M, Kreutz C, Vlasov A, Boehm ME, Iwamoto N et al. (2018). Resolving
+    the combinatorial complexity of Smad protein complex formation and its link to gene expression. Cell
+    Syst 6:75-89.
+  doi: 10.1016/j.cels.2017.11.010
+verification:
+  kind: author_file
+  evidence: 'PEtab benchmark problem Lucarelli_CellSystems2018 at Benchmark-Models-PEtab 4d20850 (the
+    authors'' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0''s own
+    benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: L (G skipped
+    for runtime)'
+  check: 'the collection holds the authors'' problem; AMICI''s CI run 33736681814 (2026-09-03, collection
+    resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at
+    nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)'
+  result: benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal -1681.6059879426584
+capabilities:
+- sens
+protocol:
+  sens:
+    rtol: 1.0e-08
+    atol: 1.0e-10
+    llh_reference: -1681.6059879426584
+    parameters:
+    - Rec_act
+    - S_dephos
+    - S_dephosphos
+    - S_phos
+    - geneA_act1
+    - geneA_act2
+    - geneA_inh2
+    - geneA_inh3
+    - geneA_turn
+    - geneB_act1
+    - geneB_act2
+    - geneB_act3
+    - geneB_inh2
+    - geneB_inh3
+    - geneB_turn
+    - geneC_act1
+    - geneC_inh2
+    - geneC_inh3
+    - geneC_turn
+    - geneD_act1
+    - geneD_act2
+    - geneD_inh2
+    - geneD_inh3
+    - geneD_turn
+    - geneE_act2
+    - geneE_act3
+    - geneE_inh1
+    - geneE_inh2
+    - geneE_inh3
+    - geneE_turn
+    - geneF_act1
+    - geneF_act2
+    - geneF_act3
+    - geneF_inh1
+    - geneF_turn
+    - geneG_act1
+    - geneG_act2
+    - geneG_inh2
+    - geneG_inh3
+    - geneG_turn
+    - geneH_act2
+    - geneH_act3
+    - geneH_inh1
+    - geneH_inh2
+    - geneH_inh3
+    - geneH_turn
+    - geneI_act1
+    - geneI_inh2
+    - geneI_inh3
+    - geneI_turn
+    - geneJ_inh1
+    - geneJ_inh2
+    - geneJ_inh3
+    - geneJ_turn
+    - geneK_act1
+    - geneK_act2
+    - geneK_inh2
+    - geneK_inh3
+    - geneK_turn
+    - geneL_act2
+    - geneL_inh1
+    - geneL_inh2
+    - geneL_inh3
+    - geneL_turn
+    - init_Rec
+    - k_233
+    - k_234
+    - k_244
+    - pRec_degind
+size:
+  species: 33
+  reactions: 57
+  conditions: 16
+  measurements: 1755
+  sens_parameters: 69
+suites:
+  sens-sbml: 10

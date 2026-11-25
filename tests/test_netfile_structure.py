@@ -114,6 +114,28 @@ def test_with_initial_amounts_sets_every_species_and_nothing_else():
         netfile.with_initial_amounts(NET, [1.0, float("inf"), 0.0])
 
 
+def test_an_initial_amount_may_be_an_expression_the_engine_evaluates():
+    out = netfile.with_initial_amounts(NET, [1.5, "2*R0", 0.0])
+    assert netfile.structure(out).initial == ["1.5", "2*R0", "0.0"]
+    assert netfile.parse(out).initial[1] == 2000.0
+    assert netfile.parse(out, {"R0": 10.0}).initial[1] == 20.0
+    for bad in ("2 * R0", "", "R0#x"):
+        with pytest.raises(netfile.NetFileError, match="bad initial-amount expression"):
+            netfile.with_initial_amounts(NET, [1.0, bad, 0.0])
+
+
+def test_added_parameters_follow_the_block_and_are_derived_from_it():
+    out = netfile.with_added_parameters(NET, {"_bench_reset_0": "2*R0", "_b1": "L0+1"})
+    assert "   13 _bench_reset_0 2*R0\n" in out and "   14 _b1 L0+1\n" in out
+    net = netfile.parse(netfile.with_parameters(out, {"R0": 7.0}))
+    assert net.parameters["_bench_reset_0"] == 14.0
+    assert out.replace("    13 _bench_reset_0 2*R0\n    14 _b1 L0+1\n", "") == NET
+    with pytest.raises(netfile.NetFileError, match="already has parameters named R0"):
+        netfile.with_added_parameters(NET, {"R0": "1"})
+    with pytest.raises(netfile.NetFileError, match="bad parameter expression"):
+        netfile.with_added_parameters(NET, {"x": "1 + R0"})
+
+
 def test_a_network_reads_the_clock_only_through_a_rate():
     assert not netfile.structure(NET).reads_clock()
     clocked = NET.replace("Stim*koff/(Km+Rtot)", "Stim*koff*time()")

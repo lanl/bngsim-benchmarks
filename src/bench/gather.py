@@ -98,6 +98,14 @@ def _row(job: Job, rec: dict[str, Any], current: bool) -> dict[str, Any]:
         row["configurations"] = {name: {"passed": c.get("passed"), "max_error": c.get("max_error")}
                                  for name, c in (m.get("configurations") or {}).items()}
         row["coverage"] = m.get("coverage")
+        if m.get("protocol_phases"):
+            row["phases"] = len(m["protocol_phases"])
+        if m.get("references_agreement"):
+            # BNGsim gave nothing to judge (it refused the protocol): whether the
+            # references agree with each other, as evidence beside the outcome.
+            row["references_agreement"] = {
+                pair: {k: v.get(k) for k in ("passed", "max_error", "n_judged")}
+                for pair, v in m["references_agreement"].items()}
     elif job.kind == CORRECTNESS:
         # One verdict of BNGsim against each reference engine. The table shows the
         # worst agreement across references (the hardest check the row passed) and
@@ -732,6 +740,17 @@ def _timing_table(rows: list[dict[str, Any]], *, per_trajectory: bool = False,
     return lines
 
 
+def _sens_references_cell(r: dict[str, Any]) -> str:
+    """``reference_agreement``, or, where BNGsim refused the protocol and so has no
+    verdict, whether the references agree with each other (their worst column)."""
+    agree = r.get("references_agreement")
+    if not agree:
+        return reference_agreement({k: v for k, v in r.items() if k != "bngsim_error"})
+    errs = [v.get("max_error") for v in agree.values() if isinstance(v.get("max_error"), (int, float))]
+    word = "agree" if all(v.get("passed") for v in agree.values()) else "disagree"
+    return f"references {word} with each other" + (f" ({max(errs):.2g})" if errs else "")
+
+
 def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     """One row per problem, as ``_correctness_table`` but for a sensitivity verdict:
     the number of parameters, the worst column error over the references that were
@@ -740,9 +759,9 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
     with BNGsim where it does not), or why it did not run; and whether every further
     BNGsim configuration agreed with the default one. *parameters* is their number
     and the problem's convention (``independent``, ``fitted``, ``listed``)."""
-    refs = sorted({name for r in rows for name in (r.get("verdicts") or {})}
-                  | {name for r in rows for name in _errored_engines(r)}
-                  | {name for r in rows for name in (r.get("not_applicable") or {})}
+    refs = sorted(({name for r in rows for name in (r.get("verdicts") or {})}
+                   | {name for r in rows for name in _errored_engines(r)}
+                   | {name for r in rows for name in (r.get("not_applicable") or {})})
                   - {"bngsim"})
     header = ["problem", "species", "parameters", "outcome", "references", "max column error",
               *(f"vs {name}" for name in refs), "configurations", "current"]
@@ -771,7 +790,7 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
         n_params = " ".join(filter(None, [_fmt(r.get("parameters"), "d"), r.get("convention")]))
         lines.append("| " + " | ".join([
             _problem_cell(r), _fmt(sp, "d"), n_params, r["outcome"],
-            reference_agreement(r), _fmt(r.get("worst_column_err"), ".2e"), *cells,
+            _sens_references_cell(r), _fmt(r.get("worst_column_err"), ".2e"), *cells,
             ("DIFF (" + ", ".join(bad) + ")") if bad else ("agree" if configs else ""),
             "yes" if r["current"] else "no",
         ]) + " |")
@@ -781,7 +800,10 @@ def _sens_correctness_table(rows: list[dict[str, Any]]) -> list[str]:
               "column it judges is within the tolerance in the JSON row (docs/DESIGN.md §5.6). "
               "*refuted*: the reference disagreed with BNGsim, and on every column it failed "
               "another reference agreed with BNGsim and not with it. *n/a*: the reference "
-              "does not apply to the problem's protocol (COPASI to a two-phase one). "
+              "does not apply to the problem's protocol (COPASI to a multi-phase one). "
+              "*UNSUPPORTED*: BNGsim refused the protocol in its own words (it will not "
+              "carry sensitivities across a species reset); the references' agreement "
+              "with each other is in the JSON row. "
               "*configurations*: each further BNGsim configuration against the default one. "
               "A problem's *[fitted]* row differentiates its fitted set only."]
     return lines

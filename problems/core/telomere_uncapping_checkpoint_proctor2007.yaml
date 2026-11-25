@@ -1,0 +1,51 @@
+# The checkpoint response to telomere uncapping in budding yeast (BioModels BIOMD0000000087).
+# A core problem: member 9 of the ssa-sbml suite. The curators reproduced Fig. 5 with
+# Gillespie 2.0 over about 0-43000 s; the horizon is 43200 s (12 h). Nine state-triggered
+# events (thresholds on molecule counts) drive the cell cycle. A wave-1 probe found COPASI far
+# from BNGsim and libRoadRunner here (n = 10: Mec1RPAssDNA 0 against 30, budscar 12.9 against
+# 8.0, the curation figure's 8 divisions), which, if it holds, is a DIFF attributed to COPASI's
+# event handling: recorded, not worked around. replicates is 4000 (decided 2026-11-24).
+# Molecule counts (model preparation, every engine): every compartment has size 1 and an
+# amount is a number of molecules; BNGsim and libRoadRunner read it so, and COPASI, which
+# imports this file's amounts in #, has its quantity unit set to # (one particle per unit
+# amount; the record names the imported unit). Compared: every species a reaction, rule or
+# event changes, by SBML id.
+# run_network: not applicable (bngsim.convert.sbml_to_bngl refuses its state-triggered events);
+# the harness derives the network and records the reason in every result.
+# size.ssa_ms_run_network is 0 for planning only.
+id: telomere_uncapping_checkpoint_proctor2007
+layer: core
+title: Checkpoint response to telomere uncapping in budding yeast
+source:
+  repo: sys-bio/temp-biomodels
+  commit: 6a09daf46af1bb89e4857436b623a7b8720863ad
+  path: final/BIOMD0000000087/BIOMD0000000087_url.xml
+  sha256: db96e47fdd29c3d867e42f1ef0ce738e973dd1059bdbf473996b3cd48b5acd93
+  format: sbml
+publications:
+- citation: Proctor CJ, Lydall DA, Boys RJ, Gillespie CS, Shanley DP, Wilkinson DJ, Kirkwood TBL (2007).
+    Modelling the checkpoint response to telomere uncapping in budding yeast. J R Soc Interface 4:73-90.
+  doi: 10.1098/rsif.2006.0148
+verification:
+  kind: author_file
+  evidence: BioModels BIOMD0000000087 curation notes and curation image
+  check: 'BioModels curation: Fig. 5 reproduced with Gillespie 2.0, about 0-43000 s'
+capabilities:
+- ssa
+protocol:
+  ssa:
+    t_end: 43200
+    n_steps: 100
+    replicates: 4000
+    timing_replicates: 20
+    seed: 1
+size:
+  species: 55
+  reactions: 43
+  ssa_events: 53000
+  ssa_ms_bngsim: 341
+  ssa_ms_roadrunner: 79
+  ssa_ms_copasi: 3398
+  ssa_ms_run_network: 0
+suites:
+  ssa-sbml: 9

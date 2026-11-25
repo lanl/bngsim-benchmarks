@@ -198,21 +198,7 @@ class Network:
         or one no reaction touches, is a law of its own); ``Q`` an orthonormal basis
         (one column per direction) of the directions the reactions move the state in,
         the range of ``S``. Together they span the state space."""
-        s = self.stoichiometry()
-        n_sp, n_rx = s.shape
-        if n_sp == 0:
-            return np.zeros((0, 0)), np.zeros((0, 0))
-        if n_rx == 0:
-            return np.eye(n_sp), np.zeros((n_sp, 0))
-        if n_rx >= n_sp:
-            _, sv, vh = np.linalg.svd(s.T, full_matrices=False)
-            basis = vh
-        else:
-            u, sv, _ = np.linalg.svd(s, full_matrices=True)
-            basis = u.T
-        sv = np.concatenate([sv, np.zeros(n_sp - len(sv))])
-        rank = int(np.sum(sv > rank_tol * max(float(sv.max(initial=0.0)), 1.0)))
-        return basis[rank:].copy(), basis[:rank].T.copy()
+        return subspaces_of(self.stoichiometry(), rank_tol)
 
     def conservation_laws(self, rank_tol: float = 1e-10) -> np.ndarray:
         """The rows of ``L`` (``subspaces``): the network's conservation laws."""
@@ -344,6 +330,28 @@ def _indices(field_text: str) -> tuple[int, ...]:
         if i > 0:
             out.append(i - 1)
     return tuple(out)
+
+
+def subspaces_of(s: np.ndarray, rank_tol: float = 1e-10) -> tuple[np.ndarray, np.ndarray]:
+    """``(L, Q)`` of a stoichiometry matrix ``s`` (species x reactions), as
+    ``Network.subspaces`` gives them: ``L`` an orthonormal basis of the left null
+    space (one row per conservation law), ``Q`` one of the range (one column per
+    direction the reactions move the state in)."""
+    s = np.asarray(s, dtype=float)
+    n_sp, n_rx = s.shape
+    if n_sp == 0:
+        return np.zeros((0, 0)), np.zeros((0, 0))
+    if n_rx == 0:
+        return np.eye(n_sp), np.zeros((n_sp, 0))
+    if n_rx >= n_sp:
+        _, sv, vh = np.linalg.svd(s.T, full_matrices=False)
+        basis = vh
+    else:
+        u, sv, _ = np.linalg.svd(s, full_matrices=True)
+        basis = u.T
+    sv = np.concatenate([sv, np.zeros(n_sp - len(sv))])
+    rank = int(np.sum(sv > rank_tol * max(float(sv.max(initial=0.0)), 1.0)))
+    return basis[rank:].copy(), basis[:rank].T.copy()
 
 
 def parse(text: str, overrides: Mapping[str, float] | None = None) -> Network:
@@ -493,6 +501,8 @@ class Structure:
     # observable -> [(0-based species index, weight)]: an observable is a weighted
     # sum of species, as BioNetGen's groups block writes it.
     groups: dict[str, list[tuple[int, float]]] = field(default_factory=dict)
+    # 0-based indices of the species some reaction consumes or produces.
+    reacting: set[int] = field(default_factory=set)
 
     def literal(self, name: str) -> float | None:
         """The value of a parameter written as a number, else None (a derived one)."""
@@ -539,6 +549,19 @@ class Structure:
         roots = set().union(*(names_in(e) for e in self.compartments.values())) \
             if self.compartments else set()
         return self.closure(roots) & set(self.expressions)
+
+    def initial_reading(self, name: str) -> list[int]:
+        """The species whose initial amount depends on parameter ``name``."""
+        return [i for i, e in enumerate(self.initial)
+                if name in self.closure(names_in(e))]
+
+    def inert(self) -> set[int]:
+        """The species no reaction consumes or produces and no rate reads (through
+        an observable): a species whose amount moves nothing and that nothing moves."""
+        roots = set().union(*(names_in(r) for r in self.rates)) if self.rates else set()
+        read = self.closure(roots)
+        in_rates = {i for g, entries in self.groups.items() if g in read for i, _ in entries}
+        return set(range(len(self.species))) - self.reacting - in_rates
 
     def reads_clock(self) -> bool:
         """Whether some reaction rate depends on the time (BNGL's ``time()``), directly
@@ -595,6 +618,7 @@ def structure(text: str) -> Structure:
         if len(parts) < 4:
             raise NetFileError(f"bad reaction line {line!r}")
         st.rates.append(parts[3].strip())
+        st.reacting.update(_indices(parts[1]), _indices(parts[2]))
     for line in blocks.get("compartments", []):
         parts = line.split()
         if len(parts) >= 4:
@@ -617,23 +641,67 @@ def read_structure(path: str | Path) -> Structure:
     return structure(Path(path).read_text(encoding="utf-8"))
 
 
+def with_added_parameters(text: str, expressions: Mapping[str, str]) -> str:
+    """``text`` with each of ``expressions`` added at the end of the parameters block,
+    as a parameter of that name defined by that expression (numbered on from the
+    block's last), every other byte unchanged: a value an engine reading the file
+    derives from the parameters it was handed. Raises NetFileError for a name the
+    file already has, or an expression with a space or a comment."""
+    lines = text.splitlines(keepends=True)
+    block, last_index, end = None, 0, None
+    names = set()
+    for n, line in enumerate(lines):
+        s = line.strip()
+        if _BLOCK_RE.match(line):
+            block = s.split()[1].lower()
+        elif _END_RE.match(line):
+            if block == "parameters":
+                end = n
+            block = None
+        elif block == "parameters":
+            m = _PARAM_LINE_RE.match(line.rstrip("\n"))
+            if m:
+                last_index = max(last_index, int(m.group(1)))
+                names.add(m.group(2))
+    if end is None:
+        raise NetFileError("no parameters block")
+    clash = sorted(set(expressions) & names)
+    if clash:
+        raise NetFileError(f"the file already has parameters named {', '.join(clash)}")
+    added = []
+    for i, (name, expr) in enumerate(expressions.items(), start=last_index + 1):
+        if not expr or any(c.isspace() for c in expr) or "#" in expr:
+            raise NetFileError(f"bad parameter expression {expr!r}")
+        added.append(f"    {i} {name} {expr}\n")
+    return "".join(lines[:end] + added + lines[end:])
+
+
 # A species-block line: index, name, the initial amount as written (up to any
 # comment), then the comment with the spacing before it.
 _SPECIES_LINE_RE = re.compile(r"^(\s*\d+\s+)(\S+)(\s+)([^#]*?)(\s*(?:#.*)?)$")
 
 
 def with_initial_amounts(text: str, amounts) -> str:
-    """``text`` with every species' initial amount set to the number in ``amounts``
-    (one per species, in file order), every other byte unchanged.
+    """``text`` with every species' initial amount set to the one in ``amounts`` (one
+    per species, in file order), every other byte unchanged.
 
     The way BNG2.pl continues a simulation in a fresh run_network process: the state
-    one run ended in becomes the next run's initial amounts. Raises NetFileError
-    when the count differs from the species block's, or for an amount that is not
-    a finite number.
+    one run ended in becomes the next run's initial amounts. An amount is a number,
+    or an expression of the parameters (a string, written as it is), which the
+    engine reading the file evaluates -- a species reset to ``2*S0`` follows S0.
+    Raises NetFileError when the count differs from the species block's, for a
+    number that is not finite, or for an expression with a space or a comment.
     """
-    values = [float(a) for a in amounts]
-    if not all(math.isfinite(v) for v in values):
-        raise NetFileError("an initial amount is not a finite number")
+    values: list[float | str] = []
+    for a in amounts:
+        if isinstance(a, str):
+            if not a or any(c.isspace() for c in a) or "#" in a:
+                raise NetFileError(f"bad initial-amount expression {a!r}")
+            values.append(a)
+        else:
+            values.append(float(a))
+            if not math.isfinite(values[-1]):
+                raise NetFileError("an initial amount is not a finite number")
     out, block, i = [], None, 0
     for line in text.splitlines(keepends=True):
         s = line.strip()
@@ -647,7 +715,8 @@ def with_initial_amounts(text: str, amounts) -> str:
                 if i >= len(values):
                     raise NetFileError(f"more species than the {len(values)} amounts given")
                 nl = "\n" if line.endswith("\n") else ""
-                line = f"{m.group(1)}{m.group(2)}{m.group(3)}{values[i]!r}{m.group(5)}{nl}"
+                v = values[i] if isinstance(values[i], str) else repr(values[i])
+                line = f"{m.group(1)}{m.group(2)}{m.group(3)}{v}{m.group(5)}{nl}"
                 i += 1
         out.append(line)
     if i != len(values):

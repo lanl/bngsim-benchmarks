@@ -1,0 +1,40 @@
+# Demographic-noise predator-prey cycles. A core problem: member 2 of the ssa-net suite
+# (docs/DESIGN.md §3.2). A finite-capacity individual-level model (N = 3200: 800 predators, 800
+# prey, 1600 empty sites) whose mean field relaxes to coexistence while demographic noise drives
+# resonantly amplified quasi-cycles: noise of individuals, not of molecules. Second-order
+# (predation, birth into empty sites) reactions, so no exact moments; the references are the
+# engines. The protocol is the record's own exact-SSA action (t = 0..1200, one output per time
+# unit), run as an ensemble from the record's seed state rather than as one seeded trajectory.
+id: demographic_noise_predator_prey_cycles_mckane2005
+layer: core
+title: "Demographic-noise predator-prey cycles"
+source:
+  repo: wshlavacek/BNGL-Models
+  commit: 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab
+  path: models/demographic_noise_predator_prey_cycles_mckane2005/demographic_noise_predator_prey_cycles_mckane2005.bngl
+  sha256: 420d61909ec5f6addf12c5bc0472e5a75edf6ed6b7b484bd6bf66e70b5d30a35
+  format: bngl
+publications:
+  - citation: "McKane AJ, Newman TJ (2005). Predator-prey cycles from resonant amplification of demographic stochasticity. Phys Rev Lett 94:218102."
+    doi: 10.1103/PhysRevLett.94.218102
+verification:
+  kind: theory
+  evidence: models/demographic_noise_predator_prey_cycles_mckane2005/verify_mckane2005.ipynb
+  check: "128-replicate BioNetGen SSA power spectrum vs the paper's linear-noise (LNA) spectrum, Eq. 7: shape RMSE and peak frequency asserted"
+  result: "spectrum shape RMSE 0.027; peak angular frequency 0.1255 vs LNA 0.1253 (0.20%)"
+  supporting: "data: digitized Fig. 2 predator spectrum, normalized RMSE 0.016 after the record's fitted x0.494 time scale (documented, not explained); equations: mean-field ODE vs SciPy 5.0e-9"
+capabilities: [ssa]
+protocol:
+  ssa:
+    netgen: "generate_network({overwrite=>1})"
+    t_end: 1200
+    n_steps: 1200
+    replicates: 1000
+    timing_replicates: 10
+    seed: 1
+size:
+  species: 3
+  reactions: 5
+  ssa_events: 260000
+suites:
+  ssa-net: 2
