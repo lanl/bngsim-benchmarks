@@ -161,7 +161,7 @@ so every machine gets the same answer: a job reads its engines' versions from th
 environment it runs in, and here they are replaced by what the environment pins. A
 withheld timing has no record, so only its correctness job's definition is compared.
 
-Two guards keep this honest:
+Three guards keep this honest:
 
 - `tests/test_summary.py` regenerates every README and `index.json` from the committed
   data (with the release `index.json` records) and fails on any difference, in CI's
@@ -171,3 +171,7 @@ Two guards keep this honest:
   when every published suite is current, 1 when one is out of date, 2 when PyPI cannot
   be read; `--offline` uses the recorded release). `--markdown FILE` writes the
   out-of-date suites as an issue body; `--write` also regenerates the summaries.
+- `.github/workflows/staleness.yml` runs `bench staleness` every Monday, on every push
+  to main and on demand, and keeps one issue, "Published results are out of date",
+  open and up to date while a suite is out of date (closing it when none is). It
+  needs only the workflow's `GITHUB_TOKEN`, with `issues: write`; it does not push.
