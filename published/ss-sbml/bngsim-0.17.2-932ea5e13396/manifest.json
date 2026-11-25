@@ -1,0 +1,478 @@
+{
+ "schema": 1,
+ "suite": "ss-sbml",
+ "capabilities": [
+  "steady_state"
+ ],
+ "published": "2026-11-25T17:14:11Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "09925d1c3708ea2e810991b29031a541fcb66ebb",
+   "da924cb705389e1e457263f8bada2a858bc081e7"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "inflammation_rheumatoid_arthritis_baker2013",
+   "title": "Cytokine-mediated inflammation in rheumatoid arthritis",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000550/BIOMD0000000550_url.xml",
+    "sha256": "498b2c5f826214e6c9944eba1a2511792b8a927dc653c205201547acd5ad4d4c",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Baker M, Denman-Johnson S, Brook BS, Gaywood I, Owen MR (2013). Mathematical modelling of cytokine-mediated inflammation in rheumatoid arthritis. Math Med Biol 30:311-337.",
+     "doi": "10.1093/imammb/dqs026"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000550: its curation figure and curation notes (final/BIOMD0000000550/curation_notes.txt at the pinned commit): 'Representation of bifurcation diagram Figure 3a in paper. [...] The region where ~7.5 < alpha2 < ~15.5 describes this ability.'",
+    "check": "BioModels curation: the curators drew the bifurcation diagram of Fig. 3a of the paper from this file, bistable for about 7.5 < alpha2 < 15.5 (alpha2 is parameter_2)",
+    "result": "curated; the curation figure reproduces Fig. 3a"
+   },
+   "size": {
+    "species": 2,
+    "reactions": 0
+   }
+  },
+  {
+   "position": 2,
+   "problem": "smallest_bistable_reaction_wilhelm2009",
+   "title": "The smallest chemical reaction system with bistability",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000233/BIOMD0000000233_url.xml",
+    "sha256": "ef698f56d31c8d5a6020dae8fb08b16d670862dba2b34b5116a6c924ce56fcf6",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Wilhelm T (2009). The smallest chemical reaction system with bistability. BMC Syst Biol 3:90.",
+     "doi": "10.1186/1752-0509-3-90"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000233: its curation figure and curation notes (final/BIOMD0000000233/curation_notes.txt at the pinned commit): 'The reproduces figure 1 of the reference publication. The bifurcation analysis was performed using the AUTO2000 front end and SBW 2.7.10. Both branches were calculated independently, the off state with X[t=0]=1 and the on state with X[t=0]=4. Continuation was performed from S=0 to 2 in negative direction.'",
+    "check": "BioModels curation: the curators reproduced the bifurcation diagram of Fig. 1 of the paper from this file (AUTO2000), S from 0 to 2, the off branch from X(0) = 1 and the on branch from X(0) = 4",
+    "result": "curated; the curation figure reproduces Fig. 1"
+   },
+   "size": {
+    "species": 4,
+    "reactions": 4
+   }
+  },
+  {
+   "position": 3,
+   "problem": "mutual_activation_switch_tyson2003",
+   "title": "Mutual activation: a one-way switch (sniffers, buzzers, toggles and blinkers)",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000311/BIOMD0000000311_url.xml",
+    "sha256": "5d9680d4cf829783cff525f859b6a9da80b412db80402a73a26ab690fbb9a6db",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Tyson JJ, Chen KC, Novak B (2003). Sniffers, buzzers, toggles and blinkers: dynamics of regulatory and signaling pathways in the cell. Curr Opin Cell Biol 15:221-231.",
+     "doi": "10.1016/s0955-0674(03)00017-6"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000311: its curation figure and curation notes (final/BIOMD0000000311/curation_notes.txt at the pinned commit): 'Bifurcation diagram showing the stable (thick line) and instable (thin line) of R for varying values of S, as in figure 1 e of the original publication. The diagram was produced using auto with XPP and the BioModels.net xpp converter.'",
+    "check": "BioModels curation: the curators drew the bifurcation diagram of R against S of Fig. 1e of the paper from this file (AUTO in XPP), stable and unstable branches",
+    "result": "curated; the curation figure reproduces Fig. 1e"
+   },
+   "size": {
+    "species": 4,
+    "reactions": 5
+   }
+  },
+  {
+   "position": 4,
+   "problem": "mapk_double_phosphorylation_ordered_markevich2004",
+   "title": "Bistability from multisite phosphorylation: MAPK double phosphorylation, ordered Michaelis-Menten form",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000027/BIOMD0000000027_url.xml",
+    "sha256": "555373de7ab7fee7ca5891998403c8c53fbba5a906d274306e7e5e91d551bf2b",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Markevich NI, Hoek JB, Kholodenko BN (2004). Signaling switches and bistability arising from multisite phosphorylation in protein kinase cascades. J Cell Biol 164:353-359.",
+     "doi": "10.1083/jcb.200308060"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000027: its curation figure and curation notes (final/BIOMD0000000027/curation_notes.txt at the pinned commit): 'Reproduction of figure 3 from the original publication using Copasi 4.6. To calculate all steady states a parameter scan was performed over the initial concentrations of MAPKK and M, with the sum of the initial concentrations of Mpp and M being held constant at 500 nM. For MAPKK the scanned range was from 0 to 100 with 100 intervals, for M from 450 to 100 with 5 intervals.'",
+    "check": "BioModels curation: the curators reproduced Fig. 3 of the paper from this file in COPASI 4.6, scanning MAPKK from 0 to 100 nM with M + Mpp held at 500 nM",
+    "result": "curated; the curation figure reproduces Fig. 3"
+   },
+   "size": {
+    "species": 5,
+    "reactions": 4
+   }
+  },
+  {
+   "position": 5,
+   "problem": "tunable_reversible_receptor_switch_palani2011",
+   "title": "Synthetic conversion of a graded receptor signal into a tunable, reversible switch (minimal two-feedback model)",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000325/BIOMD0000000325_url.xml",
+    "sha256": "9a050d4d0dd24152600b7520cb7ee9ff0f5bfe2cfaaebb5e2809d29e9dbf6908",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Palani S, Sarkar CA (2011). Synthetic conversion of a graded receptor signal into a tunable, reversible switch. Mol Syst Biol 7:480.",
+     "doi": "10.1038/msb.2011.13"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000325: its curation figure and curation notes (final/BIOMD0000000325/curation_notes.txt at the pinned commit): 'Ligand concentration response curve as in figure 1B of the publication. All calculation were performed using Copasi v4.6.33. Two logarithmic parameter scans over the the given ligand range with steady state determination were combined in the graph. For the low activity state, the systems initial conditions were taken from the steady state values at L = 0.001, for the high activity from L = 0.2.'",
+    "check": "BioModels curation: the curators reproduced the ligand dose-response of Fig. 1B of the paper from this file in COPASI 4.6.33, two logarithmic steady-state scans seeded from L = 0.001 and L = 0.2",
+    "result": "curated; the curation figure reproduces Fig. 1B"
+   },
+   "size": {
+    "species": 6,
+    "reactions": 10
+   }
+  },
+  {
+   "position": 6,
+   "problem": "embryonic_stem_cell_switch_chickarmane2006",
+   "title": "Transcriptional dynamics of the embryonic stem cell switch (irreversible switch)",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000204/BIOMD0000000204_url.xml",
+    "sha256": "75e5dc671e271d749387e7066e16a5692e0c575519b057b55e6eb0a53a799586",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Chickarmane V, Troein C, Nuber UA, Sauro HM, Peterson C (2006). Transcriptional dynamics of the embryonic stem cell switch. PLoS Comput Biol 2:e123.",
+     "doi": "10.1371/journal.pcbi.0020123"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000204: its curation figure and curation notes (final/BIOMD0000000204/curation_notes.txt at the pinned commit): 'The figures 10 and 11 of the original paper is reproduced. The stable steady state behavior of the OCT4-SOX2 and NANOG concentration levels as functions of the a) Signal A+ (Figure 10 of the paper) and b) Signal B_ (Figure 11 of the paper) is reproduced.'",
+    "check": "BioModels curation: the curators reproduced the stable steady states of OCT4-SOX2 and NANOG against the signal A+ (Fig. 10 of the paper) and B- (Fig. 11) from this file",
+    "result": "curated; the curation figure reproduces Figs. 10 and 11"
+   },
+   "size": {
+    "species": 12,
+    "reactions": 10
+   }
+  },
+  {
+   "position": 7,
+   "problem": "mapk_double_phosphorylation_random_markevich2004",
+   "title": "Bistability from multisite phosphorylation: MAPK double phosphorylation, random elementary-step form",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000028/BIOMD0000000028_url.xml",
+    "sha256": "4b043fc91b4c688e4caf779ba736eb4a8a0b9e5acdbdce7278433750b5ec8e0b",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Markevich NI, Hoek JB, Kholodenko BN (2004). Signaling switches and bistability arising from multisite phosphorylation in protein kinase cascades. J Cell Biol 164:353-359.",
+     "doi": "10.1083/jcb.200308060"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000028: its curation figure and curation notes (final/BIOMD0000000028/curation_notes.txt at the pinned commit): 'Reproduction of figure 5 from the original publication using Copasi 4.6. The total concentration of ERK was 1000 nM, the one of MKP 180 nM. To obtain all steady states, two parameter scan were performed. One over the initial concentration of MEK from 300 to 400 nM with 100 intervals, and one over the initial concentration of ERK from 100 to 600 nM with 10 intervals. To assure the total concentration of ERK was 1000, ERKpp was set by the initial condition: 1000 - ERK(t=0).'",
+    "check": "BioModels curation: the curators reproduced Fig. 5 of the paper from this file in COPASI 4.6, scanning the initial MEK from 300 to 400 nM with ERK total 1000 nM and MKP 180 nM",
+    "result": "curated; the curation figure reproduces Fig. 5"
+   },
+   "size": {
+    "species": 16,
+    "reactions": 17
+   }
+  },
+  {
+   "position": 8,
+   "problem": "histone_h4_acetylation_motifs_blasi2016",
+   "title": "Combinatorial histone H4 acetylation patterns generated by motif-specific reactions",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Blasi_CellSystems2016/model_Blasi_CellSystems2016.xml",
+    "sha256": "f9469a2b49524f5f7d3ab0fbe43f7d8cd89c30a15915e9cc99a7be32918ee9df",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Blasi T, Feller C, Feigelman J, Hasenauer J, Imhof A, Theis FJ, Becker PB, Marr C (2016). Combinatorial histone acetylation patterns are generated by motif-specific reactions. Cell Syst 2:49-58.",
+     "doi": "10.1016/j.cels.2016.01.002"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Blasi_CellSystems2016 at Benchmark-Models-PEtab 4d20850: measurementData_Blasi_CellSystems2016.tsv (252 measurements, all at t = inf, one condition) and parameters_Blasi_CellSystems2016.tsv (nominal values, the authors fit)",
+    "check": "the PEtab benchmark collection holds the authors problem: this model, fit to 252 steady-state measurements (all at t = inf), at the nominal parameters of its parameter table; AMICI checks its gradient on the problem in its CI (proposal \u00a72.4)",
+    "result": "benchmark problem at its pinned commit; no numeric tolerance on the fit is stated"
+   },
+   "size": {
+    "species": 16,
+    "reactions": 32
+   }
+  },
+  {
+   "position": 9,
+   "problem": "aspartate_metabolism_curien2009",
+   "title": "Aspartate metabolism in Arabidopsis from measured kinetic parameters",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000212/BIOMD0000000212_url.xml",
+    "sha256": "249d919a20eb71e64af3d208dd746cba135571f1d363009f262e302a57c50340",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Curien G, Bastien O, Robert-Genthon M, Cornish-Bowden A, Cardenas ML, Dumas R (2009). Understanding the regulation of aspartate metabolism using a model based on measured kinetic parameters. Mol Syst Biol 5:271.",
+     "doi": "10.1038/msb.2009.29"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000212: its curation figure and curation notes (final/BIOMD0000000212/curation_notes.txt at the pinned commit): 'Reproduction of figure 7c of the original publication using Copasi 4.6. Steady states were calculated over a range of values for the maximal velocity of tRNA synthetase, V_max_AA_RS using the parameter scan task of Copasi (250 intervals from 0.15 to 2 uM/s). As steady state fluxes in the protein branches, the fluxes through the Lys, Thr, and Ile tRNA synthetase reactions were taken.'",
+    "check": "BioModels curation: the curators reproduced Fig. 7c of the paper from this file in COPASI 4.6, steady states over V_max of the tRNA synthetases (V_AA_RS) from 0.15 to 2 uM/s",
+    "result": "curated; the curation figure reproduces Fig. 7c"
+   },
+   "size": {
+    "species": 31,
+    "reactions": 18
+   }
+  },
+  {
+   "position": 10,
+   "problem": "carbohydrate_flux_oxidative_stress_ralser2007",
+   "title": "Dynamic rerouting of the carbohydrate flux under oxidative stress (glycolysis and pentose phosphate pathway)",
+   "source": {
+    "repo": "sys-bio/temp-biomodels",
+    "commit": "6a09daf46af1bb89e4857436b623a7b8720863ad",
+    "path": "final/BIOMD0000000247/BIOMD0000000247_url.xml",
+    "sha256": "9f1e5e655540d7d3fde9d023235478ef85f351a3490e2d678d60edb3d9b0fa57",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Ralser M, Wamelink MM, Kowald A, Gerisch B, Heeren G, Struys EA, Klipp E, Jakobs C, Breitenbach M, Lehrach H, Krobitsch S (2007). Dynamic rerouting of the carbohydrate flux is key to counteracting oxidative stress. J Biol 6:10.",
+     "doi": "10.1186/jbiol61"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "BioModels BIOMD0000000247: its curation figure and curation notes (final/BIOMD0000000247/curation_notes.txt at the pinned commit): 'Reproduction of figure 5 a of the original publication. Parameter scans over k_rel_TPI and k_rel_GAPDH with a subsequent steady state analysis were performed using Copasi 4.5.31.'",
+    "check": "BioModels curation: the curators reproduced Fig. 5a of the paper from this file in COPASI 4.5.31, steady states over the relative TPI and GAPDH activities (k_rel_TPI, k_rel_GAPDH)",
+    "result": "curated; the curation figure reproduces Fig. 5a"
+   },
+   "size": {
+    "species": 31,
+    "reactions": 25
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "steady_state/inflammation_rheumatoid_arthritis_baker2013/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "inflammation_rheumatoid_arthritis_baker2013",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/inflammation_rheumatoid_arthritis_baker2013/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/inflammation_rheumatoid_arthritis_baker2013/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "inflammation_rheumatoid_arthritis_baker2013",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/inflammation_rheumatoid_arthritis_baker2013/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/smallest_bistable_reaction_wilhelm2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "smallest_bistable_reaction_wilhelm2009",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/steady_state/smallest_bistable_reaction_wilhelm2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/smallest_bistable_reaction_wilhelm2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "smallest_bistable_reaction_wilhelm2009",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/smallest_bistable_reaction_wilhelm2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/mutual_activation_switch_tyson2003/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "mutual_activation_switch_tyson2003",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/mutual_activation_switch_tyson2003/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/mutual_activation_switch_tyson2003/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "mutual_activation_switch_tyson2003",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/mutual_activation_switch_tyson2003/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/mapk_double_phosphorylation_ordered_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "mapk_double_phosphorylation_ordered_markevich2004",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/mapk_double_phosphorylation_ordered_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/mapk_double_phosphorylation_ordered_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "mapk_double_phosphorylation_ordered_markevich2004",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/mapk_double_phosphorylation_ordered_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/tunable_reversible_receptor_switch_palani2011/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "tunable_reversible_receptor_switch_palani2011",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/steady_state/tunable_reversible_receptor_switch_palani2011/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/tunable_reversible_receptor_switch_palani2011/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "tunable_reversible_receptor_switch_palani2011",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/tunable_reversible_receptor_switch_palani2011/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "embryonic_stem_cell_switch_chickarmane2006",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "embryonic_stem_cell_switch_chickarmane2006",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/mapk_double_phosphorylation_random_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "mapk_double_phosphorylation_random_markevich2004",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/mapk_double_phosphorylation_random_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/mapk_double_phosphorylation_random_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "mapk_double_phosphorylation_random_markevich2004",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/mapk_double_phosphorylation_random_markevich2004/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/histone_h4_acetylation_motifs_blasi2016/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "histone_h4_acetylation_motifs_blasi2016",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/histone_h4_acetylation_motifs_blasi2016/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/histone_h4_acetylation_motifs_blasi2016/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "histone_h4_acetylation_motifs_blasi2016",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/histone_h4_acetylation_motifs_blasi2016/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/aspartate_metabolism_curien2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "aspartate_metabolism_curien2009",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/steady_state/aspartate_metabolism_curien2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/aspartate_metabolism_curien2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "aspartate_metabolism_curien2009",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/aspartate_metabolism_curien2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  },
+  {
+   "job_id": "steady_state/carbohydrate_flux_oxidative_stress_ralser2007/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+   "problem": "carbohydrate_flux_oxidative_stress_ralser2007",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/carbohydrate_flux_oxidative_stress_ralser2007/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness.json"
+  },
+  {
+   "job_id": "steady_state/carbohydrate_flux_oxidative_stress_ralser2007/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+   "problem": "carbohydrate_flux_oxidative_stress_ralser2007",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/steady_state/carbohydrate_flux_oxidative_stress_ralser2007/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing.json"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 0,
+  "total_bytes": 0,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

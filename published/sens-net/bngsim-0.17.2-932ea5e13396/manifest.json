@@ -1,0 +1,568 @@
+{
+ "schema": 1,
+ "suite": "sens-net",
+ "capabilities": [
+  "sens"
+ ],
+ "published": "2026-11-25T17:14:15Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "e26cdf2e98d8215835b1ac69d9684666cbc8cc19",
+   "eb7e3708a100cb697904413d463740463356c54d",
+   "e3110c7b2519ce852b7ab8b8f51e21847419accf",
+   "ca366c7da6b8f6899862d4257d7138def4ca5ae9"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "nfkb_reduced_onoff_jaruszewiczblonska2023",
+   "title": "Reduced canonical NF-kB pathway, TNF on-off protocol",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "pybnf-jobs/Jaruszewicz-Blonska-2023/reduced_onoff/reduced_onoff.bngl",
+    "sha256": "629bd88d72b09fee4bb395d5bb817df7d227020d9f4c657abb473e08113e4228",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Jaruszewicz-Blonska J, Kosiuk I, Prus W, Lipniacki T (2023). A plausible identifiable model of the canonical NF-kB signaling pathway. PLoS ONE 18(6):e0286416.",
+     "doi": "10.1371/journal.pone.0286416"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "pybnf-jobs/Jaruszewicz-Blonska-2023/reduced_onoff/check_author_file.py",
+    "check": "BNG2.pl only: the authors' S1 Code file (vendored as reference/upstream_fitted_reduced_model_on_off_protocol.bngl; the S1 Code zip pinned by URL and sha256 in upstream.json) beside the job file: the authors' TR = 0 hour leaves the seed unchanged (tol 1e-12), the networks are equal bar the clock, and job(t) vs authors(t + 3600) over 6 species x WT/A20KO x 145 points, tolerance 1e-5 of peak, fixed before the run",
+    "result": "pre-stimulus change 0; worst 7.7e-7 of peak"
+   },
+   "size": {
+    "species": 7,
+    "reactions": 15,
+    "sens_parameters": 13
+   }
+  },
+  {
+   "position": 2,
+   "problem": "igf1r_ligand_binding_erickson2019",
+   "title": "IGF1 binding to the IGF1 receptor dimer",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/igf1r_ligand_binding_erickson2019/igf1r_ligand_binding_erickson2019.bngl",
+    "sha256": "90672c73670a408a01cb4e660cfde9b43d827c2896171f71a8781b7b9cf13fb3",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Erickson KE, Rukhlenko OS, Shahinuzzaman M, Slavkova KP, Kholodenko BN, Hlavacek WS, et al. (2019). Modeling cell line-specific recruitment of signaling proteins to the insulin-like growth factor 1 receptor. PLoS Comput Biol 15:e1006706.",
+     "doi": "10.1371/journal.pcbi.1006706"
+    },
+    {
+     "citation": "Kiselyov VV, Versteyhe S, Gauguin L, De Meyts P (2009). Harmonic oscillator model of the insulin and IGF1 receptors' allosteric binding and activation. Mol Syst Biol 5:243.",
+     "doi": "10.1038/msb.2008.78"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "models/igf1r_ligand_binding_erickson2019/verify_erickson2019.ipynb",
+    "check": "section 3, BNG2.pl only: the authors' SI IGF1R_fit.bngl (vendored as reference/erickson2019_upstream_IGF1R_fit.bngl; the S2 archive pinned by URL and sha256 in reference/erickson2019_upstream.json) at the Table 1 estimates: 7/7 constants equal Table 1; 27 species / 96 reactions and rate laws identical, rate constants to tol 1e-6; the curated block with the authors' actions vs the authors' file, 4 outputs, tolerance 1e-5 of peak; the record's Fig. 5B scan vs the authors', tolerance 1e-4",
+    "result": "rate constants within 1.3e-7 (Avogadro digits); 4 outputs within 1.2e-7 of peak; scan +6.0e-5 to 6.2e-5 (8852.55 vs the authors' hard-coded 8852 hot-ligand copies)"
+   },
+   "size": {
+    "species": 27,
+    "reactions": 96,
+    "sens_parameters": 11
+   }
+  },
+  {
+   "position": 3,
+   "problem": "atf2_phosphoswitch_kirsch2020",
+   "title": "JNK/p38/ATF2 phosphoswitch: p38-ATF2 binding after anisomycin",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "pybnf-jobs/Kirsch-2020/p38atf2_binding/p38atf2_binding.bngl",
+    "sha256": "bedf1d8994fadb26652d56050a0bdd98c3fbdec675bc422a3b4f7e9676e35df0",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Kirsch K, Zeke A, T\u0151ke O, Sok P, Sethi A, Seb\u0151 A, Kumar GS, Egri P, P\u00f3ti \u00c1L, Gooley P, Peti W, Bento I, Rem\u00e9nyi A, Alexa A (2020). Co-regulation of the transcription controlling ATF2 phosphoswitch by JNK and p38. Nat Commun 11:5769.",
+     "doi": "10.1038/s41467-020-19582-3"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "pybnf-jobs/Kirsch-2020/p38atf2_binding/check_author_file.py",
+    "check": "BNG2.pl only: the authors' Supplementary Software 1 Bionetgen_JNK-p38-ATF2_model.bngl (vendored as reference/upstream_Bionetgen_JNK-p38-ATF2_model.bngl; the MOESM4 zip pinned by URL and sha256 in upstream.json) and the job file under the authors' equilibrate-then-stimulate protocol: 48 species / 152 reactions identical, rate laws identical except kstim7/kstim6 -> k7_act()/k6_act(); 4 observables x 2401 points, tolerance 1e-6 of peak",
+    "result": "max |difference| 0.0",
+    "supporting": "data, reported, not asserted (the Source Data's error bars admit no derived tolerance): Fig. 4a WT CTR 1/2 chi^2 41.6, median 5.8% (max 15.3%), 3/19 points beyond 3 SE"
+   },
+   "size": {
+    "species": 48,
+    "reactions": 152,
+    "sens_parameters": 21
+   }
+  },
+  {
+   "position": 4,
+   "problem": "multisite_egfr_phosphorylation_salazarcavazos2020",
+   "title": "Multisite EGFR phosphorylation (25 nM EGF time course)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/multisite_egfr_phosphorylation_salazarcavazos2020/multisite_egfr_phosphorylation_salazarcavazos2020.bngl",
+    "sha256": "d58c5de8868b988e65efd2325cc70ea523bc97126c65de10780e476e457bc7f0",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Salazar-Cavazos E, Franco Nitta C, Mitra ED, Wilson BS, Lidke KA, Hlavacek WS, Lidke DS (2020). Multisite EGFR phosphorylation is regulated by adaptor protein abundances and dimer lifetimes. Mol Biol Cell 31(7):695-708.",
+     "doi": "10.1091/mbc.E19-09-0548"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/multisite_egfr_phosphorylation_salazarcavazos2020/verify_salazarcavazos2020.ipynb",
+    "check": "section 3, BNG2.pl only: the PEtab benchmark collection's SalazarCavazos_MBoC2020 problem (Benchmark-Models-PEtab @ 4d20850; its tables vendored under BSD-3 with their LICENSE and pinned by sha256 in reference/salazarcavazos2020_upstream.json; simulatedData added 2020-03-25, before BNGsim): the 6 fitted values equal the collection's nominal values (= the authors' best-fit file digit for digit); the 18 measurements and SDs equal; the record's 18 simulated values vs the collection's published simulation, tolerance 1e-5 relative; 1/2 chi^2 against the measurements vs the published 359.70568, tolerance 0.05",
+    "result": "18 simulated values within 1.8e-8; 1/2 chi^2 359.70568, difference 4.2e-6"
+   },
+   "size": {
+    "species": 75,
+    "reactions": 618,
+    "sens_parameters": 24
+   }
+  },
+  {
+   "position": 5,
+   "problem": "cstar_skmel133_melanoma_rukhlenko2022",
+   "title": "cSTAR SKMEL-133 melanoma signalling network (ERK inhibitor)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "pybnf-jobs/Rukhlenko-2022/cstar_skmel133_bmra_exact/cstar_skmel133_bmra_exact.bngl",
+    "sha256": "4098c494a4ee0661455b7b66113695de829198cec3d8ca99d2a90b7aa6f0ae35",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Rukhlenko OS, Halasz M, Rauch N, Zhernovkov V, Prince T, Wynne K, Maher S, Kashdan E, MacLeod K, Carragher NO, Kolch W, Kholodenko BN (2022). Control of cell state transitions. Nature 609:975-985.",
+     "doi": "10.1038/s41586-022-05194-y"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "pybnf-jobs/Rukhlenko-2022/cstar_skmel133_bmra_exact/compare_upstream.py",
+    "check": "BNG2.pl / run_network only (upstream_comparison.json): the authors' SKMEL-133_models/SKMEL-133-3.bngl (OleksiiR/cSTAR_Nature @ bfb092f2, pinned by raw URL and sha256 b2e0ae87... in upstream.json; not vendored, the repository grants no licence) and the job file: species and reaction bijections (44 / 56, same order); rate coefficients, dy/dt, functions and observables at 32 sampled states, tolerance 1e-12; the authors' actions block run verbatim vs the job file with mechanically translated actions, every species, observable and function of every phase, tolerance 1e-9 of max(peak, 1e-8)",
+    "result": "0 at every sampled state; 16 phases, 15 bit-identical, 1 at 2.7e-14"
+   },
+   "size": {
+    "species": 44,
+    "reactions": 56,
+    "sens_parameters": 40
+   }
+  },
+  {
+   "position": 6,
+   "problem": "shp2_regulation_and_function_barua2007",
+   "title": "Shp2 regulation and function",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/shp2_regulation_and_function_barua2007/shp2_regulation_and_function_barua2007.bngl",
+    "sha256": "067378ad7b63bcaf6a05e05e2d78d02a20b6f5e2b19b40503dcb2165d21255ba",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Barua D, Faeder JR, Haugh JM (2007). Structure-based kinetic models of modular signaling protein function: focus on Shp2. Biophys J 92(7):2290-2300.",
+     "doi": "10.1529/biophysj.106.093484"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/shp2_regulation_and_function_barua2007/verify_barua2007.ipynb",
+    "check": "63 digitized Fig. 3 markers vs a steady-state grid, 90th-percentile distance < 0.03 asserted; Fig. 5b brackets within 0.05",
+    "result": "median 0.006, 90th percentile 0.014; Fig. 5b 0.596 vs ~0.60",
+    "supporting": "structure: 149 species and 1032 reactions, asserted equal to the paper"
+   },
+   "size": {
+    "species": 149,
+    "reactions": 1032,
+    "sens_parameters": 22
+   }
+  },
+  {
+   "position": 7,
+   "problem": "cstar_trka_ngf_rukhlenko2022",
+   "title": "cSTAR core signalling network, TrkA (NGF), DMSO arm",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "pybnf-jobs/Rukhlenko-2022/cstar_trka/cstar_trka.bngl",
+    "sha256": "1f5d6fbbba78a165a6068f3b2e0f1fa8066697856fd8be7f71fd1c550ef59def",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Rukhlenko OS, Halasz M, Rauch N, Zhernovkov V, Prince T, Wynne K, Maher S, Kashdan E, MacLeod K, Carragher NO, Kolch W, Kholodenko BN (2022). Control of cell state transitions. Nature 609:975-985.",
+     "doi": "10.1038/s41586-022-05194-y"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "pybnf-jobs/Rukhlenko-2022/cstar_trka/compare_upstream.py",
+    "check": "BNG2.pl / run_network only (upstream_comparison.json): the authors' Trk_AB_models/TrkA_S_model.bngl (OleksiiR/cSTAR_Nature @ bfb092f2, pinned by raw URL and sha256 1d19402b... in upstream.json; not vendored, the repository grants no licence) and the job file: species and reaction bijections (82 / 405, same order); rate coefficients, dy/dt, functions and observables at 32 sampled states, with Lig_on = 1 and with the authors' TRKl = 0 against the job's TRKl = 10 and Lig_on = 0, tolerance 1e-12; the authors' actions block run verbatim vs the job file with mechanically translated actions, every species, observable and function of every phase, tolerance 1e-9 of max(peak, 1e-8)",
+    "result": "0 at every sampled state; all 9 phases bit-identical"
+   },
+   "size": {
+    "species": 82,
+    "reactions": 405,
+    "sens_parameters": 88
+   }
+  },
+  {
+   "position": 8,
+   "problem": "cstar_trkb_bdnf_rukhlenko2022",
+   "title": "cSTAR core signalling network, TrkB (BDNF), DMSO arm",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "pybnf-jobs/Rukhlenko-2022/cstar_trkb/cstar_trkb.bngl",
+    "sha256": "b2483eea6b958393d8df7916981e768e7d633e776e8de61e7e82ab479a51c8c5",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Rukhlenko OS, Halasz M, Rauch N, Zhernovkov V, Prince T, Wynne K, Maher S, Kashdan E, MacLeod K, Carragher NO, Kolch W, Kholodenko BN (2022). Control of cell state transitions. Nature 609:975-985.",
+     "doi": "10.1038/s41586-022-05194-y"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "pybnf-jobs/Rukhlenko-2022/cstar_trkb/compare_upstream.py",
+    "check": "BNG2.pl / run_network only (upstream_comparison.json): the authors' Trk_AB_models/TrkB_S_model.bngl (OleksiiR/cSTAR_Nature @ bfb092f2, pinned by raw URL and sha256 6086bdef... in upstream.json; not vendored, the repository grants no licence) and the job file: species and reaction bijections (114 / 645, same order); rate coefficients, dy/dt, functions and observables at 32 sampled states, with Lig_on = 1 and with the authors' TRKl = 0 against the job's TRKl = 10 and Lig_on = 0, tolerance 1e-12; the authors' actions block run verbatim vs the job file with mechanically translated actions, every species, observable and function of every phase, tolerance 1e-9 of max(peak, 1e-8)",
+    "result": "0 at every sampled state; all 9 phases bit-identical"
+   },
+   "size": {
+    "species": 114,
+    "reactions": 645,
+    "sens_parameters": 91
+   }
+  },
+  {
+   "position": 9,
+   "problem": "cell_cycle_oscillator_lang2024",
+   "title": "RPE-1 cell-cycle oscillator (fitted)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "c2a33687e580c574ddeb299b9f119bb444a7e607",
+    "path": "models/cell_cycle_oscillator_lang2024/cell_cycle_oscillator_lang2024_fitted.bngl",
+    "sha256": "64020c9b7f7cc6c0ff584b45fedaf34777fe2ff4062ed12545d381264afa6072",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Lang PF, Penas DR, Banga JR, Weindl D, Novak B (2024). Reusable rule-based cell cycle model explains compartment-resolved dynamics of 16 observables in RPE-1 cells. PLoS Comput Biol 20(1):e1011151.",
+     "doi": "10.1371/journal.pcbi.1011151"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "models/cell_cycle_oscillator_lang2024/verify_lang2024_fitted.ipynb",
+    "check": "network and all 205 values mechanically identical to the authors' v3.2.0 release (paulflang/cell_cycle_petab @ 362b666: optimized table, PEtab wt condition); the 8 observables integrated from the generated .net vs the authors' AMICI output results_20220421/optimisation.tsv (8 x 600 points), tolerance 5e-5",
+    "result": "max relative error 5.4e-6",
+    "supporting": "equations: an ODE built only from the authors' SBML and PEtab tables agrees with the generated network to 8e-12"
+   },
+   "size": {
+    "species": 73,
+    "reactions": 332,
+    "sens_parameters": 158
+   }
+  },
+  {
+   "position": 10,
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "title": "Combinatorial EGFR signaling",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/combinatorial_egfr_signaling_blinov2006/combinatorial_egfr_signaling_blinov2006.bngl",
+    "sha256": "14f5668d43b031d4ef3e05e6b362c6ad643c617d8a74e4966a815480d3af3f4f",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Blinov ML, Faeder JR, Goldstein B, Hlavacek WS (2006). A network model of early events in epidermal growth factor receptor signaling that accounts for combinatorial complexity. BioSystems 83:136-151.",
+     "doi": "10.1016/j.biosystems.2005.06.014"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/combinatorial_egfr_signaling_blinov2006/verify_blinov2006.ipynb",
+    "check": "digitized Fig. 2 A/C/D/E network curves, RMS within 2-4 nM per panel asserted",
+    "result": "RMS 0.44 / 1.51 / 1.33 / 1.72 nM"
+   },
+   "size": {
+    "species": 356,
+    "reactions": 3749,
+    "sens_parameters": 43,
+    "psa_events": 3500000
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "sens/nfkb_reduced_onoff_jaruszewiczblonska2023/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "nfkb_reduced_onoff_jaruszewiczblonska2023",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/nfkb_reduced_onoff_jaruszewiczblonska2023/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/nfkb_reduced_onoff_jaruszewiczblonska2023/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "nfkb_reduced_onoff_jaruszewiczblonska2023",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/nfkb_reduced_onoff_jaruszewiczblonska2023/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  },
+  {
+   "job_id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "igf1r_ligand_binding_erickson2019",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness",
+   "problem": "igf1r_ligand_binding_erickson2019",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness.json"
+  },
+  {
+   "job_id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "igf1r_ligand_binding_erickson2019",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  },
+  {
+   "job_id": "sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/fitted/timing",
+   "problem": "igf1r_ligand_binding_erickson2019",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/igf1r_ligand_binding_erickson2019/bngsim-vs-amici-run_network_fd-copasi/fitted/timing.json"
+  },
+  {
+   "job_id": "sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "atf2_phosphoswitch_kirsch2020",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness",
+   "problem": "atf2_phosphoswitch_kirsch2020",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness.json"
+  },
+  {
+   "job_id": "sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "atf2_phosphoswitch_kirsch2020",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  },
+  {
+   "job_id": "sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/fitted/timing",
+   "problem": "atf2_phosphoswitch_kirsch2020",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/atf2_phosphoswitch_kirsch2020/bngsim-vs-amici-run_network_fd-copasi/fitted/timing.json"
+  },
+  {
+   "job_id": "sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "multisite_egfr_phosphorylation_salazarcavazos2020",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness",
+   "problem": "multisite_egfr_phosphorylation_salazarcavazos2020",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness.json"
+  },
+  {
+   "job_id": "sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "multisite_egfr_phosphorylation_salazarcavazos2020",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  },
+  {
+   "job_id": "sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/fitted/timing",
+   "problem": "multisite_egfr_phosphorylation_salazarcavazos2020",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/multisite_egfr_phosphorylation_salazarcavazos2020/bngsim-vs-amici-run_network_fd-copasi/fitted/timing.json"
+  },
+  {
+   "job_id": "sens/cstar_skmel133_melanoma_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "cstar_skmel133_melanoma_rukhlenko2022",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/cstar_skmel133_melanoma_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/cstar_skmel133_melanoma_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "cstar_skmel133_melanoma_rukhlenko2022",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/cstar_skmel133_melanoma_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  },
+  {
+   "job_id": "sens/shp2_regulation_and_function_barua2007/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "shp2_regulation_and_function_barua2007",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/shp2_regulation_and_function_barua2007/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/shp2_regulation_and_function_barua2007/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "shp2_regulation_and_function_barua2007",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/shp2_regulation_and_function_barua2007/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  },
+  {
+   "job_id": "sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "cstar_trka_ngf_rukhlenko2022",
+   "kind": "correctness",
+   "outcome": "UNSUPPORTED",
+   "file": "jobs/sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness",
+   "problem": "cstar_trka_ngf_rukhlenko2022",
+   "kind": "correctness",
+   "outcome": "UNSUPPORTED",
+   "file": "jobs/sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness.json"
+  },
+  {
+   "job_id": "sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "cstar_trka_ngf_rukhlenko2022",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness UNSUPPORTED"
+  },
+  {
+   "job_id": "sens/cstar_trka_ngf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/fitted/timing",
+   "problem": "cstar_trka_ngf_rukhlenko2022",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness UNSUPPORTED"
+  },
+  {
+   "job_id": "sens/cstar_trkb_bdnf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "cstar_trkb_bdnf_rukhlenko2022",
+   "kind": "correctness",
+   "outcome": "UNSUPPORTED",
+   "file": "jobs/sens/cstar_trkb_bdnf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/cstar_trkb_bdnf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness",
+   "problem": "cstar_trkb_bdnf_rukhlenko2022",
+   "kind": "correctness",
+   "outcome": "UNSUPPORTED",
+   "file": "jobs/sens/cstar_trkb_bdnf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/fitted/correctness.json"
+  },
+  {
+   "job_id": "sens/cstar_trkb_bdnf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "cstar_trkb_bdnf_rukhlenko2022",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness UNSUPPORTED"
+  },
+  {
+   "job_id": "sens/cstar_trkb_bdnf_rukhlenko2022/bngsim-vs-amici-run_network_fd-copasi/fitted/timing",
+   "problem": "cstar_trkb_bdnf_rukhlenko2022",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness UNSUPPORTED"
+  },
+  {
+   "job_id": "sens/cell_cycle_oscillator_lang2024/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "cell_cycle_oscillator_lang2024",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/cell_cycle_oscillator_lang2024/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/cell_cycle_oscillator_lang2024/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "cell_cycle_oscillator_lang2024",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/cell_cycle_oscillator_lang2024/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  },
+  {
+   "job_id": "sens/combinatorial_egfr_signaling_blinov2006/bngsim-vs-amici-run_network_fd-copasi/auto/correctness",
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/sens/combinatorial_egfr_signaling_blinov2006/bngsim-vs-amici-run_network_fd-copasi/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/combinatorial_egfr_signaling_blinov2006/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/combinatorial_egfr_signaling_blinov2006/bngsim-vs-amici-run_network_fd-copasi/auto/timing.json"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 0,
+  "total_bytes": 0,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

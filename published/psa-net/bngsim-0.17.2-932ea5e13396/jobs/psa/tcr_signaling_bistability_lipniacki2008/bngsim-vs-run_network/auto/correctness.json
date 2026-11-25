@@ -1,0 +1,2610 @@
+{
+ "capability": "psa",
+ "engines": "bngsim-vs-run_network",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "44f270634d38b7f316b287df0cc8ca4579f351f0",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "psa/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network/auto/correctness",
+ "key": "112793560124c6b4c4a523f9a3b91bcb1c662f9118cdc1cf961ded2488938960",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "accuracy": {
+     "flag_from_poplevel": 100,
+     "means": "permutation max-T on means/1"
+    },
+    "harness": "psa/bngsim-vs-run_network/1",
+    "protocol": {
+     "exact_replicates": 100,
+     "n_steps": 60,
+     "netgen": "generate_network({overwrite=>1})",
+     "poplevels": [
+      10,
+      30,
+      100,
+      300,
+      1000
+     ],
+     "replicates": 200,
+     "seed": 1,
+     "t_end": 600,
+     "timing_replicates": 1
+    },
+    "setting": {
+     "exact": "ssa",
+     "method": "psa",
+     "propensities": "auto"
+    },
+    "source_sha256": "82c8d6184c995b38ec82ad19c0ae1e25189b12d3a1dddeeca5b8a7e178436c6d",
+    "verdict": {
+     "alpha": 0.001,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "psa/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "engine_budget_seconds": 1936.0,
+  "engines": {
+   "bngsim": {
+    "codegen_seconds": 1.1101797869196162,
+    "cold_seconds": 575.5207535990048,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 574.4038736680523,
+    "events_per_trajectory": {
+     "max": 12425152.0,
+     "mean": 11310837.47,
+     "median": 11592377.0
+    },
+    "first_seed": 1,
+    "load_seconds": 0.006007844931446016,
+    "method": "ssa",
+    "propensity_backend": "interpreted"
+   },
+   "bngsim@nc=10": {
+    "codegen_seconds": 0.0027802729746326804,
+    "cold_seconds": 26.09461727598682,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 26.085172033985145,
+    "events_per_trajectory": {
+     "max": 115922.0,
+     "mean": 88352.265,
+     "median": 87478.5
+    },
+    "first_seed": 20000001,
+    "load_seconds": 0.005961572984233499,
+    "method": "psa",
+    "poplevel": 10.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 12,
+      "value": 6805.673301432927
+     },
+     "peak_population": 295646.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      46
+     ],
+     "speedup": {
+      "max": 151.0793183410908,
+      "mean": 127.33821972186692,
+      "median": 130.77868695700505,
+      "min": 35.867577918158496
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=100": {
+    "codegen_seconds": 0.0014928780728951097,
+    "cold_seconds": 93.07182513095904,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 93.06665561092086,
+    "events_per_trajectory": {
+     "max": 561685.0,
+     "mean": 479147.375,
+     "median": 477806.0
+    },
+    "first_seed": 60000001,
+    "load_seconds": 0.003281818935647607,
+    "method": "psa",
+    "poplevel": 100.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 12,
+      "value": 738.6512857413043
+     },
+     "peak_population": 295169.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+     ],
+     "speedup": {
+      "max": 29.634407316188447,
+      "mean": 24.08276445659551,
+      "median": 24.335807451327568,
+      "min": 14.50069220063911
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=1000": {
+    "codegen_seconds": 0.0015418010298162699,
+    "cold_seconds": 387.3477015179815,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 387.3425646960968,
+    "events_per_trajectory": {
+     "max": 2633125.0,
+     "mean": 1948059.73,
+     "median": 1913485.0
+    },
+    "first_seed": 100000001,
+    "load_seconds": 0.0032285209745168686,
+    "method": "psa",
+    "poplevel": 1000.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 12,
+      "value": 67.71040867508272
+     },
+     "peak_population": 295103.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+     ],
+     "speedup": {
+      "max": 6.770875329161874,
+      "mean": 5.861149277332638,
+      "median": 5.969577568221004,
+      "min": 2.7452370526722722
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=30": {
+    "codegen_seconds": 0.0027775970520451665,
+    "cold_seconds": 40.464167688041925,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 40.45468530990183,
+    "events_per_trajectory": {
+     "max": 239603.0,
+     "mean": 171555.17,
+     "median": 168374.0
+    },
+    "first_seed": 40000001,
+    "load_seconds": 0.005989992991089821,
+    "method": "psa",
+    "poplevel": 30.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 11,
+      "value": 2191.6883853892405
+     },
+     "peak_population": 295229.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+     ],
+     "speedup": {
+      "max": 81.93550863261082,
+      "mean": 66.47871449360076,
+      "median": 68.57445428085208,
+      "min": 20.640568281857597
+     },
+     "trajectories": 200
+    }
+   },
+   "bngsim@nc=300": {
+    "codegen_seconds": 0.0015024060849100351,
+    "cold_seconds": 200.86990564293228,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 200.8645944580203,
+    "events_per_trajectory": {
+     "max": 1286306.0,
+     "mean": 1073883.44,
+     "median": 1088601.0
+    },
+    "first_seed": 80000001,
+    "load_seconds": 0.0034268730087205768,
+    "method": "psa",
+    "poplevel": 300.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 12,
+      "value": 249.51370127323108
+     },
+     "peak_population": 295119.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+     ],
+     "speedup": {
+      "max": 12.109540383732094,
+      "mean": 10.567084253865833,
+      "median": 10.623675368790057,
+      "min": 3.984250777805952
+     },
+     "trajectories": 200
+    }
+   },
+   "run_network": {
+    "cold_seconds": 788.6810355919879,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 788.6804672629805,
+    "first_seed": 10000001,
+    "method": "ssa (direct method)",
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=10": {
+    "cold_seconds": 32.617096825968474,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "10",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 32.61648438090924,
+    "first_seed": 30000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 10.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=100": {
+    "cold_seconds": 91.20012105104979,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "100",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 91.1990049580345,
+    "first_seed": 70000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 100.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=1000": {
+    "cold_seconds": 352.37708746502176,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "1000",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 352.37598272704054,
+    "first_seed": 110000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 1000.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=30": {
+    "cold_seconds": 45.584917069994844,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "30",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 45.58378367498517,
+    "first_seed": 50000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 30.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=300": {
+    "cold_seconds": 178.64238130894955,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "300",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "10.0",
+     "60"
+    ],
+    "ensemble_seconds": 178.641318865004,
+    "first_seed": 90000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 300.0,
+    "seeds": "first_seed + i for trajectory i"
+   }
+  },
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "ERK(s~p)": 24886.2,
+     "ERK(s~pp)": 246272.82,
+     "ERK(s~u)": 28840.98,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.1,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.71,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.42,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.81,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.21,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.12,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.86,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.63,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.92,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99989.22,
+     "MEK(s~p)": 21351.97,
+     "MEK(s~pp)": 13777.9,
+     "MEK(s~u)": 64870.13,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.21,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23906.97,
+     "SHP1(tcr,y~p)": 11999.96,
+     "SHP1(tcr,y~u)": 264086.23,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 2.09,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6076.95,
+     "ZAP70(y~p)": 219.2,
+     "ZAP70(y~u)": 99780.8,
+     "pMHC(p~ag)": 13.92,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 106129427.25252527,
+     "ERK(s~pp)": 659663511.1793942,
+     "ERK(s~u)": 241018127.49454546,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.2222222222222219,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.5312121212121214,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.3470707070707073,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7413131313131311,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.2483838383838385,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.12686868686868696,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.9498989898989891,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.548585858585858,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7208080808080809,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 6.799595959595954,
+     "MEK(s~p)": 11639865.74656565,
+     "MEK(s~pp)": 36663995.64646465,
+     "MEK(s~u)": 80795118.80111113,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.3998989898989898,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 71719.84757575758,
+     "SHP1(tcr,y~p)": 476836.4630303032,
+     "SHP1(tcr,y~u)": 898321.613232323,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 2.001919191919194,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 71638.93686868688,
+     "ZAP70(y~p)": 10285.353535353526,
+     "ZAP70(y~u)": 10285.35353535353,
+     "pMHC(p~ag)": 6.660202020202018,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 100
+   },
+   "bngsim@nc=10": {
+    "final_mean": {
+     "ERK(s~p)": 27830.365,
+     "ERK(s~pp)": 236582.135,
+     "ERK(s~u)": 35587.5,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.115,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.69,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.375,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.705,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.2,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.13,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.735,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.675,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.825,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99989.55,
+     "MEK(s~p)": 21382.095,
+     "MEK(s~pp)": 13256.91,
+     "MEK(s~u)": 65360.995,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.595,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 24033.785,
+     "SHP1(tcr,y~p)": 12087.395,
+     "SHP1(tcr,y~u)": 263871.55,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.635,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 5950.535,
+     "ZAP70(y~p)": 220.615,
+     "ZAP70(y~u)": 99779.385,
+     "pMHC(p~ag)": 14.32,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 224096627.4590703,
+     "ERK(s~pp)": 1856876413.454046,
+     "ERK(s~u)": 961158619.1155779,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.9364572864321606,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6672361809045252,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.074748743718593,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7115326633165819,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.19095477386934623,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.12371859296482395,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7384673366834162,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.0847989949748755,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7380653266331657,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 8.077889447236172,
+     "MEK(s~p)": 29419823.593944713,
+     "MEK(s~pp)": 51700643.408944726,
+     "MEK(s~u)": 127184776.82912059,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.478366834170852,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 2648640.461080401,
+     "SHP1(tcr,y~p)": 4115863.184899495,
+     "SHP1(tcr,y~u)": 4769752.701005023,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.830929648241207,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 2645324.7424874357,
+     "ZAP70(y~p)": 15708.690226130655,
+     "ZAP70(y~u)": 15708.690226130664,
+     "pMHC(p~ag)": 9.937286432160793,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=100": {
+    "final_mean": {
+     "ERK(s~p)": 23799.61,
+     "ERK(s~pp)": 249065.57,
+     "ERK(s~u)": 27134.82,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.125,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.83,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.795,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.785,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.215,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.095,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.71,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.655,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.835,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99988.955,
+     "MEK(s~p)": 22001.595,
+     "MEK(s~pp)": 14472.005,
+     "MEK(s~u)": 63526.4,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.855,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23928.085,
+     "SHP1(tcr,y~p)": 11943.975,
+     "SHP1(tcr,y~u)": 264120.43,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.7,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6055.315,
+     "ZAP70(y~p)": 243.42,
+     "ZAP70(y~u)": 99756.58,
+     "pMHC(p~ag)": 13.4,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 95149662.33959793,
+     "ERK(s~pp)": 504439188.9397992,
+     "ERK(s~u)": 167371866.2186935,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.9440954773869347,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.7448241206030134,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.716557788944723,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7625879396984916,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.1997738693467335,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.10650753768844264,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.6692462311557785,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 2.9306281407035217,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8922361809045228,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 7.6612814070351645,
+     "MEK(s~p)": 11021305.578869345,
+     "MEK(s~pp)": 39019908.14570352,
+     "MEK(s~u)": 80704973.16582909,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.501482412060302,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 329226.6309296483,
+     "SHP1(tcr,y~p)": 739092.7079145729,
+     "SHP1(tcr,y~u)": 1198214.5377889448,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.4572864321608041,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 328701.3927386935,
+     "ZAP70(y~p)": 12179.551356783923,
+     "ZAP70(y~u)": 12179.551356783926,
+     "pMHC(p~ag)": 7.075376884422106,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=1000": {
+    "final_mean": {
+     "ERK(s~p)": 24651.32,
+     "ERK(s~pp)": 246792.905,
+     "ERK(s~u)": 28555.775,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.115,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.71,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.765,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.77,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.19,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.145,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.74,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 4.015,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.895,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99988.655,
+     "MEK(s~p)": 21831.51,
+     "MEK(s~pp)": 14113.29,
+     "MEK(s~u)": 64055.2,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.535,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23923.115,
+     "SHP1(tcr,y~p)": 12013.07,
+     "SHP1(tcr,y~u)": 264056.265,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.725,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6060.28,
+     "ZAP70(y~p)": 233.135,
+     "ZAP70(y~u)": 99766.865,
+     "pMHC(p~ag)": 13.395,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 103211310.27899505,
+     "ERK(s~pp)": 689591534.0060053,
+     "ERK(s~u)": 267189491.62248752,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.9967587939698487,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6591959798994974,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.7334422110552743,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.6805025125628122,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.18482412060301504,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.13464824120603064,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.6456281407035178,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.462085427135678,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.9386683417085425,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 7.885402010050256,
+     "MEK(s~p)": 10451071.30643216,
+     "MEK(s~pp)": 39489158.488341704,
+     "MEK(s~u)": 78624006.58291468,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 2.863090452261304,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 99201.54952261316,
+     "SHP1(tcr,y~p)": 554135.201105528,
+     "SHP1(tcr,y~u)": 1022964.8892211047,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.8285175879396982,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 99075.23778894472,
+     "ZAP70(y~p)": 11986.509321608039,
+     "ZAP70(y~u)": 11986.509321608026,
+     "pMHC(p~ag)": 8.36077889447236,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=30": {
+    "final_mean": {
+     "ERK(s~p)": 25132.21,
+     "ERK(s~pp)": 245883.675,
+     "ERK(s~u)": 28984.115,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.06,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.645,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.8,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.9,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.185,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.155,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.665,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 4.06,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.84,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99988.69,
+     "MEK(s~p)": 21965.105,
+     "MEK(s~pp)": 14145.285,
+     "MEK(s~u)": 63889.61,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.515,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23900.535,
+     "SHP1(tcr,y~p)": 11974.525,
+     "SHP1(tcr,y~u)": 264117.365,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.635,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6083.005,
+     "ZAP70(y~p)": 229.58,
+     "ZAP70(y~u)": 99770.42,
+     "pMHC(p~ag)": 13.54,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 137918003.20190954,
+     "ERK(s~pp)": 822123113.7782658,
+     "ERK(s~u)": 312370497.7605779,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.0818090452261326,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6522361809045234,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.4221105527638183,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8442211055276387,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.18168341708542657,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.14168341708542784,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.67615577889447,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.9059296482412105,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8084422110552762,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 6.938592964824118,
+     "MEK(s~p)": 16117051.61203518,
+     "MEK(s~pp)": 44429707.64198492,
+     "MEK(s~u)": 88964984.06824121,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 2.8640954773869343,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 942236.5314321608,
+     "SHP1(tcr,y~p)": 1747109.5571608054,
+     "SHP1(tcr,y~u)": 2130401.4188693482,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.5495226130653272,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 941028.7487185932,
+     "ZAP70(y~p)": 11331.46090452262,
+     "ZAP70(y~u)": 11331.46090452262,
+     "pMHC(p~ag)": 7.113969849246232,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "bngsim@nc=300": {
+    "final_mean": {
+     "ERK(s~p)": 24357.63,
+     "ERK(s~pp)": 246437.255,
+     "ERK(s~u)": 29205.115,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.085,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.76,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.695,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.14,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.13,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.745,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.885,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.81,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99988.95,
+     "MEK(s~p)": 21608.17,
+     "MEK(s~pp)": 14086.255,
+     "MEK(s~u)": 64305.575,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.61,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23953.935,
+     "SHP1(tcr,y~p)": 12038.07,
+     "SHP1(tcr,y~u)": 264000.5,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.82,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6029.585,
+     "ZAP70(y~p)": 230.61,
+     "ZAP70(y~u)": 99769.39,
+     "pMHC(p~ag)": 13.52,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 93119394.28452262,
+     "ERK(s~pp)": 911135763.356759,
+     "ERK(s~u)": 547509219.9414824,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.2037939698492448,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.7863316582914563,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.2130402010050263,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7035175879396983,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.14110552763819117,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.12371859296482396,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.6632914572864331,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 2.7756532663316578,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.6873366834170855,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 6.258793969849238,
+     "MEK(s~p)": 14882317.890552761,
+     "MEK(s~pp)": 35575203.8090201,
+     "MEK(s~u)": 85155524.46670856,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.20391959798995,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 152791.86007537696,
+     "SHP1(tcr,y~p)": 722679.181005025,
+     "SHP1(tcr,y~u)": 1204693.5879396985,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.5553768844221108,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 152497.30932160805,
+     "ZAP70(y~p)": 10734.249145728641,
+     "ZAP70(y~u)": 10734.249145728634,
+     "pMHC(p~ag)": 6.944321608040203,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "run_network": {
+    "final_mean": {
+     "ERK(s~p)": 26447.3,
+     "ERK(s~pp)": 242844.74,
+     "ERK(s~u)": 30707.96,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.2,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.63,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.8,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.88,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.16,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.08,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.76,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.79,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.81,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99988.89,
+     "MEK(s~p)": 21310.17,
+     "MEK(s~pp)": 12744.44,
+     "MEK(s~u)": 65945.39,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.38,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23951.76,
+     "SHP1(tcr,y~p)": 12111.65,
+     "SHP1(tcr,y~u)": 263929.42,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.87,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6031.88,
+     "ZAP70(y~p)": 212.92,
+     "ZAP70(y~u)": 99787.08,
+     "pMHC(p~ag)": 13.64,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 102799505.52525252,
+     "ERK(s~pp)": 647525675.7296969,
+     "ERK(s~u)": 239728695.85696965,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.9898989898989901,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6798989898989898,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 3.0909090909090886,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8945454545454544,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.13575757575757608,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.09454545454545443,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7094949494949488,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.177676767676765,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8019191919191918,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 7.149393939393947,
+     "MEK(s~p)": 14076067.96070707,
+     "MEK(s~pp)": 29579693.198383823,
+     "MEK(s~u)": 76217781.37161618,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 2.6420202020202033,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 109412.89131313126,
+     "SHP1(tcr,y~p)": 770804.1893939392,
+     "SHP1(tcr,y~u)": 1438482.9935353536,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.750606060606062,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 109200.59151515152,
+     "ZAP70(y~p)": 11196.700606060605,
+     "ZAP70(y~u)": 11196.700606060613,
+     "pMHC(p~ag)": 5.869090909090907,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 100
+   },
+   "run_network@nc=10": {
+    "final_mean": {
+     "ERK(s~p)": 26998.475,
+     "ERK(s~pp)": 238471.2,
+     "ERK(s~u)": 34530.325,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.13,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.715,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.37,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.77,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.215,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.11,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.765,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.795,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.745,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99989.385,
+     "MEK(s~p)": 21337.88,
+     "MEK(s~pp)": 13710.615,
+     "MEK(s~u)": 64951.505,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.83,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23925.27,
+     "SHP1(tcr,y~p)": 12210.815,
+     "SHP1(tcr,y~u)": 263856.29,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.855,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6058.43,
+     "ZAP70(y~p)": 223.59,
+     "ZAP70(y~u)": 99776.41,
+     "pMHC(p~ag)": 13.7,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 175569919.72801492,
+     "ERK(s~pp)": 1765003476.160805,
+     "ERK(s~u)": 1065442063.1551517,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.259396984924626,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6671105527638193,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.927738693467336,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8111557788944703,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.20982412060301492,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.09839195979899516,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7434924623115582,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.2391708542713564,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7838944723618093,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 7.835954773869362,
+     "MEK(s~p)": 30988858.447839197,
+     "MEK(s~pp)": 66882486.348517634,
+     "MEK(s~u)": 141428229.18590447,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.257386934673368,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 2748553.926733667,
+     "SHP1(tcr,y~p)": 4802746.734447233,
+     "SHP1(tcr,y~u)": 5355724.840100502,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.7527386934673341,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 2747261.7940703505,
+     "ZAP70(y~p)": 17846.564723618107,
+     "ZAP70(y~u)": 17846.564723618063,
+     "pMHC(p~ag)": 8.552763819095478,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "run_network@nc=100": {
+    "final_mean": {
+     "ERK(s~p)": 24772.845,
+     "ERK(s~pp)": 244643.81,
+     "ERK(s~u)": 30583.345,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.14,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.72,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.58,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.735,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.205,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.095,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.87,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.72,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.825,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99989.11,
+     "MEK(s~p)": 21883.445,
+     "MEK(s~pp)": 14091.035,
+     "MEK(s~u)": 64025.52,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.51,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23894.01,
+     "SHP1(tcr,y~p)": 12038.475,
+     "SHP1(tcr,y~u)": 264060.285,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.94,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6089.65,
+     "ZAP70(y~p)": 232.865,
+     "ZAP70(y~u)": 99767.135,
+     "pMHC(p~ag)": 13.66,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 123337863.5085176,
+     "ERK(s~pp)": 1171764989.4310558,
+     "ERK(s~u)": 691732620.7798746,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.0858291457286409,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.7151758793969855,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.1543718592964844,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7686180904522604,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.2039949748743721,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.11655778894472366,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8071356783919611,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.509145728643214,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.9089195979899496,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 7.796884422110567,
+     "MEK(s~p)": 14974383.584899498,
+     "MEK(s~pp)": 41218502.164598,
+     "MEK(s~u)": 92922687.85889448,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.3667336683417104,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 306793.52753768855,
+     "SHP1(tcr,y~p)": 1014894.9742462307,
+     "SHP1(tcr,y~u)": 1654718.7977638196,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 2.05668341708543,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 306011.09296482394,
+     "ZAP70(y~p)": 12279.283190954777,
+     "ZAP70(y~u)": 12279.283190954764,
+     "pMHC(p~ag)": 9.210452261306525,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "run_network@nc=1000": {
+    "final_mean": {
+     "ERK(s~p)": 24571.015,
+     "ERK(s~pp)": 247404.105,
+     "ERK(s~u)": 28024.88,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.075,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.695,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.73,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.865,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.205,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.16,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.725,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.745,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99989.0,
+     "MEK(s~p)": 21749.16,
+     "MEK(s~pp)": 13713.255,
+     "MEK(s~u)": 64537.585,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.585,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23866.215,
+     "SHP1(tcr,y~p)": 11903.085,
+     "SHP1(tcr,y~u)": 264223.39,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.795,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6117.405,
+     "ZAP70(y~p)": 220.915,
+     "ZAP70(y~u)": 99779.085,
+     "pMHC(p~ag)": 13.62,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 78144211.34148243,
+     "ERK(s~pp)": 441716885.5818846,
+     "ERK(s~u)": 150271366.7392966,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.0445979899497482,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6552512562814058,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.720703517587942,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8912311557788941,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.19394472361809037,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.1652261306532667,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.743718592964824,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.084798994974875,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.6431909547738699,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 6.9045226130653266,
+     "MEK(s~p)": 9980701.160201008,
+     "MEK(s~pp)": 31419085.69846732,
+     "MEK(s~u)": 69247285.64097995,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 2.8470100502512565,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 100747.42590452271,
+     "SHP1(tcr,y~p)": 490640.08821608045,
+     "SHP1(tcr,y~u)": 944940.6009045223,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.530628140703516,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 100286.19193467328,
+     "ZAP70(y~p)": 8924.902286432163,
+     "ZAP70(y~u)": 8924.902286432158,
+     "pMHC(p~ag)": 8.005628140703507,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "run_network@nc=30": {
+    "final_mean": {
+     "ERK(s~p)": 25899.775,
+     "ERK(s~pp)": 241869.445,
+     "ERK(s~u)": 32230.78,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.88,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.62,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.605,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.795,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.275,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.13,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.835,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.54,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.88,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99989.44,
+     "MEK(s~p)": 21370.705,
+     "MEK(s~pp)": 14118.95,
+     "MEK(s~u)": 64510.345,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.61,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23895.84,
+     "SHP1(tcr,y~p)": 12169.9,
+     "SHP1(tcr,y~u)": 263927.11,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.745,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6088.245,
+     "ZAP70(y~p)": 224.14,
+     "ZAP70(y~u)": 99775.86,
+     "pMHC(p~ag)": 14.085,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 174640919.09987435,
+     "ERK(s~pp)": 1576553147.0723362,
+     "ERK(s~u)": 774955766.9362819,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.9704522613065327,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6890452261306534,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.3205778894472346,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.6964572864321601,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.290829145728644,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.12371859296482399,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8520351758793967,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.1139698492462293,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.8598994974874367,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 7.24261306532663,
+     "MEK(s~p)": 17270116.590929653,
+     "MEK(s~pp)": 53016396.64070351,
+     "MEK(s~u)": 108746483.35273875,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.6159798994974883,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 1110241.0898492453,
+     "SHP1(tcr,y~p)": 2243448.5125628156,
+     "SHP1(tcr,y~u)": 2865528.188844221,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.6984673366834153,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 1109552.7587688447,
+     "ZAP70(y~p)": 14011.919999999996,
+     "ZAP70(y~u)": 14011.920000000013,
+     "pMHC(p~ag)": 8.168618090452258,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   },
+   "run_network@nc=300": {
+    "final_mean": {
+     "ERK(s~p)": 24126.035,
+     "ERK(s~pp)": 247648.535,
+     "ERK(s~u)": 28225.43,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.055,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.625,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.91,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.835,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.26,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.13,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.755,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.75,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.915,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 99988.765,
+     "MEK(s~p)": 21854.62,
+     "MEK(s~pp)": 14214.225,
+     "MEK(s~u)": 63931.155,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.605,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 23948.33,
+     "SHP1(tcr,y~p)": 12129.635,
+     "SHP1(tcr,y~u)": 263914.68,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.84,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 6034.99,
+     "ZAP70(y~p)": 224.19,
+     "ZAP70(y~u)": 99775.81,
+     "pMHC(p~ag)": 13.32,
+     "pMHC(p~en)": 0.0
+    },
+    "final_variance": {
+     "ERK(s~p)": 97009657.39072862,
+     "ERK(s~pp)": 756124142.2299248,
+     "ERK(s~u)": 338126955.19105524,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 1.0371608040200988,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.6074120603015075,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 2.3838190954773917,
+     "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7515326633165836,
+     "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)": 0.25366834170854236,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)": 0.15386934673366823,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.7788693467336669,
+     "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)": 3.3040201005025125,
+     "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~en!3)": 0.0,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)": 0.9022864321608042,
+     "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~en!2)": 0.0,
+     "LCK(s~u,tcr,y~u)": 6.773643216080414,
+     "MEK(s~p)": 11784696.990552766,
+     "MEK(s~pp)": 33438461.652638216,
+     "MEK(s~u)": 75121503.64922112,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)": 3.335653266331657,
+     "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~en!2)": 0.0,
+     "SHP1(tcr!1,y~p).TCR(ab,itam~u,lck,shp!1)": 173429.89055276389,
+     "SHP1(tcr,y~p)": 761217.9213819095,
+     "SHP1(tcr,y~u)": 1326599.1031155784,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)": 1.9240201005025122,
+     "TCR(ab!1,itam~u,lck,shp).pMHC(p~en!1)": 0.0,
+     "TCR(ab,itam~u,lck,shp)": 173192.4320603016,
+     "ZAP70(y~p)": 10092.58683417086,
+     "ZAP70(y~u)": 10092.586834170848,
+     "pMHC(p~ag)": 6.0980904522613075,
+     "pMHC(p~en)": 0.0
+    },
+    "replicates": 200
+   }
+  },
+  "netgen_seconds": 1.5145399470347911,
+  "network": {
+   "reactions": 97,
+   "species": 37
+  },
+  "psa": {
+   "accuracy": {
+    "nc=10": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 530.0,
+        "time_index": 53
+       },
+       "max": 0.28240740740740733,
+       "se": 0.09479649246672711
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "TCR(ab,itam~u,lck,shp)",
+        "species_index": 2,
+        "time": 530.0,
+        "time_index": 53
+       },
+       "max": 0.915038808908602,
+       "se": 0.35516935244789066
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.6896551724137931,
+       "passed": true,
+       "permutations": 29,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "statistic": "mean",
+        "time": 530.0,
+        "time_index": 53,
+        "z": 3.195126390499051
+       },
+       "z_max": 3.195126390499051
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "max": 212.48970166384905,
+       "median": 1.3066240948578198,
+       "min": 0.0,
+       "n_cells": 1497
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 12,
+       "value": 6805.673301432927
+      },
+      "peak_population": 295646.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17,
+       46
+      ],
+      "speedup": {
+       "max": 151.0793183410908,
+       "mean": 127.33821972186692,
+       "median": 130.77868695700505,
+       "min": 35.867577918158496
+      },
+      "trajectories": 200
+     },
+     "poplevel": 10,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 360.0,
+        "time_index": 36
+       },
+       "max": 0.24537037037037038,
+       "se": 0.09964497631524517
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "TCR(ab,itam~u,lck,shp)",
+        "species_index": 2,
+        "time": 410.0,
+        "time_index": 41
+       },
+       "max": 1.03635026782791,
+       "se": 0.2801949822768385
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.17543859649122806,
+       "passed": true,
+       "permutations": 114,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 170.0,
+        "time_index": 17,
+        "z": 3.6199580552512254
+       },
+       "z_max": 3.6199580552512254
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 20.0,
+        "time_index": 2
+       },
+       "max": 202.2602443391889,
+       "median": 1.16189959663069,
+       "min": 0.2525510204081654,
+       "n_cells": 1496
+      }
+     }
+    },
+    "nc=100": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 31,
+        "time": 130.0,
+        "time_index": 13
+       },
+       "max": 0.25765306122448983,
+       "se": 0.07515344051626949
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "ERK(s~pp)",
+        "species_index": 14,
+        "time": 50.0,
+        "time_index": 5
+       },
+       "max": 0.5412454044396525,
+       "se": 0.17419694114943493
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5,
+       "passed": true,
+       "permutations": 40,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "TCR(ab!1,itam~u,lck,shp).pMHC(p~ag!1)",
+        "species_index": 15,
+        "statistic": "mean",
+        "time": 380.0,
+        "time_index": 38,
+        "z": 3.241425442739282
+       },
+       "z_max": 3.241425442739282
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "max": 20.819610152420562,
+       "median": 1.0088821733616309,
+       "min": 0.0,
+       "n_cells": 1497
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 12,
+       "value": 738.6512857413043
+      },
+      "peak_population": 295169.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17
+      ],
+      "speedup": {
+       "max": 29.634407316188447,
+       "mean": 24.08276445659551,
+       "median": 24.335807451327568,
+       "min": 14.50069220063911
+      },
+      "trajectories": 200
+     },
+     "poplevel": 100,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 360.0,
+        "time_index": 36
+       },
+       "max": 0.2638888888888888,
+       "se": 0.0977373088517248
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 21,
+        "time": 170.0,
+        "time_index": 17
+       },
+       "max": 0.5563435506297856,
+       "se": 0.13741733661875952
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.18691588785046728,
+       "passed": true,
+       "permutations": 107,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 170.0,
+        "time_index": 17,
+        "z": 3.6108645588457953
+       },
+       "z_max": 3.6108645588457953
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 20.0,
+        "time_index": 2
+       },
+       "max": 22.017005481550125,
+       "median": 1.0403340881427097,
+       "min": 0.2525510204081646,
+       "n_cells": 1496
+      }
+     }
+    },
+    "nc=1000": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 190.0,
+        "time_index": 19
+       },
+       "max": 0.20370370370370378,
+       "se": 0.10453890544428926
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 33,
+        "time": 550.0,
+        "time_index": 55
+       },
+       "max": 0.44846127092619403,
+       "se": 0.15182374021542056
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5,
+       "passed": true,
+       "permutations": 40,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 27,
+        "statistic": "mean",
+        "time": 260.0,
+        "time_index": 26,
+        "z": 3.307492127279431
+       },
+       "z_max": 3.307492127279431
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 50.0,
+        "time_index": 5
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "max": 3.8260374035123945,
+       "median": 1.016392910629999,
+       "min": 0.0,
+       "n_cells": 1497
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 12,
+       "value": 67.71040867508272
+      },
+      "peak_population": 295103.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17
+      ],
+      "speedup": {
+       "max": 6.770875329161874,
+       "mean": 5.861149277332638,
+       "median": 5.969577568221004,
+       "min": 2.7452370526722722
+      },
+      "trajectories": 200
+     },
+     "poplevel": 1000,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 360.0,
+        "time_index": 36
+       },
+       "max": 0.28240740740740733,
+       "se": 0.09995578969158073
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 27,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "max": 0.7000000000000003,
+       "se": 0.21676006233417527
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.26666666666666666,
+       "passed": true,
+       "permutations": 75,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 170.0,
+        "time_index": 17,
+        "z": 3.5013103823896192
+       },
+       "z_max": 3.5013103823896192
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 27,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "ERK(s~u)",
+        "species_index": 12,
+        "time": 360.0,
+        "time_index": 36
+       },
+       "max": 7.3969849246231085,
+       "median": 0.8831437624079679,
+       "min": 0.17339975915498662,
+       "n_cells": 1496
+      }
+     }
+    },
+    "nc=30": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 470.0,
+        "time_index": 47
+       },
+       "max": 0.22685185185185183,
+       "se": 0.09680657937778374
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 31,
+        "time": 460.0,
+        "time_index": 46
+       },
+       "max": 0.412698185555955,
+       "se": 0.13102737771081222
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8695652173913043,
+       "passed": true,
+       "permutations": 23,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~p,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 31,
+        "statistic": "mean",
+        "time": 460.0,
+        "time_index": 46,
+        "z": 2.929328353067071
+       },
+       "z_max": 2.929328353067071
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "max": 88.09406970748896,
+       "median": 1.141177964289534,
+       "min": 0.0,
+       "n_cells": 1497
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 11,
+       "value": 2191.6883853892405
+      },
+      "peak_population": 295229.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17
+      ],
+      "speedup": {
+       "max": 81.93550863261082,
+       "mean": 66.47871449360076,
+       "median": 68.57445428085208,
+       "min": 20.640568281857597
+      },
+      "trajectories": 200
+     },
+     "poplevel": 30,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 170.0,
+        "time_index": 17
+       },
+       "max": 0.19708029197080293,
+       "se": 0.10204906520156048
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 21,
+        "time": 170.0,
+        "time_index": 17
+       },
+       "max": 0.5025038521817417,
+       "se": 0.13410646475000404
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5555555555555556,
+       "passed": true,
+       "permutations": 36,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 170.0,
+        "time_index": 17,
+        "z": 3.4070246910577686
+       },
+       "z_max": 3.4070246910577686
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 20.0,
+        "time_index": 2
+       },
+       "max": 70.76523500554728,
+       "median": 1.125449967581174,
+       "min": 0.25255102040816435,
+       "n_cells": 1496
+      }
+     }
+    },
+    "nc=300": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 510.0,
+        "time_index": 51
+       },
+       "max": 0.24537037037037027,
+       "se": 0.10700218255795757
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "LCK(s~p,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 23,
+        "time": 50.0,
+        "time_index": 5
+       },
+       "max": 0.4957811705502381,
+       "se": 0.17555169069032742
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5128205128205128,
+       "passed": true,
+       "permutations": 39,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~u,tcr,y~u)",
+        "species_index": 4,
+        "statistic": "mean",
+        "time": 260.0,
+        "time_index": 26,
+        "z": 3.2472569464128354
+       },
+       "z_max": 3.2472569464128354
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "max": 8.467006468437965,
+       "median": 1.0425204361690565,
+       "min": 0.0,
+       "n_cells": 1497
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 12,
+       "value": 249.51370127323108
+      },
+      "peak_population": 295119.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16,
+       17
+      ],
+      "speedup": {
+       "max": 12.109540383732094,
+       "mean": 10.567084253865833,
+       "median": 10.623675368790057,
+       "min": 3.984250777805952
+      },
+      "trajectories": 200
+     },
+     "poplevel": 300,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 33,
+        "time": 50.0,
+        "time_index": 5
+       },
+       "max": 0.29020979020979026,
+       "se": 0.08457893999529155
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)",
+        "species_index": 19,
+        "time": 320.0,
+        "time_index": 32
+       },
+       "max": 0.5296609092299153,
+       "se": 0.13505902583982188
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.145985401459854,
+       "passed": true,
+       "permutations": 137,
+       "replicates": [
+        200,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "LCK(s~u,tcr!1,y~p).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 21,
+        "statistic": "mean",
+        "time": 30.0,
+        "time_index": 3,
+        "z": 3.7002107911318376
+       },
+       "z_max": 3.7002107911318376
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "ERK(s~p)",
+        "species_index": 13,
+        "time": 10.0,
+        "time_index": 1
+       },
+       "at_min": {
+        "species": "LCK(s~p,tcr!1,y~p).TCR(ab!2,itam~pp,lck!1,shp).pMHC(p~ag!2)",
+        "species_index": 35,
+        "time": 20.0,
+        "time_index": 2
+       },
+       "max": 7.912017452819474,
+       "median": 0.9798499392745015,
+       "min": 0.0,
+       "n_cells": 1496
+      }
+     }
+    }
+   },
+   "flag_from_poplevel": 100,
+   "flags": [],
+   "poplevels": [
+    10,
+    30,
+    100,
+    300,
+    1000
+   ]
+  },
+  "trajectory_timeout_seconds": 121.0,
+  "zeroth_order_reactions": 0
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 7,
+ "problem": "tcr_signaling_bistability_lipniacki2008",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:46:01.675581+00:00",
+ "verdicts": {
+  "run_network": {
+   "alpha": 0.001,
+   "n_cells": 2257,
+   "n_tested": {
+    "mean": 1499,
+    "variance": 1484
+   },
+   "p_value": 0.29411764705882354,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.6574025000412056,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 68,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 1835504127,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)",
+    "species_index": 19,
+    "statistic": "mean",
+    "time": 320.0,
+    "time_index": 32,
+    "z": 3.5487127655773527
+   },
+   "z_max": 3.5487127655773527,
+   "z_max_mean": 3.5487127655773527,
+   "z_max_variance": 3.0577681223958195
+  },
+  "run_network@nc=10": {
+   "alpha": 0.001,
+   "n_cells": 2257,
+   "n_tested": {
+    "mean": 1499,
+    "variance": 1487
+   },
+   "p_value": 0.7407407407407407,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.3785959240030112,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 27,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 1596810411,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "TCR(ab,itam~u,lck,shp)",
+    "species_index": 2,
+    "statistic": "mean",
+    "time": 410.0,
+    "time_index": 41,
+    "z": 3.335345853430084
+   },
+   "z_max": 3.335345853430084,
+   "z_max_mean": 3.335345853430084,
+   "z_max_variance": 3.2253654978950967
+  },
+  "run_network@nc=100": {
+   "alpha": 0.001,
+   "n_cells": 2257,
+   "n_tested": {
+    "mean": 1499,
+    "variance": 1489
+   },
+   "p_value": 0.4444444444444444,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.4617758236825438,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 45,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 1563021450,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "SHP1(tcr,y~p)",
+    "species_index": 6,
+    "statistic": "variance",
+    "time": 360.0,
+    "time_index": 36,
+    "z": 3.4853975741460106
+   },
+   "z_max": 3.4853975741460106,
+   "z_max_mean": 3.415088727237575,
+   "z_max_variance": 3.4853975741460106
+  },
+  "run_network@nc=1000": {
+   "alpha": 0.001,
+   "n_cells": 2257,
+   "n_tested": {
+    "mean": 1499,
+    "variance": 1489
+   },
+   "p_value": 0.7407407407407407,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.2735983779358495,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 27,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 3151767335,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "LCK(s~u,tcr!1,y~u).TCR(ab!2,itam~u,lck!1,shp).pMHC(p~ag!2)",
+    "species_index": 17,
+    "statistic": "mean",
+    "time": 30.0,
+    "time_index": 3,
+    "z": 3.2344525762085206
+   },
+   "z_max": 3.2344525762085206,
+   "z_max_mean": 3.2344525762085206,
+   "z_max_variance": 2.956948255368794
+  },
+  "run_network@nc=30": {
+   "alpha": 0.001,
+   "n_cells": 2257,
+   "n_tested": {
+    "mean": 1499,
+    "variance": 1489
+   },
+   "p_value": 0.7407407407407407,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.347421182104603,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 27,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 3549136632,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "SHP1(tcr!1,y~p).TCR(ab!2,itam~u,lck,shp!1).pMHC(p~ag!2)",
+    "species_index": 19,
+    "statistic": "mean",
+    "time": 210.0,
+    "time_index": 21,
+    "z": 3.305416728526505
+   },
+   "z_max": 3.305416728526505,
+   "z_max_mean": 3.305416728526505,
+   "z_max_variance": 3.2926701936671146
+  },
+  "run_network@nc=300": {
+   "alpha": 0.001,
+   "n_cells": 2257,
+   "n_tested": {
+    "mean": 1499,
+    "variance": 1487
+   },
+   "p_value": 0.35714285714285715,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 13.416407864998739,
+    "max_z": 3.68127042515757,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 56,
+   "replicates": [
+    200,
+    200
+   ],
+   "seed": 2579376181,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "LCK(s~u,tcr!1,y~u).SHP1(tcr!2,y~p).TCR(ab!3,itam~u,lck!1,shp!2).pMHC(p~ag!3)",
+    "species_index": 25,
+    "statistic": "mean",
+    "time": 500.0,
+    "time_index": 50,
+    "z": 3.6246989518883037
+   },
+   "z_max": 3.6246989518883037,
+   "z_max_mean": 3.6246989518883037,
+   "z_max_variance": 3.0846453313037165
+  }
+ },
+ "wall_seconds": 2817.8090217820136
+}

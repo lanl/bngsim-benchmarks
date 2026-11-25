@@ -1,0 +1,673 @@
+{
+ "capability": "nf",
+ "engines": "bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "5222c720be28c8879a875b4bc6b3666ddfa0fd5b",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+ "key": "f0d5f1ea8515b03cd4aea58c867544713e9375fa16eb209ebe596474ad285844",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "nf/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/2",
+    "protocol": {
+     "actions": "simulate({method=>\"nf\",suffix=>\"nf\",t_start=>0,t_end=>120,n_steps=>60,gml=>2147483647})\n",
+     "netgen": "generate_network({overwrite=>1})",
+     "replicates": 800,
+     "seed": 1,
+     "timing_replicates": 5
+    },
+    "reference_versions": {
+     "rulemonkey": {
+      "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+      "version": "3.13.0"
+     }
+    },
+    "setting": {
+     "method": "nf_exact",
+     "session": "RuleMonkeySession"
+    },
+    "source_sha256": "7dc745c07702bb75567495b1372d64b18353c656673224644955cd53dc6955c4",
+    "verdict": {
+     "alpha": 0.001,
+     "analytic": "Bonferroni z on means and log-variances/1",
+     "independent_reference_rule": 1,
+     "outcome_rule": 2,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "nf/early_fceri_signaling_faeder2003/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "cold_seconds": 2517.9940557100344,
+   "ensemble_seconds": 2517.9746454659617,
+   "first_seed": 10000001,
+   "initialize_seconds": 8.003813802381046,
+   "load_seconds": 0.018988198949955404,
+   "method": "nf_exact",
+   "options": {
+    "block_same_complex_binding": true,
+    "molecule_limit": 2147483647
+   },
+   "session": "RuleMonkeySession",
+   "simulate_seconds": 2509.8920936573995
+  },
+  "cross_setting": {
+   "config": {
+    "cold_seconds": 1296.913425102015,
+    "ensemble_seconds": 1296.8191803080263,
+    "first_seed": 1,
+    "initialize_seconds": 35.14098714420106,
+    "load_seconds": 0.09360850194934756,
+    "method": "nf_reject",
+    "options": {
+     "block_same_complex_binding": true,
+     "molecule_limit": 2147483647
+    },
+    "session": "NfsimSession",
+    "simulate_seconds": 1261.6244330233894
+   },
+   "setting": "nf_reject",
+   "verdict": {
+    "alpha": 0.001,
+    "n_cells": 610,
+    "n_tested": {
+     "mean": 420,
+     "variance": 420
+    },
+    "p_value": 0.5263157894736842,
+    "parity_core": {
+     "frac_pass": 1.0,
+     "k": 26.832815729997478,
+     "max_z": 3.10960953180775,
+     "passed": true
+    },
+    "passed": true,
+    "permutations": 38,
+    "replicates": [
+     800,
+     800
+    ],
+    "seed": 1355455352,
+    "stopped_early": true,
+    "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+    "worst": {
+     "species": "Obs_Free_Lyn",
+     "species_index": 0,
+     "statistic": "mean",
+     "time": 118.0,
+     "time_index": 59,
+     "z": 3.1012136101926484
+    },
+    "z_max": 3.1012136101926484,
+    "z_max_mean": 3.1012136101926484,
+    "z_max_variance": 2.996616606194249
+   }
+  },
+  "engine_budget_seconds": 3600.0,
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "Obs_Free_Lyn": 6.98375,
+     "Obs_Rec_BetaP": 19.64625,
+     "Obs_Rec_Dimer": 125.4975,
+     "Obs_Rec_GammaP": 35.3025,
+     "Obs_Rec_Monomer": 274.5025,
+     "Obs_Rec_Syk": 35.1,
+     "Obs_Rec_Syk_AloopP": 17.9525,
+     "Obs_Tot_Lyn": 28.0,
+     "Obs_Tot_Rec": 400.0,
+     "Obs_Tot_Syk": 400.0
+    },
+    "final_variance": {
+     "Obs_Free_Lyn": 4.882088548185237,
+     "Obs_Rec_BetaP": 9.275204943679602,
+     "Obs_Rec_Dimer": 173.5694555694618,
+     "Obs_Rec_GammaP": 21.92089486858577,
+     "Obs_Rec_Monomer": 173.5694555694618,
+     "Obs_Rec_Syk": 21.632040050062507,
+     "Obs_Rec_Syk_AloopP": 16.968954943679595,
+     "Obs_Tot_Lyn": 0.0,
+     "Obs_Tot_Rec": 0.0,
+     "Obs_Tot_Syk": 0.0
+    },
+    "replicates": 800
+   },
+   "bngsim_ssa": {
+    "final_mean": {
+     "Obs_Free_Lyn": 6.955,
+     "Obs_Rec_BetaP": 19.7325,
+     "Obs_Rec_Dimer": 126.4825,
+     "Obs_Rec_GammaP": 35.38875,
+     "Obs_Rec_Monomer": 273.5175,
+     "Obs_Rec_Syk": 35.16875,
+     "Obs_Rec_Syk_AloopP": 17.8625,
+     "Obs_Tot_Lyn": 28.0,
+     "Obs_Tot_Rec": 400.0,
+     "Obs_Tot_Syk": 400.0
+    },
+    "final_variance": {
+     "Obs_Free_Lyn": 5.034267834793478,
+     "Obs_Rec_BetaP": 10.228729662077608,
+     "Obs_Rec_Dimer": 178.14487484355433,
+     "Obs_Rec_GammaP": 20.518271276595748,
+     "Obs_Rec_Monomer": 178.14487484355413,
+     "Obs_Rec_Syk": 20.34320244055073,
+     "Obs_Rec_Syk_AloopP": 14.384073842302904,
+     "Obs_Tot_Lyn": 0.0,
+     "Obs_Tot_Rec": 0.0,
+     "Obs_Tot_Syk": 0.0
+    },
+    "replicates": 800
+   },
+   "nf_reject": {
+    "final_mean": {
+     "Obs_Free_Lyn": 6.98125,
+     "Obs_Rec_BetaP": 19.65375,
+     "Obs_Rec_Dimer": 126.5575,
+     "Obs_Rec_GammaP": 35.55375,
+     "Obs_Rec_Monomer": 273.4425,
+     "Obs_Rec_Syk": 35.32125,
+     "Obs_Rec_Syk_AloopP": 18.04,
+     "Obs_Tot_Lyn": 28.0,
+     "Obs_Tot_Rec": 400.0,
+     "Obs_Tot_Syk": 400.0
+    },
+    "final_variance": {
+     "Obs_Free_Lyn": 4.917044743429273,
+     "Obs_Rec_BetaP": 10.249172403003762,
+     "Obs_Rec_Dimer": 169.8665269086356,
+     "Obs_Rec_GammaP": 22.350048498122728,
+     "Obs_Rec_Monomer": 169.8665269086356,
+     "Obs_Rec_Syk": 22.245855757196612,
+     "Obs_Rec_Syk_AloopP": 15.340075093867254,
+     "Obs_Tot_Lyn": 0.0,
+     "Obs_Tot_Rec": 0.0,
+     "Obs_Tot_Syk": 0.0
+    },
+    "replicates": 800
+   },
+   "nfsim": {
+    "final_mean": {
+     "Obs_Free_Lyn": 7.00375,
+     "Obs_Rec_BetaP": 19.6775,
+     "Obs_Rec_Dimer": 126.8025,
+     "Obs_Rec_GammaP": 35.56125,
+     "Obs_Rec_Monomer": 273.1975,
+     "Obs_Rec_Syk": 35.33625,
+     "Obs_Rec_Syk_AloopP": 17.62625,
+     "Obs_Tot_Lyn": 28.0,
+     "Obs_Tot_Rec": 400.0,
+     "Obs_Tot_Syk": 400.0
+    },
+    "final_variance": {
+     "Obs_Free_Lyn": 5.275330100125165,
+     "Obs_Rec_BetaP": 10.852058823529376,
+     "Obs_Rec_Dimer": 172.09611389236548,
+     "Obs_Rec_GammaP": 21.65832133917392,
+     "Obs_Rec_Monomer": 172.09611389236548,
+     "Obs_Rec_Syk": 21.933102315394212,
+     "Obs_Rec_Syk_AloopP": 14.807570400500653,
+     "Obs_Tot_Lyn": 0.0,
+     "Obs_Tot_Rec": 0.0,
+     "Obs_Tot_Syk": 0.0
+    },
+    "replicates": 800
+   },
+   "rulemonkey": {
+    "final_mean": {
+     "Obs_Free_Lyn": 7.02875,
+     "Obs_Rec_BetaP": 19.54375,
+     "Obs_Rec_Dimer": 126.3575,
+     "Obs_Rec_GammaP": 35.6275,
+     "Obs_Rec_Monomer": 273.6425,
+     "Obs_Rec_Syk": 35.40625,
+     "Obs_Rec_Syk_AloopP": 17.92375,
+     "Obs_Tot_Lyn": 28.0,
+     "Obs_Tot_Rec": 400.0,
+     "Obs_Tot_Syk": 400.0
+    },
+    "final_variance": {
+     "Obs_Free_Lyn": 5.314566645807259,
+     "Obs_Rec_BetaP": 10.906719336670823,
+     "Obs_Rec_Dimer": 170.3701564455571,
+     "Obs_Rec_GammaP": 19.941170212765947,
+     "Obs_Rec_Monomer": 170.37015644555706,
+     "Obs_Rec_Syk": 20.036256257822277,
+     "Obs_Rec_Syk_AloopP": 14.511074780976271,
+     "Obs_Tot_Lyn": 0.0,
+     "Obs_Tot_Rec": 0.0,
+     "Obs_Tot_Syk": 0.0
+    },
+    "replicates": 800
+   },
+   "run_network": {
+    "final_mean": {
+     "Obs_Free_Lyn": 6.9375,
+     "Obs_Rec_BetaP": 19.83125,
+     "Obs_Rec_Dimer": 127.075,
+     "Obs_Rec_GammaP": 35.59625,
+     "Obs_Rec_Monomer": 272.925,
+     "Obs_Rec_Syk": 35.39375,
+     "Obs_Rec_Syk_AloopP": 17.91875,
+     "Obs_Tot_Lyn": 28.0,
+     "Obs_Tot_Rec": 400.0,
+     "Obs_Tot_Syk": 400.0
+    },
+    "final_variance": {
+     "Obs_Free_Lyn": 4.997340425531915,
+     "Obs_Rec_BetaP": 11.006531602002488,
+     "Obs_Rec_Dimer": 172.37984981226492,
+     "Obs_Rec_GammaP": 21.27482947434294,
+     "Obs_Rec_Monomer": 172.379849812265,
+     "Obs_Rec_Syk": 21.122614205256607,
+     "Obs_Rec_Syk_AloopP": 16.375117334167747,
+     "Obs_Tot_Lyn": 0.0,
+     "Obs_Tot_Rec": 0.0,
+     "Obs_Tot_Syk": 0.0
+    },
+    "replicates": 800
+   }
+  },
+  "network": {
+   "reactions": 3680,
+   "species": 354
+  },
+  "observables": [
+   "Obs_Free_Lyn",
+   "Obs_Rec_Monomer",
+   "Obs_Rec_Dimer",
+   "Obs_Rec_BetaP",
+   "Obs_Rec_GammaP",
+   "Obs_Rec_Syk",
+   "Obs_Rec_Syk_AloopP",
+   "Obs_Tot_Syk",
+   "Obs_Tot_Lyn",
+   "Obs_Tot_Rec"
+  ],
+  "protocol": {
+   "complex": true,
+   "dropped": [],
+   "gml": 2147483647,
+   "phases": [
+    {
+     "duration": 120.0,
+     "get_final_state": true,
+     "n_steps": 60,
+     "sets": []
+    }
+   ],
+   "utl": null
+  },
+  "references": {
+   "bngsim_ssa": {
+    "cold_seconds": 473.56390622397885,
+    "ensemble_seconds": 466.7153427921003,
+    "first_seed": 50000001,
+    "load_seconds": 6.848106577992439,
+    "method": "ssa, on the generated network",
+    "propensity_backend": "interpreted"
+   },
+   "nfsim": {
+    "cold_seconds": 1254.0787913759705,
+    "driver": "BNG2.pl, running the protocol's actions",
+    "ensemble_seconds": 1254.0688408350106,
+    "first_seed": 20000001,
+    "nfsim_command": "NFsim -xml model_nfp0.xml -o model_nfp0.gdat -sim 120 -oSteps 60 -cb -gml 2147483647 -seed <seed>",
+    "nfsim_simulate_cpu_seconds": 954.8840510000002,
+    "nfsim_total_cpu_seconds": 971.7619560000005,
+    "reactions": 120013772,
+    "seeds": "first_seed + i for trajectory i (+ 10**6 per later step)",
+    "version": "1.14.3",
+    "xml_matches_harness": true
+   },
+   "rulemonkey": {
+    "cold_seconds": 2462.487844408024,
+    "command": [
+     "rm_driver",
+     "model.xml",
+     "120.0",
+     "60",
+     "<seed>"
+    ],
+    "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+    "ensemble_seconds": 2462.4868561889743,
+    "first_seed": 30000001,
+    "lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+    "rm_simulate_seconds": 2454.671819999997,
+    "version": "3.13.0"
+   },
+   "run_network": {
+    "cold_seconds": 1653.1391258980148,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "0",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "2.0",
+     "60"
+    ],
+    "ensemble_seconds": 1653.1381241049385,
+    "first_seed": 40000001,
+    "method": "ssa (direct method), on the generated network"
+   }
+  },
+  "rulemonkey_lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+  "same_seed": {
+   "engine": "rulemonkey",
+   "identical": 5,
+   "max_abs_difference": 0.0,
+   "trajectories": 5
+  },
+  "ssa_netgen_seconds": 5.920010352041572,
+  "xml_seconds": 1.2068954210262746,
+  "xml_sha256": "85c006e75febacf6c120a4cf599808a846fd6424b64fd930aa6961312e9e550e"
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 4,
+ "problem": "early_fceri_signaling_faeder2003",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:12:55+00:00",
+   "from_key": "059a51db5584f71c2de348e116a71a7be9f09a16a09fd432b9f1dbc42fe23bdb",
+   "from_outcome": "PASS",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": {
+    "alpha": 0.001,
+    "analytic": "Bonferroni z on means and log-variances/1",
+    "independent_reference_rule": 1,
+    "outcome_rule": 2,
+    "permutations": 1999,
+    "stop_exceedances": 20,
+    "two_sample": "permutation max-T on means and variances/1"
+   }
+  }
+ ],
+ "schema": 1,
+ "setting": "nf_exact",
+ "started": "2026-11-24T21:00:21.455399+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "bngsim_ssa",
+   "cross_setting",
+   "nfsim",
+   "observables",
+   "rulemonkey",
+   "run_network",
+   "times"
+  ],
+  "bytes": 2169523,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 53833128 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "0b7cdaf4ab10070ac4f578d0382e0faa4b314e590a532fa326a496ecd146814a"
+ },
+ "verdict_basis": {
+  "independent": [
+   "nfsim",
+   "run_network",
+   "bngsim_ssa"
+  ],
+  "same_lineage": [
+   "rulemonkey"
+  ]
+ },
+ "verdicts": {
+  "bngsim_ssa": {
+   "alpha": 0.001,
+   "n_cells": 610,
+   "n_tested": {
+    "mean": 420,
+    "variance": 419
+   },
+   "p_value": 0.37037037037037035,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 26.832815729997478,
+    "max_z": 3.403611598508696,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 54,
+   "replicates": [
+    800,
+    800
+   ],
+   "seed": 880097667,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Obs_Rec_BetaP",
+    "species_index": 3,
+    "statistic": "mean",
+    "time": 62.0,
+    "time_index": 31,
+    "z": 3.3924021243524503
+   },
+   "z_max": 3.3924021243524503,
+   "z_max_mean": 3.3924021243524503,
+   "z_max_variance": 3.3022294856293635
+  },
+  "nfsim": {
+   "alpha": 0.001,
+   "n_cells": 610,
+   "n_tested": {
+    "mean": 420,
+    "variance": 420
+   },
+   "p_value": 0.8695652173913043,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 26.832815729997478,
+    "max_z": 2.227354384842957,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 23,
+   "replicates": [
+    800,
+    800
+   ],
+   "seed": 1468060454,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Obs_Rec_Syk_AloopP",
+    "species_index": 6,
+    "statistic": "variance",
+    "time": 86.0,
+    "time_index": 43,
+    "z": 2.7078435087262402
+   },
+   "z_max": 2.7078435087262402,
+   "z_max_mean": 2.224600653786344,
+   "z_max_variance": 2.7078435087262402
+  },
+  "rulemonkey": {
+   "alpha": 0.001,
+   "n_cells": 610,
+   "n_tested": {
+    "mean": 420,
+    "variance": 419
+   },
+   "p_value": 0.5128205128205128,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 26.832815729997478,
+    "max_z": 3.085354991058656,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 39,
+   "replicates": [
+    800,
+    800
+   ],
+   "same_lineage": true,
+   "seed": 706327611,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Obs_Free_Lyn",
+    "species_index": 0,
+    "statistic": "mean",
+    "time": 24.0,
+    "time_index": 12,
+    "z": 3.077168359026882
+   },
+   "z_max": 3.077168359026882,
+   "z_max_mean": 3.077168359026882,
+   "z_max_variance": 2.9792981058711336
+  },
+  "run_network": {
+   "alpha": 0.001,
+   "n_cells": 610,
+   "n_tested": {
+    "mean": 420,
+    "variance": 420
+   },
+   "p_value": 0.625,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 26.832815729997478,
+    "max_z": 2.5953062476919357,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 32,
+   "replicates": [
+    800,
+    800
+   ],
+   "seed": 4090694230,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Obs_Rec_BetaP",
+    "species_index": 3,
+    "statistic": "variance",
+    "time": 80.0,
+    "time_index": 40,
+    "z": 2.904907233484612
+   },
+   "z_max": 2.904907233484612,
+   "z_max_mean": 2.590664049653885,
+   "z_max_variance": 2.904907233484612
+  }
+ },
+ "wall_seconds": 9679.958302490995
+}

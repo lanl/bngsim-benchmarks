@@ -1,0 +1,508 @@
+{
+ "schema": 1,
+ "suite": "sens-sbml",
+ "capabilities": [
+  "sens"
+ ],
+ "published": "2026-11-25T17:14:19Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "ac002795beda96290c7d6fbd44d4a71819186ec0",
+   "c6813bd1739390300717276640ccf5ec5a79f0e5"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "sphingolipid_rheostat_apoptosis_armistead2024",
+   "title": "A sphingolipid rheostat controls apoptosis versus apical cell extrusion",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Armistead_CellDeathDis2024/model_Armistead_CellDeathDis2024.xml",
+    "sha256": "09ee7897c13f94de0fb0c9fa5c9e3ebce88f04b86076abe325eb4c63c474e734",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Armistead J, Hoepfl S, Goldhausen P, Mueller-Hartmann A, Fahle E, Hatzold J et al. (2024). A sphingolipid rheostat controls apoptosis versus apical cell extrusion as alternative tumour-suppressive mechanisms. Cell Death Dis 15:746.",
+     "doi": "10.1038/s41419-024-07134-2"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Armistead_CellDeathDis2024 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; no stored log-likelihood (gradient check only)"
+   },
+   "size": {
+    "species": 4,
+    "reactions": 8,
+    "conditions": 2,
+    "measurements": 58,
+    "sens_parameters": 10
+   }
+  },
+  {
+   "position": 2,
+   "problem": "stat5_dimerization_isoforms_boehm2014",
+   "title": "Isoform-specific dynamics of phosphorylation-dependent STAT5 dimerization",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Boehm_JProteomeRes2014/model_Boehm_JProteomeRes2014.xml",
+    "sha256": "90fc7f262efd9a2878e8ae0321cfdd66339b18e9573f4aba1469b6268d572ea2",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Boehm ME, Adlung L, Schilling M, Roth S, Klingmueller U, Lehmann WD (2014). Identification of isoform-specific dynamics in phosphorylation-dependent STAT5 dimerization by quantitative mass spectrometry and mathematical modeling. J Proteome Res 13:5685-5694.",
+     "doi": "10.1021/pr5006923"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Boehm_JProteomeRes2014 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal -138.22199693517703"
+   },
+   "size": {
+    "species": 8,
+    "reactions": 9,
+    "conditions": 1,
+    "measurements": 48,
+    "sens_parameters": 6
+   }
+  },
+  {
+   "position": 3,
+   "problem": "ip3_receptor_type2_dynamics_sneyd2002",
+   "title": "A dynamic model of the type-2 inositol trisphosphate receptor",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Sneyd_PNAS2002/model_Sneyd_PNAS2002.xml",
+    "sha256": "2c3b5e5ffe2f62c19a28bf3261d5aa0582f862ce6b64532737c87a070f7ca592",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Sneyd J, Dufour JF (2002). A dynamic model of the type-2 inositol trisphosphate receptor. Proc Natl Acad Sci USA 99:2398-2403.",
+     "doi": "10.1073/pnas.032281999"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Sneyd_PNAS2002 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 319.79177818768756"
+   },
+   "size": {
+    "species": 6,
+    "reactions": 10,
+    "conditions": 9,
+    "measurements": 135,
+    "sens_parameters": 14
+   }
+  },
+  {
+   "position": 4,
+   "problem": "akt_pathway_low_pass_filter_fujita2010",
+   "title": "Decoupling of receptor and downstream signals in the Akt pathway by its low-pass filter characteristics",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Fujita_SciSignal2010/model_Fujita_SciSignal2010.xml",
+    "sha256": "7c98367f2210b1d10b3e3edbb9d80153f8f010b7f222c6899b5d94bbf44cc6b8",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Fujita KA, Toyoshima Y, Uda S, Ozaki Y, Kubota H, Kuroda S (2010). Decoupling of receptor and downstream signals in the Akt pathway by its low-pass filter characteristics. Sci Signal 3:ra56.",
+     "doi": "10.1126/scisignal.2000810"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Fujita_SciSignal2010 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 53.08377736998929"
+   },
+   "size": {
+    "species": 9,
+    "reactions": 11,
+    "conditions": 6,
+    "measurements": 144,
+    "sens_parameters": 16
+   }
+  },
+  {
+   "position": 5,
+   "problem": "il13_signaling_lymphoma_raia2011",
+   "title": "IL13-induced signaling in Hodgkin and primary mediastinal B-cell lymphoma",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Raia_CancerResearch2011/model_Raia_CancerResearch2011.xml",
+    "sha256": "62c639dd80abbd243a5f2ce9aa804226d436cd65c1561a05e27e6cfd6eb0f8ef",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Raia V, Schilling M, Boehm M, Hahn B, Kowarsch A, Raue A et al. (2011). Dynamic mathematical modeling of IL13-induced signaling in Hodgkin and primary mediastinal B-cell lymphoma allows prediction of therapeutic targets. Cancer Res 71:693-704.",
+     "doi": "10.1158/0008-5472.CAN-10-2987"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Raia_CancerResearch2011 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; no stored log-likelihood (gradient check only)"
+   },
+   "size": {
+    "species": 14,
+    "reactions": 16,
+    "conditions": 4,
+    "measurements": 205,
+    "sens_parameters": 18
+   }
+  },
+  {
+   "position": 6,
+   "problem": "covid19_italy_interventions_giordano2020",
+   "title": "Modelling the COVID-19 epidemic and population-wide interventions in Italy (SIDARTHE)",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Giordano_Nature2020/model_Giordano_Nature2020.xml",
+    "sha256": "1855fb5673300b7b1fc0890d5d5d810deb7731101dc227b6cb16042b0c615675",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Giordano G, Blanchini F, Bruno R, Colaneri P, Di Filippo A, Di Matteo A, Colaneri M (2020). Modelling the COVID-19 epidemic and implementation of population-wide interventions in Italy. Nat Med 26:855-860.",
+     "doi": "10.1038/s41591-020-0883-7"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Giordano_Nature2020 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; no stored log-likelihood (gradient check only)"
+   },
+   "size": {
+    "species": 13,
+    "reactions": 13,
+    "conditions": 1,
+    "measurements": 313,
+    "sens_parameters": 43
+   }
+  },
+  {
+   "position": 7,
+   "problem": "histone_h3_k27_k36_methylation_zheng2012",
+   "title": "Combinatorial methylation of histone H3 lysines 27 and 36",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Zheng_PNAS2012/model_Zheng_PNAS2012.xml",
+    "sha256": "68e26bf1ac80f59241f43e1c8072649f2369140b4499b80393f8869d45cbb2cb",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Zheng Y, Sweet SMM, Popovic R, Martinez-Garcia E, Tipton JD, Thomas PM et al. (2012). Total kinetic analysis reveals how combinatorial methylation patterns are established on lysines 27 and 36 of histone H3. Proc Natl Acad Sci USA 109:13549-13554.",
+     "doi": "10.1073/pnas.1205707109"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Zheng_PNAS2012 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: G + L",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 278.33353271001477"
+   },
+   "size": {
+    "species": 15,
+    "reactions": 60,
+    "conditions": 1,
+    "measurements": 60,
+    "sens_parameters": 45
+   }
+  },
+  {
+   "position": 8,
+   "problem": "jak2_stat5_dual_feedback_bachmann2011",
+   "title": "Dual feedback regulators of JAK2/STAT5 signaling over a broad ligand range",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Bachmann_MSB2011/model_Bachmann_MSB2011.xml",
+    "sha256": "cd7c0cead0b4b7d368b08c6b43e45d84042f799415dd47133e192ef364d18553",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Bachmann J, Raue A, Schilling M, Boehm ME, Kreutz C, Kaschek D et al. (2011). Division of labor by dual feedback regulators controls JAK2/STAT5 signaling over broad ligand range. Mol Syst Biol 7:516.",
+     "doi": "10.1038/msb.2011.50"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Bachmann_MSB2011 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: L (G skipped for runtime)",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal 418.40573341425295"
+   },
+   "size": {
+    "species": 25,
+    "reactions": 36,
+    "conditions": 36,
+    "measurements": 541,
+    "sens_parameters": 27
+   }
+  },
+  {
+   "position": 9,
+   "problem": "insulin_signalling_oxidative_stress_smith2013_petab",
+   "title": "Regulation of insulin signalling by oxidative stress (PEtab problem)",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Smith_BMCSystBiol2013/model_Smith_BMCSystBiol2013.xml",
+    "sha256": "a21f1453e81ceb8595a072cccb57ccb3c5ae1437074044640fdce1b45bced069",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Smith GR, Shanley DP (2013). Computational modelling of the regulation of insulin signalling by oxidative stress. BMC Syst Biol 7:41.",
+     "doi": "10.1186/1752-0509-7-41"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Smith_BMCSystBiol2013 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: L, against AMICI's own regression value (not part of the original benchmark collection)",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal -888198.436541014"
+   },
+   "size": {
+    "species": 133,
+    "reactions": 367,
+    "conditions": 35,
+    "measurements": 62,
+    "sens_parameters": 16
+   }
+  },
+  {
+   "position": 10,
+   "problem": "smad_complex_gene_expression_lucarelli2018",
+   "title": "Combinatorial complexity of Smad complex formation and its link to gene expression",
+   "source": {
+    "repo": "Benchmarking-Initiative/Benchmark-Models-PEtab",
+    "commit": "4d2085084b289f6215a95475b1ee639fd7d42283",
+    "path": "Benchmark-Models/Lucarelli_CellSystems2018/model_Lucarelli_CellSystems2018.xml",
+    "sha256": "a14987b1192e1af361fc2c772b73c4b599233fd55c3fb4af7de3b305e6690742",
+    "format": "sbml"
+   },
+   "publications": [
+    {
+     "citation": "Lucarelli P, Schilling M, Kreutz C, Vlasov A, Boehm ME, Iwamoto N et al. (2018). Resolving the combinatorial complexity of Smad protein complex formation and its link to gene expression. Cell Syst 6:75-89.",
+     "doi": "10.1016/j.cels.2017.11.010"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "PEtab benchmark problem Lucarelli_CellSystems2018 at Benchmark-Models-PEtab 4d20850 (the authors' model, data and fitted nominal parameters, curated by the collection); AMICI v1.1.0's own benchmark test (tests/benchmark_models/test_petab_benchmark.py at 7081843) checks it: L (G skipped for runtime)",
+    "check": "the collection holds the authors' problem; AMICI's CI run 33736681814 (2026-09-03, collection resolved to 4d20850) validated it at that commit (G: likelihood gradient vs finite differences at nominal + 5% noise; L: log-likelihood at nominal vs a stored reference)",
+    "result": "benchmark problem at its pinned commit; AMICI's stored log-likelihood at nominal -1681.6059879426584"
+   },
+   "size": {
+    "species": 33,
+    "reactions": 57,
+    "conditions": 16,
+    "measurements": 1755,
+    "sens_parameters": 69
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "sens/sphingolipid_rheostat_apoptosis_armistead2024/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "sphingolipid_rheostat_apoptosis_armistead2024",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/sphingolipid_rheostat_apoptosis_armistead2024/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/sphingolipid_rheostat_apoptosis_armistead2024/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "sphingolipid_rheostat_apoptosis_armistead2024",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/sphingolipid_rheostat_apoptosis_armistead2024/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/stat5_dimerization_isoforms_boehm2014/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "stat5_dimerization_isoforms_boehm2014",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/stat5_dimerization_isoforms_boehm2014/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/stat5_dimerization_isoforms_boehm2014/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "stat5_dimerization_isoforms_boehm2014",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/stat5_dimerization_isoforms_boehm2014/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/ip3_receptor_type2_dynamics_sneyd2002/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "ip3_receptor_type2_dynamics_sneyd2002",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/ip3_receptor_type2_dynamics_sneyd2002/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/ip3_receptor_type2_dynamics_sneyd2002/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "ip3_receptor_type2_dynamics_sneyd2002",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/ip3_receptor_type2_dynamics_sneyd2002/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/akt_pathway_low_pass_filter_fujita2010/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "akt_pathway_low_pass_filter_fujita2010",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/akt_pathway_low_pass_filter_fujita2010/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/akt_pathway_low_pass_filter_fujita2010/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "akt_pathway_low_pass_filter_fujita2010",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/akt_pathway_low_pass_filter_fujita2010/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/il13_signaling_lymphoma_raia2011/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "il13_signaling_lymphoma_raia2011",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/il13_signaling_lymphoma_raia2011/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/il13_signaling_lymphoma_raia2011/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "il13_signaling_lymphoma_raia2011",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/il13_signaling_lymphoma_raia2011/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/covid19_italy_interventions_giordano2020/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "covid19_italy_interventions_giordano2020",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/covid19_italy_interventions_giordano2020/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/covid19_italy_interventions_giordano2020/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "covid19_italy_interventions_giordano2020",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/covid19_italy_interventions_giordano2020/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/histone_h3_k27_k36_methylation_zheng2012/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "histone_h3_k27_k36_methylation_zheng2012",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/histone_h3_k27_k36_methylation_zheng2012/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/histone_h3_k27_k36_methylation_zheng2012/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "histone_h3_k27_k36_methylation_zheng2012",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/histone_h3_k27_k36_methylation_zheng2012/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/jak2_stat5_dual_feedback_bachmann2011/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "jak2_stat5_dual_feedback_bachmann2011",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/jak2_stat5_dual_feedback_bachmann2011/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/jak2_stat5_dual_feedback_bachmann2011/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "jak2_stat5_dual_feedback_bachmann2011",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/jak2_stat5_dual_feedback_bachmann2011/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/insulin_signalling_oxidative_stress_smith2013_petab/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "insulin_signalling_oxidative_stress_smith2013_petab",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/insulin_signalling_oxidative_stress_smith2013_petab/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/insulin_signalling_oxidative_stress_smith2013_petab/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "insulin_signalling_oxidative_stress_smith2013_petab",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/insulin_signalling_oxidative_stress_smith2013_petab/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  },
+  {
+   "job_id": "sens/smad_complex_gene_expression_lucarelli2018/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+   "problem": "smad_complex_gene_expression_lucarelli2018",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/sens/smad_complex_gene_expression_lucarelli2018/bngsim-vs-amici-fd_roadrunner/auto/correctness.json"
+  },
+  {
+   "job_id": "sens/smad_complex_gene_expression_lucarelli2018/bngsim-vs-amici-fd_roadrunner/auto/timing",
+   "problem": "smad_complex_gene_expression_lucarelli2018",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/sens/smad_complex_gene_expression_lucarelli2018/bngsim-vs-amici-fd_roadrunner/auto/timing.json"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 0,
+  "total_bytes": 0,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

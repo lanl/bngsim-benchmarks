@@ -1,0 +1,366 @@
+{
+ "amici_error": "RuntimeError: AMICI simulation failed with status -10",
+ "capability": "ode",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "188aefaba9919447d32a7cdda952be101c247cbc",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/segment_polarity_network_vondassow2000/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+ "key": "eee51d75b1b29b9a8aef672eb141c2567381e895a71dc5b811dd8c60e05855b2",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-09,
+     "n_steps": 220,
+     "output_start": 0,
+     "rtol": 1e-08,
+     "t_end": 1100,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "2b0a292e348f5ce6af21e812e0228b97e447fc29161b0441af78715b7d430023",
+    "verdict": 2
+   },
+   "id": "ode/segment_polarity_network_vondassow2000/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_cache_hit": null,
+   "codegen_seconds": 0.0,
+   "cold_seconds": 1.3184647449525073,
+   "input": "sbml (Model.from_sbml)",
+   "jacobian": "analytical",
+   "jacobian_seconds": 0.3239752430235967,
+   "linear_solver": "KLU",
+   "load_seconds": 0.8681595550151542
+  },
+  "derived_network": {
+   "bngsim_only": [
+    "12 assignment-rule species (e.g. 'EWG_T_0_0', 'EWG_T_0_1', 'EWG_T_0_2', \u2026) are written $-fixed as __ar_<rule> beside the function or observable that carries their rule: bngsim reads the pair as the rule, but BNG2.pl holds each species' own column at its initial value (its rate laws read the rule, so"
+   ],
+   "conversion_seconds": 1.050627056043595,
+   "converter_notes": [
+    "vonDassow2000_1x4.timecourse1.xml: a model only bngsim reads back as written \u2014 12 assignment-rule species (e.g. 'EWG_T_0_0', 'EWG_T_0_1', 'EWG_T_0_2', \u2026) are written $-fixed as __ar_<rule> beside the function or observable that carries their rule: bngsim reads the pair as the rule, but BNG2.pl holds"
+   ],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 3.4814514101545426e-14,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 0.002981683228428116,
+      "err": 1.0380585280245214e-14,
+      "err_over_peak": 3.4814514101545426e-14,
+      "index": 19,
+      "peak": 0.2981683228428116,
+      "score": 3.4814514101545426e-12,
+      "species": "wg_0_0",
+      "t": 60.0
+     }
+    }
+   },
+   "netgen_seconds": 2.5906296669272706,
+   "network": {
+    "reactions": 724,
+    "species": 148
+   },
+   "phases": 1,
+   "seconds": 6.00266830297187
+  },
+  "engine_budget_seconds": 1800.0,
+  "network": {
+   "reactions": 480,
+   "species": 148
+  },
+  "references": {
+   "copasi": {
+    "cold_seconds": 3.711483493912965,
+    "load_seconds": 1.0715417079627514,
+    "method": "deterministic (LSODA)",
+    "output": "amount",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 1.9537723140092567,
+    "integrator": "cvode",
+    "load_seconds": 1.7453108509071171,
+    "output": "concentration",
+    "reset": "resetAll",
+    "version": "2.11.0"
+   }
+  },
+  "sbml": {
+   "compared_species": 132,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [
+     "PTC_T_0_0",
+     "EWG_T_0_0",
+     "PH_T_0_0",
+     "PTC_T_0_1",
+     "EWG_T_0_1",
+     "PH_T_0_1",
+     "PTC_T_0_2",
+     "EWG_T_0_2",
+     "PH_T_0_2",
+     "PTC_T_0_3",
+     "EWG_T_0_3",
+     "PH_T_0_3"
+    ],
+    "constant": [
+     "B_0_0",
+     "B_0_1",
+     "B_0_2",
+     "B_0_3"
+    ]
+   },
+   "reactions": 480,
+   "species": 148
+  }
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 8,
+ "problem": "segment_polarity_network_vondassow2000",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:18+00:00",
+   "from_key": "9240ddc299631d9cd95cce726e016c06b47cb5c5ec4fca438eb540feb85a6a3c",
+   "from_outcome": "REFERENCE_FAILED",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": 2
+  }
+ ],
+ "run_network_error": "RuntimeError: run_network failed: Error in CVODE integration (error code -4).",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T19:44:07.435055+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "copasi",
+   "roadrunner",
+   "species",
+   "time"
+  ],
+  "bytes": 458274,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 13265983 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "d6e554fb6d04dca700199138827821c4aa7504470c3dc5036a148fe28e9520d3"
+ },
+ "verdicts": {
+  "copasi": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.6700020838148943e-06,
+   "max_err_over_peak": 1.6700020838148943e-06,
+   "max_rel": 0.0,
+   "n_cells": 29172,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     221,
+     132
+    ],
+    "reference": [
+     221,
+     132
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 132,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.002001437074579111,
+     "err": 3.342404085171502e-07,
+     "err_over_peak": 1.6700020838148943e-06,
+     "index": 5,
+     "peak": 0.20014370745791113,
+     "score": 0.00016700020838148944,
+     "species": "hh_0_0",
+     "t": 15.0
+    }
+   },
+   "vendored_passed": true
+  },
+  "roadrunner": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.746576167272942e-06,
+   "max_err_over_peak": 1.7465759495629163e-06,
+   "max_rel": 0.0,
+   "n_cells": 29172,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     221,
+     132
+    ],
+    "reference": [
+     221,
+     132
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 132,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.0029816827627438675,
+     "err": 5.20773540263475e-07,
+     "err_over_peak": 1.7465759495629163e-06,
+     "index": 19,
+     "peak": 0.29816827627438675,
+     "score": 0.00017465759495629164,
+     "species": "wg_0_0",
+     "t": 55.0
+    }
+   },
+   "vendored_passed": true
+  }
+ },
+ "wall_seconds": 79.80435087392107
+}

@@ -1,0 +1,535 @@
+{
+ "capability": "sens",
+ "engines": "bngsim-vs-amici-fd_roadrunner",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "ac002795beda96290c7d6fbd44d4a71819186ec0",
+   "dirty": false,
+   "source_sha256": "e39bd5e5b50ef99b7573795943b5e0a2724a2722f8406287c79afae27bfa7291"
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/ip3_receptor_type2_dynamics_sneyd2002/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+ "key": "bdeb30745707c1157fade60f871b69caa9d3f43d14b0fc7520d5caa1904caf0f",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-fd_roadrunner/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "petab_sha256": {
+     "conditions": "fe527b402bcccfab2edebcccbebe76f6bfc3270242921b130a1d7fe50684742e",
+     "measurements": "3b11f5ff9dbfa91b549a6de0ed2f15da950abfe418dcf13fb9df0b38f78d3864",
+     "observables": "81f236862b05b2e25fe2d6c86bafede0c1e96b3c6f0a9042ee823b20b6a4ba7e",
+     "parameters": "f2f5b61633519ce5918898daf74c5c609b3aee6511fcd9fcfb79a0bbe02b8bd6",
+     "yaml": "abd00723740ddfc5c336d307b5d99db2c4025d24303b7e4cdecb5fee827687da"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-10,
+     "fd_step": 0.001,
+     "llh_reference": 319.79177818768756,
+     "parameters": [
+      "k1",
+      "k2",
+      "k3",
+      "k4",
+      "k_1",
+      "k_2",
+      "k_3",
+      "k_4",
+      "l2",
+      "l4",
+      "l6",
+      "l_2",
+      "l_4",
+      "l_6"
+     ],
+     "preeq_max_time": 1000000.0,
+     "rtol": 1e-08
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "petab": "0.10.0",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "2c3b5e5ffe2f62c19a28bf3261d5aa0582f862ce6b64532737c87a070f7ca592",
+    "verdict": {
+     "fd_resolved": 0.1,
+     "floor_atol": 100.0,
+     "floor_rel": 0.001,
+     "gradient_tol": 0.001,
+     "llh_atol": 0.001,
+     "llh_rtol": 1e-06,
+     "metric": "semi-scaled column error/1",
+     "tol": 0.001
+    }
+   },
+   "id": "sens/ip3_receptor_type2_dynamics_sneyd2002/bngsim-vs-amici-fd_roadrunner/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "atol": "ExactAtol (scalar, held exactly)",
+   "codegen_backend": "cc",
+   "codegen_seconds": 1.9559143780497834,
+   "cold_seconds": 2.1984767789253965,
+   "gradient": [
+    0.0015352459824140748,
+    1.2999118859645559e-10,
+    0.02156186401905477,
+    -4.096776293130122e-06,
+    0.023301269006113318,
+    -7.559671578939844,
+    -0.07197828528196061,
+    0.00014028596725636962,
+    0.1306218445101174,
+    -0.025570292504346743,
+    6.796820687580257e-12,
+    -0.32370396745554936,
+    0.45393117367756924,
+    -0.0006723604081361596
+   ],
+   "gradient_magnitude": [
+    22.795563200717062,
+    1.5565752034083433e-08,
+    8.212411837349768,
+    0.0017763735198109863,
+    109.94350012878162,
+    24304.937828707658,
+    16.023203427527466,
+    0.05753747299198705,
+    234.2422558513932,
+    60.253207841671184,
+    5.563584553115714e-11,
+    437.702983401626,
+    1755.7347149085592,
+    0.005447364343243319
+   ],
+   "input": "sbml (Model.from_sbml)",
+   "linear_solver": "dense",
+   "llh": 319.79177602110786,
+   "llh_without_log_jacobian": 319.79177602110786,
+   "load_seconds": 0.1651775559876114,
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null,
+   "solve_seconds": 0.06902006093878299
+  },
+  "configurations": {
+   "bngsim_simultaneous": {
+    "max_error": 4.709173879335165e-08,
+    "max_error_observables": 4.372684813358632e-08,
+    "max_error_species": 4.709173879335165e-08,
+    "n_columns": 98,
+    "n_failed": 0,
+    "n_floored": 40,
+    "n_judged": 98,
+    "params_judged": [
+     "k1",
+     "k2",
+     "k3",
+     "k4",
+     "k_1",
+     "k_2",
+     "k_3",
+     "k_4",
+     "l2",
+     "l4",
+     "l6",
+     "l_2",
+     "l_4",
+     "l_6"
+    ],
+    "passed": true,
+    "tol": 0.001,
+    "trajectory_max_err_over_peak": 1.7629882820242816e-08,
+    "worst": {
+     "condition": "IP3_dose_response__1",
+     "error": 4.709173879335165e-08,
+     "floored": false,
+     "output": "IPR_A",
+     "parameter": "k_2",
+     "time": 0.07
+    }
+   }
+  },
+  "coverage": {
+   "n_columns": 98,
+   "n_judged": 58,
+   "n_significant": 58,
+   "unjudged": []
+  },
+  "engine_budget_seconds": 1800.0,
+  "network": {
+   "events": 0,
+   "species": 6,
+   "state_species": 6
+  },
+  "parameters": {
+   "excluded": {
+    "sigma": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)"
+   },
+   "n": 14,
+   "names": [
+    "k1",
+    "k2",
+    "k3",
+    "k4",
+    "k_1",
+    "k_2",
+    "k_3",
+    "k_4",
+    "l2",
+    "l4",
+    "l6",
+    "l_2",
+    "l_4",
+    "l_6"
+   ],
+   "scales_in_petab": {
+    "k1": "log10",
+    "k2": "log10",
+    "k3": "log10",
+    "k4": "log10",
+    "k_1": "log10",
+    "k_2": "log10",
+    "k_3": "log10",
+    "k_4": "log10",
+    "l2": "log10",
+    "l4": "log10",
+    "l6": "log10",
+    "l_2": "log10",
+    "l_4": "log10",
+    "l_6": "log10"
+   },
+   "selection": "estimated SBML parameters"
+  },
+  "petab": {
+   "condition_columns": {
+    "Ca": "parameter",
+    "IP3": "parameter"
+   },
+   "conditions": 9,
+   "estimated": 15,
+   "measurement_times": 135,
+   "measurements": 135,
+   "observables": 1,
+   "with_preequilibration": 0
+  },
+  "problem_checks": {
+   "gradient_vs_amici": {
+    "max_rel_difference": 1.329909735449169e-08,
+    "n_parameters": 14,
+    "passed": true,
+    "semi_scaled_peak": 0.43196957795355306,
+    "semi_scaled_size": 220.20576157137148,
+    "tol": 0.001,
+    "worst_parameter": "k4"
+   },
+   "llh_vs_amici": {
+    "abs_difference": 1.113923588036414e-06,
+    "allowed": 0.0013197917771350315,
+    "bngsim": 319.79177602110786,
+    "passed": true,
+    "reference": 319.79177713503145
+   },
+   "llh_vs_amici_benchmark_reference": {
+    "abs_difference": 2.166579690765502e-06,
+    "allowed": 0.0013197917781876875,
+    "bngsim": 319.79177602110786,
+    "passed": true,
+    "reference": 319.79177818768756
+   },
+   "llh_vs_fd_roadrunner_nominal": {
+    "abs_difference": 1.0099894325321657e-06,
+    "allowed": 0.0013197917770310973,
+    "bngsim": 319.79177602110786,
+    "passed": true,
+    "reference": 319.7917770310973
+   }
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 35.45918058801908,
+    "cold_seconds": 37.74183971399907,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "gradient": [
+     0.001535496868103887,
+     1.2999096506291077e-10,
+     0.021561997334678458,
+     -4.0968055966013916e-06,
+     0.0233025119127225,
+     -7.559888904796329,
+     -0.07197837706597478,
+     0.00014028691604546303,
+     0.13062398448987037,
+     -0.025570328841591255,
+     6.796819789768301e-12,
+     -0.3237074989268464,
+     0.4539468997389485,
+     -0.0006723603263795167
+    ],
+    "harness_observables_vs_amici_max_rel": 0.0,
+    "importer": "amici.importers.petab.v1 (petab 0.10.0)",
+    "integrator": "CVODES BDF, forward sensitivities",
+    "llh": 319.79177713503145,
+    "load_seconds": 0.48878624907229096,
+    "not_differentiated": {},
+    "sensitivities": "on the PEtab parameter scale, put back on a linear one",
+    "solve_seconds": 0.1409444579621777,
+    "version": "1.1.0"
+   },
+   "fd_roadrunner": {
+    "cold_seconds": 1.1972008859738708,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "fd_atol": 1e-12,
+    "fd_rtol": 1e-10,
+    "fd_step": 0.001,
+    "gradient": [
+     0.001542497299500404,
+     1.299612608284675e-10,
+     0.02156209112945624,
+     -4.0971252124242285e-06,
+     0.023285784398433623,
+     -7.5596702923176045,
+     -0.07197845037918234,
+     0.0001402867125947366,
+     0.13060732240138445,
+     -0.025558143802989437,
+     7.0990992299387774e-12,
+     -0.32365768060913,
+     0.4539006337193059,
+     -0.0006504990355682036
+    ],
+    "integrator": "cvode",
+    "llh": 319.7917770310973,
+    "load_seconds": 0.455380073050037,
+    "method": "central differences at h and h/2",
+    "output": "SBML semantics (amount if hasOnlySubstanceUnits, else concentration)",
+    "version": "2.11.0"
+   }
+  },
+  "species_in_amount": []
+ },
+ "not_applicable": {
+  "copasi": "COPASI is not wired for PEtab conditions on the SBML path"
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 5,
+ "problem": "ip3_receptor_type2_dynamics_sneyd2002",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T23:42:35.886091+00:00",
+ "verdicts": {
+  "amici": {
+   "max_error": 1.1667696394592163e-07,
+   "max_error_observables": 1.1667696394592163e-07,
+   "max_error_species": 8.47259261634107e-08,
+   "n_columns": 98,
+   "n_failed": 0,
+   "n_floored": 40,
+   "n_judged": 98,
+   "params_judged": [
+    "k1",
+    "k2",
+    "k3",
+    "k4",
+    "k_1",
+    "k_2",
+    "k_3",
+    "k_4",
+    "l2",
+    "l4",
+    "l6",
+    "l_2",
+    "l_4",
+    "l_6"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 1.017053846131899e-08,
+   "worst": {
+    "condition": "IP3_dose_response__2",
+    "error": 1.1667696394592163e-07,
+    "floored": false,
+    "output": "observable:open_probability",
+    "parameter": "k_2",
+    "time": 0.14
+   }
+  },
+  "fd_roadrunner": {
+   "max_error": 5.72511032451393e-05,
+   "max_error_observables": 4.8709190999966445e-06,
+   "max_error_species": 5.72511032451393e-05,
+   "n_columns": 98,
+   "n_failed": 0,
+   "n_floored": 33,
+   "n_judged": 91,
+   "params_judged": [
+    "k1",
+    "k2",
+    "k3",
+    "k4",
+    "k_1",
+    "k_2",
+    "k_3",
+    "k_4",
+    "l2",
+    "l4",
+    "l6",
+    "l_2",
+    "l_4",
+    "l_6"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 7.801708286200646e-09,
+   "worst": {
+    "condition": "Ca_dose_response__1",
+    "error": 5.72511032451393e-05,
+    "floored": true,
+    "output": "IPR_S",
+    "parameter": "k2",
+    "time": 0.84
+   }
+  }
+ },
+ "wall_seconds": 47.603783197002485
+}

@@ -1,0 +1,1888 @@
+{
+ "capability": "psa",
+ "engines": "bngsim-vs-run_network",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "44f270634d38b7f316b287df0cc8ca4579f351f0",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "psa/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair/bngsim-vs-run_network/auto/correctness",
+ "key": "c4d3809a1decb5c0ca2664240806fe696dbdbd5f0950fafcfa35eb21e6cb498e",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "accuracy": {
+     "flag_from_poplevel": 100,
+     "means": "permutation max-T on means/1"
+    },
+    "harness": "psa/bngsim-vs-run_network/1",
+    "protocol": {
+     "n_steps": 200,
+     "netgen": "generate_network({overwrite=>1})",
+     "poplevels": [
+      10,
+      30,
+      100,
+      300,
+      1000
+     ],
+     "replicates": 100,
+     "seed": 1,
+     "t_end": 10,
+     "timing_replicates": 1
+    },
+    "setting": {
+     "exact": "ssa",
+     "method": "psa",
+     "propensities": "auto"
+    },
+    "source_sha256": "5fe2850742b261bca0e4595d3acf59b70b334cd072f6c77f8b9efa7c5522e621",
+    "verdict": {
+     "alpha": 0.001,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "psa/noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair/bngsim-vs-run_network/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "engine_budget_seconds": 3600.0,
+  "engines": {
+   "bngsim": {
+    "codegen_seconds": 1.1619192339712754,
+    "cold_seconds": 193.99264559906442,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "cc"
+    },
+    "ensemble_seconds": 192.82589335995726,
+    "events_per_trajectory": {
+     "max": 13752072.0,
+     "mean": 13196536.0,
+     "median": 13191918.5
+    },
+    "first_seed": 1,
+    "load_seconds": 0.0041551030008122325,
+    "method": "ssa",
+    "propensity_backend": "cc"
+   },
+   "bngsim@nc=10": {
+    "codegen_seconds": 0.0005235139979049563,
+    "cold_seconds": 748.2354771980317,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 748.2322557249572,
+    "events_per_trajectory": {
+     "max": 13624448.0,
+     "mean": 13168223.79,
+     "median": 13173802.0
+    },
+    "first_seed": 20000001,
+    "load_seconds": 0.0023227930068969727,
+    "method": "psa",
+    "poplevel": 10.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": 2,
+      "value": 1.0111679456583595
+     },
+     "peak_population": 2000.0,
+     "regime": "scaled",
+     "scaled_fraction": 1.0,
+     "scaled_reactions": [
+      2,
+      9,
+      10
+     ],
+     "speedup": {
+      "max": 1.001756431753929,
+      "mean": 1.0008713110474199,
+      "median": 1.0008358884188824,
+      "min": 1.0001135564351293
+     },
+     "trajectories": 100
+    }
+   },
+   "bngsim@nc=100": {
+    "codegen_seconds": 0.0004885699599981308,
+    "cold_seconds": 693.9958369910019,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 693.9926445740275,
+    "events_per_trajectory": {
+     "max": 13623152.0,
+     "mean": 13180582.17,
+     "median": 13203646.5
+    },
+    "first_seed": 60000001,
+    "load_seconds": 0.0023286209907382727,
+    "method": "psa",
+    "poplevel": 100.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": null,
+      "value": 1.0
+     },
+     "peak_population": 2000.0,
+     "regime": "exact",
+     "scaled_fraction": 0.0,
+     "scaled_reactions": [],
+     "speedup": {
+      "max": 1.0,
+      "mean": 1.0,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 100
+    }
+   },
+   "bngsim@nc=1000": {
+    "codegen_seconds": 0.00047644798178225756,
+    "cold_seconds": 655.9872406619834,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 655.9840710420394,
+    "events_per_trajectory": {
+     "max": 13598110.0,
+     "mean": 13187105.51,
+     "median": 13209019.5
+    },
+    "first_seed": 100000001,
+    "load_seconds": 0.0022909200051799417,
+    "method": "psa",
+    "poplevel": 1000.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": null,
+      "value": 1.0
+     },
+     "peak_population": 2000.0,
+     "regime": "exact",
+     "scaled_fraction": 0.0,
+     "scaled_reactions": [],
+     "speedup": {
+      "max": 1.0,
+      "mean": 1.0,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 100
+    }
+   },
+   "bngsim@nc=30": {
+    "codegen_seconds": 0.0008873610058799386,
+    "cold_seconds": 721.0410658100154,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 721.0354421010707,
+    "events_per_trajectory": {
+     "max": 13680223.0,
+     "mean": 13172171.4,
+     "median": 13170768.5
+    },
+    "first_seed": 40000001,
+    "load_seconds": 0.004054078948684037,
+    "method": "psa",
+    "poplevel": 30.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": null,
+      "value": 1.0
+     },
+     "peak_population": 2000.0,
+     "regime": "exact",
+     "scaled_fraction": 0.0,
+     "scaled_reactions": [],
+     "speedup": {
+      "max": 1.0,
+      "mean": 1.0,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 100
+    }
+   },
+   "bngsim@nc=300": {
+    "codegen_seconds": 0.0005628860089927912,
+    "cold_seconds": 652.050175723969,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 652.0469540490303,
+    "events_per_trajectory": {
+     "max": 13640096.0,
+     "mean": 13151543.76,
+     "median": 13170860.0
+    },
+    "first_seed": 80000001,
+    "load_seconds": 0.0022821059683337808,
+    "method": "psa",
+    "poplevel": 300.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 1.0,
+     "mbar_max": {
+      "reaction": null,
+      "value": 1.0
+     },
+     "peak_population": 2000.0,
+     "regime": "exact",
+     "scaled_fraction": 0.0,
+     "scaled_reactions": [],
+     "speedup": {
+      "max": 1.0,
+      "mean": 1.0,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 100
+    }
+   },
+   "run_network": {
+    "cold_seconds": 510.68246988602914,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.05",
+     "200"
+    ],
+    "ensemble_seconds": 510.68187466205563,
+    "first_seed": 10000001,
+    "method": "ssa (direct method)",
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=10": {
+    "cold_seconds": 649.4597661729204,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "10",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.05",
+     "200"
+    ],
+    "ensemble_seconds": 649.4586291740416,
+    "first_seed": 30000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 10.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=100": {
+    "cold_seconds": 567.9328952649375,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "100",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.05",
+     "200"
+    ],
+    "ensemble_seconds": 567.9318001439096,
+    "first_seed": 70000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 100.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=1000": {
+    "cold_seconds": 528.7442501250189,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "1000",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.05",
+     "200"
+    ],
+    "ensemble_seconds": 528.7431835419266,
+    "first_seed": 110000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 1000.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=30": {
+    "cold_seconds": 610.9575631840853,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "30",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.05",
+     "200"
+    ],
+    "ensemble_seconds": 610.956512804958,
+    "first_seed": 50000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 30.0,
+    "seeds": "first_seed + i for trajectory i"
+   },
+   "run_network@nc=300": {
+    "cold_seconds": 552.793129525031,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "psa",
+     "--poplevel",
+     "300",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "0.05",
+     "200"
+    ],
+    "ensemble_seconds": 552.7920122339856,
+    "first_seed": 90000001,
+    "method": "psa (heterogeneous adaptive scaling)",
+    "poplevel": 300.0,
+    "seeds": "first_seed + i for trajectory i"
+   }
+  },
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 43.28,
+     "Eminus(s)": 6.72,
+     "Eplus(s!1).S(e!1,mod~U)": 21.95,
+     "Eplus(s)": 6.14,
+     "N()": 1.91,
+     "S(e,mod~P)": 208.16,
+     "S(e,mod~U)": 1726.61
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 16.163232323232332,
+     "Eminus(s)": 16.163232323232332,
+     "Eplus(s!1).S(e!1,mod~U)": 7.785353535353533,
+     "Eplus(s)": 5.475151515151514,
+     "N()": 4.123131313131316,
+     "S(e,mod~P)": 7799.671111111111,
+     "S(e,mod~U)": 8549.816060606063
+    },
+    "replicates": 100
+   },
+   "bngsim@nc=10": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 44.28,
+     "Eminus(s)": 5.72,
+     "Eplus(s!1).S(e!1,mod~U)": 21.87,
+     "Eplus(s)": 6.64,
+     "N()": 1.49,
+     "S(e,mod~P)": 227.75,
+     "S(e,mod~U)": 1706.1
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 11.79959595959596,
+     "Eminus(s)": 11.79959595959596,
+     "Eplus(s!1).S(e!1,mod~U)": 7.427373737373728,
+     "Eplus(s)": 5.5862626262626245,
+     "N()": 4.535252525252524,
+     "S(e,mod~P)": 6956.169191919192,
+     "S(e,mod~U)": 7603.525252525252
+    },
+    "replicates": 100
+   },
+   "bngsim@nc=100": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 44.07,
+     "Eminus(s)": 5.93,
+     "Eplus(s!1).S(e!1,mod~U)": 22.19,
+     "Eplus(s)": 6.26,
+     "N()": 1.55,
+     "S(e,mod~P)": 234.09,
+     "S(e,mod~U)": 1699.65
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 16.247575757575756,
+     "Eminus(s)": 16.247575757575756,
+     "Eplus(s!1).S(e!1,mod~U)": 6.034242424242425,
+     "Eplus(s)": 3.9115151515151534,
+     "N()": 5.280303030303028,
+     "S(e,mod~P)": 9237.032222222222,
+     "S(e,mod~U)": 10149.603535353532
+    },
+    "replicates": 100
+   },
+   "bngsim@nc=1000": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 44.14,
+     "Eminus(s)": 5.86,
+     "Eplus(s!1).S(e!1,mod~U)": 22.22,
+     "Eplus(s)": 6.15,
+     "N()": 1.63,
+     "S(e,mod~P)": 220.3,
+     "S(e,mod~U)": 1713.34
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 12.040808080808095,
+     "Eminus(s)": 12.04080808080809,
+     "Eplus(s!1).S(e!1,mod~U)": 7.547070707070707,
+     "Eplus(s)": 6.815656565656561,
+     "N()": 4.1748484848484875,
+     "S(e,mod~P)": 7931.9292929292915,
+     "S(e,mod~U)": 8565.378181818181
+    },
+    "replicates": 100
+   },
+   "bngsim@nc=30": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 43.87,
+     "Eminus(s)": 6.13,
+     "Eplus(s!1).S(e!1,mod~U)": 22.44,
+     "Eplus(s)": 5.93,
+     "N()": 1.63,
+     "S(e,mod~P)": 223.57,
+     "S(e,mod~U)": 1710.12
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 10.275858585858582,
+     "Eminus(s)": 10.27585858585858,
+     "Eplus(s!1).S(e!1,mod~U)": 7.178181818181816,
+     "Eplus(s)": 4.793030303030304,
+     "N()": 4.902121212121215,
+     "S(e,mod~P)": 7878.772828282832,
+     "S(e,mod~U)": 8590.833939393937
+    },
+    "replicates": 100
+   },
+   "bngsim@nc=300": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 43.35,
+     "Eminus(s)": 6.65,
+     "Eplus(s!1).S(e!1,mod~U)": 21.7,
+     "Eplus(s)": 6.53,
+     "N()": 1.77,
+     "S(e,mod~P)": 219.26,
+     "S(e,mod~U)": 1715.69
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 21.21969696969696,
+     "Eminus(s)": 21.21969696969696,
+     "Eplus(s!1).S(e!1,mod~U)": 6.232323232323233,
+     "Eplus(s)": 4.6152525252525205,
+     "N()": 6.300101010101006,
+     "S(e,mod~P)": 9077.487272727272,
+     "S(e,mod~U)": 10070.6403030303
+    },
+    "replicates": 100
+   },
+   "run_network": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 44.0,
+     "Eminus(s)": 6.0,
+     "Eplus(s!1).S(e!1,mod~U)": 21.96,
+     "Eplus(s)": 6.62,
+     "N()": 1.42,
+     "S(e,mod~P)": 236.29,
+     "S(e,mod~U)": 1697.75
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 15.05050505050505,
+     "Eminus(s)": 15.05050505050505,
+     "Eplus(s!1).S(e!1,mod~U)": 6.261010101010102,
+     "Eplus(s)": 4.803636363636365,
+     "N()": 3.983434343434338,
+     "S(e,mod~P)": 8670.61202020202,
+     "S(e,mod~U)": 9418.007575757576
+    },
+    "replicates": 100
+   },
+   "run_network@nc=10": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 43.73,
+     "Eminus(s)": 6.27,
+     "Eplus(s!1).S(e!1,mod~U)": 21.44,
+     "Eplus(s)": 6.65,
+     "N()": 1.91,
+     "S(e,mod~P)": 215.27,
+     "S(e,mod~U)": 1719.56
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 14.764747474747464,
+     "Eminus(s)": 14.764747474747473,
+     "Eplus(s!1).S(e!1,mod~U)": 8.349898989898985,
+     "Eplus(s)": 6.249999999999999,
+     "N()": 6.405959595959594,
+     "S(e,mod~P)": 9480.784949494946,
+     "S(e,mod~U)": 10370.87515151515
+    },
+    "replicates": 100
+   },
+   "run_network@nc=100": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 43.01,
+     "Eminus(s)": 6.99,
+     "Eplus(s!1).S(e!1,mod~U)": 21.46,
+     "Eplus(s)": 6.48,
+     "N()": 2.06,
+     "S(e,mod~P)": 208.32,
+     "S(e,mod~U)": 1727.21
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 17.444343434343434,
+     "Eminus(s)": 17.444343434343438,
+     "Eplus(s!1).S(e!1,mod~U)": 6.4933333333333305,
+     "Eplus(s)": 5.848080808080805,
+     "N()": 5.551919191919194,
+     "S(e,mod~P)": 8900.037979797982,
+     "S(e,mod~U)": 9744.61202020202
+    },
+    "replicates": 100
+   },
+   "run_network@nc=1000": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 43.46,
+     "Eminus(s)": 6.54,
+     "Eplus(s!1).S(e!1,mod~U)": 21.6,
+     "Eplus(s)": 6.56,
+     "N()": 1.84,
+     "S(e,mod~P)": 210.85,
+     "S(e,mod~U)": 1724.09
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 13.2610101010101,
+     "Eminus(s)": 13.261010101010104,
+     "Eplus(s!1).S(e!1,mod~U)": 7.898989898989903,
+     "Eplus(s)": 6.006464646464646,
+     "N()": 4.661010101010103,
+     "S(e,mod~P)": 7664.068181818183,
+     "S(e,mod~U)": 8404.244343434346
+    },
+    "replicates": 100
+   },
+   "run_network@nc=30": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 43.35,
+     "Eminus(s)": 6.65,
+     "Eplus(s!1).S(e!1,mod~U)": 21.55,
+     "Eplus(s)": 6.51,
+     "N()": 1.94,
+     "S(e,mod~P)": 215.35,
+     "S(e,mod~U)": 1719.75
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 20.18939393939394,
+     "Eminus(s)": 20.189393939393934,
+     "Eplus(s!1).S(e!1,mod~U)": 8.027777777777771,
+     "Eplus(s)": 6.535252525252526,
+     "N()": 5.289292929292931,
+     "S(e,mod~P)": 9648.411616161617,
+     "S(e,mod~U)": 10593.118686868687
+    },
+    "replicates": 100
+   },
+   "run_network@nc=300": {
+    "final_mean": {
+     "Eminus(s!1).S(e!1,mod~P)": 44.15,
+     "Eminus(s)": 5.85,
+     "Eplus(s!1).S(e!1,mod~U)": 21.85,
+     "Eplus(s)": 6.59,
+     "N()": 1.56,
+     "S(e,mod~P)": 228.01,
+     "S(e,mod~U)": 1705.99
+    },
+    "final_variance": {
+     "Eminus(s!1).S(e!1,mod~P)": 12.957070707070704,
+     "Eminus(s)": 12.9570707070707,
+     "Eplus(s!1).S(e!1,mod~U)": 6.573232323232324,
+     "Eplus(s)": 4.789797979797977,
+     "N()": 4.147878787878791,
+     "S(e,mod~P)": 8205.040303030302,
+     "S(e,mod~U)": 8930.111010101009
+    },
+    "replicates": 100
+   }
+  },
+  "netgen_seconds": 1.1577280859928578,
+  "network": {
+   "reactions": 10,
+   "species": 7
+  },
+  "psa": {
+   "accuracy": {
+    "nc=10": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 1.85,
+        "time_index": 37
+       },
+       "max": 0.09299999999999997,
+       "se": 0.033033652874337446
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 1.7000000000000002,
+        "time_index": 34
+       },
+       "max": 0.5198339957624217,
+       "se": 0.19629994956000302
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.4444444444444444,
+       "passed": true,
+       "permutations": 45,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eplus(s!1).S(e!1,mod~U)",
+        "species_index": 5,
+        "statistic": "mean",
+        "time": 3.4000000000000004,
+        "time_index": 68,
+        "z": 3.335422214600824
+       },
+       "z_max": 3.335422214600824
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 1.7000000000000002,
+        "time_index": 34
+       },
+       "at_min": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 3.25,
+        "time_index": 65
+       },
+       "max": 2.853367019725974,
+       "median": 1.004788342530252,
+       "min": 0.507876588021779,
+       "n_cells": 1400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": 2,
+       "value": 1.0111679456583595
+      },
+      "peak_population": 2000.0,
+      "regime": "scaled",
+      "scaled_fraction": 1.0,
+      "scaled_reactions": [
+       2,
+       9,
+       10
+      ],
+      "speedup": {
+       "max": 1.001756431753929,
+       "mean": 1.0008713110474199,
+       "median": 1.0008358884188824,
+       "min": 1.0001135564351293
+      },
+      "trajectories": 100
+     },
+     "poplevel": 10,
+     "regime": "scaled",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 0.35000000000000003,
+        "time_index": 7
+       },
+       "max": 0.1,
+       "se": 0.03365181190433058
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Eplus(s!1).S(e!1,mod~U)",
+        "species_index": 5,
+        "time": 7.2,
+        "time_index": 144
+       },
+       "max": 0.4495277221484187,
+       "se": 0.14534124143889746
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.46511627906976744,
+       "passed": true,
+       "permutations": 43,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "statistic": "mean",
+        "time": 7.5,
+        "time_index": 150,
+        "z": 3.287481966444298
+       },
+       "z_max": 3.287481966444298
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eplus(s!1).S(e!1,mod~U)",
+        "species_index": 5,
+        "time": 9.8,
+        "time_index": 196
+       },
+       "at_min": {
+        "species": "Eminus(s!1).S(e!1,mod~P)",
+        "species_index": 6,
+        "time": 1.6500000000000001,
+        "time_index": 33
+       },
+       "max": 1.9152598412945416,
+       "median": 1.018966516040753,
+       "min": 0.4962409656708947,
+       "n_cells": 1400
+      }
+     }
+    },
+    "nc=100": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 2.6,
+        "time_index": 52
+       },
+       "max": 0.08299999999999999,
+       "se": 0.031219490156896634
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 2.6,
+        "time_index": 52
+       },
+       "max": 0.47056576889648793,
+       "se": 0.17699787217152294
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5714285714285714,
+       "passed": true,
+       "permutations": 35,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "statistic": "mean",
+        "time": 5.25,
+        "time_index": 105,
+        "z": 3.224284835186355
+       },
+       "z_max": 3.224284835186355
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 8.85,
+        "time_index": 177
+       },
+       "at_min": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 6.300000000000001,
+        "time_index": 126
+       },
+       "max": 2.271194699899431,
+       "median": 1.009883357769017,
+       "min": 0.5182360671276843,
+       "n_cells": 1400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": null,
+       "value": 1.0
+      },
+      "peak_population": 2000.0,
+      "regime": "exact",
+      "scaled_fraction": 0.0,
+      "scaled_reactions": [],
+      "speedup": {
+       "max": 1.0,
+       "mean": 1.0,
+       "median": 1.0,
+       "min": 1.0
+      },
+      "trajectories": 100
+     },
+     "poplevel": 100,
+     "regime": "exact",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 1.35,
+        "time_index": 27
+       },
+       "max": 0.079,
+       "se": 0.030441034240915092
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Eplus(s)",
+        "species_index": 2,
+        "time": 1.3,
+        "time_index": 26
+       },
+       "max": 0.41337971312731087,
+       "se": 0.13861075242747578
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 1.0,
+       "passed": true,
+       "permutations": 20,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eplus(s)",
+        "species_index": 2,
+        "statistic": "mean",
+        "time": 1.3,
+        "time_index": 26,
+        "z": 2.9248572214666972
+       },
+       "z_max": 2.9248572214666972
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eminus(s!1).S(e!1,mod~P)",
+        "species_index": 6,
+        "time": 9.75,
+        "time_index": 195
+       },
+       "at_min": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 7.1000000000000005,
+        "time_index": 142
+       },
+       "max": 1.9652941396462114,
+       "median": 0.9870883496510057,
+       "min": 0.42262852067063905,
+       "n_cells": 1400
+      }
+     }
+    },
+    "nc=1000": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 0.8500000000000001,
+        "time_index": 17
+       },
+       "max": 0.071,
+       "se": 0.03527081375628159
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 7.8500000000000005,
+        "time_index": 157
+       },
+       "max": 0.5694634490053369,
+       "se": 0.19047050910935626
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.7692307692307693,
+       "passed": true,
+       "permutations": 26,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eplus(s)",
+        "species_index": 2,
+        "statistic": "mean",
+        "time": 0.65,
+        "time_index": 13,
+        "z": 3.0478751634900907
+       },
+       "z_max": 3.0478751634900907
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 7.8500000000000005,
+        "time_index": 157
+       },
+       "at_min": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 9.65,
+        "time_index": 193
+       },
+       "max": 2.6279014840377366,
+       "median": 1.0035926676425717,
+       "min": 0.489221002512895,
+       "n_cells": 1400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": null,
+       "value": 1.0
+      },
+      "peak_population": 2000.0,
+      "regime": "exact",
+      "scaled_fraction": 0.0,
+      "scaled_reactions": [],
+      "speedup": {
+       "max": 1.0,
+       "mean": 1.0,
+       "median": 1.0,
+       "min": 1.0
+      },
+      "trajectories": 100
+     },
+     "poplevel": 1000,
+     "regime": "exact",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 4.3500000000000005,
+        "time_index": 87
+       },
+       "max": 0.075,
+       "se": 0.030012623606702166
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 1.4000000000000001,
+        "time_index": 28
+       },
+       "max": 0.4628193558914076,
+       "se": 0.15945732101632287
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.5,
+       "passed": true,
+       "permutations": 40,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eplus(s)",
+        "species_index": 2,
+        "statistic": "mean",
+        "time": 3.7,
+        "time_index": 74,
+        "z": 3.2875884480339796
+       },
+       "z_max": 3.2875884480339796
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 0.65,
+        "time_index": 13
+       },
+       "at_min": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 8.9,
+        "time_index": 178
+       },
+       "max": 2.1346795051572096,
+       "median": 1.0159820174965772,
+       "min": 0.4491504323914595,
+       "n_cells": 1400
+      }
+     }
+    },
+    "nc=30": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 2.9000000000000004,
+        "time_index": 58
+       },
+       "max": 0.09100000000000001,
+       "se": 0.030816989935535048
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 2.9000000000000004,
+        "time_index": 58
+       },
+       "max": 0.4993742091462638,
+       "se": 0.16911219755303497
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8695652173913043,
+       "passed": true,
+       "permutations": 23,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "N()",
+        "species_index": 4,
+        "statistic": "mean",
+        "time": 2.9000000000000004,
+        "time_index": 58,
+        "z": 2.8972552861623684
+       },
+       "z_max": 2.8972552861623684
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eplus(s)",
+        "species_index": 2,
+        "time": 6.9,
+        "time_index": 138
+       },
+       "at_min": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 0.2,
+        "time_index": 4
+       },
+       "max": 1.956957366322462,
+       "median": 1.0170519477098616,
+       "min": 0.5088645965213203,
+       "n_cells": 1400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": null,
+       "value": 1.0
+      },
+      "peak_population": 2000.0,
+      "regime": "exact",
+      "scaled_fraction": 0.0,
+      "scaled_reactions": [],
+      "speedup": {
+       "max": 1.0,
+       "mean": 1.0,
+       "median": 1.0,
+       "min": 1.0
+      },
+      "trajectories": 100
+     },
+     "poplevel": 30,
+     "regime": "exact",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 5.7,
+        "time_index": 114
+       },
+       "max": 0.08800000000000001,
+       "se": 0.03060468043692769
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 3.95,
+        "time_index": 79
+       },
+       "max": 0.45073834519801775,
+       "se": 0.16806705781675468
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8,
+       "passed": true,
+       "permutations": 25,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "N()",
+        "species_index": 4,
+        "statistic": "mean",
+        "time": 0.1,
+        "time_index": 2,
+        "z": 2.933466373373918
+       },
+       "z_max": 2.933466373373918
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 1.4000000000000001,
+        "time_index": 28
+       },
+       "at_min": {
+        "species": "S(e,mod~P)",
+        "species_index": 1,
+        "time": 0.05,
+        "time_index": 1
+       },
+       "max": 1.8722056759439936,
+       "median": 1.014078857905677,
+       "min": 0.5587070944932093,
+       "n_cells": 1400
+      }
+     }
+    },
+    "nc=300": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 9.8,
+        "time_index": 196
+       },
+       "max": 0.088,
+       "se": 0.03198452908845308
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 1.6500000000000001,
+        "time_index": 33
+       },
+       "max": 0.4760523569725596,
+       "se": 0.15194568556374824
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.6666666666666666,
+       "passed": true,
+       "permutations": 30,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "statistic": "mean",
+        "time": 1.6500000000000001,
+        "time_index": 33,
+        "z": 3.0658678984079
+       },
+       "z_max": 3.0658678984079
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eminus(s!1).S(e!1,mod~P)",
+        "species_index": 6,
+        "time": 7.8500000000000005,
+        "time_index": 157
+       },
+       "at_min": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 7.45,
+        "time_index": 149
+       },
+       "max": 2.44493577042684,
+       "median": 1.0169226299303042,
+       "min": 0.5051724893700964,
+       "n_cells": 1400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 1.0,
+      "mbar_max": {
+       "reaction": null,
+       "value": 1.0
+      },
+      "peak_population": 2000.0,
+      "regime": "exact",
+      "scaled_fraction": 0.0,
+      "scaled_reactions": [],
+      "speedup": {
+       "max": 1.0,
+       "mean": 1.0,
+       "median": 1.0,
+       "min": 1.0
+      },
+      "trajectories": 100
+     },
+     "poplevel": 300,
+     "regime": "exact",
+     "run_network": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "N()",
+        "species_index": 4,
+        "time": 3.95,
+        "time_index": 79
+       },
+       "max": 0.092,
+       "se": 0.02969712430386472
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Eplus(s!1).S(e!1,mod~U)",
+        "species_index": 5,
+        "time": 3.0,
+        "time_index": 60
+       },
+       "max": 0.5438775276314288,
+       "se": 0.13706045555538843
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.08097165991902834,
+       "passed": true,
+       "permutations": 247,
+       "replicates": [
+        100,
+        100
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Eplus(s!1).S(e!1,mod~U)",
+        "species_index": 5,
+        "statistic": "mean",
+        "time": 3.0,
+        "time_index": 60,
+        "z": 3.828831042746343
+       },
+       "z_max": 3.828831042746343
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Eminus(s)",
+        "species_index": 3,
+        "time": 0.65,
+        "time_index": 13
+       },
+       "at_min": {
+        "species": "Eminus(s!1).S(e!1,mod~P)",
+        "species_index": 6,
+        "time": 5.4,
+        "time_index": 108
+       },
+       "max": 2.2393534470136953,
+       "median": 0.9959360986547088,
+       "min": 0.4703100182955023,
+       "n_cells": 1400
+      }
+     }
+    }
+   },
+   "flag_from_poplevel": 100,
+   "flags": [],
+   "poplevels": [
+    10,
+    30,
+    100,
+    300,
+    1000
+   ]
+  },
+  "trajectory_timeout_seconds": 694.9999999999999,
+  "zeroth_order_reactions": 0
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 3,
+ "problem": "noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T20:46:01.776746+00:00",
+ "verdicts": {
+  "exact@nc=100": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.7692307692307693,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.303623606753409,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 26,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 4245214700,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eminus(s)",
+    "species_index": 3,
+    "statistic": "mean",
+    "time": 5.25,
+    "time_index": 105,
+    "z": 3.224284835186355
+   },
+   "z_max": 3.224284835186355,
+   "z_max_mean": 3.224284835186355,
+   "z_max_variance": 3.0939231491519625
+  },
+  "exact@nc=1000": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.5,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.113752828095554,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 40,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 3509411736,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eplus(s!1).S(e!1,mod~U)",
+    "species_index": 5,
+    "statistic": "variance",
+    "time": 2.2,
+    "time_index": 44,
+    "z": 3.4274015922719725
+   },
+   "z_max": 3.4274015922719725,
+   "z_max_mean": 3.0478751634900907,
+   "z_max_variance": 3.4274015922719725
+  },
+  "exact@nc=30": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.7142857142857143,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 2.952916562920637,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 28,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 3025039489,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eplus(s)",
+    "species_index": 2,
+    "statistic": "variance",
+    "time": 5.2,
+    "time_index": 104,
+    "z": 3.176014514874345
+   },
+   "z_max": 3.176014514874345,
+   "z_max_mean": 2.8972552861623684,
+   "z_max_variance": 3.176014514874345
+  },
+  "exact@nc=300": {
+   "alpha": 0.001,
+   "critical_z": 4.928600928548615,
+   "n_cells": 1407,
+   "n_flagged": {
+    "mean": 0,
+    "variance": 0
+   },
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.009,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.1330429370620965,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 1999,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 408484264,
+   "stopped_early": false,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "S(e,mod~U)",
+    "species_index": 0,
+    "statistic": "variance",
+    "time": 4.65,
+    "time_index": 93,
+    "z": 4.4111816495971885
+   },
+   "z_max": 4.4111816495971885,
+   "z_max_mean": 3.0658678984079,
+   "z_max_variance": 4.4111816495971885
+  },
+  "run_network": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.6451612903225806,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.3628137122405466,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 31,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 1835504127,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eminus(s!1).S(e!1,mod~P)",
+    "species_index": 6,
+    "statistic": "mean",
+    "time": 7.8500000000000005,
+    "time_index": 157,
+    "z": 3.2789583370591644
+   },
+   "z_max": 3.2789583370591644,
+   "z_max_mean": 3.2789583370591644,
+   "z_max_variance": 3.175580470005668
+  },
+  "run_network@nc=10": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.9090909090909091,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.231694935496111,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 22,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 1596810411,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eplus(s!1).S(e!1,mod~U)",
+    "species_index": 5,
+    "statistic": "mean",
+    "time": 3.4000000000000004,
+    "time_index": 68,
+    "z": 3.1576380778898034
+   },
+   "z_max": 3.1576380778898034,
+   "z_max_mean": 3.1576380778898034,
+   "z_max_variance": 2.944954789519622
+  },
+  "run_network@nc=100": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.31746031746031744,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.7178333620970188,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 63,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 1563021450,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eplus(s!1).S(e!1,mod~U)",
+    "species_index": 5,
+    "statistic": "mean",
+    "time": 1.35,
+    "time_index": 27,
+    "z": 3.603550679441163
+   },
+   "z_max": 3.603550679441163,
+   "z_max_mean": 3.603550679441163,
+   "z_max_variance": 3.5254168065561466
+  },
+  "run_network@nc=1000": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.29411764705882354,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.458643137964904,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 68,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 3151767335,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eplus(s!1).S(e!1,mod~U)",
+    "species_index": 5,
+    "statistic": "variance",
+    "time": 2.2,
+    "time_index": 44,
+    "z": 3.5074168187089447
+   },
+   "z_max": 3.5074168187089447,
+   "z_max_mean": 3.3671442487377323,
+   "z_max_variance": 3.5074168187089447
+  },
+  "run_network@nc=30": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 0.5714285714285714,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.4631797325148352,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 35,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 3549136632,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eminus(s)",
+    "species_index": 3,
+    "statistic": "mean",
+    "time": 3.6,
+    "time_index": 72,
+    "z": 3.371308733570036
+   },
+   "z_max": 3.371308733570036,
+   "z_max_mean": 3.371308733570036,
+   "z_max_variance": 3.2065162413116757
+  },
+  "run_network@nc=300": {
+   "alpha": 0.001,
+   "n_cells": 1407,
+   "n_tested": {
+    "mean": 1400,
+    "variance": 1400
+   },
+   "p_value": 1.0,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.1838955657168952,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 20,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 2579376181,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Eminus(s!1).S(e!1,mod~P)",
+    "species_index": 6,
+    "statistic": "mean",
+    "time": 3.1500000000000004,
+    "time_index": 63,
+    "z": 3.113224989314455
+   },
+   "z_max": 3.113224989314455,
+   "z_max_mean": 3.113224989314455,
+   "z_max_variance": 2.7592174004250904
+  }
+ },
+ "wall_seconds": 7090.455759852077
+}

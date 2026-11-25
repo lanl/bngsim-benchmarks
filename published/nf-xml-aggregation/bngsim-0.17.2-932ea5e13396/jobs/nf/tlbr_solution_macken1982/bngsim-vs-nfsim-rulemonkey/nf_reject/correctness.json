@@ -1,0 +1,514 @@
+{
+ "capability": "nf",
+ "engines": "bngsim-vs-nfsim-rulemonkey",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "1a5ecd0dcbc6cd0fd7c3db5e5c4c34c1f905900f",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+ "key": "c653f4276c1868ff88fe1a2ed732c8085d3e210ea28c098abff38bef340d5dfa",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "nf/bngsim-vs-nfsim-rulemonkey/2",
+    "protocol": {
+     "actions": "own",
+     "replicates": 1000,
+     "seed": 1,
+     "timing_replicates": 20
+    },
+    "reference_versions": {
+     "rulemonkey": {
+      "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+      "version": "3.13.0"
+     }
+    },
+    "setting": {
+     "method": "nf_reject",
+     "session": "NfsimSession"
+    },
+    "source_sha256": "387d5ab1cb9b9bbc35176f620c7919695e0212d0b32533e1fed58f55f34f4857",
+    "verdict": {
+     "alpha": 0.001,
+     "analytic": "Bonferroni z on means and log-variances/1",
+     "independent_reference_rule": 1,
+     "outcome_rule": 2,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "cold_seconds": 202.93272467702627,
+   "ensemble_seconds": 202.90393019409385,
+   "first_seed": 1,
+   "initialize_seconds": 80.44084079586901,
+   "load_seconds": 0.028010798967443407,
+   "method": "nf_reject",
+   "options": {
+    "block_same_complex_binding": true,
+    "molecule_limit": 2147483647
+   },
+   "session": "NfsimSession",
+   "simulate_seconds": 122.34794723894447
+  },
+  "cross_setting": {
+   "config": {
+    "cold_seconds": 133.42794067203067,
+    "ensemble_seconds": 133.40816055901814,
+    "first_seed": 10000001,
+    "initialize_seconds": 22.35500783531461,
+    "load_seconds": 0.018983059911988676,
+    "method": "nf_exact",
+    "options": {
+     "block_same_complex_binding": true,
+     "molecule_limit": 2147483647
+    },
+    "session": "RuleMonkeySession",
+    "simulate_seconds": 110.93398741143756
+   },
+   "setting": "nf_exact",
+   "verdict": {
+    "alpha": 0.001,
+    "critical_z": 5.270679806028875,
+    "n_cells": 2259,
+    "n_flagged": {
+     "mean": 7,
+     "variance": 1
+    },
+    "n_tested": {
+     "mean": 2249,
+     "variance": 2233
+    },
+    "p_value": 0.0005,
+    "parity_core": {
+     "frac_pass": 1.0,
+     "k": 30.0,
+     "max_z": 15.28775392535994,
+     "passed": true
+    },
+    "passed": false,
+    "permutations": 1999,
+    "replicates": [
+     1000,
+     1000
+    ],
+    "seed": 1355455352,
+    "stopped_early": false,
+    "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+    "worst": {
+     "species": "Obs_Agg_1R_2L",
+     "species_index": 8,
+     "statistic": "mean",
+     "time": 2.0,
+     "time_index": 1,
+     "z": 14.468738701840852
+    },
+    "z_max": 14.468738701840852,
+    "z_max_mean": 14.468738701840852,
+    "z_max_variance": 8.93106692603263
+   }
+  },
+  "engine_budget_seconds": 3600.0,
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "Obs_Agg_1R_1L": 93.915,
+     "Obs_Agg_1R_2L": 89.445,
+     "Obs_Agg_2R_1L": 3.796,
+     "Obs_Agg_3R_1L": 0.042,
+     "Obs_Bonds": 428.049,
+     "Obs_Free_L": 3823.284,
+     "Obs_Free_L_sites": 12171.951,
+     "Obs_Free_R": 24.669,
+     "Obs_Free_R_sites": 171.951
+    },
+    "final_variance": {
+     "Obs_Agg_1R_1L": 73.59336836836839,
+     "Obs_Agg_1R_2L": 68.38536036036038,
+     "Obs_Agg_2R_1L": 3.8101941941941915,
+     "Obs_Agg_3R_1L": 0.04027627627627688,
+     "Obs_Bonds": 115.76836736736799,
+     "Obs_Free_L": 106.30164564564525,
+     "Obs_Free_L_sites": 115.7683673673673,
+     "Obs_Free_R": 22.11955855855859,
+     "Obs_Free_R_sites": 115.7683673673674
+    },
+    "replicates": 1000
+   },
+   "nf_exact": {
+    "final_mean": {
+     "Obs_Agg_1R_1L": 93.73,
+     "Obs_Agg_1R_2L": 89.36,
+     "Obs_Agg_2R_1L": 3.879,
+     "Obs_Agg_3R_1L": 0.058,
+     "Obs_Bonds": 428.242,
+     "Obs_Free_L": 3823.178,
+     "Obs_Free_L_sites": 12171.758,
+     "Obs_Free_R": 24.556,
+     "Obs_Free_R_sites": 171.758
+    },
+    "final_variance": {
+     "Obs_Agg_1R_1L": 72.46356356356353,
+     "Obs_Agg_1R_2L": 68.63903903903905,
+     "Obs_Agg_2R_1L": 3.7421011011011167,
+     "Obs_Agg_3R_1L": 0.056692692692691914,
+     "Obs_Bonds": 120.78221821821802,
+     "Obs_Free_L": 109.21152752752869,
+     "Obs_Free_L_sites": 120.78221821821857,
+     "Obs_Free_R": 22.8877517517517,
+     "Obs_Free_R_sites": 120.7822182182179
+    },
+    "replicates": 1000
+   },
+   "nfsim": {
+    "final_mean": {
+     "Obs_Agg_1R_1L": 93.699,
+     "Obs_Agg_1R_2L": 89.579,
+     "Obs_Agg_2R_1L": 3.909,
+     "Obs_Agg_3R_1L": 0.048,
+     "Obs_Bonds": 428.268,
+     "Obs_Free_L": 3823.093,
+     "Obs_Free_L_sites": 12171.732,
+     "Obs_Free_R": 24.585,
+     "Obs_Free_R_sites": 171.732
+    },
+    "final_variance": {
+     "Obs_Agg_1R_1L": 72.59098998999,
+     "Obs_Agg_1R_2L": 64.85461361361354,
+     "Obs_Agg_2R_1L": 3.7304494494494542,
+     "Obs_Agg_3R_1L": 0.047743743743744016,
+     "Obs_Bonds": 118.30448048048066,
+     "Obs_Free_L": 108.02037137137154,
+     "Obs_Free_L_sites": 118.30448048048105,
+     "Obs_Free_R": 21.44221721721723,
+     "Obs_Free_R_sites": 118.3044804804811
+    },
+    "replicates": 1000
+   },
+   "rulemonkey": {
+    "final_mean": {
+     "Obs_Agg_1R_1L": 93.922,
+     "Obs_Agg_1R_2L": 89.743,
+     "Obs_Agg_2R_1L": 3.84,
+     "Obs_Agg_3R_1L": 0.061,
+     "Obs_Bonds": 428.365,
+     "Obs_Free_L": 3822.823,
+     "Obs_Free_L_sites": 12171.635,
+     "Obs_Free_R": 24.457,
+     "Obs_Free_R_sites": 171.635
+    },
+    "final_variance": {
+     "Obs_Agg_1R_1L": 73.12904504504498,
+     "Obs_Agg_1R_2L": 69.41436536536533,
+     "Obs_Agg_2R_1L": 3.4458458458458203,
+     "Obs_Agg_3R_1L": 0.059338338338337626,
+     "Obs_Bonds": 126.54431931931909,
+     "Obs_Free_L": 115.87955055055058,
+     "Obs_Free_L_sites": 126.54431931931919,
+     "Obs_Free_R": 24.684835835835884,
+     "Obs_Free_R_sites": 126.54431931931909
+    },
+    "replicates": 1000
+   }
+  },
+  "observables": [
+   "Obs_Free_L",
+   "Obs_Free_R",
+   "Obs_Bonds",
+   "Obs_Free_L_sites",
+   "Obs_Free_R_sites",
+   "Obs_Agg_1R_1L",
+   "Obs_Agg_2R_1L",
+   "Obs_Agg_3R_1L",
+   "Obs_Agg_1R_2L"
+  ],
+  "protocol": {
+   "complex": true,
+   "dropped": [],
+   "gml": 2147483647,
+   "phases": [
+    {
+     "duration": 500.0,
+     "get_final_state": true,
+     "n_steps": 250,
+     "sets": []
+    }
+   ],
+   "utl": null
+  },
+  "references": {
+   "nfsim": {
+    "cold_seconds": 615.2329323400045,
+    "driver": "BNG2.pl, running the protocol's actions",
+    "ensemble_seconds": 615.226044630981,
+    "first_seed": 20000001,
+    "nfsim_command": "NFsim -xml model_nfp0.xml -o model_nfp0.gdat -sim 500 -oSteps 250 -cb -seed <seed> -gml 2147483647 -bscb",
+    "nfsim_simulate_cpu_seconds": 136.381368,
+    "nfsim_total_cpu_seconds": 189.43823199999986,
+    "reactions": 4436095,
+    "seeds": "first_seed + i for trajectory i (+ 10**6 per later step)",
+    "version": "1.14.3",
+    "xml_matches_harness": true
+   },
+   "rulemonkey": {
+    "cold_seconds": 138.60622610407881,
+    "command": [
+     "rm_driver",
+     "model.xml",
+     "500.0",
+     "250",
+     "<seed>"
+    ],
+    "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+    "ensemble_seconds": 138.60531065007672,
+    "first_seed": 30000001,
+    "lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+    "rm_simulate_seconds": 129.34099499999994,
+    "version": "3.13.0"
+   }
+  },
+  "rulemonkey_lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+  "same_seed": {
+   "engine": "nfsim",
+   "identical": 0,
+   "max_abs_difference": 54.0,
+   "trajectories": 5
+  },
+  "xml_seconds": 1.0743715410353616,
+  "xml_sha256": "00f90110e45761d317f2998459bddb78442cabbfd48f793586b4aa701fdb4600"
+ },
+ "outcome": "DIFF",
+ "pinned_cpu": 13,
+ "problem": "tlbr_solution_macken1982",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:10+00:00",
+   "from_key": "77b2489942338c96790dcc6d11512437438df9f4bb5e471aaeb42cb1b72a81fc",
+   "from_outcome": "DIFF",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": {
+    "alpha": 0.001,
+    "analytic": "Bonferroni z on means and log-variances/1",
+    "independent_reference_rule": 1,
+    "outcome_rule": 2,
+    "permutations": 1999,
+    "stop_exceedances": 20,
+    "two_sample": "permutation max-T on means and variances/1"
+   }
+  }
+ ],
+ "schema": 1,
+ "setting": "nf_reject",
+ "started": "2026-11-24T20:44:39.847543+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "cross_setting",
+   "nfsim",
+   "observables",
+   "rulemonkey",
+   "times"
+  ],
+  "bytes": 10035412,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 50994738 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "dd6531617e4ef630d6580cb81a909be75aad7b149bc46f83baf8ed109e180931"
+ },
+ "verdict_basis": {
+  "independent": [
+   "nfsim"
+  ],
+  "same_lineage": [
+   "rulemonkey"
+  ]
+ },
+ "verdicts": {
+  "nfsim": {
+   "alpha": 0.001,
+   "critical_z": 5.021511480692368,
+   "n_cells": 2259,
+   "n_flagged": {
+    "mean": 8,
+    "variance": 1
+   },
+   "n_tested": {
+    "mean": 2250,
+    "variance": 2231
+   },
+   "p_value": 0.0005,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 30.0,
+    "max_z": 14.739630649237242,
+    "passed": true
+   },
+   "passed": false,
+   "permutations": 1999,
+   "replicates": [
+    1000,
+    1000
+   ],
+   "seed": 1468060454,
+   "stopped_early": false,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Obs_Agg_1R_2L",
+    "species_index": 8,
+    "statistic": "mean",
+    "time": 2.0,
+    "time_index": 1,
+    "z": 14.001706424306336
+   },
+   "z_max": 14.001706424306336,
+   "z_max_mean": 14.001706424306336,
+   "z_max_variance": 8.928453676859048
+  },
+  "rulemonkey": {
+   "alpha": 0.001,
+   "critical_z": 5.201758296858874,
+   "n_cells": 2259,
+   "n_flagged": {
+    "mean": 6,
+    "variance": 1
+   },
+   "n_tested": {
+    "mean": 2249,
+    "variance": 2240
+   },
+   "p_value": 0.0005,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 30.0,
+    "max_z": 15.076217600297259,
+    "passed": true
+   },
+   "passed": false,
+   "permutations": 1999,
+   "replicates": [
+    1000,
+    1000
+   ],
+   "same_lineage": true,
+   "seed": 706327611,
+   "stopped_early": false,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "Obs_Agg_1R_2L",
+    "species_index": 8,
+    "statistic": "mean",
+    "time": 4.0,
+    "time_index": 2,
+    "z": 14.28911258202053
+   },
+   "z_max": 14.28911258202053,
+   "z_max_mean": 14.28911258202053,
+   "z_max_variance": 9.562765470041368
+  }
+ },
+ "wall_seconds": 1105.0699884429341
+}

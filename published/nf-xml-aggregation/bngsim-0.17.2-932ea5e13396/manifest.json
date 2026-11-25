@@ -1,0 +1,757 @@
+{
+ "schema": 1,
+ "suite": "nf-xml-aggregation",
+ "capabilities": [
+  "nf"
+ ],
+ "published": "2026-11-25T17:14:37Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "1a5ecd0dcbc6cd0fd7c3db5e5c4c34c1f905900f",
+   "ed21a7c82c994fb003bc90e8a9bfd3ae80311745"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "blbr_heterogeneity_goldstein1980",
+   "title": "Bivalent ligand on heterogeneous cell-surface antibody",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/blbr_heterogeneity_goldstein1980/blbr_heterogeneity_goldstein1980.bngl",
+    "sha256": "e5f293a8cddbca5d42e83972bad4c8a00f5950326769efa8c48a68bd07b71b95",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Goldstein B, Wofsy C (1980). Theory of equilibrium binding of a bivalent ligand to cell surface antibody: the effect of antibody heterogeneity on cross-linking. J Math Biol 10:347-366.",
+     "doi": "10.1007/BF00276093"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/blbr_heterogeneity_goldstein1980/verify_goldstein1980.ipynb",
+    "check": "BNG2.pl NFsim x_poly at the file's 18 scan doses, 64 distinct seeds each (runs to 60 s, averaged over 20-60 s), against Goldstein-Wofsy Eqs. 13-14 (Fig. 5, X_T = 500); asserted within 4.32 SE + 0.01 (half a receptor's worth of x_poly at 50 receptors); a control at 10x the receptors within 5.55 SE + 0.001; no drift over the window",
+    "result": "max |diff| 0.0100 (0.41 of its tolerance); control 0.0026 (0.38); the file's own 10 s horizon 0.35 of tolerance at the 13 excess-ligand doses; Eq. 13 solved two ways agrees to 2.3e-14",
+    "supporting": "explicit-ligand mode covers 5 of the 18 doses (the rising limb, x_poly 0.14-0.51); the peak and the prozone limb are in the excess-ligand mode, where Eq. 13 is the model's mean field exactly. Finding: the file's 10 s is short of equilibrium at the two lowest doses (0.023 below, about 3 SE); the suite's dose, 1e-8 M, is at equilibrium by 10 s",
+    "pending": "BNGL-Models branch verify-blbr_heterogeneity_goldstein1980-asserts @ 168a072 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 80000
+   }
+  },
+  {
+   "position": 2,
+   "problem": "prion_nucleated_polymerization_rubenstein2007",
+   "title": "Prion nucleated polymerization",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/prion_nucleated_polymerization_rubenstein2007/prion_nucleated_polymerization_rubenstein2007.bngl",
+    "sha256": "adb72aa478283ccc0f5027bb5a582e52e8b00b3ce98c25893f3d3cc6e1c9ad34",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Rubenstein R, Gray PC, Cleland TJ, Piltch MS, Hlavacek WS, Roberts RM, Ambrosiano J, Kim J-I (2007). Dynamics of the nucleated polymerization model of prion replication. Biophys Chem 125:360-367.",
+     "doi": "10.1016/j.bpc.2006.09.011"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/prion_nucleated_polymerization_rubenstein2007/verify_rubenstein2007.ipynb",
+    "check": "digitized Fig. 2 saturated levels vs BioNetGen SSA, < 5% of panel full scale asserted; a 30-seed x 3-clearance-rate SSA ensemble asserts the published take-off times and the extinction ordering",
+    "result": "worst saturated-level error 3.91% of full scale; take-off times inside the ensemble at both replicating conditions",
+    "supporting": "equations: BioNetGen ODE vs an independent SciPy chain-length ODE, < 1e-5 relative; structure: the network equals an independent enumeration of Eqs. 1-6 (483/483 reactions)"
+   },
+   "size": {
+    "species": 41,
+    "reactions": 483,
+    "ssa_events": 2600000,
+    "nf_events": 2500000
+   }
+  },
+  {
+   "position": 3,
+   "problem": "tnf_tnfr1_sequential_binding_mcmillan2021",
+   "title": "Sequential binding of trivalent TNF to monovalent TNFR1",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/tnf_tnfr1_sequential_binding_mcmillan2021/tnf_tnfr1_sequential_binding_mcmillan2021.bngl",
+    "sha256": "f7dde8619150ce100ffd73b099a0e93eb0d2c07cf3e0c40c3cdbacaedcf1ddb2",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "McMillan D, Martinez-Fleites C, Porter J, Fox D 3rd, Davis R, Mori P, et al. (2021). Structural insights into the disruption of TNF-TNFR1 signalling by small molecules stabilising a distorted TNF. Nat Commun 12:582.",
+     "doi": "10.1038/s41467-020-20828-3"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/tnf_tnfr1_sequential_binding_mcmillan2021/verify_mcmillan2021.ipynb: the publisher's Source Data for Fig. 1b (seven doses, no digitizing) against the ODE of this file, asserted; the file rebuilt from the authors' Supplementary Software 1"
+   },
+   "size": {
+    "species": 9,
+    "reactions": 24,
+    "nf_events": 120000
+   }
+  },
+  {
+   "position": 4,
+   "problem": "tlbr_solution_macken1982",
+   "title": "Trivalent ligand aggregating bivalent receptors in solution",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/tlbr_solution_macken1982/tlbr_solution_macken1982.bngl",
+    "sha256": "387d5ab1cb9b9bbc35176f620c7919695e0212d0b32533e1fed58f55f34f4857",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Macken CA, Perelson AS (1982). Aggregation of cell surface receptors by multivalent ligands. J Math Biol 14:365-370.",
+     "doi": "10.1007/BF00275401"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/tlbr_solution_macken1982/verify_macken1982.ipynb",
+    "check": "BNG2.pl NFsim, the file's own action at 3 ligand doses x 200 distinct seeds, against Eq. 11 kinetics at every output time (|z| capped at 5.33, 99% within 3) and the Eq. 21 equilibrium and Theorem 1 aggregate counts over the last 60 s; all asserted; below the gel point (Eq. 18) at every dose",
+    "result": "kinetics: 3703 comparisons, max |z| 3.76, 99.86% within 3; final window max |z| 1.57; Eq. 21 max relative error 0.020 (0.133 was printed at 676dd61)",
+    "pending": "BNGL-Models branch verify-tlbr_solution_macken1982-asserts @ 0c3b431 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 70000
+   }
+  },
+  {
+   "position": 5,
+   "problem": "tlbr_yang2008",
+   "title": "TLBR aggregation kinetics (Yang et al. 2008)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/tlbr_yang2008/tlbr_yang2008.bngl",
+    "sha256": "718e5aa67bfc2f7481374275e5212febb6fcdae2d4c60b75eab62d4200d78982",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Yang J, Monine MI, Faeder JR, Hlavacek WS (2008). Kinetic Monte Carlo method for rule-based modeling of biochemical networks. Phys Rev E 78:031910.",
+     "doi": "10.1103/PhysRevE.78.031910"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/tlbr_yang2008/verify_yang2008.ipynb",
+    "check": "BNG2.pl NFsim, 200 distinct seeds, against the curator's mean-field bond ODE (below percolation, beta = 0.1): equilibrium observables within 3 SE + 0.3%, kinetics at 1200 points with 99% within |z| < 3 and max |z| < 4; Fig. 3's caption's rejected fractions at beta = 0.1 and 50; all asserted",
+    "result": "equilibrium bonds 293.13 +- 0.17 against 293.21 (tolerance 1.40); kinetics 99.33% within 3, max |z| 3.73; rejected fraction 1.6e-4 (beta 0.1, 'essentially 0') and 0.567 +- 0.001 (beta 50, 'approximately 0.6')",
+    "supporting": "-bscb settled: the paper's model is acyclic and BNG2.pl's default -cb blocks same-complex binding exactly as -bscb (byte-identical output at beta = 50, 3571 rejected attempts each), so the file needs no -bscb",
+    "pending": "BNGL-Models branch verify-tlbr_yang2008-seeds-bscb @ d4cceef (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 100000
+   }
+  },
+  {
+   "position": 6,
+   "problem": "blbr_dembo1978",
+   "title": "Bivalent hapten cross-linking cell-surface antibody into chains",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/blbr_dembo1978/blbr_dembo1978.bngl",
+    "sha256": "4f7c4f16dd55a89a7a7f27e168d99abb9782f34a524292c18a2ce967ffd697b6",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Dembo M, Goldstein B (1978). Theory of equilibrium binding of symmetric bivalent haptens to cell surface antibody: application to histamine release from basophils. J Immunol 121:345-353.",
+     "doi": "10.4049/jimmunol.121.1.345"
+    },
+    {
+     "citation": "Perelson AS, DeLisi C (1980). Receptor clustering on a cell surface. I. Theory of receptor cross-linking by ligands bearing two chemically identical functional groups. Math Biosci 48:71-110.",
+     "doi": "10.1016/0025-5564(80)90017-6"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/blbr_dembo1978/verify_dembo1978.ipynb",
+    "check": "BNG2.pl NFsim at three hapten doses (the file's own the middle one), 20 distinct seeds each: bonds, cross-links and free receptors against the exact chain theory at equilibrium (max |z| < 4) and against the Perelson-DeLisi ODEs at 10/40/100/300/1000 s (max |z| < 4.5); asserted",
+    "result": "equilibrium max |z| 1.66; kinetics max |z| 2.16 (over every transient time, reported: 3.26, 99.5% within 3); the file's seed-42 run reproduces reference/ exactly (after the references were regenerated with stock BioNetGen 2.9.3)",
+    "supporting": "the file reaches equilibrium within 1% by 220 s; BNG2.pl's default read-back of the final species (get_final_state) takes over 30 minutes on these chains, which the harness skips on the last step",
+    "pending": "BNGL-Models branch verify-blbr_dembo1978-execute-asserts @ 05f6bb4 (on 581af0d; not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 500000
+   }
+  },
+  {
+   "position": 7,
+   "problem": "blbr_rings_posner1995",
+   "title": "Bivalent ligand and bivalent receptor with cyclic dimers",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/blbr_rings_posner1995/blbr_rings_posner1995.bngl",
+    "sha256": "be2477299a88449edb23bb55e4f951e43032b625e1f9506193ee78231629a730",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Posner RG, Wofsy C, Goldstein B (1995). The kinetics of bivalent ligand-bivalent receptor aggregation: ring formation and the breakdown of the equivalent site approximation. Math Biosci 126:171-190.",
+     "doi": "10.1016/0025-5564(94)00045-2"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/blbr_rings_posner1995/verify_posner1995.ipynb",
+    "check": "BNG2.pl NFsim, 60 distinct seeds at each of five conditions (three doses; two at R_T = 750): rings against chains through the identity d<R2>/dt = jp<C1(2)> - 4 koff <R2>, C1(2) counted by an added Species observable that leaves the trajectory unchanged (max |z| < 4); equilibrium against the closed form, which equals the steady state of Eqs. 14a-i, with the 1/R_T term extrapolated out (max |z| < 4); kinetics against Eqs. 14a-i (max |z| < 4.5); asserted",
+    "result": "ring identity max |z| 1.20 (ring-to-chain ratio 24.92-25.06 against 25); equilibrium 1.58; kinetics 2.37 over 49 comparisons. The old ring check was circular (it derived C1(2) from R2). Without -utl 5 (NFsim's automatic limit 4) the ring identity fails at z = -80.7, so -utl 5 is essential",
+    "pending": "BNGL-Models branch verify-blbr_rings_posner1995-asserts @ 78d7f9a (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 950000
+   }
+  },
+  {
+   "position": 8,
+   "problem": "tlbr_steric_monine2010",
+   "title": "Trivalent antigen aggregating IgE-FceRI on mast cells",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/tlbr_steric_monine2010/tlbr_steric_monine2010.bngl",
+    "sha256": "d6a9d36e417a7a1f299a2fad81dbf6b55702c107e25400048e398034fbbd378c",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Monine MI, Posner RG, Savage PB, Faeder JR, Hlavacek WS (2010). Modeling multivalent ligand-receptor interactions with steric constraints on configurations of cell-surface receptor aggregates. Biophys J 98:48-56.",
+     "doi": "10.1016/j.bpj.2009.09.043"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/tlbr_steric_monine2010/verify_monine2010.ipynb and run_monine2010.py",
+    "check": "24 fresh BNG2.pl NFsim scans (seeds 1000-1023, each in its own run directory, asserted distinct) at the 12 Fig. 2a doses against the published CSV: RMS lambda < 0.02 (Monine's own acceptance criterion, SI Eq. 11) with a margin of more than 3 bootstrap SE, asserted",
+    "result": "RMS lambda 0.0153 +- 0.0005 (margin 9.4 SE); the old cache, which a shared-directory glob had left with 1 distinct scan of 5, read 0.0124",
+    "pending": "BNGL-Models branch verify-tlbr_steric_monine2010-replicates @ 936660b (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 450000
+   }
+  },
+  {
+   "position": 9,
+   "problem": "blbr_cooperativity_posner2004",
+   "title": "Negatively cooperative anti-IgE binding to cell-surface IgE-FceRI",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/blbr_cooperativity_posner2004/blbr_cooperativity_posner2004.bngl",
+    "sha256": "a3daf10b388a1ab40fb10d05845c02417c0e8b8a2d983589be40e61bb4d5314a",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Posner RG, Paar JM, Licht A, Pecht I, Conrad DH, Hlavacek WS (2004). Interaction of a monoclonal IgE-specific antibody with cell-surface IgE-FceRI: characterization of equilibrium binding and secretory response. Biochemistry 43:11352-11360.",
+     "doi": "10.1021/bi049686o"
+    },
+    {
+     "citation": "Wofsy C, Goldstein B (1987). The effect of co-operativity on the equilibrium binding of symmetric bivalent ligands to antibodies: theoretical results with application to histamine release from basophils. Mol Immunol 24:151-161.",
+     "doi": "10.1016/0161-5890(87)90091-2"
+    }
+   ],
+   "verification": {
+    "kind": "theory",
+    "evidence": "models/blbr_cooperativity_posner2004/verify_posner2004.ipynb",
+    "check": "BNG2.pl NFsim, 120 distinct seeds at each of the file's 20 scan doses, against the Wofsy-Goldstein equilibrium (Eqs. 10, 15, 17 by scipy.optimize), within 3 SE + 0.002 per dose and a pooled |z| < 3, asserted; a ring count (bonds - molecules + 1 per final complex) is zero",
+    "result": "max |q - theory| 0.0016, max |z| 2.61, pooled z +0.72",
+    "supporting": "-bscb settled: the '-rings' model has J2 = 0 (linear chains only) and BNG2.pl's default -cb blocks same-complex binding exactly as -bscb (byte-identical scans, 10 seeds), so the file needs no -bscb",
+    "pending": "BNGL-Models branch verify-blbr_cooperativity_posner2004-seeds-bscb @ 2cd5a16 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 160000
+   }
+  },
+  {
+   "position": 10,
+   "problem": "egfr_oligomerization_mitra2019",
+   "title": "EGFR higher-order oligomerization coupled to phosphorylation",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "path": "models/egfr_oligomerization_mitra2019/egfr_oligomerization_mitra2019.bngl",
+    "sha256": "23ed0c39e61f9bcdb56277ccbb41c4e55cf08b770ccc713580f2e952e75e7df6",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Mitra ED, Suderman R, Colvin J, Ionkov A, Hu A, Sauro HM, Posner RG, Hlavacek WS (2019). PyBioNetFit and the Biological Property Specification Language. iScience 19:1012-1036.",
+     "doi": "10.1016/j.isci.2019.08.045"
+    },
+    {
+     "citation": "Kozer N, Barua D, Orchard S, Nice EC, Burgess AW, Hlavacek WS, Clayton AHA (2013). Exploring higher-order EGFR oligomerisation and phosphorylation -- a combined experimental and theoretical approach. Mol BioSyst 9:1849-1863.",
+     "doi": "10.1039/c3mb70073a"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/egfr_oligomerization_mitra2019/verify_mitra2019.ipynb and run_mitra2019.py",
+    "check": "BNG2.pl NFsim, 24 time-course and 24 dose-response replicates (distinct seeds, each in its own run directory), scaled and compared with the Kozer 2013 average-normalized data (Figs. 2B, 2D, 3B, 3D): total chi^2 < 30, asserted",
+    "result": "chi^2 13.90 +- 0.50 (Fig. 3B 3.40, 3D 4.72, 2B 2.53, 2D 3.24; the published fit scores 13.4); the old cache (4 distinct replicates of 6) read 14.91",
+    "supporting": "the record's own contrast, not evidence here: BNG2.pl's NFsim 1.14.3 reads 12.0% below RuleMonkey on pEGFR (281 against 317 at 1 nM)",
+    "pending": "BNGL-Models branch verify-egfr_oligomerization_mitra2019-replicates @ 5b8ebb1 (not merged; the .bngl is unchanged): pin the merged sha in this evidence when it lands (TODO)"
+   },
+   "size": {
+    "nf_events": 1500000
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "blbr_heterogeneity_goldstein1980",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 665594,
+    "sha256": "1a73fb2d3ea5c0e98c65f3ec40329b164ce906368fc2c8716494e4f78cabaa25"
+   }
+  },
+  {
+   "job_id": "nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "blbr_heterogeneity_goldstein1980",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 665594,
+    "sha256": "a28cf633bcc355950ca0be4d554e89133604d850e7a5329395851e543eff1023"
+   }
+  },
+  {
+   "job_id": "nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "blbr_heterogeneity_goldstein1980",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "blbr_heterogeneity_goldstein1980",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_heterogeneity_goldstein1980/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+   "problem": "prion_nucleated_polymerization_rubenstein2007",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 223902,
+    "sha256": "17c2281a830abeb9a66d4b8e9d46d13831548cddc509ce418a67bf70b7d7856c"
+   }
+  },
+  {
+   "job_id": "nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness",
+   "problem": "prion_nucleated_polymerization_rubenstein2007",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 223902,
+    "sha256": "fae47a927d2d3ebdbee68f65e60da001886f04b37f9485713e32ef187475ea98"
+   }
+  },
+  {
+   "job_id": "nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing",
+   "problem": "prion_nucleated_polymerization_rubenstein2007",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+   "problem": "prion_nucleated_polymerization_rubenstein2007",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/prion_nucleated_polymerization_rubenstein2007/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+   "problem": "tnf_tnfr1_sequential_binding_mcmillan2021",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 889445,
+    "sha256": "ffc8567894cd4889290562805e9167a1f6f7c7c34878a93fce545eccc73461d6"
+   }
+  },
+  {
+   "job_id": "nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness",
+   "problem": "tnf_tnfr1_sequential_binding_mcmillan2021",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 889445,
+    "sha256": "f2d87b4819d63f878a05ad1c0d8b2446d3ca6ac48ae9d817028b8010394f8242"
+   }
+  },
+  {
+   "job_id": "nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing",
+   "problem": "tnf_tnfr1_sequential_binding_mcmillan2021",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing",
+   "problem": "tnf_tnfr1_sequential_binding_mcmillan2021",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "tlbr_solution_macken1982",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 10035412,
+    "sha256": "34ed4d6cd498102eb2cbfe3d71579e3a3e0c568f859b5972dfb5adb542a76a0a"
+   }
+  },
+  {
+   "job_id": "nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "tlbr_solution_macken1982",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 10035412,
+    "sha256": "dd6531617e4ef630d6580cb81a909be75aad7b149bc46f83baf8ed109e180931"
+   }
+  },
+  {
+   "job_id": "nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "tlbr_solution_macken1982",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/tlbr_solution_macken1982/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "tlbr_solution_macken1982",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "tlbr_yang2008",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 5862107,
+    "sha256": "300c3c80d95881f9cf58b791b03307b7259361404fcc50c38879c047d58b5fc8"
+   }
+  },
+  {
+   "job_id": "nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "tlbr_yang2008",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 5862107,
+    "sha256": "4f0c46e746837030e8afeb1e135c999f508341425e84052005689722ab040b27"
+   }
+  },
+  {
+   "job_id": "nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "tlbr_yang2008",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "tlbr_yang2008",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_yang2008/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "blbr_dembo1978",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 3786150,
+    "sha256": "6f5f53abbf269a89d391fe9bab5d8bfa9852d70b1a187ce305e67de0c1bcdab6"
+   }
+  },
+  {
+   "job_id": "nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "blbr_dembo1978",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 3786150,
+    "sha256": "224ca2d0931c360f51449ca835a20d5b768d3ffcfac917bdf92913eda212f61b"
+   }
+  },
+  {
+   "job_id": "nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "blbr_dembo1978",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "blbr_dembo1978",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_dembo1978/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "blbr_rings_posner1995",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 2414672,
+    "sha256": "69a605ee127ddbeedbaf63184cea6fb106e369638e858d598c94d39f01bc04f3"
+   }
+  },
+  {
+   "job_id": "nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "blbr_rings_posner1995",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 2414672,
+    "sha256": "65ad19ee6b4b74b0a0da7d086c20a2048d5a34e125138cd94ee1cf398d6c2471"
+   }
+  },
+  {
+   "job_id": "nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "blbr_rings_posner1995",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "blbr_rings_posner1995",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/blbr_rings_posner1995/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "tlbr_steric_monine2010",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 592756,
+    "sha256": "9d072d12ae6046ca6c1c9308fda6107517e1d1bd6408c36cd0131baa03c0fa56"
+   }
+  },
+  {
+   "job_id": "nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "tlbr_steric_monine2010",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 592756,
+    "sha256": "df49ce5a67011409441b903e97e03ca826ada6acce5b7b04cfc8a7678164ee89"
+   }
+  },
+  {
+   "job_id": "nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "tlbr_steric_monine2010",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_exact/timing.json"
+  },
+  {
+   "job_id": "nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "tlbr_steric_monine2010",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/nf/tlbr_steric_monine2010/bngsim-vs-nfsim-rulemonkey/nf_reject/timing.json"
+  },
+  {
+   "job_id": "nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "blbr_cooperativity_posner2004",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 930442,
+    "sha256": "a8563d64963f19e909e83d5c8ce0ed0d9d108b53a2a8df3353970b690a392054"
+   }
+  },
+  {
+   "job_id": "nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "blbr_cooperativity_posner2004",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 930442,
+    "sha256": "562736c967cde8411cd5cd9e578553dbf63498cf105b844fcb2f116387d14997"
+   }
+  },
+  {
+   "job_id": "nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "blbr_cooperativity_posner2004",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/blbr_cooperativity_posner2004/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "blbr_cooperativity_posner2004",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness",
+   "problem": "egfr_oligomerization_mitra2019",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 96889,
+    "sha256": "569d2743d668bf81e5d00dfe37fd9e2f0d55f7820ae6feb499ce3bc51071f229"
+   }
+  },
+  {
+   "job_id": "nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+   "problem": "egfr_oligomerization_mitra2019",
+   "kind": "correctness",
+   "outcome": "DIFF",
+   "file": "jobs/nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.json",
+   "trajectories": {
+    "file": "jobs/nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 96889,
+    "sha256": "f922b1698efff68d1d514ad7b269b3da1b9239428dd3718df7a279dcc1eeda4f"
+   }
+  },
+  {
+   "job_id": "nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_exact/timing",
+   "problem": "egfr_oligomerization_mitra2019",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  },
+  {
+   "job_id": "nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_reject/timing",
+   "problem": "egfr_oligomerization_mitra2019",
+   "kind": "timing",
+   "outcome": "WITHHELD",
+   "withheld": "correctness DIFF"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 20,
+  "total_bytes": 50994738,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

@@ -1,0 +1,439 @@
+{
+ "capability": "ode",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "188aefaba9919447d32a7cdda952be101c247cbc",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+ "key": "466795cd81d0fa9e78eee24dfaa5d58e1cdad45f202ae4becb726b42a3166421",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "protocol": {
+     "atol": 1e-10,
+     "n_steps": 600,
+     "netgen": "generate_network({overwrite=>1})",
+     "rtol": 1e-10,
+     "sparse": true,
+     "t_end": 120,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "14f5668d43b031d4ef3e05e6b362c6ad643c617d8a74e4966a815480d3af3f4f",
+    "verdict": 2
+   },
+   "id": "ode/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 26.58164146798663,
+   "cold_seconds": 27.32318684598431,
+   "jacobian": "analytical",
+   "jacobian_seconds": 0.0009311289759352803,
+   "linear_solver": "KLU",
+   "load_seconds": 0.025730057037435472
+  },
+  "engine_budget_seconds": 2048.201634614347,
+  "netgen_seconds": 9.646869368036278,
+  "network": {
+   "reactions": 3749,
+   "species": 356
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 329.2732049510814,
+    "cold_seconds": 332.315157643985,
+    "integrator": "CVODES BDF",
+    "load_seconds": 0.003206231980584562,
+    "output": "amount",
+    "sensitivities": "none",
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 17.53526208398398,
+    "load_seconds": 12.220554148079827,
+    "method": "deterministic (LSODA)",
+    "output": "amount",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 26.900672734947875,
+    "integrator": "cvode",
+    "load_seconds": 25.860939171980135,
+    "output": "amount",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "cold_seconds": 2.826225592987612,
+    "command": [
+     "-o",
+     "$TMPDIR/bench-job-f3wwyicv/run_network",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-10",
+     "-r",
+     "1e-10",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "$TMPDIR/bench-job-f3wwyicv/netgen/model.net",
+     "$TMPDIR/bench-job-f3wwyicv/netgen/model.net",
+     "0.2",
+     "600"
+    ],
+    "solver": "dense"
+   }
+  },
+  "sparse_reference": {
+   "agrees_with_dense": true,
+   "max_rel": 0.0,
+   "n_hard_fail": 0,
+   "seconds": 0.6724315829342231,
+   "species_check": {
+    "floor": 1e-09,
+    "n_fail": 0,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.003153903995895,
+     "err": 5.920999801567461e-10,
+     "err_over_peak": 1.877355749976539e-09,
+     "index": 355,
+     "peak": 0.3153903995895,
+     "score": 1.877355749976539e-07,
+     "species": "EGF(r!1).EGF(r!2).EGFR(Y1068~pY!3,Y1148~pY!4,l!1,r!5).EGFR(Y1068~pY!6,Y1148~pY!7,l!2,r!5).GRB2(SH2!3,SH3!8).GRB2(SH2!9,SH3!10).GRB2(SH2!6,SH3!11).GRB2(SH2!12,SH3!13).SHC1(PTB!4,Y317~pY!9).SHC1(PTB!7,Y317~pY!12).SOS1(dom!8).SOS1(dom!10).SOS1(dom!11).SOS1(dom!13)",
+     "t": 10.200000000000001
+    }
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 2,
+ "problem": "combinatorial_egfr_signaling_blinov2006",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:16+00:00",
+   "from_key": "23718287b76bb1752239b37a08889f1d836aef261c0d7ae190dea279f7273231",
+   "from_outcome": "PASS",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": 2
+  }
+ ],
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T19:45:08.239396+00:00",
+ "trajectories": {
+  "arrays": [
+   "amici",
+   "bngsim",
+   "copasi",
+   "roadrunner",
+   "run_network",
+   "run_network_sparse",
+   "species",
+   "time"
+  ],
+  "bytes": 9515986,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 47755069 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "5f135450a95708d9b7016f0b21acdee94c2f669bd297bf88c27143b50c0cc2c3"
+ },
+ "verdicts": {
+  "amici": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 4.950791990609574e-09,
+   "max_err_over_peak": 1.1481556253867655e-08,
+   "max_rel": 0.0,
+   "n_cells": 213956,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     601,
+     356
+    ],
+    "reference": [
+     601,
+     356
+    ]
+   },
+   "species_check": {
+    "atol": 1e-10,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-09,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 356,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.009432234069606594,
+     "err": 1.0829672603129836e-08,
+     "err_over_peak": 1.1481556249782008e-08,
+     "index": 354,
+     "peak": 0.9432234069606593,
+     "score": 1.1481556249782007e-06,
+     "species": "EGF(r!1).EGF(r!2).EGFR(Y1068~pY!3,Y1148~pY!4,l!1,r!5).EGFR(Y1068~pY!6,Y1148~pY!7,l!2,r!5).GRB2(SH2!8,SH3!9).GRB2(SH2!6,SH3!10).GRB2(SH2!11,SH3!12).GRB2(SH2!3,SH3).SHC1(PTB!4,Y317~pY!8).SHC1(PTB!7,Y317~pY!11).SOS1(dom!9).SOS1(dom!10).SOS1(dom!12)",
+     "t": 10.0
+    }
+   },
+   "vendored_passed": true
+  },
+  "copasi": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.147270285743548e-09,
+   "max_err_over_peak": 4.151215561835238e-09,
+   "max_rel": 0.0,
+   "n_cells": 213956,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     601,
+     356
+    ],
+    "reference": [
+     601,
+     356
+    ]
+   },
+   "species_check": {
+    "atol": 1e-10,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-09,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 356,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.0031539040057417794,
+     "err": 1.3092535389169768e-09,
+     "err_over_peak": 4.151215561835238e-09,
+     "index": 355,
+     "peak": 0.31539040057417794,
+     "score": 4.151215561835238e-07,
+     "species": "EGF(r!1).EGF(r!2).EGFR(Y1068~pY!3,Y1148~pY!4,l!1,r!5).EGFR(Y1068~pY!6,Y1148~pY!7,l!2,r!5).GRB2(SH2!3,SH3!8).GRB2(SH2!9,SH3!10).GRB2(SH2!6,SH3!11).GRB2(SH2!12,SH3!13).SHC1(PTB!4,Y317~pY!9).SHC1(PTB!7,Y317~pY!12).SOS1(dom!8).SOS1(dom!10).SOS1(dom!11).SOS1(dom!13)",
+     "t": 7.0
+    }
+   },
+   "vendored_passed": true
+  },
+  "roadrunner": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.837195111705561e-10,
+   "max_err_over_peak": 2.0819761877151503e-10,
+   "max_rel": 0.0,
+   "n_cells": 213956,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     601,
+     356
+    ],
+    "reference": [
+     601,
+     356
+    ]
+   },
+   "species_check": {
+    "atol": 1e-10,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-09,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 356,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.0031539039958947226,
+     "err": 6.566353016879134e-11,
+     "err_over_peak": 2.0819761874255603e-10,
+     "index": 355,
+     "peak": 0.31539039958947224,
+     "score": 2.08197618742556e-08,
+     "species": "EGF(r!1).EGF(r!2).EGFR(Y1068~pY!3,Y1148~pY!4,l!1,r!5).EGFR(Y1068~pY!6,Y1148~pY!7,l!2,r!5).GRB2(SH2!3,SH3!8).GRB2(SH2!9,SH3!10).GRB2(SH2!6,SH3!11).GRB2(SH2!12,SH3!13).SHC1(PTB!4,Y317~pY!9).SHC1(PTB!7,Y317~pY!12).SOS1(dom!8).SOS1(dom!10).SOS1(dom!11).SOS1(dom!13)",
+     "t": 3.6
+    }
+   },
+   "vendored_passed": true
+  },
+  "run_network": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 2.8095643778198427e-12,
+   "max_err_over_peak": 4.821092090544263e-13,
+   "max_rel": 0.0,
+   "n_cells": 213956,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     601,
+     356
+    ],
+    "reference": [
+     601,
+     356
+    ]
+   },
+   "species_check": {
+    "atol": 1e-10,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-09,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 356,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.01010028038161,
+     "err": 4.869438186005937e-13,
+     "err_over_peak": 4.821092090544263e-13,
+     "index": 278,
+     "peak": 1.010028038161,
+     "score": 4.8210920905442634e-11,
+     "species": "EGF(r!1).EGF(r!2).EGFR(Y1068~pY!3,Y1148~pY,l!2,r!4).EGFR(Y1068~pY,Y1148~pY!5,l!1,r!4).GRB2(SH2!3,SH3!6).GRB2(SH2!7,SH3!8).SHC1(PTB!5,Y317~pY!7).SOS1(dom!6).SOS1(dom!8)",
+     "t": 9.600000000000001
+    }
+   },
+   "vendored_passed": true
+  }
+ },
+ "wall_seconds": 420.2838481639046
+}

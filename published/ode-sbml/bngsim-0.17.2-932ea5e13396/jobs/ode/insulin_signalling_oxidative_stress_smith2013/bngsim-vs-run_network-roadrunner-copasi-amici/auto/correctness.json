@@ -1,0 +1,530 @@
+{
+ "capability": "ode",
+ "copasi_error": "KeyError: \"['PP2A', 'E2F1', 'SGK', 'CDK2', 'AMPK', 'CBPP300', 'SIRT1', 'E3', 'USP7', 'SCF', 'Proteasome'] not in index\"",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "188aefaba9919447d32a7cdda952be101c247cbc",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/insulin_signalling_oxidative_stress_smith2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+ "key": "14ecd05d5cbfd360b63fcd6eb93db320e2415f4d70a4121a4f93c68c01deb92c",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-09,
+     "n_steps": 1000,
+     "output_start": 0,
+     "rtol": 1e-06,
+     "t_end": 2805,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "b9cb35d09bf07515e7e6bf453346f1eaeba53ccc2b5d08f7b8570d761a3a3a51",
+    "verdict": 2
+   },
+   "id": "ode/insulin_signalling_oxidative_stress_smith2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_cache_hit": null,
+   "codegen_seconds": 0.0,
+   "cold_seconds": 3.1757220200961456,
+   "input": "sbml (Model.from_sbml)",
+   "jacobian": "analytical",
+   "jacobian_seconds": 1.598297191085294,
+   "linear_solver": "KLU",
+   "load_seconds": 1.024229796952568
+  },
+  "derived_network": {
+   "bngsim_only": [
+    "24 assignment-rule species (e.g. 'DUSP_plus_DUSP_ox', 'Foxo1_Pa0_tot', 'Foxo1_Pa1_tot', \u2026) are written $-fixed as __ar_<rule> beside the function or observable that carries their rule: bngsim reads the pair as the rule, but BNG2.pl holds each species' own column at its initial value (its rate laws r"
+   ],
+   "conversion_seconds": 1.307149642962031,
+   "converter_notes": [
+    "MODEL1212210000_eventsForFigure3A.xml: a model only bngsim reads back as written \u2014 24 assignment-rule species (e.g. 'DUSP_plus_DUSP_ox', 'Foxo1_Pa0_tot', 'Foxo1_Pa1_tot', \u2026) are written $-fixed as __ar_<rule> beside the function or observable that carries their rule: bngsim reads the pair as the rul"
+   ],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 1.370662795270123e-09,
+    "passed": true,
+    "rows_not_compared": [
+     0.0
+    ],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 222876606069.10684,
+      "err": 30548.8671875,
+      "err_over_peak": 1.370662795270123e-09,
+      "index": 54,
+      "peak": 22287660606910.684,
+      "score": 1.3706627952701228e-07,
+      "species": "dnabound_Foxo1_Pa0_Pd0_Pe1_pUb1",
+      "t": 460.02000000000004
+     }
+    }
+   },
+   "netgen_seconds": 2.3670995000284165,
+   "network": {
+    "reactions": 685,
+    "species": 133
+   },
+   "phases": 4,
+   "seconds": 9.604137244052254
+  },
+  "engine_budget_seconds": 1800.0,
+  "network": {
+   "reactions": 367,
+   "species": 133
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 52.26853360491805,
+    "cold_seconds": 54.74356903799344,
+    "integrator": "CVODES BDF",
+    "load_seconds": 0.002244233968667686,
+    "output": "amount",
+    "sensitivities": "none",
+    "version": "1.1.0"
+   },
+   "roadrunner": {
+    "cold_seconds": 2.3274014219641685,
+    "integrator": "cvode",
+    "load_seconds": 2.2326888979878277,
+    "output": "concentration",
+    "reset": "resetAll",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "boundary_times": [
+     0.0
+    ],
+    "cold_seconds": 2.9780654570786282,
+    "commands": [
+     [
+      "-o",
+      "$TMPDIR/bench-job-iawj949j/run_network_p0",
+      "-p",
+      "cvode",
+      "-a",
+      "1e-09",
+      "-r",
+      "1e-06",
+      "--cdat",
+      "1",
+      "--fdat",
+      "0",
+      "-g",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase0.net",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase0.net",
+      "<6 sample times, 2.805 to 15>"
+     ],
+     [
+      "-o",
+      "$TMPDIR/bench-job-iawj949j/run_network_p1",
+      "-p",
+      "cvode",
+      "-a",
+      "1e-09",
+      "-r",
+      "1e-06",
+      "-i",
+      "15.0",
+      "--cdat",
+      "1",
+      "--fdat",
+      "0",
+      "-g",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase1.net",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase1.net",
+      "<988 sample times, 16.83 to 2785>"
+     ],
+     [
+      "-o",
+      "$TMPDIR/bench-job-iawj949j/run_network_p2",
+      "-p",
+      "cvode",
+      "-a",
+      "1e-09",
+      "-r",
+      "1e-06",
+      "-i",
+      "2785.0",
+      "--cdat",
+      "1",
+      "--fdat",
+      "0",
+      "-g",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase2.net",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase2.net",
+      "<7 sample times, 2785.37 to 2800>"
+     ],
+     [
+      "-o",
+      "$TMPDIR/bench-job-iawj949j/run_network_p3",
+      "-p",
+      "cvode",
+      "-a",
+      "1e-09",
+      "-r",
+      "1e-06",
+      "-i",
+      "2800.0",
+      "--cdat",
+      "1",
+      "--fdat",
+      "0",
+      "-g",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase3.net",
+      "$TMPDIR/bench-job-iawj949j/run_network_phase3.net",
+      "<3 sample times, 2802.2 to 2805>"
+     ]
+    ],
+    "input": "network derived from the SBML",
+    "phases": 4,
+    "solver": "dense"
+   }
+  },
+  "sbml": {
+   "compared_species": 105,
+   "events": 4,
+   "not_compared": {
+    "assignment_rule": [
+     "InR_tot",
+     "InR_bound",
+     "InR_active",
+     "PI345P3_mol",
+     "PIP2_mol",
+     "PTP1B_plus_PTP1B_ox",
+     "PTEN_plus_PTEN_ox",
+     "NOX_total",
+     "IRS_total",
+     "JNK_plus_JNK_P",
+     "IKK_plus_IKK_P",
+     "DUSP_plus_DUSP_ox",
+     "Foxo1_Pa0_tot",
+     "Foxo1_Pa1_tot",
+     "Foxo1_Pd0_tot",
+     "Foxo1_Pd1_tot",
+     "Foxo1_Pe0_tot",
+     "Foxo1_Pe1_tot",
+     "Foxo1_pUb0_tot",
+     "Foxo1_pUb1_tot",
+     "cytoplasm_Foxo1_tot",
+     "nucleus_Foxo1_tot",
+     "dnabound_Foxo1_tot",
+     "Foxo1_all"
+    ],
+    "constant": [
+     "NULL",
+     "extracellular_ROS",
+     "Mt",
+     "null"
+    ]
+   },
+   "reactions": 367,
+   "species": 133
+  }
+ },
+ "outcome": "DIFF",
+ "pinned_cpu": 5,
+ "problem": "insulin_signalling_oxidative_stress_smith2013",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:17+00:00",
+   "from_key": "6f235758d49c323a1bae8073e6b766ec2df70dc13d7cb8704bb9476ef6cca671",
+   "from_outcome": "REFERENCE_FAILED",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": 2
+  }
+ ],
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T19:44:07.386158+00:00",
+ "trajectories": {
+  "arrays": [
+   "amici",
+   "bngsim",
+   "roadrunner",
+   "run_network",
+   "species",
+   "time"
+  ],
+  "bytes": 2466932,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 13265983 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "0fbe1db4324c7b97d4e7394c12f37e673074087edad343a153cbd7ef5479238a"
+ },
+ "verdicts": {
+  "amici": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 2.449068817670279e-06,
+   "max_err_over_peak": 5.1575319454922914e+219,
+   "max_rel": 0.0,
+   "n_cells": 105105,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": false,
+   "shapes": {
+    "bngsim": [
+     1001,
+     105
+    ],
+    "reference": [
+     1001,
+     105
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [
+     "Ins",
+     "IRS1_TyrP_PolySerP",
+     "NOX",
+     "cytoplasm_Ins_InR_P",
+     "Ins_InR_P",
+     "NOX_deact",
+     "Ins_InR",
+     "IRS1_TyrP",
+     "IRS1_TyrP_PI3K",
+     "Ins_2_InR_P"
+    ],
+    "floor": 1e-08,
+    "n_at_floor": 6,
+    "n_fail": 10,
+    "n_species": 105,
+    "passed": false,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 5000.0,
+     "err": 500000.0,
+     "err_over_peak": 1.0,
+     "index": 0,
+     "peak": 500000.0,
+     "score": 100.0,
+     "species": "Ins",
+     "t": 2.805
+    }
+   },
+   "vendored_passed": true
+  },
+  "roadrunner": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 2.141075555441975e-06,
+   "max_err_over_peak": 1.0838003759011943e-05,
+   "max_rel": 0.0,
+   "n_cells": 105105,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     1001,
+     105
+    ],
+    "reference": [
+     1001,
+     105
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 6,
+    "n_fail": 0,
+    "n_species": 105,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 1105422568.409721,
+     "err": 1198057.3951721191,
+     "err_over_peak": 1.0838003759011943e-05,
+     "index": 24,
+     "peak": 110542256840.97209,
+     "score": 0.0010838003759011943,
+     "species": "ROS",
+     "t": 345.01500000000004
+    }
+   },
+   "vendored_passed": true
+  },
+  "run_network": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 2.1774892440798327e-06,
+   "max_err_over_peak": 2.7589451116528244e-05,
+   "max_rel": 0.0,
+   "n_cells": 105000,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "rows_not_compared": [
+    0.0
+   ],
+   "shapes": {
+    "bngsim": [
+     1000,
+     105
+    ],
+    "reference": [
+     1000,
+     105
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 6,
+    "n_fail": 0,
+    "n_species": 105,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 11745.542309055172,
+     "err": 32.40441251732409,
+     "err_over_peak": 2.7588689959715233e-05,
+     "index": 87,
+     "peak": 1174554.2309055172,
+     "score": 0.0027588689959715234,
+     "species": "dnabound_Foxo1_Pa1_Pd1_Pe1_pUb0",
+     "t": 8.415000000000001
+    }
+   },
+   "vendored_passed": true
+  }
+ },
+ "wall_seconds": 78.39169378799852
+}

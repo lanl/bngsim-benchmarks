@@ -1,0 +1,560 @@
+{
+ "schema": 1,
+ "suite": "ode-net",
+ "capabilities": [
+  "ode"
+ ],
+ "published": "2026-11-25T17:14:00Z",
+ "bngsim": {
+  "version": "0.17.2",
+  "build_commit": "932ea5e13396"
+ },
+ "engines": {
+  "bionetgen": [
+   "2.9.3"
+  ],
+  "roadrunner": [
+   "2.11.0"
+  ],
+  "copasi": [
+   "4.48.311"
+  ],
+  "amici": [
+   "1.1.0"
+  ]
+ },
+ "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+ "harness": {
+  "bench": [
+   "0.1.0"
+  ],
+  "parity_core": [
+   {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  ],
+  "source_commits": [
+   "188aefaba9919447d32a7cdda952be101c247cbc"
+  ]
+ },
+ "members": [
+  {
+   "position": 1,
+   "problem": "noise_resistant_circadian_oscillator_vilar2002",
+   "title": "Noise-resistant circadian oscillator",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/noise_resistant_circadian_oscillator_vilar2002/noise_resistant_circadian_oscillator_vilar2002.bngl",
+    "sha256": "0495750da101490549b9bed83b4d70f2e829d46244466a87e418f7f3882273d9",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Vilar JMG, Kueh HY, Barkai N, Leibler S (2002). Mechanisms of noise-resistance in genetic oscillators. PNAS 99:5988-5992.",
+     "doi": "10.1073/pnas.092133899"
+    }
+   ],
+   "verification": {
+    "kind": "equations",
+    "evidence": "models/noise_resistant_circadian_oscillator_vilar2002/verify_vilar2002.ipynb",
+    "check": "independent SciPy LSODA integration of the paper's Eq. 1 (parameters from the Fig. 1 caption, not read from the .net) vs the BioNetGen ODE, tolerance 1e-6",
+    "result": "max relative error 2.6e-7",
+    "supporting": "data: digitized Fig. 2a/2b, RMSE/panel height 0.030 (A) and 0.038 (R) against a stated 0.06",
+    "stochastic": "equations: 64 BioNetGen SSA seeds vs 16 independent Gillespie runs, mean peak R and period in three regimes, worst |z| 1.13 (Welch-t, 1% family-wise); data: eight statistics of the five published realizations inside t(n-1) prediction intervals of a 64-replicate ensemble, worst |z| 1.62 (tol 3.38); all asserted (verify_vilar2002.ipynb at 7d6d366)"
+   },
+   "size": {
+    "species": 9,
+    "reactions": 16,
+    "ssa_events": 1100000,
+    "psa_events": 380000
+   }
+  },
+  {
+   "position": 2,
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "title": "TCR signaling bistability",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/tcr_signaling_bistability_lipniacki2008/tcr_signaling_bistability_lipniacki2008.bngl",
+    "sha256": "82c8d6184c995b38ec82ad19c0ae1e25189b12d3a1dddeeca5b8a7e178436c6d",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Lipniacki T, Hat B, Faeder JR, Hlavacek WS (2008). Stochastic effects and bistability in T cell receptor signaling. J Theor Biol 254:110-122.",
+     "doi": "10.1016/j.jtbi.2008.05.001"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008.ipynb",
+    "check": "digitized Fig. 7B deterministic ppERK vs the BioNetGen ODE: NRMSE <= 1% FS, peak <= 2%, plateau <= 1% asserted",
+    "result": "NRMSE 0.22% FS, peak 1.1%, plateau 0.10%",
+    "supporting": "equations: hand-written 37-state SciPy ODE vs BioNetGen, max relative error 4.2e-9 (follows the supplied chemical specification rather than the paper's Appendix A)",
+    "steady_state_evidence": "models/tcr_signaling_bistability_lipniacki2008/verify_lipniacki2008_steady_state.ipynb at BNGL-Models 7d6d3660b9146abc49e45d6d21f08b59ad5d34ab",
+    "steady_state_check": "equations: BNG2.pl (a primed cell given N agonists, and a ramp from steady state) vs the independent 37-state equations run the same way and Newton-polished, at 20 log-spaced N_agonist from 1 to 1000, both branches, 1e-6 relative asserted; data: digitized Fig. 7A (d = 0.05/s) ppERK at 19 doses on both branches, 0.024 decade asserted",
+    "steady_state_result": "37 species x 20 doses x 2 protocols, 7.9e-10; folds at N = 8.8452 and 772.11 by continuation (13 doses bistable); Fig. 7A max 0.0102 decade (2.4%)"
+   },
+   "size": {
+    "species": 37,
+    "reactions": 97,
+    "ssa_events": 7200000,
+    "psa_events": 600000,
+    "nf_events": 2000000
+   }
+  },
+  {
+   "position": 3,
+   "problem": "cell_cycle_oscillator_lang2024",
+   "title": "RPE-1 cell-cycle oscillator (fitted)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "c2a33687e580c574ddeb299b9f119bb444a7e607",
+    "path": "models/cell_cycle_oscillator_lang2024/cell_cycle_oscillator_lang2024_fitted.bngl",
+    "sha256": "64020c9b7f7cc6c0ff584b45fedaf34777fe2ff4062ed12545d381264afa6072",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Lang PF, Penas DR, Banga JR, Weindl D, Novak B (2024). Reusable rule-based cell cycle model explains compartment-resolved dynamics of 16 observables in RPE-1 cells. PLoS Comput Biol 20(1):e1011151.",
+     "doi": "10.1371/journal.pcbi.1011151"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "models/cell_cycle_oscillator_lang2024/verify_lang2024_fitted.ipynb",
+    "check": "network and all 205 values mechanically identical to the authors' v3.2.0 release (paulflang/cell_cycle_petab @ 362b666: optimized table, PEtab wt condition); the 8 observables integrated from the generated .net vs the authors' AMICI output results_20220421/optimisation.tsv (8 x 600 points), tolerance 5e-5",
+    "result": "max relative error 5.4e-6",
+    "supporting": "equations: an ODE built only from the authors' SBML and PEtab tables agrees with the generated network to 8e-12"
+   },
+   "size": {
+    "species": 73,
+    "reactions": 332,
+    "sens_parameters": 158
+   }
+  },
+  {
+   "position": 4,
+   "problem": "scaffolded_mapk_cascade_kocieniewski2012",
+   "title": "Scaffolded MAPK cascade",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/scaffolded_mapk_cascade_kocieniewski2012/scaffolded_mapk_cascade_kocieniewski2012.bngl",
+    "sha256": "5199f2dbedbc5282ca2b24bd1f4276d6622a2ec7e3a693ce4e77d6e509adb1e2",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Kocieniewski P, Faeder JR, Lipniacki T (2012). The interplay of double phosphorylation and scaffolding in MAPK pathways. J Theor Biol 295:116-124.",
+     "doi": "10.1016/j.jtbi.2011.11.014"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/scaffolded_mapk_cascade_kocieniewski2012/verify_kocieniewski2012.ipynb",
+    "check": "digitized Fig. 2 (Scaff-22) steady states vs the generated network, 5% of full scale asserted",
+    "result": "peak amplitude error 0.46% FS, RMS 0.20% FS",
+    "supporting": "theory: active MAP3K steady state vs S*Atot/(S+u), 0.025% (printed, not asserted)"
+   },
+   "size": {
+    "species": 85,
+    "reactions": 487,
+    "psa_events": 3200000
+   }
+  },
+  {
+   "position": 5,
+   "problem": "shp2_regulation_and_function_barua2007",
+   "title": "Shp2 regulation and function",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/shp2_regulation_and_function_barua2007/shp2_regulation_and_function_barua2007.bngl",
+    "sha256": "067378ad7b63bcaf6a05e05e2d78d02a20b6f5e2b19b40503dcb2165d21255ba",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Barua D, Faeder JR, Haugh JM (2007). Structure-based kinetic models of modular signaling protein function: focus on Shp2. Biophys J 92(7):2290-2300.",
+     "doi": "10.1529/biophysj.106.093484"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/shp2_regulation_and_function_barua2007/verify_barua2007.ipynb",
+    "check": "63 digitized Fig. 3 markers vs a steady-state grid, 90th-percentile distance < 0.03 asserted; Fig. 5b brackets within 0.05",
+    "result": "median 0.006, 90th percentile 0.014; Fig. 5b 0.596 vs ~0.60",
+    "supporting": "structure: 149 species and 1032 reactions, asserted equal to the paper"
+   },
+   "size": {
+    "species": 149,
+    "reactions": 1032,
+    "sens_parameters": 22
+   }
+  },
+  {
+   "position": 6,
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "title": "Combinatorial EGFR signaling",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/combinatorial_egfr_signaling_blinov2006/combinatorial_egfr_signaling_blinov2006.bngl",
+    "sha256": "14f5668d43b031d4ef3e05e6b362c6ad643c617d8a74e4966a815480d3af3f4f",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Blinov ML, Faeder JR, Goldstein B, Hlavacek WS (2006). A network model of early events in epidermal growth factor receptor signaling that accounts for combinatorial complexity. BioSystems 83:136-151.",
+     "doi": "10.1016/j.biosystems.2005.06.014"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/combinatorial_egfr_signaling_blinov2006/verify_blinov2006.ipynb",
+    "check": "digitized Fig. 2 A/C/D/E network curves, RMS within 2-4 nM per panel asserted",
+    "result": "RMS 0.44 / 1.51 / 1.33 / 1.72 nM"
+   },
+   "size": {
+    "species": 356,
+    "reactions": 3749,
+    "sens_parameters": 43,
+    "psa_events": 3500000
+   }
+  },
+  {
+   "position": 7,
+   "problem": "beta_catenin_destruction_complex_barua2013",
+   "title": "Beta-catenin destruction complex",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/beta_catenin_destruction_complex_barua2013/beta_catenin_destruction_complex_barua2013.bngl",
+    "sha256": "cf61ed161abb4efddb5cccd423b278f984aa63777996095f1f041005ec8deb97",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Barua D, Hlavacek WS (2013). Modeling the effect of APC truncation on destruction complex function in colorectal cancer cells. PLoS Comput Biol 9(9):e1003217.",
+     "doi": "10.1371/journal.pcbi.1003217"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/beta_catenin_destruction_complex_barua2013/verify_barua2013.ipynb",
+    "check": "digitized Fig. 5A dose response vs the generated network, point-wise relative error < 6% asserted",
+    "result": "max 0.018, median 0.007",
+    "supporting": "nominal steady state 35.89 nM vs the paper's 35 nM (printed, not asserted)"
+   },
+   "size": {
+    "species": 409,
+    "reactions": 2737
+   }
+  },
+  {
+   "position": 8,
+   "problem": "endothelial_vegfr2_and_cd47_signaling_zhang2023",
+   "title": "Endothelial VEGFR2 and CD47 signaling",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/endothelial_vegfr2_and_cd47_signaling_zhang2023/endothelial_vegfr2_and_cd47_signaling_zhang2023.bngl",
+    "sha256": "a12dc63cabbabc4929f7bf3844a696bc320f4b0bab39c2a82bad053c98f91a26",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Zhang Y, Popel AS, Bazzazi H (2023). Combining multikinase tyrosine kinase inhibitors targeting the vascular endothelial growth factor and cluster of differentiation 47 signaling pathways is predicted to increase the efficacy of antiangiogenic combination therapies. ACS Pharmacol Transl Sci 6:710-726.",
+     "doi": "10.1021/acsptsci.3c00008"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/endothelial_vegfr2_and_cd47_signaling_zhang2023/verify_zhang2023.ipynb",
+    "check": "digitized Fig. 3A/3B/3G vs the file's kpr2 scan maxima, distance to the curve < 8% of the plotted range asserted",
+    "result": "3.9% (3A), 5.1% (3B), 0.5% (3G)",
+    "supporting": "structure: 870 species, the paper's 870-ODE system"
+   },
+   "size": {
+    "species": 870,
+    "reactions": 5602
+   }
+  },
+  {
+   "position": 9,
+   "problem": "mapk_adaptive_resistance_frohlich2023",
+   "title": "Adaptive MAPK signaling under vemurafenib (pre-equilibrated)",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "c467443f95775990fa05d916af3df05e7f2d22e0",
+    "path": "models/mapk_adaptive_resistance_frohlich2023/mapk_adaptive_resistance_frohlich2023_preeq.bngl",
+    "sha256": "09244b803220aa9f717b46815b1056b01e7df306cbd02b614989565b91a40ae4",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Fr\u00f6hlich F, Gerosa L, Muhlich JL, Sorger PK (2023). Mechanistic model of MAPK signaling reveals how allostery and rewiring contribute to drug resistance. Molecular Systems Biology 19:e10988.",
+     "doi": "10.15252/msb.202210988"
+    }
+   ],
+   "verification": {
+    "kind": "author_file",
+    "evidence": "models/mapk_adaptive_resistance_frohlich2023/run_frohlich2023.py",
+    "check": "parameters, network, dy/dt and seeds vs the authors' MARM2.0 release (labsyspharm/marm2-supplement @ 7e97789, row 0), built with PySB and run under their protocol (steady state at 1 uM vemurafenib, then 100 ng/mL EGF); the committed run_network output vs the authors' trajectory over pERK_IF_obs, pMEK_IF_obs and the 30 observables, tolerance 1e-5",
+    "result": "run_network output max relative error 1.8e-6; seeds 4.6e-13; parameters 1.3e-13; network identical (1612 species, 17516 reactions)",
+    "supporting": "equations: an independent SciPy integration of the generated .net agrees with the authors' trajectory to 2.7e-11 (pERK_IF_obs), species to 9.4e-7 of peak"
+   },
+   "size": {
+    "species": 1612,
+    "reactions": 17516
+   }
+  },
+  {
+   "position": 10,
+   "problem": "ksr1_raf_mek_inhibitor_response_imoto2026",
+   "title": "KSR1-RAF-MEK inhibitor response",
+   "source": {
+    "repo": "wshlavacek/BNGL-Models",
+    "commit": "9ab070db47faf63853c7376cb715c3ff4f9c67bd",
+    "path": "models/ksr1_raf_mek_inhibitor_response_imoto2026/ksr1_raf_mek_inhibitor_response_imoto2026.bngl",
+    "sha256": "9b0822b831f3082b4a7196a4a24481191b56b5cc8ca00e5b50fd2f23b2602f7f",
+    "format": "bngl"
+   },
+   "publications": [
+    {
+     "citation": "Imoto H, Rauch N, Nagasato AI, Okada M, Kolch W, Rukhlenko OS, Kholodenko BN (2026). Dual RAF inhibition outperforms RAF-MEK combinations for suppressing ERK signaling in KRAS mutant cells. npj Systems Biology and Applications.",
+     "doi": "10.1038/s41540-026-00710-6"
+    }
+   ],
+   "verification": {
+    "kind": "data",
+    "evidence": "models/ksr1_raf_mek_inhibitor_response_imoto2026/verify_imoto2026.ipynb",
+    "check": "digitized Fig. 3A-F model panels vs 725 steady states of the committed network (independent SciPy integrator), median residual per panel < 0.05 asserted",
+    "result": "panel medians 0.003-0.028",
+    "supporting": "network identity with the authors' SBML (27457/27457 reactions, max rel. error 3.6e-15); not re-runnable from the commit, since the authors' SBML is git-ignored there"
+   },
+   "size": {
+    "species": 2709,
+    "reactions": 27457
+   }
+  }
+ ],
+ "jobs": [
+  {
+   "job_id": "ode/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "noise_resistant_circadian_oscillator_vilar2002",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1099037,
+    "sha256": "f507a7de54771f4336e8c94a3aee0d2569f6b9e0344e54c64bab71b9d414ff7f"
+   }
+  },
+  {
+   "job_id": "ode/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "noise_resistant_circadian_oscillator_vilar2002",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/noise_resistant_circadian_oscillator_vilar2002/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 475012,
+    "sha256": "4ad69aa6236870a333b10480943bd3c7310b9a898508aa75ea2fe078a3f838db"
+   }
+  },
+  {
+   "job_id": "ode/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "tcr_signaling_bistability_lipniacki2008",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/tcr_signaling_bistability_lipniacki2008/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/cell_cycle_oscillator_lang2024/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "cell_cycle_oscillator_lang2024",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/cell_cycle_oscillator_lang2024/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/cell_cycle_oscillator_lang2024/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 1624376,
+    "sha256": "ca2538d0298e82af0e11844d8062eb91eebf6e32cf91403e42d2429e10e5e502"
+   }
+  },
+  {
+   "job_id": "ode/cell_cycle_oscillator_lang2024/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "cell_cycle_oscillator_lang2024",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/cell_cycle_oscillator_lang2024/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "scaffolded_mapk_cascade_kocieniewski2012",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 696328,
+    "sha256": "4f9e8fc54fa28c6b1925f665f219361af85bcbe7ec7bd1d8bd8de151f65ef61f"
+   }
+  },
+  {
+   "job_id": "ode/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "scaffolded_mapk_cascade_kocieniewski2012",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/scaffolded_mapk_cascade_kocieniewski2012/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/shp2_regulation_and_function_barua2007/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "shp2_regulation_and_function_barua2007",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/shp2_regulation_and_function_barua2007/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/shp2_regulation_and_function_barua2007/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 906171,
+    "sha256": "a035e58f4eb44621a9add30383721feae97be578e99e798ed6f2c85e0753d6f5"
+   }
+  },
+  {
+   "job_id": "ode/shp2_regulation_and_function_barua2007/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "shp2_regulation_and_function_barua2007",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/shp2_regulation_and_function_barua2007/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "kind": "correctness",
+   "outcome": "PASS",
+   "file": "jobs/ode/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 9515986,
+    "sha256": "5f135450a95708d9b7016f0b21acdee94c2f669bd297bf88c27143b50c0cc2c3"
+   }
+  },
+  {
+   "job_id": "ode/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "combinatorial_egfr_signaling_blinov2006",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/combinatorial_egfr_signaling_blinov2006/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "beta_catenin_destruction_complex_barua2013",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 9191943,
+    "sha256": "b57faf4edd5f53327b624cf82e2548a5b87a9de61ce2422a4f0926a6d4468561"
+   }
+  },
+  {
+   "job_id": "ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "beta_catenin_destruction_complex_barua2013",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/beta_catenin_destruction_complex_barua2013/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "endothelial_vegfr2_and_cd47_signaling_zhang2023",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 9209825,
+    "sha256": "f8047cf052fed9235a37bfb444952086e78efabc679d3a3ad2fc7265887cdf80"
+   }
+  },
+  {
+   "job_id": "ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "endothelial_vegfr2_and_cd47_signaling_zhang2023",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/mapk_adaptive_resistance_frohlich2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "mapk_adaptive_resistance_frohlich2023",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/mapk_adaptive_resistance_frohlich2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/mapk_adaptive_resistance_frohlich2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 7405520,
+    "sha256": "91ed6f757a35be3074e860bf302af4a37fa3acf78e94097c67d2ba195d8bbd02"
+   }
+  },
+  {
+   "job_id": "ode/mapk_adaptive_resistance_frohlich2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "mapk_adaptive_resistance_frohlich2023",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/mapk_adaptive_resistance_frohlich2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  },
+  {
+   "job_id": "ode/ksr1_raf_mek_inhibitor_response_imoto2026/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+   "problem": "ksr1_raf_mek_inhibitor_response_imoto2026",
+   "kind": "correctness",
+   "outcome": "REFERENCE_FAILED",
+   "file": "jobs/ode/ksr1_raf_mek_inhibitor_response_imoto2026/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.json",
+   "trajectories": {
+    "file": "jobs/ode/ksr1_raf_mek_inhibitor_response_imoto2026/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness.npz",
+    "in_snapshot": false,
+    "bytes": 7630871,
+    "sha256": "e6b6c1acbbd07fa35689e528663570c901297ec876fedfa264b13aa567a78df5"
+   }
+  },
+  {
+   "job_id": "ode/ksr1_raf_mek_inhibitor_response_imoto2026/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing",
+   "problem": "ksr1_raf_mek_inhibitor_response_imoto2026",
+   "kind": "timing",
+   "outcome": "PASS",
+   "file": "jobs/ode/ksr1_raf_mek_inhibitor_response_imoto2026/bngsim-vs-run_network-roadrunner-copasi-amici/auto/timing.json"
+  }
+ ],
+ "trajectories": {
+  "in_snapshot": false,
+  "files": 10,
+  "total_bytes": 47755069,
+  "limit_bytes": 5000000
+ },
+ "files": {
+  "correctness": "correctness.csv",
+  "timing": "timing.csv",
+  "columns": "docs/published_format.md"
+ }
+}

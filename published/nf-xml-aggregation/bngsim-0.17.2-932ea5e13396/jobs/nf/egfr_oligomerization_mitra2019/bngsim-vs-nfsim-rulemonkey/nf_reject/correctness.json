@@ -1,0 +1,645 @@
+{
+ "capability": "nf",
+ "engines": "bngsim-vs-nfsim-rulemonkey",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "1a5ecd0dcbc6cd0fd7c3db5e5c4c34c1f905900f",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+ "key": "e2ede111c3259a53871d8f51e2ecd05ef33bc9353a6879d01a635c7f5af99ac7",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "nf/bngsim-vs-nfsim-rulemonkey/2",
+    "protocol": {
+     "actions": "simulate({method=>\"nf\",suffix=>\"nfr\",t_start=>0,t_end=>150,n_steps=>15,gml=>2147483647,print_functions=>1,param=>\"-bscb -utl 5\"})\n",
+     "replicates": 120,
+     "seed": 1,
+     "timing_replicates": 2
+    },
+    "reference_versions": {
+     "rulemonkey": {
+      "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+      "version": "3.13.0"
+     }
+    },
+    "setting": {
+     "method": "nf_reject",
+     "session": "NfsimSession"
+    },
+    "source_sha256": "23ed0c39e61f9bcdb56277ccbb41c4e55cf08b770ccc713580f2e952e75e7df6",
+    "verdict": {
+     "alpha": 0.001,
+     "analytic": "Bonferroni z on means and log-variances/1",
+     "independent_reference_rule": 1,
+     "outcome_rule": 2,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "nf/egfr_oligomerization_mitra2019/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "cold_seconds": 1627.9280975529691,
+   "ensemble_seconds": 1627.8625785530312,
+   "first_seed": 1,
+   "initialize_seconds": 159.45555448695086,
+   "load_seconds": 0.06498850602656603,
+   "method": "nf_reject",
+   "options": {
+    "block_same_complex_binding": true,
+    "molecule_limit": 2147483647,
+    "traversal_limit": 5
+   },
+   "session": "NfsimSession",
+   "simulate_seconds": 1468.394055115059
+  },
+  "cross_setting": {
+   "config": {
+    "cold_seconds": 2125.016755166929,
+    "ensemble_seconds": 2124.9890090030385,
+    "first_seed": 10000001,
+    "initialize_seconds": 65.5697739465395,
+    "load_seconds": 0.02727574296295643,
+    "method": "nf_exact",
+    "options": {
+     "block_same_complex_binding": true,
+     "molecule_limit": 2147483647
+    },
+    "session": "RuleMonkeySession",
+    "simulate_seconds": 2059.405702061951
+   },
+   "setting": "nf_exact",
+   "verdict": {
+    "alpha": 0.001,
+    "n_cells": 384,
+    "n_tested": {
+     "mean": 138,
+     "variance": 110
+    },
+    "p_value": 0.19801980198019803,
+    "parity_core": {
+     "frac_pass": 1.0,
+     "k": 10.392304845413264,
+     "max_z": 2.311998362233573,
+     "passed": true
+    },
+    "passed": true,
+    "permutations": 101,
+    "replicates": [
+     120,
+     120
+    ],
+    "seed": 1355455352,
+    "stopped_early": true,
+    "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+    "worst": {
+     "species": "tetramer",
+     "species_index": 6,
+     "statistic": "variance",
+     "time": 110.0,
+     "time_index": 11,
+     "z": 3.1278963437641836
+    },
+    "z_max": 3.1278963437641836,
+    "z_max_mean": 2.2912630881208753,
+    "z_max_variance": 3.1278963437641836
+   }
+  },
+  "engine_budget_seconds": 3600.0,
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "EGFRfree": 35.8,
+     "EGFfree": 300239.8,
+     "all_receptors": 903.0,
+     "decamer": 0.0,
+     "dimer": 27.1,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.008333333333333333,
+     "icosadecamer": 0.0,
+     "monomer": 114.3,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 368.0416666666667,
+     "pentadecamer": 0.0,
+     "pentamer": 0.025,
+     "tetradecamer": 0.0,
+     "tetramer": 182.675,
+     "tridecamer": 0.0,
+     "trimer": 1.2083333333333333,
+     "undecamer": 0.0
+    },
+    "final_variance": {
+     "EGFRfree": 33.707563025210085,
+     "EGFfree": 33.707563025210014,
+     "all_receptors": 0.0,
+     "decamer": 0.0,
+     "dimer": 22.124369747899152,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.008333333333333337,
+     "icosadecamer": 0.0,
+     "monomer": 107.32100840336135,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 252.41001400560225,
+     "pentadecamer": 0.0,
+     "pentamer": 0.024579831932773077,
+     "tetradecamer": 0.0,
+     "tetramer": 11.548949579831941,
+     "tridecamer": 0.0,
+     "trimer": 1.2083333333333326,
+     "undecamer": 0.0
+    },
+    "replicates": 120
+   },
+   "nf_exact": {
+    "final_mean": {
+     "EGFRfree": 36.891666666666666,
+     "EGFfree": 300240.89166666666,
+     "all_receptors": 903.0,
+     "decamer": 0.0,
+     "dimer": 27.375,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.0,
+     "icosadecamer": 0.0,
+     "monomer": 115.2,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 366.59166666666664,
+     "pentadecamer": 0.0,
+     "pentamer": 0.016666666666666666,
+     "tetradecamer": 0.0,
+     "tetramer": 182.39166666666668,
+     "tridecamer": 0.0,
+     "trimer": 1.1333333333333333,
+     "undecamer": 0.0
+    },
+    "final_variance": {
+     "EGFRfree": 27.626820728291328,
+     "EGFfree": 27.626820728291342,
+     "all_receptors": 0.0,
+     "decamer": 0.0,
+     "dimer": 22.438025210084035,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.0,
+     "icosadecamer": 0.0,
+     "monomer": 108.8168067226891,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 262.12598039215686,
+     "pentadecamer": 0.0,
+     "pentamer": 0.01652661064425774,
+     "tetradecamer": 0.0,
+     "tetramer": 11.450350140056035,
+     "tridecamer": 0.0,
+     "trimer": 1.0745098039215704,
+     "undecamer": 0.0
+    },
+    "replicates": 120
+   },
+   "nfsim": {
+    "final_mean": {
+     "EGFRfree": 36.225,
+     "EGFfree": 300241.225,
+     "all_receptors": 902.0,
+     "decamer": 0.0,
+     "dimer": 29.8,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.0,
+     "icosadecamer": 0.0,
+     "monomer": 119.15,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 363.43333333333334,
+     "pentadecamer": 0.0,
+     "pentamer": 0.025,
+     "tetradecamer": 0.0,
+     "tetramer": 179.75,
+     "tridecamer": 0.0,
+     "trimer": 1.375,
+     "undecamer": 0.0
+    },
+    "final_variance": {
+     "EGFRfree": 36.73046218487395,
+     "EGFfree": 36.73046218487392,
+     "all_receptors": 0.0,
+     "decamer": 0.0,
+     "dimer": 24.16134453781513,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.0,
+     "icosadecamer": 0.0,
+     "monomer": 126.8008403361345,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 198.1971988795517,
+     "pentadecamer": 0.0,
+     "pentamer": 0.024579831932773077,
+     "tetradecamer": 0.0,
+     "tetramer": 12.155462184873949,
+     "tridecamer": 0.0,
+     "trimer": 1.379201680672269,
+     "undecamer": 0.0
+    },
+    "replicates": 120
+   },
+   "rulemonkey": {
+    "final_mean": {
+     "EGFRfree": 35.75,
+     "EGFfree": 300240.75,
+     "all_receptors": 902.0,
+     "decamer": 0.0,
+     "dimer": 27.1,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.0,
+     "icosadecamer": 0.0,
+     "monomer": 115.45833333333333,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 366.55,
+     "pentadecamer": 0.0,
+     "pentamer": 0.0,
+     "tetradecamer": 0.0,
+     "tetramer": 182.09166666666667,
+     "tridecamer": 0.0,
+     "trimer": 1.325,
+     "undecamer": 0.0
+    },
+    "final_variance": {
+     "EGFRfree": 40.69327731092437,
+     "EGFfree": 40.69327731092437,
+     "all_receptors": 0.0,
+     "decamer": 0.0,
+     "dimer": 29.401680672268917,
+     "dodecamer": 0.0,
+     "heptadecamer": 0.0,
+     "heptamer": 0.0,
+     "hexadecamer": 0.0,
+     "hexamer": 0.0,
+     "icosadecamer": 0.0,
+     "monomer": 84.92261904761902,
+     "nonadecamer": 0.0,
+     "nonamer": 0.0,
+     "octadecamer": 0.0,
+     "octamer": 0.0,
+     "pEGFR": 181.54369747899167,
+     "pentadecamer": 0.0,
+     "pentamer": 0.0,
+     "tetradecamer": 0.0,
+     "tetramer": 9.52934173669468,
+     "tridecamer": 0.0,
+     "trimer": 1.6329831932773118,
+     "undecamer": 0.0
+    },
+    "replicates": 120
+   }
+  },
+  "observables": [
+   "EGFfree",
+   "EGFRfree",
+   "all_receptors",
+   "monomer",
+   "dimer",
+   "trimer",
+   "tetramer",
+   "pentamer",
+   "hexamer",
+   "heptamer",
+   "octamer",
+   "nonamer",
+   "decamer",
+   "undecamer",
+   "dodecamer",
+   "tridecamer",
+   "tetradecamer",
+   "pentadecamer",
+   "hexadecamer",
+   "heptadecamer",
+   "octadecamer",
+   "nonadecamer",
+   "icosadecamer",
+   "pEGFR"
+  ],
+  "protocol": {
+   "complex": true,
+   "dropped": [],
+   "gml": 2147483647,
+   "phases": [
+    {
+     "duration": 150.0,
+     "get_final_state": true,
+     "n_steps": 15,
+     "sets": []
+    }
+   ],
+   "utl": 5
+  },
+  "references": {
+   "nfsim": {
+    "cold_seconds": 1336.824412945076,
+    "driver": "BNG2.pl, running the protocol's actions",
+    "ensemble_seconds": 1336.81756660901,
+    "first_seed": 20000001,
+    "nfsim_command": "NFsim -xml model_nfp0.xml -o model_nfp0.gdat -sim 150 -oSteps 15 -ogf -gml 2147483647 -cb -seed <seed> -bscb -utl 5",
+    "nfsim_simulate_cpu_seconds": 1134.1323039999997,
+    "nfsim_total_cpu_seconds": 1279.6084999999994,
+    "reactions": 66987870,
+    "seeds": "first_seed + i for trajectory i (+ 10**6 per later step)",
+    "version": "1.14.3",
+    "xml_matches_harness": true
+   },
+   "rulemonkey": {
+    "cold_seconds": 2214.293533329037,
+    "command": [
+     "rm_driver",
+     "model.xml",
+     "150.0",
+     "15",
+     "<seed>"
+    ],
+    "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+    "ensemble_seconds": 2214.2923010300146,
+    "first_seed": 30000001,
+    "lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+    "rm_simulate_seconds": 2210.338500000001,
+    "version": "3.13.0"
+   }
+  },
+  "rulemonkey_lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+  "same_seed": {
+   "engine": "nfsim",
+   "identical": 0,
+   "max_abs_difference": 70.0,
+   "trajectories": 5
+  },
+  "xml_seconds": 1.354525375063531,
+  "xml_sha256": "98194c308295d4fc562eaee793519ac436dd22eda5eb08d495588579d993a0da"
+ },
+ "outcome": "DIFF",
+ "pinned_cpu": 9,
+ "problem": "egfr_oligomerization_mitra2019",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:12:56+00:00",
+   "from_key": "67610723ed8895202182db0d5b87989c9c860270dd68d8e2493906d52d3200ac",
+   "from_outcome": "DIFF",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": {
+    "alpha": 0.001,
+    "analytic": "Bonferroni z on means and log-variances/1",
+    "independent_reference_rule": 1,
+    "outcome_rule": 2,
+    "permutations": 1999,
+    "stop_exceedances": 20,
+    "two_sample": "permutation max-T on means and variances/1"
+   }
+  }
+ ],
+ "schema": 1,
+ "setting": "nf_reject",
+ "started": "2026-11-24T20:44:39.700250+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "cross_setting",
+   "nfsim",
+   "observables",
+   "rulemonkey",
+   "times"
+  ],
+  "bytes": 96889,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 50994738 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "f922b1698efff68d1d514ad7b269b3da1b9239428dd3718df7a279dcc1eeda4f"
+ },
+ "verdict_basis": {
+  "independent": [
+   "nfsim"
+  ],
+  "same_lineage": [
+   "rulemonkey"
+  ]
+ },
+ "verdicts": {
+  "nfsim": {
+   "alpha": 0.001,
+   "critical_z": 4.314501161235954,
+   "n_cells": 384,
+   "n_flagged": {
+    "mean": 23,
+    "variance": 0
+   },
+   "n_tested": {
+    "mean": 157,
+    "variance": 111
+   },
+   "p_value": 0.0005,
+   "parity_core": {
+    "frac_pass": 0.953125,
+    "k": 10.392304845413264,
+    "max_z": 3321078.553471025,
+    "passed": false
+   },
+   "passed": false,
+   "permutations": 1999,
+   "replicates": [
+    120,
+    120
+   ],
+   "seed": 1468060454,
+   "stopped_early": false,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "EGFRfree",
+    "species_index": 1,
+    "statistic": "mean",
+    "time": 0.0,
+    "time_index": 0,
+    "z": 15.459624833740309
+   },
+   "z_max": 15.459624833740309,
+   "z_max_mean": 15.459624833740309,
+   "z_max_variance": 2.4041860616849906
+  },
+  "rulemonkey": {
+   "alpha": 0.001,
+   "critical_z": 4.283862956137056,
+   "n_cells": 384,
+   "n_flagged": {
+    "mean": 18,
+    "variance": 0
+   },
+   "n_tested": {
+    "mean": 158,
+    "variance": 111
+   },
+   "p_value": 0.0005,
+   "parity_core": {
+    "frac_pass": 0.953125,
+    "k": 10.392304845413264,
+    "max_z": 3321078.553471025,
+    "passed": false
+   },
+   "passed": false,
+   "permutations": 1999,
+   "replicates": [
+    120,
+    120
+   ],
+   "same_lineage": true,
+   "seed": 706327611,
+   "stopped_early": false,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "EGFRfree",
+    "species_index": 1,
+    "statistic": "mean",
+    "time": 0.0,
+    "time_index": 0,
+    "z": 15.459624833740309
+   },
+   "z_max": 15.459624833740309,
+   "z_max_mean": 15.459624833740309,
+   "z_max_variance": 2.823554496128849
+  }
+ },
+ "wall_seconds": 7363.301829789998
+}

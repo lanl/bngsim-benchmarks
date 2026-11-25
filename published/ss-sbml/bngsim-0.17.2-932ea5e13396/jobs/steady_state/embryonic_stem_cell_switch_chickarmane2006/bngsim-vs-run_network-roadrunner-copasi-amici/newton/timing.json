@@ -1,0 +1,852 @@
+{
+ "capability": "steady_state",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "da924cb705389e1e457263f8bada2a858bc081e7",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing",
+ "key": "9ff5fc996a6561d8cc0a5f5595ee4d8341249256ca2c4c5d4e929e3d22c5c760",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "steady_state/bngsim-vs-run_network-roadrunner-copasi-amici/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "n_steps": 20,
+     "parameters": {},
+     "rtol": 1e-08,
+     "scan": {
+      "log": false,
+      "max": 100,
+      "min": 0,
+      "points": 20,
+      "species": "A"
+     },
+     "t_end": 1000000.0
+    },
+    "reference_settings": {
+     "amici": {
+      "mode": "integrationOnly",
+      "output": "state (concentration)",
+      "steady_state_tolerance_factor": 1.0,
+      "steady_state_tolerances": "protocol rtol/atol",
+      "tolerances": "protocol rtol/atol"
+     },
+     "copasi": {
+      "method": "Enhanced Newton (COPASI's defaults)",
+      "output": "concentration",
+      "task": "Steady-State"
+     },
+     "roadrunner": {
+      "allow_presimulation": true,
+      "conserved_moiety_analysis": true,
+      "integrator": "cvode, protocol tolerances",
+      "output": "concentration",
+      "solver": "nleq2"
+     },
+     "run_network": {
+      "grid": "n_steps",
+      "horizon": "t_end",
+      "input": "network derived from the SBML (ode.derive_network)",
+      "method": "cvode (dense)"
+     }
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "bngsim": {
+      "atol": "protocol (float, per-species ceiling)",
+      "input": "sbml (Model.from_sbml)",
+      "mask": null,
+      "max_time": "t_end",
+      "method": "newton",
+      "output": "concentration",
+      "rtol": "protocol"
+     },
+     "codegen": "auto"
+    },
+    "source_sha256": "75e5dc671e271d749387e7066e16a5692e0c575519b057b55e6eb0a53a799586",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "answers": {
+   "amici": {
+    "max_ratio": 0.03882774384313962,
+    "max_rel": 3.887045435765169e-06,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 0,
+    "worst_species": "Protein"
+   },
+   "bngsim_integration": {
+    "max_ratio": 0.00012974517263077674,
+    "max_rel": 1.2988789230640165e-08,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 0,
+    "worst_species": "Protein"
+   },
+   "copasi": {
+    "max_ratio": 0.00012974517072467784,
+    "max_rel": 1.2988789039820604e-08,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 0,
+    "worst_species": "Protein"
+   },
+   "roadrunner": {
+    "max_ratio": 0.00012974515547588663,
+    "max_rel": 1.3593920906350028e-08,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 0,
+    "worst_species": "Protein"
+   },
+   "run_network": {
+    "max_ratio": 0.00012974519741006243,
+    "max_rel": 1.0,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 0,
+    "worst_species": "Protein"
+   }
+  },
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_seconds": 0.003552214941009879,
+   "input": "sbml (Model.from_sbml)",
+   "load_seconds": 0.032090735039673746,
+   "mask": null,
+   "method": "newton"
+  },
+  "bngsim_cold_seconds": 0.05858476203866303,
+  "conservation_laws": 7,
+  "derived_network": {
+   "bngsim_only": [],
+   "conversion_seconds": 0.03850873711053282,
+   "converter_notes": [],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 0.0,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 1e-17,
+      "err": 0.0,
+      "err_over_peak": null,
+      "index": 0,
+      "peak": 0.0,
+      "score": 0.0,
+      "species": "OCT4_Gene",
+      "t": 0.0
+     }
+    }
+   },
+   "netgen_seconds": 0.27056052698753774,
+   "network": {
+    "reactions": 12,
+    "species": 12
+   },
+   "phases": 1,
+   "seconds": 0.4002817369764671
+  },
+  "doses": {
+   "A": "species"
+  },
+  "engine_roles": {
+   "amici": "warm, in-process",
+   "bngsim": "warm, in-process (system under test)",
+   "bngsim_integration": "warm, in-process",
+   "copasi": "warm, in-process",
+   "roadrunner": "warm, in-process",
+   "run_network": "fresh subprocess"
+  },
+  "n_points": 20,
+  "network": {
+   "reactions": 10,
+   "species": 12
+  },
+  "points": [
+   {
+    "A": 0.0
+   },
+   {
+    "A": 5.2631578947368425
+   },
+   {
+    "A": 10.526315789473685
+   },
+   {
+    "A": 15.789473684210527
+   },
+   {
+    "A": 21.05263157894737
+   },
+   {
+    "A": 26.315789473684212
+   },
+   {
+    "A": 31.578947368421055
+   },
+   {
+    "A": 36.8421052631579
+   },
+   {
+    "A": 42.10526315789474
+   },
+   {
+    "A": 47.36842105263158
+   },
+   {
+    "A": 52.631578947368425
+   },
+   {
+    "A": 57.89473684210527
+   },
+   {
+    "A": 63.15789473684211
+   },
+   {
+    "A": 68.42105263157896
+   },
+   {
+    "A": 73.6842105263158
+   },
+   {
+    "A": 78.94736842105263
+   },
+   {
+    "A": 84.21052631578948
+   },
+   {
+    "A": 89.47368421052633
+   },
+   {
+    "A": 94.73684210526316
+   },
+   {
+    "A": 100.0
+   }
+  ],
+  "references": {
+   "amici": {
+    "codegen_seconds": 20.684957303106785,
+    "load_seconds": 0.0008144020102918148,
+    "mode": "integrationOnly (simulation to steady state)",
+    "output": "state (concentration)",
+    "version": "1.1.0"
+   },
+   "bngsim_integration": {
+    "atol": "float (per-species ceiling)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.00210311496630311,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.015523570938967168,
+    "mask": null,
+    "method": "integration"
+   },
+   "copasi": {
+    "load_seconds": 0.031746033928357065,
+    "method": {
+     "Iteration Limit": 50,
+     "Resolution": 1e-09,
+     "Target Criterion": "Distance and Rate",
+     "Use Back Integration": false,
+     "Use Integration": true,
+     "Use Newton": true,
+     "name": "Enhanced Newton"
+    },
+    "output": "concentration",
+    "task": "Steady-State",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "conserved_moiety_analysis": true,
+    "load_seconds": 0.1678736050380394,
+    "output": "concentration",
+    "settings": {
+     "allow_presimulation": true,
+     "maximum_iterations": 100,
+     "presimulation_times": [
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "relative_tolerance": 1e-12
+    },
+    "solver": "nleq2",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-10",
+     "-r",
+     "1e-08",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<point>.net",
+     "<point>.net",
+     "50000.0",
+     "20"
+    ],
+    "input": "network derived from the SBML",
+    "method": "cvode (dense), integrated to t_end"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "amici": {
+     "seconds": [
+      0.016416668076999485,
+      0.016433284035883844,
+      0.01637705892790109,
+      0.016465915949083865,
+      0.016336229047738016,
+      0.01625117298681289,
+      0.016287548001855612,
+      0.01746059802826494,
+      0.016333527979440987,
+      0.016295874025672674,
+      0.016404511989094317,
+      0.016590771032497287,
+      0.08005944499745965,
+      0.01647024496924132,
+      0.01644875796046108,
+      0.017490735044702888,
+      0.01638268504757434,
+      0.01632615993730724,
+      0.016607368015684187,
+      0.016261093085631728
+     ]
+    },
+    "bngsim": {
+     "seconds": [
+      0.02272006601560861,
+      0.022416410967707634,
+      0.022540844976902008,
+      0.021917685051448643,
+      0.02208317199256271,
+      0.021940053906291723,
+      0.02257781894877553,
+      0.023618543054908514,
+      0.021929248003289104,
+      0.02213039097841829,
+      0.022502423962578177,
+      0.022416185005567968,
+      0.022334265056997538,
+      0.022372151957824826,
+      0.021984313032589853,
+      0.022690944955684245,
+      0.022923355922102928,
+      0.021921052015386522,
+      0.022601107018999755,
+      0.021773739950731397
+     ]
+    },
+    "bngsim_integration": {
+     "seconds": [
+      0.02379799704067409,
+      0.023192415945231915,
+      0.022443321999162436,
+      0.02203832904342562,
+      0.02212646894622594,
+      0.022068921010941267,
+      0.022764806053601205,
+      0.02221911307424307,
+      0.02248581196181476,
+      0.021967842942103744,
+      0.0224892949918285,
+      0.02212073700502515,
+      0.02264081791508943,
+      0.02283938496839255,
+      0.022314468049444258,
+      0.022173754987306893,
+      0.023099247948266566,
+      0.022038580966182053,
+      0.023074264056049287,
+      0.02232804207596928
+     ]
+    },
+    "copasi": {
+     "seconds": [
+      0.031179332989268005,
+      0.03128660598304123,
+      0.03116832103114575,
+      0.03155652596615255,
+      0.031100598047487438,
+      0.031167011940851808,
+      0.031029526027850807,
+      0.0314139419933781,
+      0.031320139998570085,
+      0.031031507067382336,
+      0.031102468026801944,
+      0.031078655971214175,
+      0.03131574403960258,
+      0.03171248408034444,
+      0.03137316997162998,
+      0.03352286294102669,
+      0.031247240025550127,
+      0.031274904031306505,
+      0.03103672608267516,
+      0.03318519308231771
+     ]
+    },
+    "roadrunner": {
+     "seconds": [
+      1.6143874550471082,
+      1.6110947640845552,
+      1.6143108879914507,
+      1.6145863280398771,
+      1.6169444299302995,
+      1.6142571739619598,
+      1.6150301770539954,
+      1.6149025149643421,
+      1.612416505930014,
+      1.6114417290082201,
+      1.6167152939597145,
+      1.6150221839779988,
+      1.6151366810081527,
+      1.6140696009388193,
+      1.611551307956688,
+      1.6140947269741446,
+      1.6132130690384656,
+      1.6129062649561092,
+      1.6144331590039656,
+      1.6122361820889637
+     ]
+    },
+    "run_network": {
+     "seconds": [
+      0.18145716399885714,
+      0.17922842502593994,
+      0.1793859760509804,
+      0.18148808099795133,
+      0.18067043996416032,
+      0.17962665995582938,
+      0.1822094100061804,
+      0.1790753329405561,
+      0.17930327903013676,
+      0.18144628801383078,
+      0.17958453902974725,
+      0.178952052956447,
+      0.1827812329865992,
+      0.18169264309108257,
+      0.18295622896403074,
+      0.17934478004463017,
+      0.17923043004702777,
+      0.18139966996386647,
+      0.18449342402163893,
+      0.18104967602994293
+     ]
+    }
+   },
+   "order": "bngsim bngsim_integration run_network roadrunner copasi amici",
+   "rounds": 20,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "amici": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 20,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim_integration": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "copasi": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "roadrunner": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "run_network": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "sbml": {
+   "compared_species": 12,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [],
+    "constant": []
+   },
+   "reactions": 10,
+   "species": 12
+  },
+  "times": {
+   "amici": {
+    "ci_high": 0.016468080459162593,
+    "ci_low": 0.0163348785135895,
+    "confidence": 0.95,
+    "median_seconds": 0.0164105900330469,
+    "rounds": 20
+   },
+   "bngsim": {
+    "ci_high": 0.02255933196283877,
+    "ci_low": 0.022033742512576282,
+    "confidence": 0.95,
+    "median_seconds": 0.022394168481696397,
+    "rounds": 20
+   },
+   "bngsim_integration": {
+    "ci_high": 0.022702811984345317,
+    "ci_low": 0.022150111966766417,
+    "confidence": 0.95,
+    "median_seconds": 0.022385682037565857,
+    "rounds": 20
+   },
+   "copasi": {
+    "ci_high": 0.03134665498510003,
+    "ci_low": 0.031134459539316595,
+    "confidence": 0.95,
+    "median_seconds": 0.031261072028428316,
+    "rounds": 20
+   },
+   "roadrunner": {
+    "ci_high": 1.6147444215021096,
+    "ci_low": 1.6130596669972874,
+    "confidence": 0.95,
+    "median_seconds": 1.6142840309767053,
+    "rounds": 20
+   },
+   "run_network": {
+    "ci_high": 0.18147262249840423,
+    "ci_low": 0.17936537804780528,
+    "confidence": 0.95,
+    "median_seconds": 0.18086005799705163,
+    "rounds": 20
+   }
+  },
+  "times_per_point": {
+   "amici": {
+    "ci_high": 0.0008234040229581297,
+    "ci_low": 0.0008167439256794751,
+    "median_seconds": 0.0008205295016523451
+   },
+   "bngsim": {
+    "ci_high": 0.0011279665981419385,
+    "ci_low": 0.001101687125628814,
+    "median_seconds": 0.0011197084240848199
+   },
+   "bngsim_integration": {
+    "ci_high": 0.0011351405992172658,
+    "ci_low": 0.001107505598338321,
+    "median_seconds": 0.0011192841018782928
+   },
+   "copasi": {
+    "ci_high": 0.0015673327492550016,
+    "ci_low": 0.0015567229769658298,
+    "median_seconds": 0.0015630536014214157
+   },
+   "roadrunner": {
+    "ci_high": 0.08073722107510548,
+    "ci_low": 0.08065298334986437,
+    "median_seconds": 0.08071420154883527
+   },
+   "run_network": {
+    "ci_high": 0.009073631124920212,
+    "ci_low": 0.008968268902390265,
+    "median_seconds": 0.009043002899852581
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "embryonic_stem_cell_switch_chickarmane2006",
+ "schema": 1,
+ "setting": "newton",
+ "started": "2026-11-24T20:44:28.099077+00:00",
+ "wall_seconds": 65.01565761992242
+}

@@ -1,0 +1,415 @@
+{
+ "capability": "nf",
+ "engines": "bngsim-vs-nfsim-rulemonkey",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "8c67b8f96cc42dc37e46e70f26343de956d193d6",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+ "key": "f6da2ac2ef918f7d6dac7b15dd26ddfc46cd1f7ffe7c9d34ad3e24dd8150571e",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "nf/bngsim-vs-nfsim-rulemonkey/2",
+    "protocol": {
+     "actions": "setParameter(\"Fx\",0.0025)\nsimulate({suffix=>\"equil\",method=>\"nf\",t_start=>0,t_end=>500,n_steps=>5,get_final_state=>1})\nsetParameter(\"kfl\",4.8e-5)\nsetParameter(\"kfl_m\",4.8e-3)\nsimulate({suffix=>\"tcr\",method=>\"nf\",t_start=>0,t_end=>60,n_steps=>60,get_final_state=>0})\n",
+     "replicates": 100,
+     "seed": 1,
+     "timing_replicates": 1
+    },
+    "reference_versions": {
+     "rulemonkey": {
+      "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+      "version": "3.13.0"
+     }
+    },
+    "setting": {
+     "method": "nf_reject",
+     "session": "NfsimSession"
+    },
+    "source_sha256": "5dde783b3dd52c60528c9a8aafec10e94cdf821a44a9337b0d211043f59a59c9",
+    "verdict": {
+     "alpha": 0.001,
+     "analytic": "Bonferroni z on means and log-variances/1",
+     "independent_reference_rule": 1,
+     "outcome_rule": 2,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "nf/tcr_signaling_chylek2014/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "cold_seconds": 2097.0293669819366,
+   "ensemble_seconds": 2096.7806497709826,
+   "first_seed": 1,
+   "initialize_seconds": 6.268111202283762,
+   "load_seconds": 0.2481989919906482,
+   "method": "nf_reject",
+   "options": {
+    "block_same_complex_binding": true
+   },
+   "session": "NfsimSession",
+   "simulate_seconds": 2090.218143547885
+  },
+  "cross_setting": {
+   "error": "ParameterError: Failed to set RuleMonkey parameter 'kfl': Cannot set_param during active session",
+   "setting": "nf_exact"
+  },
+  "engine_budget_seconds": 3600.0,
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "DOK1_pY449": 25.21,
+     "DOK2_pY299": 31.53,
+     "ITK_pY512": 6.36,
+     "LAT_pY191": 78.98,
+     "LCK_pY192": 108.68,
+     "LCK_pY424": 4.54,
+     "LCK_pY505": 357.5,
+     "NCK_LCP2": 6.43,
+     "NCK_TCR": 107.73,
+     "PAG1_pY163": 26.35,
+     "PLCG1_pY783": 5.39,
+     "PTPN6_pY566": 64.93,
+     "TCR_pY111": 39.66,
+     "TCR_pY123": 38.87,
+     "TCR_pY149_D": 17.06,
+     "TCR_pY171_G": 17.12,
+     "TCR_pY188_E": 1.85,
+     "TCR_pY199_E": 1.97,
+     "WAS_pY291": 9.93,
+     "ZAP70_pY493": 8.66
+    },
+    "final_variance": {
+     "DOK1_pY449": 42.43020202020204,
+     "DOK2_pY299": 49.14050505050502,
+     "ITK_pY512": 7.061010101010102,
+     "LAT_pY191": 367.15111111111116,
+     "LCK_pY192": 278.52282828282824,
+     "LCK_pY424": 4.614545454545454,
+     "LCK_pY505": 435.8888888888889,
+     "NCK_LCP2": 11.661717171717173,
+     "NCK_TCR": 61.65363636363637,
+     "PAG1_pY163": 45.48232323232324,
+     "PLCG1_pY783": 8.664545454545454,
+     "PTPN6_pY566": 132.1061616161616,
+     "TCR_pY111": 29.337777777777777,
+     "TCR_pY123": 27.346565656565648,
+     "TCR_pY149_D": 12.521616161616167,
+     "TCR_pY171_G": 10.16727272727273,
+     "TCR_pY188_E": 1.3207070707070687,
+     "TCR_pY199_E": 1.8879797979797988,
+     "WAS_pY291": 8.530404040404042,
+     "ZAP70_pY493": 10.711515151515153
+    },
+    "replicates": 100
+   },
+   "nfsim": {
+    "final_mean": {
+     "DOK1_pY449": 25.92,
+     "DOK2_pY299": 32.77,
+     "ITK_pY512": 6.53,
+     "LAT_pY191": 77.35,
+     "LCK_pY192": 111.74,
+     "LCK_pY424": 5.2,
+     "LCK_pY505": 358.72,
+     "NCK_LCP2": 5.59,
+     "NCK_TCR": 106.2,
+     "PAG1_pY163": 25.54,
+     "PLCG1_pY783": 5.1,
+     "PTPN6_pY566": 63.27,
+     "TCR_pY111": 39.2,
+     "TCR_pY123": 39.05,
+     "TCR_pY149_D": 16.96,
+     "TCR_pY171_G": 16.82,
+     "TCR_pY188_E": 1.56,
+     "TCR_pY199_E": 1.66,
+     "WAS_pY291": 10.03,
+     "ZAP70_pY493": 8.34
+    },
+    "final_variance": {
+     "DOK1_pY449": 45.892525252525246,
+     "DOK2_pY299": 66.62333333333335,
+     "ITK_pY512": 7.443535353535353,
+     "LAT_pY191": 352.49242424242425,
+     "LCK_pY192": 389.38626262626246,
+     "LCK_pY424": 6.989898989898993,
+     "LCK_pY505": 453.90060606060626,
+     "NCK_LCP2": 9.072626262626255,
+     "NCK_TCR": 68.14141414141413,
+     "PAG1_pY163": 51.76606060606058,
+     "PLCG1_pY783": 9.181818181818175,
+     "PTPN6_pY566": 136.60313131313134,
+     "TCR_pY111": 33.41414141414144,
+     "TCR_pY123": 25.138888888888896,
+     "TCR_pY149_D": 14.867070707070706,
+     "TCR_pY171_G": 13.462222222222227,
+     "TCR_pY188_E": 1.7640404040404043,
+     "TCR_pY199_E": 1.519595959595959,
+     "WAS_pY291": 7.100101010101009,
+     "ZAP70_pY493": 10.83272727272727
+    },
+    "replicates": 100
+   }
+  },
+  "observables": [
+   "TCR_pY149_D",
+   "TCR_pY171_G",
+   "TCR_pY111",
+   "TCR_pY123",
+   "TCR_pY188_E",
+   "TCR_pY199_E",
+   "ZAP70_pY493",
+   "LCK_pY424",
+   "LCK_pY192",
+   "ITK_pY512",
+   "PTPN6_pY566",
+   "WAS_pY291",
+   "PAG1_pY163",
+   "DOK2_pY299",
+   "DOK1_pY449",
+   "PLCG1_pY783",
+   "LAT_pY191",
+   "LCK_pY505",
+   "NCK_TCR",
+   "NCK_LCP2"
+  ],
+  "protocol": {
+   "complex": true,
+   "dropped": [],
+   "gml": null,
+   "phases": [
+    {
+     "duration": 500.0,
+     "get_final_state": true,
+     "n_steps": 5,
+     "sets": [
+      [
+       "Fx",
+       "0.0025"
+      ]
+     ]
+    },
+    {
+     "duration": 60.0,
+     "get_final_state": false,
+     "n_steps": 60,
+     "sets": [
+      [
+       "kfl",
+       "4.8e-5"
+      ],
+      [
+       "kfl_m",
+       "4.8e-3"
+      ]
+     ]
+    }
+   ],
+   "utl": null
+  },
+  "references": {
+   "nfsim": {
+    "cold_seconds": 1533.3557271320606,
+    "driver": "BNG2.pl, running the protocol's actions",
+    "ensemble_seconds": 1533.346138284076,
+    "first_seed": 20000001,
+    "nfsim_command": "NFsim -xml model_nfp0.xml -o model_nfp0.gdat -sim 500 -oSteps 5 -seed <seed> -ss model_nfp0.species -cb",
+    "nfsim_simulate_cpu_seconds": 1443.5289559999997,
+    "nfsim_total_cpu_seconds": 1456.2396900000003,
+    "reactions": 165466309,
+    "seeds": "first_seed + i for trajectory i (+ 10**6 per later step)",
+    "version": "1.14.3",
+    "xml_matches_harness": true
+   }
+  },
+  "rulemonkey_lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+  "xml_seconds": 0.8235381500562653,
+  "xml_sha256": "bd01fd65207197aeed4d227699aca3c66b83341192c577d9ec4b281c8ec2cadb"
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 9,
+ "problem": "tcr_signaling_chylek2014",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:04+00:00",
+   "from_key": "71802a15a82f2e8ecf549e962915780ce19b2ba41d9a0816b3715b1fdd7537c2",
+   "from_outcome": "REFERENCE_FAILED",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": {
+    "alpha": 0.001,
+    "analytic": "Bonferroni z on means and log-variances/1",
+    "independent_reference_rule": 1,
+    "outcome_rule": 2,
+    "permutations": 1999,
+    "stop_exceedances": 20,
+    "two_sample": "permutation max-T on means and variances/1"
+   }
+  }
+ ],
+ "rulemonkey_error": "UNSUPPORTED: the protocol has 2 network-free steps; rm_driver cannot change a parameter between runs, so it cannot replay it",
+ "schema": 1,
+ "setting": "nf_reject",
+ "started": "2026-11-24T23:06:02.622235+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "nfsim",
+   "observables",
+   "times"
+  ],
+  "bytes": 351194,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 53833128 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "4501377cdab2c0ba26b722f55051faf8f6152789294159624cd32ffaad2c17c3"
+ },
+ "verdict_basis": {
+  "independent": [
+   "nfsim"
+  ],
+  "same_lineage": [
+   "rulemonkey"
+  ]
+ },
+ "verdicts": {
+  "nfsim": {
+   "alpha": 0.001,
+   "n_cells": 1340,
+   "n_tested": {
+    "mean": 1320,
+    "variance": 1320
+   },
+   "p_value": 0.1342281879194631,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 9.486832980505138,
+    "max_z": 3.430449616431863,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 149,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 1468060454,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "PTPN6_pY566",
+    "species_index": 10,
+    "statistic": "variance",
+    "time": 11.0,
+    "time_index": 17,
+    "z": 3.7668843491147146
+   },
+   "z_max": 3.7668843491147146,
+   "z_max_mean": 3.3412423742943975,
+   "z_max_variance": 3.7668843491147146
+  }
+ },
+ "wall_seconds": 3658.3218272019876
+}

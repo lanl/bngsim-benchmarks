@@ -1,0 +1,621 @@
+{
+ "capability": "nf",
+ "engines": "bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "1a5ecd0dcbc6cd0fd7c3db5e5c4c34c1f905900f",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness",
+ "key": "ac16de3a31455a1f77315335338e97163af971cf2ece302024df0226e64d5774",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "nf/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/2",
+    "protocol": {
+     "actions": "simulate({method=>\"nf\",suffix=>\"nfr\",t_start=>0,t_end=>10000,n_steps=>100,gml=>2147483647})\n",
+     "netgen": "generate_network({overwrite=>1})",
+     "replicates": 1000,
+     "seed": 1,
+     "timing_replicates": 20
+    },
+    "reference_versions": {
+     "rulemonkey": {
+      "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+      "version": "3.13.0"
+     }
+    },
+    "setting": {
+     "method": "nf_exact",
+     "session": "RuleMonkeySession"
+    },
+    "source_sha256": "f7dde8619150ce100ffd73b099a0e93eb0d2c07cf3e0c40c3cdbacaedcf1ddb2",
+    "verdict": {
+     "alpha": 0.001,
+     "analytic": "Bonferroni z on means and log-variances/1",
+     "independent_reference_rule": 1,
+     "outcome_rule": 2,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "nf/tnf_tnfr1_sequential_binding_mcmillan2021/bngsim-vs-nfsim-rulemonkey-run_network-bngsim_ssa/nf_exact/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "cold_seconds": 1769.074756219983,
+   "ensemble_seconds": 1769.0541104180738,
+   "first_seed": 10000001,
+   "initialize_seconds": 25.4068045434542,
+   "load_seconds": 0.0201727639650926,
+   "method": "nf_exact",
+   "options": {
+    "block_same_complex_binding": true,
+    "molecule_limit": 2147483647
+   },
+   "session": "RuleMonkeySession",
+   "simulate_seconds": 1743.5582087211078
+  },
+  "cross_setting": {
+   "config": {
+    "cold_seconds": 728.1332835319918,
+    "ensemble_seconds": 728.102083630045,
+    "first_seed": 1,
+    "initialize_seconds": 35.74146677565295,
+    "load_seconds": 0.030858325073495507,
+    "method": "nf_reject",
+    "options": {
+     "block_same_complex_binding": true,
+     "molecule_limit": 2147483647
+    },
+    "session": "NfsimSession",
+    "simulate_seconds": 692.2891509272158
+   },
+   "setting": "nf_reject",
+   "verdict": {
+    "alpha": 0.001,
+    "n_cells": 606,
+    "n_tested": {
+     "mean": 451,
+     "variance": 343
+    },
+    "p_value": 0.29850746268656714,
+    "parity_core": {
+     "frac_pass": 1.0,
+     "k": 30.0,
+     "max_z": 3.147898470461555,
+     "passed": true
+    },
+    "passed": true,
+    "permutations": 67,
+    "replicates": [
+     1000,
+     1000
+    ],
+    "seed": 1355455352,
+    "stopped_early": true,
+    "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+    "worst": {
+     "species": "TNF_3R",
+     "species_index": 4,
+     "statistic": "mean",
+     "time": 2900.0,
+     "time_index": 29,
+     "z": 3.1409069592650853
+    },
+    "z_max": 3.1409069592650853,
+    "z_max_mean": 3.1409069592650853,
+    "z_max_variance": 3.08507351195581
+   }
+  },
+  "engine_budget_seconds": 3600.0,
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "TNFR1_bound": 602.0,
+     "TNF_0R": 2430.592,
+     "TNF_1R": 558.834,
+     "TNF_2R": 21.556,
+     "TNF_3R": 0.018,
+     "TNF_all": 3011.0
+    },
+    "final_variance": {
+     "TNFR1_bound": 0.0,
+     "TNF_0R": 18.930466466466726,
+     "TNF_1R": 75.64809209209201,
+     "TNF_2R": 18.915779779779765,
+     "TNF_3R": 0.01969569569569586,
+     "TNF_all": 0.0
+    },
+    "replicates": 1000
+   },
+   "bngsim_ssa": {
+    "final_mean": {
+     "TNFR1_bound": 602.0,
+     "TNF_0R": 2430.404,
+     "TNF_1R": 559.214,
+     "TNF_2R": 21.36,
+     "TNF_3R": 0.022,
+     "TNF_all": 3011.0
+    },
+    "final_variance": {
+     "TNFR1_bound": 0.0,
+     "TNF_0R": 18.583367367367558,
+     "TNF_1R": 74.30450850850845,
+     "TNF_2R": 18.62502502502504,
+     "TNF_3R": 0.02353953953953966,
+     "TNF_all": 0.0
+    },
+    "replicates": 1000
+   },
+   "nf_reject": {
+    "final_mean": {
+     "TNFR1_bound": 601.999,
+     "TNF_0R": 2430.413,
+     "TNF_1R": 559.204,
+     "TNF_2R": 21.354,
+     "TNF_3R": 0.029,
+     "TNF_all": 3011.0
+    },
+    "final_variance": {
+     "TNFR1_bound": 0.000999999999999996,
+     "TNF_0R": 18.617048048048183,
+     "TNF_1R": 74.1825665665668,
+     "TNF_2R": 18.411095095095103,
+     "TNF_3R": 0.030189189189189582,
+     "TNF_all": 0.0
+    },
+    "replicates": 1000
+   },
+   "nfsim": {
+    "final_mean": {
+     "TNFR1_bound": 602.0,
+     "TNF_0R": 2430.444,
+     "TNF_1R": 559.137,
+     "TNF_2R": 21.394,
+     "TNF_3R": 0.025,
+     "TNF_all": 3011.0
+    },
+    "final_variance": {
+     "TNFR1_bound": 0.0,
+     "TNF_0R": 16.24110510510515,
+     "TNF_1R": 64.82505605605627,
+     "TNF_2R": 16.174938938938862,
+     "TNF_3R": 0.024399399399399082,
+     "TNF_all": 0.0
+    },
+    "replicates": 1000
+   },
+   "rulemonkey": {
+    "final_mean": {
+     "TNFR1_bound": 601.998,
+     "TNF_0R": 2430.353,
+     "TNF_1R": 559.324,
+     "TNF_2R": 21.295,
+     "TNF_3R": 0.028,
+     "TNF_all": 3011.0
+    },
+    "final_variance": {
+     "TNFR1_bound": 0.0019979979979980506,
+     "TNF_0R": 17.473864864865117,
+     "TNF_1R": 69.7387627627629,
+     "TNF_2R": 17.411386386386482,
+     "TNF_3R": 0.027243243243242864,
+     "TNF_all": 0.0
+    },
+    "replicates": 1000
+   },
+   "run_network": {
+    "final_mean": {
+     "TNFR1_bound": 602.0,
+     "TNF_0R": 2430.584,
+     "TNF_1R": 558.858,
+     "TNF_2R": 21.532,
+     "TNF_3R": 0.026,
+     "TNF_all": 3011.0
+    },
+    "final_variance": {
+     "TNFR1_bound": 0.0,
+     "TNF_0R": 18.421365365365247,
+     "TNF_1R": 73.5393753753751,
+     "TNF_2R": 18.351327327327404,
+     "TNF_3R": 0.025349349349348908,
+     "TNF_all": 0.0
+    },
+    "replicates": 1000
+   }
+  },
+  "network": {
+   "reactions": 24,
+   "species": 9
+  },
+  "observables": [
+   "TNF_all",
+   "TNF_0R",
+   "TNF_1R",
+   "TNF_2R",
+   "TNF_3R",
+   "TNFR1_bound"
+  ],
+  "protocol": {
+   "complex": true,
+   "dropped": [],
+   "gml": 2147483647,
+   "phases": [
+    {
+     "duration": 10000.0,
+     "get_final_state": true,
+     "n_steps": 100,
+     "sets": []
+    }
+   ],
+   "utl": null
+  },
+  "references": {
+   "bngsim_ssa": {
+    "cold_seconds": 15.979644924984314,
+    "ensemble_seconds": 15.757333852932788,
+    "first_seed": 50000001,
+    "load_seconds": 0.22185799502767622,
+    "method": "ssa, on the generated network",
+    "propensity_backend": "cc"
+   },
+   "nfsim": {
+    "cold_seconds": 915.0607964379014,
+    "driver": "BNG2.pl, running the protocol's actions",
+    "ensemble_seconds": 915.0536644149106,
+    "first_seed": 20000001,
+    "nfsim_command": "NFsim -xml model_nfp0.xml -o model_nfp0.gdat -sim 10000 -oSteps 100 -cb -gml 2147483647 -seed <seed>",
+    "nfsim_simulate_cpu_seconds": 559.0204139999997,
+    "nfsim_total_cpu_seconds": 580.5166299999993,
+    "reactions": 121015136,
+    "seeds": "first_seed + i for trajectory i (+ 10**6 per later step)",
+    "version": "1.14.3",
+    "xml_matches_harness": true
+   },
+   "rulemonkey": {
+    "cold_seconds": 1618.7523754980648,
+    "command": [
+     "rm_driver",
+     "model.xml",
+     "10000.0",
+     "100",
+     "<seed>"
+    ],
+    "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+    "ensemble_seconds": 1618.7515619619517,
+    "first_seed": 30000001,
+    "lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+    "rm_simulate_seconds": 1611.38208,
+    "version": "3.13.0"
+   },
+   "run_network": {
+    "cold_seconds": 140.26948112691753,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "0",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "100.0",
+     "100"
+    ],
+    "ensemble_seconds": 140.2685453509912,
+    "first_seed": 40000001,
+    "method": "ssa (direct method), on the generated network"
+   }
+  },
+  "rulemonkey_lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+  "same_seed": {
+   "engine": "rulemonkey",
+   "identical": 5,
+   "max_abs_difference": 0.0,
+   "trajectories": 5
+  },
+  "ssa_netgen_seconds": 0.6107343280455098,
+  "xml_seconds": 1.2774017950287089,
+  "xml_sha256": "ffb522968ed8e16ceb482db5dad0ff624aa4b3e3fb583be6923e4b2f80b9fa49"
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 18,
+ "problem": "tnf_tnfr1_sequential_binding_mcmillan2021",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:14+00:00",
+   "from_key": "a3165433fad0a14e5ee45c69d2a2a46d28031a6d9f3ea9926ad5e834a27c17df",
+   "from_outcome": "PASS",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": {
+    "alpha": 0.001,
+    "analytic": "Bonferroni z on means and log-variances/1",
+    "independent_reference_rule": 1,
+    "outcome_rule": 2,
+    "permutations": 1999,
+    "stop_exceedances": 20,
+    "two_sample": "permutation max-T on means and variances/1"
+   }
+  }
+ ],
+ "schema": 1,
+ "setting": "nf_exact",
+ "started": "2026-11-24T20:44:39.693918+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "bngsim_ssa",
+   "cross_setting",
+   "nfsim",
+   "observables",
+   "rulemonkey",
+   "run_network",
+   "times"
+  ],
+  "bytes": 889445,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 50994738 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "ffc8567894cd4889290562805e9167a1f6f7c7c34878a93fce545eccc73461d6"
+ },
+ "verdict_basis": {
+  "independent": [
+   "nfsim",
+   "run_network",
+   "bngsim_ssa"
+  ],
+  "same_lineage": [
+   "rulemonkey"
+  ]
+ },
+ "verdicts": {
+  "bngsim_ssa": {
+   "alpha": 0.001,
+   "n_cells": 606,
+   "n_tested": {
+    "mean": 451,
+    "variance": 338
+   },
+   "p_value": 0.2564102564102564,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 30.0,
+    "max_z": 3.2828768371593253,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 78,
+   "replicates": [
+    1000,
+    1000
+   ],
+   "seed": 880097667,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "TNF_3R",
+    "species_index": 4,
+    "statistic": "mean",
+    "time": 4300.0,
+    "time_index": 43,
+    "z": 3.274877752397604
+   },
+   "z_max": 3.274877752397604,
+   "z_max_mean": 3.274877752397604,
+   "z_max_variance": 2.6481111858718656
+  },
+  "nfsim": {
+   "alpha": 0.001,
+   "n_cells": 606,
+   "n_tested": {
+    "mean": 459,
+    "variance": 352
+   },
+   "p_value": 0.9523809523809523,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 30.0,
+    "max_z": 2.4975553514095648,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 21,
+   "replicates": [
+    1000,
+    1000
+   ],
+   "seed": 1468060454,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "TNF_2R",
+    "species_index": 3,
+    "statistic": "variance",
+    "time": 10000.0,
+    "time_index": 100,
+    "z": 2.5410692310171097
+   },
+   "z_max": 2.5410692310171097,
+   "z_max_mean": 2.4942897183741373,
+   "z_max_variance": 2.5410692310171097
+  },
+  "rulemonkey": {
+   "alpha": 0.001,
+   "n_cells": 606,
+   "n_tested": {
+    "mean": 454,
+    "variance": 336
+   },
+   "p_value": 0.9523809523809523,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 30.0,
+    "max_z": 2.5561508282569485,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 21,
+   "replicates": [
+    1000,
+    1000
+   ],
+   "same_lineage": true,
+   "seed": 706327611,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "TNF_3R",
+    "species_index": 4,
+    "statistic": "mean",
+    "time": 7400.0,
+    "time_index": 74,
+    "z": 2.5526200130857575
+   },
+   "z_max": 2.5526200130857575,
+   "z_max_mean": 2.5526200130857575,
+   "z_max_variance": 2.1945343165860365
+  },
+  "run_network": {
+   "alpha": 0.001,
+   "n_cells": 606,
+   "n_tested": {
+    "mean": 451,
+    "variance": 349
+   },
+   "p_value": 0.6666666666666666,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 30.0,
+    "max_z": 2.9501368342304097,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 30,
+   "replicates": [
+    1000,
+    1000
+   ],
+   "seed": 4090694230,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "TNF_3R",
+    "species_index": 4,
+    "statistic": "mean",
+    "time": 4300.0,
+    "time_index": 43,
+    "z": 2.9444689154854125
+   },
+   "z_max": 2.9444689154854125,
+   "z_max_mean": 2.9444689154854125,
+   "z_max_variance": 2.845297870669349
+  }
+ },
+ "wall_seconds": 5199.4901412270265
+}

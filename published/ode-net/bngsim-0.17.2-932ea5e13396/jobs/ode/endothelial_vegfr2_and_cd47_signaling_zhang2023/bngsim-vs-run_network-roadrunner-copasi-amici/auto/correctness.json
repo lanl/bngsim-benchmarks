@@ -1,0 +1,387 @@
+{
+ "capability": "ode",
+ "copasi_error": "KeyError: \"['PTEN_PIP3docking', 'mTOR_aktbd', 'RasGDP_rafbd', 'I'] not in index\"",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "188aefaba9919447d32a7cdda952be101c247cbc",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+ "key": "1454adfe94d79b24ef3edf23c9481c16183e57cff65dec878416ad0aaeb6bf66",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "protocol": {
+     "atol": 1e-12,
+     "n_steps": 360,
+     "netgen": "generate_network({overwrite=>1,max_agg=>10})",
+     "rtol": 1e-10,
+     "sparse": true,
+     "t_end": 1800,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "a12dc63cabbabc4929f7bf3844a696bc320f4b0bab39c2a82bad053c98f91a26",
+    "verdict": 2
+   },
+   "id": "ode/endothelial_vegfr2_and_cd47_signaling_zhang2023/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 35.13501323305536,
+   "cold_seconds": 38.40164716599975,
+   "jacobian": "analytical",
+   "jacobian_seconds": 2.5150663630338386,
+   "linear_solver": "KLU",
+   "load_seconds": 0.04568439000286162
+  },
+  "engine_budget_seconds": 3600.0,
+  "netgen_seconds": 25.211159012978896,
+  "network": {
+   "reactions": 5602,
+   "species": 870
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 2490.3539246839937,
+    "cold_seconds": 2493.6461290880106,
+    "integrator": "CVODES BDF",
+    "load_seconds": 0.01862617291044444,
+    "output": "amount",
+    "sensitivities": "none",
+    "version": "1.1.0"
+   },
+   "roadrunner": {
+    "cold_seconds": 68.39597538195085,
+    "integrator": "cvode",
+    "load_seconds": 53.696573588997126,
+    "output": "amount",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "cold_seconds": 29.859695269027725,
+    "command": [
+     "-o",
+     "$TMPDIR/bench-job-wdnh56ti/run_network",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-10",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "$TMPDIR/bench-job-wdnh56ti/netgen/model.net",
+     "$TMPDIR/bench-job-wdnh56ti/netgen/model.net",
+     "5.0",
+     "360"
+    ],
+    "solver": "dense"
+   }
+  },
+  "sparse_reference": {
+   "agrees_with_dense": true,
+   "max_rel": 0.0,
+   "n_hard_fail": 0,
+   "seconds": 82.28137120103929,
+   "species_check": {
+    "floor": 1e-11,
+    "n_fail": 0,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 1e-11,
+     "err": 6.059302169197725e-12,
+     "err_over_peak": 1.0000002156523922,
+     "index": 534,
+     "peak": 6.059300862495e-12,
+     "score": 0.6059302169197726,
+     "species": "CD47SIRPa(TSP1bd,VEGFR2bd!1,Y1~Y,c~i2).vegf(c~i2,nrp1bd,r!2,r!3).vegfr2(CD47bd!1,Y1175~Y,c~i2,dimer!4,l1!3).vegfr2(CD47bd,Y1175~pY,c~i2,dimer!4,l1!2)",
+     "t": 915.0
+    }
+   }
+  }
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 3,
+ "problem": "endothelial_vegfr2_and_cd47_signaling_zhang2023",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:17+00:00",
+   "from_key": "c62e01d270c6cbfc218c7f46e7542b6f7227199c8e52dd633950c097309e8663",
+   "from_outcome": "REFERENCE_FAILED",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": 2
+  }
+ ],
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T19:45:08.240964+00:00",
+ "trajectories": {
+  "arrays": [
+   "amici",
+   "bngsim",
+   "roadrunner",
+   "run_network",
+   "run_network_sparse",
+   "species",
+   "time"
+  ],
+  "bytes": 9209825,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 47755069 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "f8047cf052fed9235a37bfb444952086e78efabc679d3a3ad2fc7265887cdf80"
+ },
+ "verdicts": {
+  "amici": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.7431830423116216e-08,
+   "max_err_over_peak": 3.60595673957982e-05,
+   "max_rel": 0.0,
+   "n_cells": 314070,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     361,
+     870
+    ],
+    "reference": [
+     361,
+     870
+    ]
+   },
+   "species_check": {
+    "atol": 1e-12,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-11,
+    "n_at_floor": 576,
+    "n_fail": 0,
+    "n_species": 870,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 7.750772620533222e-09,
+     "err": 2.7948950767962513e-11,
+     "err_over_peak": 3.60595673957982e-05,
+     "index": 718,
+     "peak": 7.750772620533222e-07,
+     "score": 0.00360595673957982,
+     "species": "eNOS(CaMBD,S1177~S,cav1BD)",
+     "t": 260.0
+    }
+   },
+   "vendored_passed": true
+  },
+  "roadrunner": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.781066646776794e-08,
+   "max_err_over_peak": 1.0,
+   "max_rel": 0.0,
+   "n_cells": 314070,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     361,
+     870
+    ],
+    "reference": [
+     361,
+     870
+    ]
+   },
+   "species_check": {
+    "atol": 1e-12,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-11,
+    "n_at_floor": 576,
+    "n_fail": 0,
+    "n_species": 870,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 7.750757249113878e-09,
+     "err": 5.164396655324814e-11,
+     "err_over_peak": 6.663086572496183e-05,
+     "index": 718,
+     "peak": 7.750757249113879e-07,
+     "score": 0.006663086572496183,
+     "species": "eNOS(CaMBD,S1177~S,cav1BD)",
+     "t": 255.0
+    }
+   },
+   "vendored_passed": true
+  },
+  "run_network": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 4.9560667551555955e-09,
+   "max_err_over_peak": 1.0,
+   "max_rel": 0.0,
+   "n_cells": 314070,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     361,
+     870
+    ],
+    "reference": [
+     361,
+     870
+    ]
+   },
+   "species_check": {
+    "atol": 1e-12,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-11,
+    "n_at_floor": 576,
+    "n_fail": 0,
+    "n_species": 870,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 7.750757249113878e-09,
+     "err": 4.739324836750031e-11,
+     "err_over_peak": 6.114660393075611e-05,
+     "index": 718,
+     "peak": 7.750757249113879e-07,
+     "score": 0.006114660393075611,
+     "species": "eNOS(CaMBD,S1177~S,cav1BD)",
+     "t": 255.0
+    }
+   },
+   "vendored_passed": true
+  }
+ },
+ "wall_seconds": 2926.3653813870624
+}

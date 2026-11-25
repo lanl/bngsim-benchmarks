@@ -1,0 +1,95 @@
+suite,position,problem,species,reactions,outcome,engine,role,status,presim_seconds,netgen_seconds,codegen_seconds,load_seconds,backend,sim_median_seconds,sim_ci_low_seconds,sim_ci_high_seconds,rounds,reproducible,error
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,amici,"warm, in-process",timed,21.466384003986605,,21.46520006703213,0.0011839369544759393,,0.027328560536261648,0.027175822004210204,0.0274512164760381,20,True,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,0.08541648648679256,0.08524745848262683,0.08586723444750533,20,True,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,1.3646050420356914,0.25185431097634137,1.1121737420326099,0.0005769890267401934,cc,0.017538975458592176,0.017447981983423233,0.01761229708790779,20,True,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,bngsim_gradient,,timed,,,,,,0.017646816500928253,0.017561810498591512,0.01776575396070257,20,True,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,bngsim_ode,,timed,,,,,,0.0017510494799353182,0.0017406955012120306,0.0018176180310547352,20,True,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,bngsim_simultaneous,,timed,,,,,,0.017434309469535947,0.017277276434469968,0.01749726600246504,20,True,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,copasi,"warm, in-process",timed,0.026369355036877096,,,0.026369355036877096,,0.27612470503663644,0.2749411899712868,0.2767206935095601,20,True,
+sens-net,1,nfkb_reduced_onoff_jaruszewiczblonska2023,7,15,PASS,run_network,fresh subprocess,timed,,,,,,0.009520507010165602,0.009421044553164393,0.009837722686643246,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,amici,"warm, in-process",timed,19.986415727995336,,19.985307978000492,0.0011077499948441982,,0.02467011596309021,0.02462085895240307,0.024787399568594992,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,0.21528703346848488,0.21471288794418797,0.21590538002783433,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,2.258827031124383,0.33630904206074774,1.9216766470344737,0.0008413420291617513,cc,0.017914984957315028,0.01779103255830705,0.018004021349770482,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim_gradient,,timed,,,,,,0.018047362507786602,0.0180182415060699,0.018134865502361208,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim_ode,,timed,,,,,,0.0008384315297007561,0.0008365875692106783,0.0008405759581364691,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim_simultaneous,,timed,,,,,,0.017723598517477512,0.017697442963253707,0.017760046001058072,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,run_network,fresh subprocess,timed,,,,,,0.009508423449005932,0.009348812513053417,0.009747545060236007,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,copasi,,crash,,,,,,,,,,,"RuntimeError: COPASI time-course sensitivities run failed: >WARNING 2026-11-24T15:02:04<
+  SBML (91): The default substance unit has not been set in the model. COPASI will use mole as the default substance unit.
+>WARNING 2026-11-24T15:02:04<
+  SBML (91): The default time unit has not been set in the model. COPASI will use second as the default time unit.
+>W"
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,amici,"warm, in-process",timed,20.05077228602022,,20.04969066695776,0.001081619062460959,,0.018862830533180386,0.01876358693698421,0.01896153889974812,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,0.22391147748567164,0.22291595704155043,0.22447053052019328,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,2.263752852915786,0.33154272800311446,1.9313684669323266,0.0008416579803451896,cc,0.015116797061637044,0.015060211007948965,0.015189132944215089,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim_gradient,,timed,,,,,,0.015299663005862385,0.015226647024974227,0.018924638512544334,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim_ode,,timed,,,,,,0.0008862239774316549,0.0008848009747453034,0.0011715005384758115,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,bngsim_simultaneous,,timed,,,,,,0.015089943015482277,0.014976482489146292,0.015467836055904627,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,copasi,"warm, in-process",timed,0.08543018996715546,,,0.08543018996715546,,4.467621346004307,4.463490342022851,4.473376906942576,20,True,
+sens-net,2,igf1r_ligand_binding_erickson2019,27,96,PASS,run_network,fresh subprocess,timed,,,,,,0.01004862051922828,0.00964254850987345,0.010586657503154129,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,amici,"warm, in-process",timed,25.107922652969137,,25.104114733985625,0.0038079189835116267,,0.0909338149940595,0.09055221197195351,0.0911739399889484,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,0.2348863629740663,0.2345624125446193,0.23558498552301899,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,2.8077753679826856,0.4288156640250236,2.377988004940562,0.0009716990171000361,cc,0.037020636489614844,0.036880013583868276,0.0372519395314157,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim_gradient,,timed,,,,,,0.03725206997478381,0.03713470901129767,0.037405061011668295,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim_ode,,timed,,,,,,0.004543860035482794,0.004537423024885356,0.004552732047159225,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim_simultaneous,,timed,,,,,,0.040380113990977407,0.04020974301965907,0.04062233050353825,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,run_network,fresh subprocess,timed,,,,,,0.02531778148841113,0.024974993022624403,0.025566756958141923,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,copasi,,not_applicable,,,,,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,amici,"warm, in-process",timed,20.517049955087714,,20.515911296010017,0.0011386590776965022,,0.03778883349150419,0.037674060033168644,0.037903443444520235,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,0.22850526100955904,0.22827664902433753,0.2286252715275623,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,1.6397703510010615,0.33782970800530165,1.300912991981022,0.0010276510147377849,cc,0.010871035512536764,0.010809044528286904,0.010968001501169056,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim_gradient,,timed,,,,,,0.010894837032537907,0.010862767521757632,0.010957499021606053,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim_ode,,timed,,,,,,0.004554044455289841,0.004549640056211501,0.004573915037326515,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,bngsim_simultaneous,,timed,,,,,,0.011591023532673717,0.011497437488287687,0.011662344040814787,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,run_network,fresh subprocess,timed,,,,,,0.024762869463302195,0.024435730068944395,0.024920089461375028,20,True,
+sens-net,3,atf2_phosphoswitch_kirsch2020,48,152,PASS,copasi,,not_applicable,,,,,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,amici,"warm, in-process",timed,34.70087092299946,,34.69960827101022,0.001262651989236474,,0.6066351709887385,0.6042719830293208,0.6098714455147274,20,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,4.2907248620758764,4.283516919997055,4.2968089984497055,20,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,11.194190933019854,0.6626666609663516,10.52829070109874,0.003233570954762399,cc,0.1616892660385929,0.16077362949727103,0.16253002197481692,20,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim_gradient,,timed,,,,,,0.1632286210078746,0.16217598947696388,0.1635623580077663,20,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim_ode,,timed,,,,,,0.010819679475389421,0.010804614517837763,0.011056681047193706,20,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim_simultaneous,,timed,,,,,,0.16399746347451583,0.16301756456959993,0.1651166005176492,20,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,run_network,fresh subprocess,timed,,,,,,0.06702856498304754,0.06636411650106311,0.06759149342542514,20,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,copasi,,timeout,,,,,,,,,,,"TIMEOUT in the correctness job, so not timed (TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve))"
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,amici,"warm, in-process",timed,35.07663579506334,,35.07534691202454,0.0012888830387964845,,0.26598404604010284,0.2649347590049729,0.2677030779886991,5,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,4.271120192017406,4.256174972048029,4.289454328012653,5,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,11.149404148105532,0.6631519210059196,10.482985452050343,0.0032667750492691994,cc,0.05812113906722516,0.057613597018644214,0.06336586002726108,5,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim_gradient,,timed,,,,,,0.06536138895899057,0.06002948200330138,0.06675658596213907,5,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim_ode,,timed,,,,,,0.010837476002052426,0.010817614966072142,0.010895246057771146,5,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,bngsim_simultaneous,,timed,,,,,,0.05909446091391146,0.058666803990490735,0.05966861802153289,5,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,copasi,"warm, in-process",timed,0.6631420650519431,,,0.6631420650519431,,41.81876763503533,41.76823378005065,41.852453031926416,5,True,
+sens-net,4,multisite_egfr_phosphorylation_salazarcavazos2020,75,618,PASS,run_network,fresh subprocess,timed,,,,,,0.070303137996234,0.06668007594998926,0.07213063596282154,5,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,amici,"warm, in-process",timed,35.36918909300584,,35.36763036600314,0.0015587270027026534,,0.5880898284958676,0.5867530334508047,0.5911827100208029,16,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,5.887720796454232,5.883814728481229,5.8934843923227165,16,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,5.06626660504844,0.3653942740056664,4.697363384999335,0.0035089460434392095,cc,0.37502390844747424,0.37263828847790137,0.37693523499183357,16,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,bngsim_gradient,,timed,,,,,,0.3830400305450894,0.3820052199298516,0.38519073196221143,16,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,bngsim_ode,,timed,,,,,,0.025067014037631452,0.025002537993714213,0.0252711329376325,16,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,bngsim_simultaneous,,timed,,,,,,0.38233000598847866,0.3816248010843992,0.3832107369089499,16,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,run_network,fresh subprocess,timed,,,,,,0.09799582947744057,0.09729389002313837,0.09929542051395401,16,True,
+sens-net,5,cstar_skmel133_melanoma_rukhlenko2022,44,56,PASS,copasi,,not_applicable,,,,,,,,,,,a multi-phase protocol: COPASI's time-course sensitivities task cannot carry one phase's sensitivities into the next
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,amici,"warm, in-process",timed,41.72962347290013,,41.72848134394735,0.0011421289527788758,,0.19800550752552226,0.19777375500416383,0.19844930100953206,20,True,
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,5.380723336478695,5.375691883498803,5.390439574490301,20,True,
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,10.670227598049678,1.3528850000584498,9.313592566992156,0.003750030999071896,cc,0.08313119149534032,0.08254427497740835,0.08448569802567363,20,True,
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,bngsim_gradient,,timed,,,,,,0.08369117003167048,0.08334450196707621,0.08398655347991735,20,True,
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,bngsim_ode,,timed,,,,,,0.010166681546252221,0.010122759500518441,0.010227936718729324,20,True,
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,bngsim_simultaneous,,timed,,,,,,0.08853319101035595,0.08811168000102043,0.08886799600441009,20,True,
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,run_network,fresh subprocess,timed,,,,,,0.07437220198335126,0.07386671507265419,0.07563414750620723,20,True,
+sens-net,6,shp2_regulation_and_function_barua2007,149,1032,PASS,copasi,,timeout,,,,,,,,,,,"TIMEOUT in the correctness job, so not timed (TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve))"
+sens-net,7,cstar_trka_ngf_rukhlenko2022,82,405,WITHHELD,,,withheld,,,,,,,,,,,correctness UNSUPPORTED
+sens-net,7,cstar_trka_ngf_rukhlenko2022,82,405,WITHHELD,,,withheld,,,,,,,,,,,correctness UNSUPPORTED
+sens-net,8,cstar_trkb_bdnf_rukhlenko2022,114,645,WITHHELD,,,withheld,,,,,,,,,,,correctness UNSUPPORTED
+sens-net,8,cstar_trkb_bdnf_rukhlenko2022,114,645,WITHHELD,,,withheld,,,,,,,,,,,correctness UNSUPPORTED
+sens-net,9,cell_cycle_oscillator_lang2024,73,332,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,3.694900970906019,0.6935870159650221,2.998061590944417,0.003252363996580243,cc,9.774232461466454,9.705069490009919,9.837699767958838,6,True,
+sens-net,9,cell_cycle_oscillator_lang2024,73,332,PASS,bngsim_ode,,timed,,,,,,0.1223863810300827,0.12190515454858541,0.12266720499610528,6,True,
+sens-net,9,cell_cycle_oscillator_lang2024,73,332,PASS,bngsim_simultaneous,,timed,,,,,,10.064716343011241,10.00330688356189,10.101242984528653,6,True,
+sens-net,9,cell_cycle_oscillator_lang2024,73,332,PASS,run_network,fresh subprocess,timed,,,,,,0.3271746470127255,0.3261312424438074,0.32961228548083454,6,True,
+sens-net,9,cell_cycle_oscillator_lang2024,73,332,PASS,amici,,crash,,,,,,,,,,,RuntimeError: AMICI simulation failed with status -1
+sens-net,9,cell_cycle_oscillator_lang2024,73,332,PASS,copasi,,timeout,,,,,,,,,,,"TIMEOUT in the correctness job, so not timed (TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve))"
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,amici,"warm, in-process",timed,249.4402654800797,,249.43885636201594,0.0014091180637478828,,14.55546570790466,14.519739289069548,14.599413192016073,5,True,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,amici_adjoint,"warm, in-process (adjoint gradient of the same log-likelihood; timing only)",timed,,,,,,8.528095102054067,8.499926652060822,8.549994062050246,5,True,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,bngsim,"warm, in-process (system under test, staggered corrector)",timed,35.6112808980979,5.359487817971967,30.23884550004732,0.012947580078616738,cc,6.185558135970496,6.148837148095481,6.22003651491832,5,True,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,bngsim_gradient,,timed,,,,,,6.170807405957021,6.164960687048733,6.1869515009457245,5,True,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,bngsim_ode,,timed,,,,,,0.41277963598258793,0.41243163601029664,0.4134815689176321,5,True,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,bngsim_simultaneous,,timed,,,,,,6.112418959964998,6.070962851983495,6.13446313503664,5,True,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,run_network,fresh subprocess,timed,,,,,,1.710521420929581,1.7032476409804076,1.7208016060758382,5,True,
+sens-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,copasi,,timeout,,,,,,,,,,,"TIMEOUT in the correctness job, so not timed (TIMEOUT: no result within the 3600 s per-engine budget (stopped in: first solve))"

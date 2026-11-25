@@ -1,0 +1,339 @@
+{
+ "amici_error": "AttributeError: 'Compartment' object has no attribute 'getValue'",
+ "capability": "ode",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "188aefaba9919447d32a7cdda952be101c247cbc",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/brain_energy_metabolism_winter2017/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+ "key": "265c5c1db17a34ed6de8a911f3927ceff5ed9e03543dfdd1e3429d7d0d9e9cd7",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-09,
+     "n_steps": 1000,
+     "output_start": 100,
+     "rtol": 1e-06,
+     "t_end": 400,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "ba4c9be0f03ae1d6939ad3d5090922775c88e0028c9f12e281dd25813ca05ac5",
+    "verdict": 2
+   },
+   "id": "ode/brain_energy_metabolism_winter2017/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_cache_hit": null,
+   "codegen_seconds": 0.0,
+   "cold_seconds": 2.3810445190174505,
+   "input": "sbml (Model.from_sbml)",
+   "jacobian": "analytical",
+   "jacobian_seconds": 0.19108556502033025,
+   "linear_solver": "KLU",
+   "load_seconds": 1.7809675299795344
+  },
+  "derived_network": {
+   "seconds": 3.2016277690418065
+  },
+  "engine_budget_seconds": 1800.0,
+  "network": {
+   "reactions": 64,
+   "species": 65
+  },
+  "references": {
+   "copasi": {
+    "cold_seconds": 5.636106244055554,
+    "load_seconds": 0.5953372269868851,
+    "method": "deterministic (LSODA)",
+    "output": "amount",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 0.8009978150948882,
+    "integrator": "cvode",
+    "load_seconds": 0.7420582360355183,
+    "output": "concentration",
+    "reset": "resetAll",
+    "version": "2.11.0"
+   }
+  },
+  "sbml": {
+   "compared_species": 60,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [],
+    "constant": [
+     "Na__extracellular_space",
+     "O2_artery",
+     "CO2_artery",
+     "GLC_artery",
+     "LAC_artery"
+    ]
+   },
+   "reactions": 64,
+   "species": 65
+  }
+ },
+ "not_applicable": {
+  "run_network": "no faithful BNGL form: bngsim.convert.sbml_to_bngl refuses it (BIOMD0000000627_url.xml: cannot convert faithfully to cBNGL \u2014 65 amount-valued species in a non-unit compartment (e.g. 'species_23', 'species_24', 'species_25', \u2026) \u2014 the writer keeps the concentration-space semantics from_net reads back; a per-species amount factor would mis-scale. Pass strict=False (--allow-lossy) to emit a best-effor"
+ },
+ "outcome": "DIFF",
+ "pinned_cpu": 2,
+ "problem": "brain_energy_metabolism_winter2017",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:16+00:00",
+   "from_key": "3d7aead0011fec15b59edb11a068cedae2c753e91a5ead7db29f2fd1efd066d0",
+   "from_outcome": "REFERENCE_FAILED",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": 2
+  }
+ ],
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T19:44:07.495401+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "copasi",
+   "roadrunner",
+   "species",
+   "time"
+  ],
+  "bytes": 537136,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 13265983 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "a6b2cbe0f812e42ee3e830290ce26b171eaf2977b702bda5a30ee1a9f351132b"
+ },
+ "verdicts": {
+  "copasi": {
+   "budget_forgiven": 0,
+   "max_abs": 2.544074109033186,
+   "max_err_over_movement": 1.0000000000000182,
+   "max_err_over_peak": 0.9881554692431705,
+   "max_rel": 1.0,
+   "n_cells": 60060,
+   "n_fail": 30360,
+   "n_hard_fail": 13692,
+   "n_soft_fail": 886,
+   "no_signal": false,
+   "passed": false,
+   "shapes": {
+    "bngsim": [
+     1001,
+     60
+    ],
+    "reference": [
+     1001,
+     60
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [
+     "GLU_astrocytes",
+     "GLU_extracellular_space",
+     "AMP_astrocytes",
+     "species_22",
+     "species_8",
+     "species_6",
+     "ADP_astrocytes",
+     "dHb",
+     "species_16",
+     "species_14"
+    ],
+    "floor": 1e-08,
+    "n_at_floor": 2,
+    "n_fail": 36,
+    "n_species": 60,
+    "passed": false,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 3.242235799482198e-05,
+     "err": 0.0032422357994821983,
+     "err_over_peak": 1.0,
+     "index": 43,
+     "peak": 0.0032422357994821983,
+     "score": 100.00000000000001,
+     "species": "GLU_astrocytes",
+     "t": 208.6
+    }
+   },
+   "vendored_passed": false
+  },
+  "roadrunner": {
+   "budget_forgiven": 255,
+   "max_abs": 0.28774127833088503,
+   "max_err_over_movement": 0.9508519462319884,
+   "max_err_over_peak": 0.12742470399689768,
+   "max_rel": 0.12742470399689768,
+   "n_cells": 60060,
+   "n_fail": 6161,
+   "n_hard_fail": 142,
+   "n_soft_fail": 255,
+   "no_signal": false,
+   "passed": false,
+   "shapes": {
+    "bngsim": [
+     1001,
+     60
+    ],
+    "reference": [
+     1001,
+     60
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [
+     "species_24",
+     "species_16",
+     "dHb",
+     "species_20",
+     "species_23",
+     "species_26",
+     "species_25"
+    ],
+    "floor": 1e-08,
+    "n_at_floor": 2,
+    "n_fail": 7,
+    "n_species": 60,
+    "passed": false,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.0225812789282909,
+     "err": 0.28774127833088503,
+     "err_over_peak": 0.12742470399689768,
+     "index": 1,
+     "peak": 2.2581278928290898,
+     "score": 12.742470399689767,
+     "species": "species_24",
+     "t": 199.89999999999998
+    }
+   },
+   "vendored_passed": false
+  }
+ },
+ "wall_seconds": 15.635609351913445
+}

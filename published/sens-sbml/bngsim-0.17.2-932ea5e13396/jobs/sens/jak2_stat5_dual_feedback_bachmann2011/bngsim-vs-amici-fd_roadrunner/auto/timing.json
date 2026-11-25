@@ -1,0 +1,819 @@
+{
+ "capability": "sens",
+ "engines": "bngsim-vs-amici-fd_roadrunner",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "c6813bd1739390300717276640ccf5ec5a79f0e5",
+   "dirty": false,
+   "source_sha256": "e39bd5e5b50ef99b7573795943b5e0a2724a2722f8406287c79afae27bfa7291"
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/jak2_stat5_dual_feedback_bachmann2011/bngsim-vs-amici-fd_roadrunner/auto/timing",
+ "key": "f952b997458126948585618ac450029a340de93def629cc3add110b22c45a983",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-fd_roadrunner/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "petab_sha256": {
+     "conditions": "d70bcbbf355afdcc304ded0948d0583ee2bcae99326e58bd1603acf4b98a7890",
+     "measurements": "e9ceb7b76e2d352b133359a6013da61048f236633c5eba2a1fe4eb14e2444fd5",
+     "observables": "54aea4be1e910e6c462b41d8e1551627271dc56a4c2b09d1356e0869c0c0c92d",
+     "parameters": "e723a6305743be9c84d03985065688eccb616ff92ecea63dffecf9a76305dcc4",
+     "yaml": "49443972f0c45231d190dbf7fcb73073624bb42331a7f4c524dd914fabb157da"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-10,
+     "fd_step": 0.001,
+     "llh_reference": 418.40573341425295,
+     "parameters": [
+      "CISEqc",
+      "CISEqcOE",
+      "CISInh",
+      "CISRNADelay",
+      "CISRNATurn",
+      "CISTurn",
+      "EpoRActJAK2",
+      "EpoRCISInh",
+      "EpoRCISRemove",
+      "JAK2ActEpo",
+      "JAK2EpoRDeaSHP1",
+      "SHP1ActEpoR",
+      "SHP1Dea",
+      "SHP1ProOE",
+      "SOCS3Eqc",
+      "SOCS3EqcOE",
+      "SOCS3Inh",
+      "SOCS3RNADelay",
+      "SOCS3RNATurn",
+      "SOCS3Turn",
+      "STAT5ActEpoR",
+      "STAT5ActJAK2",
+      "STAT5Exp",
+      "STAT5Imp",
+      "init_EpoRJAK2",
+      "init_SHP1",
+      "init_STAT5"
+     ],
+     "preeq_max_time": 1000000.0,
+     "rtol": 1e-08
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "petab": "0.10.0",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "cd7c0cead0b4b7d368b08c6b43e45d84042f799415dd47133e192ef364d18553",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "sens/jak2_stat5_dual_feedback_bachmann2011/bngsim-vs-amici-fd_roadrunner/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "atol": "ExactAtol (scalar, held exactly)",
+   "codegen_backend": "cc",
+   "codegen_seconds": 1.0956334070069715,
+   "input": "sbml (Model.from_sbml)",
+   "linear_solver": "dense",
+   "load_seconds": 0.05340704298578203,
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null
+  },
+  "bngsim_cold_seconds": 2.409508830984123,
+  "configurations": {
+   "bngsim_ode": {
+    "atol": "ExactAtol (scalar, held exactly)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.003848995896987617,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.03678967303130776,
+    "sensitivity_method": null
+   },
+   "bngsim_simultaneous": {
+    "analytic_sensitivity_rhs": true,
+    "atol": "ExactAtol (scalar, held exactly)",
+    "codegen_backend": "cc",
+    "codegen_seconds": 0.0047523039393126965,
+    "input": "sbml (Model.from_sbml)",
+    "linear_solver": "dense",
+    "load_seconds": 0.03743496991228312,
+    "sensitivity_method": "simultaneous",
+    "sensitivity_rhs_decline": null
+   }
+  },
+  "engine_roles": {
+   "amici": "warm, in-process (simulate_petab with forward sensitivities, every condition)",
+   "amici_adjoint": "warm, in-process (simulate_petab with adjoint sensitivities: the PEtab log-likelihood gradient; timing only)",
+   "bngsim": "warm, in-process (system under test, staggered corrector, every condition)",
+   "bngsim_ode": "warm, in-process (plain solve of every condition: the unit of an FD gradient)",
+   "bngsim_simultaneous": "warm, in-process (system under test, simultaneous corrector, every condition)",
+   "roadrunner": "warm, in-process (plain solve of every condition: the unit of an FD gradient)"
+  },
+  "fd_baselines": {
+   "bngsim_ode": {
+    "central_seconds": 2.625287274713628,
+    "forward_seconds": 1.3612600683700293,
+    "parameters": 27
+   },
+   "roadrunner": {
+    "central_seconds": 1.4988258668454364,
+    "forward_seconds": 0.77716896799393,
+    "parameters": 27
+   }
+  },
+  "network": {
+   "events": 0,
+   "species": 25,
+   "state_species": 25
+  },
+  "parameters": {
+   "excluded": {
+    "offset_CIS_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_CIS_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_CIS_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_CIS_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_CIS_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_SOCS3_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_SOCS3_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_SOCS3_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_cisoe_pepor": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_dr30": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_dr7": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_fine": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pEpoR_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_dr30": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_dr7": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_fine": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pJAK2_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pSTAT5_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pSTAT5_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pSTAT5_conc": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pSTAT5_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pSTAT5_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "offset_pSTAT5_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale1_CIS_dr90": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale2_CIS_dr90": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CISRNA_foldA": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CISRNA_foldB": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CISRNA_foldC": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CIS_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CIS_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CIS_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CIS_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_CIS_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_SHP1_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_SOCS3RNA_foldA": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_SOCS3RNA_foldB": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_SOCS3RNA_foldC": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_SOCS3_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_SOCS3_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_SOCS3_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_cisoe_pepor": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_dr30": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_dr7": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_fine": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pEpoR_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_dr30": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_dr7": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_fine": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pJAK2_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pSTAT5_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pSTAT5_cisoe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pSTAT5_dr10": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pSTAT5_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pSTAT5_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_pSTAT5_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_tSTAT5_actd": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_tSTAT5_long": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "scale_tSTAT5_shp1oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_CIS_abs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_CIS_au": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_JAK2EpoR_au": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_RNA_fold": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_SHP1_abs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_SHP1_au": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_SOCS3_abs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_SOCS3_au": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_STAT5_abs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_STAT5_au": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_pSTAT5_rel": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_pSTAT5_socs3oe": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)"
+   },
+   "n": 27,
+   "names": [
+    "CISEqc",
+    "CISEqcOE",
+    "CISInh",
+    "CISRNADelay",
+    "CISRNATurn",
+    "CISTurn",
+    "EpoRActJAK2",
+    "EpoRCISInh",
+    "EpoRCISRemove",
+    "JAK2ActEpo",
+    "JAK2EpoRDeaSHP1",
+    "SHP1ActEpoR",
+    "SHP1Dea",
+    "SHP1ProOE",
+    "SOCS3Eqc",
+    "SOCS3EqcOE",
+    "SOCS3Inh",
+    "SOCS3RNADelay",
+    "SOCS3RNATurn",
+    "SOCS3Turn",
+    "STAT5ActEpoR",
+    "STAT5ActJAK2",
+    "STAT5Exp",
+    "STAT5Imp",
+    "init_EpoRJAK2",
+    "init_SHP1",
+    "init_STAT5"
+   ],
+   "scales_in_petab": {
+    "CISEqc": "log10",
+    "CISEqcOE": "log10",
+    "CISInh": "log10",
+    "CISRNADelay": "log10",
+    "CISRNATurn": "log10",
+    "CISTurn": "log10",
+    "EpoRActJAK2": "log10",
+    "EpoRCISInh": "log10",
+    "EpoRCISRemove": "log10",
+    "JAK2ActEpo": "log10",
+    "JAK2EpoRDeaSHP1": "log10",
+    "SHP1ActEpoR": "log10",
+    "SHP1Dea": "log10",
+    "SHP1ProOE": "log10",
+    "SOCS3Eqc": "log10",
+    "SOCS3EqcOE": "log10",
+    "SOCS3Inh": "log10",
+    "SOCS3RNADelay": "log10",
+    "SOCS3RNATurn": "log10",
+    "SOCS3Turn": "log10",
+    "STAT5ActEpoR": "log10",
+    "STAT5ActJAK2": "log10",
+    "STAT5Exp": "log10",
+    "STAT5Imp": "log10",
+    "init_EpoRJAK2": "log10",
+    "init_SHP1": "log10",
+    "init_STAT5": "log10"
+   },
+   "selection": "estimated SBML parameters"
+  },
+  "petab": {
+   "condition_columns": {
+    "ActD": "parameter",
+    "CISoe": "parameter",
+    "Epo": "parameter",
+    "SOCS3oe": "parameter",
+    "init_CIS_multiplier": "parameter",
+    "init_EpoRJAK2_CIS": "parameter",
+    "init_SHP1_multiplier": "parameter",
+    "init_SOCS3_multiplier": "parameter"
+   },
+   "conditions": 36,
+   "estimated": 113,
+   "measurement_times": 128,
+   "measurements": 541,
+   "observables": 20,
+   "with_preequilibration": 0
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 20.93899480998516,
+    "importer": "amici.importers.petab.v1 (petab 0.10.0)",
+    "integrator": "CVODES BDF, forward sensitivities",
+    "load_seconds": 0.4068043939769268,
+    "not_differentiated": {},
+    "sensitivities": "on the PEtab parameter scale, put back on a linear one",
+    "version": "1.1.0"
+   },
+   "amici_adjoint": {
+    "llh": 418.4057264138747,
+    "shared_build": "amici"
+   },
+   "roadrunner": {
+    "integrator": "cvode",
+    "load_seconds": 0.12296373990830034,
+    "output": "SBML semantics (amount if hasOnlySubstanceUnits, else concentration)",
+    "version": "2.11.0"
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "amici": {
+     "seconds": [
+      1.271803631912917,
+      1.290400541969575,
+      1.301671413006261,
+      1.307144201011397,
+      1.2925770689034835,
+      1.3056036150082946,
+      1.2980414549820125,
+      1.2886572839925066,
+      1.2914160590153188,
+      1.3118605760391802,
+      1.294223329052329,
+      1.317642351030372,
+      1.304689139011316,
+      1.3032223109621555,
+      1.2889840960269794,
+      1.289947579964064,
+      1.2716632529627532,
+      1.3130623530596495,
+      1.3096310190157965,
+      1.3022163800196722
+     ]
+    },
+    "amici_adjoint": {
+     "seconds": [
+      2.171693030046299,
+      2.1685432359809056,
+      2.1818405740195885,
+      2.1844428069889545,
+      2.1821072719758376,
+      2.1911038330290467,
+      2.2109023279044777,
+      2.2717127819778398,
+      2.18964427895844,
+      2.19459377694875,
+      2.201618687948212,
+      2.1936672620940953,
+      2.1912375929532573,
+      2.1989545449614525,
+      2.207280847011134,
+      2.210624876897782,
+      2.2109342869371176,
+      2.1994459569687024,
+      2.1943371690576896,
+      2.201365804998204
+     ]
+    },
+    "bngsim": {
+     "seconds": [
+      1.2172838570550084,
+      1.2237754090456292,
+      1.2151823570020497,
+      1.2139660000102594,
+      1.2172506980132312,
+      1.2210464630043134,
+      1.242389302002266,
+      1.2397898570634425,
+      1.2359038660069928,
+      1.227003650041297,
+      1.2248385839629918,
+      1.2264334030915052,
+      1.223491796059534,
+      1.215813877992332,
+      1.2143551289336756,
+      1.3111518940422684,
+      1.2343175819842145,
+      1.2304189190035686,
+      1.234186838963069,
+      1.2269755150191486
+     ]
+    },
+    "bngsim_ode": {
+     "seconds": [
+      0.04860831599216908,
+      0.048615084029734135,
+      0.048614963074214756,
+      0.04854756104759872,
+      0.04862460901495069,
+      0.0487082899780944,
+      0.04850443499162793,
+      0.04879060899838805,
+      0.04906156403012574,
+      0.04846807895228267,
+      0.0486074760556221,
+      0.048658228013664484,
+      0.04856932500842959,
+      0.04881666100118309,
+      0.048761337995529175,
+      0.0486613349057734,
+      0.048557951929979026,
+      0.04861777799669653,
+      0.048542303033173084,
+      0.0488483770750463
+     ]
+    },
+    "bngsim_simultaneous": {
+     "seconds": [
+      1.390204171068035,
+      1.4015035529155284,
+      1.3798557838890702,
+      1.3803150680614635,
+      1.3812193039339036,
+      1.3754066820256412,
+      1.3770617940463126,
+      1.3909816420637071,
+      1.3932752640685067,
+      1.3818729430204257,
+      1.3838345920667052,
+      1.380739713087678,
+      1.3864682880230248,
+      1.3845953949494287,
+      1.377145237987861,
+      1.3987145490245894,
+      1.394709334941581,
+      1.3894643280655146,
+      1.4017542520305142,
+      1.399542891071178
+     ]
+    },
+    "roadrunner": {
+     "seconds": [
+      0.02772542100865394,
+      0.027769578038714826,
+      0.028110294952057302,
+      0.027883677976205945,
+      0.027734078001230955,
+      0.027696874924004078,
+      0.027327535906806588,
+      0.027676925994455814,
+      0.031365131959319115,
+      0.029672123957425356,
+      0.027801475021988153,
+      0.027763999067246914,
+      0.027780628064647317,
+      0.027337298030033708,
+      0.028439881978556514,
+      0.02773691900074482,
+      0.027748070075176656,
+      0.029316365020349622,
+      0.027746616979129612,
+      0.027701452956534922
+     ]
+    }
+   },
+   "order": "bngsim bngsim_simultaneous bngsim_ode roadrunner amici amici_adjoint",
+   "rounds": 20,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "amici": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "amici_adjoint": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 20,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim_ode": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim_simultaneous": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "roadrunner": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 19,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "species_in_amount": [],
+  "times": {
+   "amici": {
+    "ci_high": 1.3051463770098053,
+    "ci_low": 1.2909083004924469,
+    "confidence": 0.95,
+    "median_seconds": 1.2998564339941368,
+    "rounds": 20
+   },
+   "amici_adjoint": {
+    "ci_high": 2.201492246473208,
+    "ci_low": 2.1903740559937432,
+    "confidence": 0.95,
+    "median_seconds": 2.19446547300322,
+    "rounds": 20
+   },
+   "bngsim": {
+    "ci_high": 1.2323028789833188,
+    "ci_low": 1.219165160029661,
+    "confidence": 0.95,
+    "median_seconds": 1.2256359935272485,
+    "rounds": 20
+   },
+   "bngsim_ode": {
+    "ci_high": 0.0486848124419339,
+    "ci_low": 0.04858637441357132,
+    "confidence": 0.95,
+    "median_seconds": 0.04861643101321533,
+    "rounds": 20
+   },
+   "bngsim_simultaneous": {
+    "ci_high": 1.3921284530661069,
+    "ci_low": 1.3809795085107908,
+    "confidence": 0.95,
+    "median_seconds": 1.3855318414862268,
+    "rounds": 20
+   },
+   "roadrunner": {
+    "ci_high": 0.02784257649909705,
+    "ci_low": 0.027729749504942447,
+    "confidence": 0.95,
+    "median_seconds": 0.027756034571211785,
+    "rounds": 20
+   }
+  }
+ },
+ "not_applicable": {
+  "copasi": "COPASI is not wired for PEtab conditions on the SBML path"
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "jak2_stat5_dual_feedback_bachmann2011",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-25T00:20:18.457911+00:00",
+ "wall_seconds": 162.63571631896775
+}

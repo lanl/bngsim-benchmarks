@@ -1,0 +1,1766 @@
+{
+ "capability": "steady_state",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "09925d1c3708ea2e810991b29031a541fcb66ebb",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "steady_state/mutual_activation_switch_tyson2003/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+ "key": "22ec5dca2d696d26aaa86a205ad328ce9a193f4e4bf1d391fe36b2ad6999d6e0",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "steady_state/bngsim-vs-run_network-roadrunner-copasi-amici/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "n_steps": 20,
+     "parameters": {},
+     "rtol": 1e-08,
+     "scan": {
+      "log": false,
+      "max": 20,
+      "min": 0,
+      "points": 20,
+      "species": "S"
+     },
+     "t_end": 1000000.0
+    },
+    "reference_settings": {
+     "amici": {
+      "mode": "integrationOnly",
+      "output": "state (concentration)",
+      "steady_state_tolerance_factor": 1.0,
+      "steady_state_tolerances": "protocol rtol/atol",
+      "tolerances": "protocol rtol/atol"
+     },
+     "copasi": {
+      "method": "Enhanced Newton (COPASI's defaults)",
+      "output": "concentration",
+      "task": "Steady-State"
+     },
+     "roadrunner": {
+      "allow_presimulation": true,
+      "conserved_moiety_analysis": true,
+      "integrator": "cvode, protocol tolerances",
+      "output": "concentration",
+      "solver": "nleq2"
+     },
+     "run_network": {
+      "grid": "n_steps",
+      "horizon": "t_end",
+      "input": "network derived from the SBML (ode.derive_network)",
+      "method": "cvode (dense)"
+     }
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "bngsim": {
+      "atol": "protocol (float, per-species ceiling)",
+      "input": "sbml (Model.from_sbml)",
+      "mask": null,
+      "max_time": "t_end",
+      "method": "newton",
+      "output": "concentration",
+      "rtol": "protocol"
+     },
+     "codegen": "auto"
+    },
+    "source_sha256": "5d9680d4cf829783cff525f859b6a9da80b412db80402a73a26ab690fbb9a6db",
+    "verdict": {
+     "agreement": "species by species at every point, |a-b| <= rtol*max(|a|,|b|) + atol/1",
+     "atol_factor": 10.0,
+     "conservation_atol": "atol_factor * protocol atol, added to the law's tolerance",
+     "conservation_tol": 1e-06,
+     "law_coeff_floor": 1e-12,
+     "peak_floor": 1e-09,
+     "residual_floor": 1e-06,
+     "residual_floor_of": "max_j g_j at the state and at the point's initial state",
+     "residual_leaves_out": "species a rate rule moves",
+     "residual_tol": 0.0001,
+     "rtol": 0.0001,
+     "settled": 0.1
+    }
+   },
+   "id": "steady_state/mutual_activation_switch_tyson2003/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_seconds": 0.005705468007363379,
+   "cold_seconds": 0.12945225299336016,
+   "input": "sbml (Model.from_sbml)",
+   "load_seconds": 0.09175707108806819,
+   "mask": null,
+   "method": "newton",
+   "methods_used": [
+    "newton"
+   ],
+   "points": [
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 1,
+     "n_steps": 0,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 4,
+     "n_steps": 3,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 5,
+     "n_steps": 4,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 6,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 7,
+     "n_steps": 6,
+     "n_unstable_roots_rejected": 0,
+     "residual": 0.0,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 6,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 6,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.551115123125783e-17,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 8,
+     "n_steps": 6,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 8,
+     "n_steps": 6,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 8,
+     "n_steps": 6,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.551115123125783e-17,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 8,
+     "n_steps": 6,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 6,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.551115123125783e-17,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 6,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.551115123125783e-17,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 6,
+     "n_steps": 5,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "newton",
+     "n_rhs_evals": 8,
+     "n_steps": 6,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.1102230246251565e-16,
+     "rhs_backend": "exprtk",
+     "root_stability": "stable"
+    }
+   ],
+   "root_stability": [
+    "stable"
+   ]
+  },
+  "bngsim_integration": {
+   "config": {
+    "atol": "float (per-species ceiling)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.0063614570535719395,
+    "cold_seconds": 0.12879116600379348,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.08985845395363867,
+    "mask": null,
+    "method": "integration",
+    "methods_used": [
+     "integration"
+    ],
+    "points": [
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 4,
+      "n_steps": 1,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 202,
+      "n_steps": 158,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 248,
+      "n_steps": 202,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 199,
+      "n_steps": 175,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 222,
+      "n_steps": 186,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 214,
+      "n_steps": 186,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 242,
+      "n_steps": 197,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 211,
+      "n_steps": 182,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 224,
+      "n_steps": 191,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 260,
+      "n_steps": 211,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 458,
+      "n_steps": 370,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1102230246251565e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 406,
+      "n_steps": 329,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.551115123125783e-17,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 402,
+      "n_steps": 314,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.551115123125783e-17,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 410,
+      "n_steps": 306,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1102230246251565e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 378,
+      "n_steps": 292,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.551115123125783e-17,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 417,
+      "n_steps": 306,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1102230246251565e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 362,
+      "n_steps": 273,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.551115123125783e-17,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 388,
+      "n_steps": 289,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1102230246251565e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 386,
+      "n_steps": 304,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1102230246251565e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 364,
+      "n_steps": 290,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1102230246251565e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     }
+    ],
+    "root_stability": [
+     ""
+    ]
+   },
+   "engine_free": {
+    "conservation": {
+     "max": 0.0,
+     "n_laws": 3,
+     "passed": true,
+     "tol": 1e-06,
+     "worst_point": 19
+    },
+    "evaluated": true,
+    "passed": true,
+    "residual": {
+     "evaluated": true,
+     "max": 2.2533932707502885e-16,
+     "passed": true,
+     "tol": 0.0001,
+     "worst_point": 10,
+     "worst_species": "@comp1::R()"
+    }
+   },
+   "vs_bngsim": {
+    "max_ratio": 4.313931531150695e-12,
+    "max_rel": 4.3149904690792847e-16,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 12,
+    "worst_species": "R"
+   },
+   "vs_integration": {
+    "max_ratio": 3.4994990009309465e-09,
+    "max_rel": 3.4995339959209563e-13,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 1,
+    "worst_species": "S"
+   }
+  },
+  "conservation_laws": 3,
+  "derived_network": {
+   "bngsim_only": [
+    "2 assignment-rule species (e.g. 'E', 'Ep') are written $-fixed as __ar_<rule> beside the function or observable that carries their rule: bngsim reads the pair as the rule, but BNG2.pl holds each species' own column at its initial value (its rate laws read the rule, so only those columns differ there"
+   ],
+   "conversion_seconds": 0.15593637700658292,
+   "converter_notes": [
+    "BIOMD0000000311_url.xml: a model only bngsim reads back as written \u2014 2 assignment-rule species (e.g. 'E', 'Ep') are written $-fixed as __ar_<rule> beside the function or observable that carries their rule: bngsim reads the pair as the rule, but BNG2.pl holds each species' own column at its initial v"
+   ],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": null,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 1e-17,
+      "err": 0.0,
+      "err_over_peak": null,
+      "index": 0,
+      "peak": 0.0,
+      "score": 0.0,
+      "species": "R",
+      "t": 0.0
+     }
+    }
+   },
+   "netgen_seconds": 1.1353516979143023,
+   "network": {
+    "reactions": 3,
+    "species": 4
+   },
+   "phases": 1,
+   "seconds": 1.4007930730003864
+  },
+  "doses": {
+   "S": "species"
+  },
+  "engine_budget_seconds": 1800.0,
+  "integration_reference": "run_network",
+  "network": {
+   "reactions": 5,
+   "species": 4
+  },
+  "points": [
+   {
+    "S": 0.0
+   },
+   {
+    "S": 1.0526315789473684
+   },
+   {
+    "S": 2.1052631578947367
+   },
+   {
+    "S": 3.1578947368421053
+   },
+   {
+    "S": 4.2105263157894735
+   },
+   {
+    "S": 5.263157894736842
+   },
+   {
+    "S": 6.315789473684211
+   },
+   {
+    "S": 7.368421052631579
+   },
+   {
+    "S": 8.421052631578947
+   },
+   {
+    "S": 9.473684210526315
+   },
+   {
+    "S": 10.526315789473683
+   },
+   {
+    "S": 11.578947368421051
+   },
+   {
+    "S": 12.631578947368421
+   },
+   {
+    "S": 13.68421052631579
+   },
+   {
+    "S": 14.736842105263158
+   },
+   {
+    "S": 15.789473684210526
+   },
+   {
+    "S": 16.842105263157894
+   },
+   {
+    "S": 17.894736842105264
+   },
+   {
+    "S": 18.94736842105263
+   },
+   {
+    "S": 20.0
+   }
+  ],
+  "reference_checks": {
+   "amici": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 3,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 7.217220823148343e-09,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 1,
+      "worst_species": "@comp1::R()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 0.00020601971550933952,
+     "max_rel": 2.0617904279985026e-08,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 9,
+     "worst_species": "R"
+    }
+   },
+   "copasi": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 3,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 8.616863197604888e-12,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 10,
+      "worst_species": "@comp1::R()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 1.795063907635605e-07,
+     "max_rel": 1.7954474232697795e-11,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 10,
+     "worst_species": "R"
+    }
+   },
+   "roadrunner": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 3,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 2.8582506670455294e-12,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 3,
+      "worst_species": "@comp1::R()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 6.749359150416639e-08,
+     "max_rel": 6.755334654603996e-12,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 3,
+     "worst_species": "R"
+    }
+   },
+   "run_network": {
+    "engine_free": {
+     "conservation": {
+      "max": 3.497936037749298e-13,
+      "n_laws": 3,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 10
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 3.093246632392631e-13,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 1,
+      "worst_species": "@comp1::R()"
+     }
+    }
+   }
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 37.27583817997947,
+    "cold_seconds": 41.45734704204369,
+    "load_seconds": 0.0011376399779692292,
+    "mode": "integrationOnly (simulation to steady state)",
+    "output": "state (concentration)",
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 2.6858627860201523,
+    "load_seconds": 0.17602500994689763,
+    "method": {
+     "Iteration Limit": 50,
+     "Resolution": 1e-09,
+     "Target Criterion": "Distance and Rate",
+     "Use Back Integration": false,
+     "Use Integration": true,
+     "Use Newton": true,
+     "name": "Enhanced Newton"
+    },
+    "output": "concentration",
+    "task": "Steady-State",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 2.924217102001421,
+    "conserved_moiety_analysis": true,
+    "load_seconds": 0.5245237560011446,
+    "output": "concentration",
+    "settings": {
+     "allow_presimulation": true,
+     "maximum_iterations": 100,
+     "presimulation_times": [
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "relative_tolerance": 1e-12
+    },
+    "solver": "nleq2",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "cold_seconds": 0.4123472200008109,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-10",
+     "-r",
+     "1e-08",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<point>.net",
+     "<point>.net",
+     "50000.0",
+     "20"
+    ],
+    "input": "network derived from the SBML",
+    "method": "cvode (dense), integrated to t_end",
+    "settled": {
+     "max": 0.0,
+     "per_point": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tol": 0.1
+    }
+   }
+  },
+  "sbml": {
+   "compared_species": 2,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [
+     "Ep",
+     "E"
+    ],
+    "constant": []
+   },
+   "reactions": 5,
+   "species": 4
+  },
+  "states": {
+   "amici": {
+    "species": [
+     "R",
+     "S"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.011706907427491748,
+      1.0526315789473684
+     ],
+     [
+      0.023581751186957302,
+      2.1052631578947367
+     ],
+     [
+      0.035668564374629716,
+      3.1578947368421053
+     ],
+     [
+      0.048030583710566545,
+      4.2105263157894735
+     ],
+     [
+      0.06076352431736683,
+      5.263157894736842
+     ],
+     [
+      0.0740232065509613,
+      6.315789473684211
+     ],
+     [
+      0.08809235828972617,
+      7.368421052631579
+     ],
+     [
+      0.10358651828917755,
+      8.421052631578947
+     ],
+     [
+      0.12250040023779842,
+      9.473684210526315
+     ],
+     [
+      0.49268941533425087,
+      10.526315789473683
+     ],
+     [
+      0.5036544715529994,
+      11.578947368421051
+     ],
+     [
+      0.514588861354945,
+      12.631578947368421
+     ],
+     [
+      0.5254957976902562,
+      13.68421052631579
+     ],
+     [
+      0.53637803745495,
+      14.736842105263158
+     ],
+     [
+      0.5472379785383747,
+      15.789473684210526
+     ],
+     [
+      0.5580777078234778,
+      16.842105263157894
+     ],
+     [
+      0.5688990622541854,
+      17.894736842105264
+     ],
+     [
+      0.5797036307952412,
+      18.94736842105263
+     ],
+     [
+      0.5904928536369002,
+      20.0
+     ]
+    ]
+   },
+   "bngsim": {
+    "species": [
+     "R",
+     "S"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.011706907616676017,
+      1.0526315789473684
+     ],
+     [
+      0.023581751471719488,
+      2.1052631578947367
+     ],
+     [
+      0.035668564643045596,
+      3.1578947368421053
+     ],
+     [
+      0.04803058392848976,
+      4.2105263157894735
+     ],
+     [
+      0.0607635251273914,
+      5.263157894736842
+     ],
+     [
+      0.0740232073856569,
+      6.315789473684211
+     ],
+     [
+      0.08809235892687059,
+      7.368421052631579
+     ],
+     [
+      0.10358651951120043,
+      8.421052631578947
+     ],
+     [
+      0.1225004027635103,
+      9.473684210526315
+     ],
+     [
+      0.49268942045588765,
+      10.526315789473683
+     ],
+     [
+      0.5036544747978527,
+      11.578947368421051
+     ],
+     [
+      0.5145888652968689,
+      12.631578947368421
+     ],
+     [
+      0.5254957994883702,
+      13.68421052631579
+     ],
+     [
+      0.5363780403595481,
+      14.736842105263158
+     ],
+     [
+      0.547237982579005,
+      15.789473684210526
+     ],
+     [
+      0.5580777132550097,
+      16.842105263157894
+     ],
+     [
+      0.5688990608250336,
+      17.894736842105264
+     ],
+     [
+      0.5797036347385587,
+      18.94736842105263
+     ],
+     [
+      0.5904928579250925,
+      20.0
+     ]
+    ]
+   },
+   "bngsim_integration": {
+    "species": [
+     "R",
+     "S"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.011706907616676017,
+      1.0526315789473684
+     ],
+     [
+      0.023581751471719488,
+      2.1052631578947367
+     ],
+     [
+      0.035668564643045596,
+      3.1578947368421053
+     ],
+     [
+      0.04803058392848975,
+      4.2105263157894735
+     ],
+     [
+      0.0607635251273914,
+      5.263157894736842
+     ],
+     [
+      0.0740232073856569,
+      6.315789473684211
+     ],
+     [
+      0.08809235892687059,
+      7.368421052631579
+     ],
+     [
+      0.10358651951120042,
+      8.421052631578947
+     ],
+     [
+      0.1225004027635103,
+      9.473684210526315
+     ],
+     [
+      0.4926894204558875,
+      10.526315789473683
+     ],
+     [
+      0.5036544747978529,
+      11.578947368421051
+     ],
+     [
+      0.5145888652968686,
+      12.631578947368421
+     ],
+     [
+      0.5254957994883701,
+      13.68421052631579
+     ],
+     [
+      0.5363780403595481,
+      14.736842105263158
+     ],
+     [
+      0.547237982579005,
+      15.789473684210526
+     ],
+     [
+      0.5580777132550098,
+      16.842105263157894
+     ],
+     [
+      0.5688990608250338,
+      17.894736842105264
+     ],
+     [
+      0.5797036347385587,
+      18.94736842105263
+     ],
+     [
+      0.5904928579250923,
+      20.0
+     ]
+    ]
+   },
+   "copasi": {
+    "species": [
+     "R",
+     "S"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.011706907616676017,
+      1.0526315789473684
+     ],
+     [
+      0.023581751471719488,
+      2.1052631578947367
+     ],
+     [
+      0.0356685646430456,
+      3.1578947368421053
+     ],
+     [
+      0.04803058392848976,
+      4.2105263157894735
+     ],
+     [
+      0.06076352512739141,
+      5.263157894736842
+     ],
+     [
+      0.07402320738565692,
+      6.315789473684211
+     ],
+     [
+      0.08809235892687059,
+      7.368421052631579
+     ],
+     [
+      0.10358651951120043,
+      8.421052631578947
+     ],
+     [
+      0.12250040276351032,
+      9.473684210526315
+     ],
+     [
+      0.49268942046474595,
+      10.526315789473683
+     ],
+     [
+      0.5036544747978532,
+      11.578947368421051
+     ],
+     [
+      0.5145888652968689,
+      12.631578947368421
+     ],
+     [
+      0.52549579948837,
+      13.68421052631579
+     ],
+     [
+      0.5363780403595475,
+      14.736842105263158
+     ],
+     [
+      0.5472379825790049,
+      15.789473684210526
+     ],
+     [
+      0.5580777132550098,
+      16.842105263157894
+     ],
+     [
+      0.5688990608250336,
+      17.894736842105264
+     ],
+     [
+      0.5797036347385588,
+      18.94736842105263
+     ],
+     [
+      0.5904928579250927,
+      20.0
+     ]
+    ]
+   },
+   "roadrunner": {
+    "species": [
+     "R",
+     "S"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.011706907616676029,
+      1.0526315789473684
+     ],
+     [
+      0.02358175147171648,
+      2.1052631578947367
+     ],
+     [
+      0.03566856464280905,
+      3.1578947368421053
+     ],
+     [
+      0.04803058392848975,
+      4.2105263157894735
+     ],
+     [
+      0.0607635251273914,
+      5.263157894736842
+     ],
+     [
+      0.07402320738565694,
+      6.315789473684211
+     ],
+     [
+      0.08809235892686582,
+      7.368421052631579
+     ],
+     [
+      0.10358651951120042,
+      8.421052631578947
+     ],
+     [
+      0.12250040276350099,
+      9.473684210526315
+     ],
+     [
+      0.49268942045588776,
+      10.526315789473683
+     ],
+     [
+      0.5036544747978531,
+      11.578947368421051
+     ],
+     [
+      0.5145888652968752,
+      12.631578947368421
+     ],
+     [
+      0.5254957994883703,
+      13.68421052631579
+     ],
+     [
+      0.5363780403595485,
+      14.736842105263158
+     ],
+     [
+      0.5472379825790051,
+      15.789473684210526
+     ],
+     [
+      0.5580777132550094,
+      16.842105263157894
+     ],
+     [
+      0.5688990608250338,
+      17.894736842105264
+     ],
+     [
+      0.5797036347385586,
+      18.94736842105263
+     ],
+     [
+      0.5904928579250927,
+      20.0
+     ]
+    ]
+   },
+   "run_network": {
+    "species": [
+     "R",
+     "S"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.01170690761668,
+      1.052631578947
+     ],
+     [
+      0.02358175147172,
+      2.105263157895
+     ],
+     [
+      0.03566856464305,
+      3.157894736842
+     ],
+     [
+      0.04803058392849,
+      4.210526315789
+     ],
+     [
+      0.06076352512739,
+      5.263157894737
+     ],
+     [
+      0.07402320738566,
+      6.315789473684
+     ],
+     [
+      0.08809235892687,
+      7.368421052632
+     ],
+     [
+      0.1035865195112,
+      8.421052631579
+     ],
+     [
+      0.1225004027635,
+      9.473684210526
+     ],
+     [
+      0.4926894204559,
+      10.52631578947
+     ],
+     [
+      0.5036544747979,
+      11.57894736842
+     ],
+     [
+      0.5145888652969,
+      12.63157894737
+     ],
+     [
+      0.5254957994884,
+      13.68421052632
+     ],
+     [
+      0.5363780403595,
+      14.73684210526
+     ],
+     [
+      0.547237982579,
+      15.78947368421
+     ],
+     [
+      0.558077713255,
+      16.84210526316
+     ],
+     [
+      0.568899060825,
+      17.89473684211
+     ],
+     [
+      0.5797036347386,
+      18.94736842105
+     ],
+     [
+      0.5904928579251,
+      20.0
+     ]
+    ]
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 7,
+ "problem": "mutual_activation_switch_tyson2003",
+ "schema": 1,
+ "setting": "newton",
+ "started": "2026-11-24T20:38:40.342739+00:00",
+ "verdicts": {
+  "amici": {
+   "max_ratio": 0.0002060205565864134,
+   "max_rel": 2.06179884527379e-08,
+   "passed": true,
+   "per_point": [
+    0.0,
+    0.0001614553749868506,
+    0.00012064760814320387,
+    7.51862185429992e-05,
+    4.533202070879757e-05,
+    0.00013319233227846204,
+    0.00011266521189728124,
+    7.226641889368962e-05,
+    0.00011787540082128603,
+    0.0002060205565864134,
+    0.00010393043901749293,
+    6.441137193118129e-05,
+    7.658456644099401e-05,
+    3.420856789990326e-05,
+    5.413719385928882e-05,
+    7.381550432254771e-05,
+    9.729636368475316e-05,
+    2.5113460241652635e-05,
+    6.800076415936941e-05,
+    7.259597435837607e-05
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 9,
+   "worst_species": "R"
+  },
+  "copasi": {
+   "max_ratio": 1.797564639884327e-07,
+   "max_rel": 1.7979486898002672e-11,
+   "passed": true,
+   "per_point": [
+    0.0,
+    0.0,
+    0.0,
+    1.943659942524829e-12,
+    0.0,
+    1.1409622507737318e-12,
+    1.873190533142146e-12,
+    0.0,
+    0.0,
+    1.13200146861114e-12,
+    1.797564639884327e-07,
+    8.81531208461113e-12,
+    0.0,
+    4.22433059430685e-12,
+    1.0346416091909226e-11,
+    2.028190329216817e-12,
+    1.9887697493903805e-12,
+    0.0,
+    1.914530468632077e-12,
+    1.8795267451260546e-12
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 10,
+   "worst_species": "R"
+  },
+  "engine_free": {
+   "conservation": {
+    "max": 0.0,
+    "n_laws": 3,
+    "passed": true,
+    "per_point": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_point": 19
+   },
+   "evaluated": true,
+   "passed": true,
+   "residual": {
+    "evaluated": true,
+    "max": 2.2533932707502875e-16,
+    "passed": true,
+    "per_point": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     2.2533932707502875e-16,
+     1.1021673390976592e-16,
+     2.1574952345396428e-16,
+     2.1127153170512206e-16,
+     1.0349258741846936e-16,
+     2.0287755235719093e-16,
+     9.946849679319196e-17,
+     9.757645082196829e-17,
+     1.9151562248283252e-16,
+     1.8801633410543207e-16
+    ],
+    "tol": 0.0001,
+    "worst_point": 10,
+    "worst_species": "@comp1::R()"
+   }
+  },
+  "roadrunner": {
+   "max_ratio": 6.625936744067145e-08,
+   "max_rel": 6.631802976975628e-12,
+   "passed": true,
+   "per_point": [
+    0.0,
+    1.036324540153186e-11,
+    1.274429298391466e-09,
+    6.625936744067145e-08,
+    1.4434170462660157e-12,
+    0.0,
+    5.619571599426436e-12,
+    5.414736599269282e-10,
+    1.3386408876249238e-12,
+    7.59572985438075e-10,
+    2.2529119358261393e-12,
+    6.611484063458348e-12,
+    1.229470486377933e-10,
+    2.1121652971534247e-12,
+    8.277132873527372e-12,
+    2.0281903292168168e-12,
+    3.977539498780761e-12,
+    3.901830710870635e-12,
+    1.9145304686320775e-12,
+    1.8795267451260546e-12
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 3,
+   "worst_species": "R"
+  },
+  "run_network": {
+   "max_ratio": 3.4994990009309465e-09,
+   "max_rel": 3.4995339959209563e-13,
+   "passed": true,
+   "per_point": [
+    0.0,
+    3.4994990009309465e-09,
+    1.2508757730872766e-09,
+    1.2342240635031146e-09,
+    1.1243116139217567e-09,
+    3.0037893775319577e-10,
+    4.1772148889068116e-10,
+    5.713467756621627e-10,
+    6.32820795828377e-11,
+    8.410770911780771e-10,
+    3.49823335933929e-09,
+    9.388307370109979e-10,
+    1.2501726388696895e-09,
+    3.0764826381801058e-09,
+    2.14315309520545e-09,
+    3.330043654492458e-10,
+    1.2508757730872766e-09,
+    2.6464317516517912e-09,
+    1.3875181893718576e-09,
+    1.259282919234441e-10
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 1,
+   "worst_species": "S"
+  }
+ },
+ "wall_seconds": 51.10952078201808
+}

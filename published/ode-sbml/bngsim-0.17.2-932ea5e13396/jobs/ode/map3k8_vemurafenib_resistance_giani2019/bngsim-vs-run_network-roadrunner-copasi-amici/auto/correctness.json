@@ -1,0 +1,484 @@
+{
+ "capability": "ode",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "188aefaba9919447d32a7cdda952be101c247cbc",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "ode/map3k8_vemurafenib_resistance_giani2019/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness",
+ "key": "7df5d141b40ac6cbfca68444f8b3452d9faff0c70965b6e49a20c826bece61ac",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "ode/bngsim-vs-run_network-roadrunner-copasi-amici/5",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-09,
+     "n_steps": 1000,
+     "output_start": 0,
+     "rtol": 1e-06,
+     "t_end": 14400,
+     "t_start": 0
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "solver": "auto"
+    },
+    "source_sha256": "8e4ece4a7396d0ca55804c958fb16fae7edaf66198e12ed63449c984fc7ee4b3",
+    "verdict": 2
+   },
+   "id": "ode/map3k8_vemurafenib_resistance_giani2019/bngsim-vs-run_network-roadrunner-copasi-amici/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_cache_hit": null,
+   "codegen_seconds": 0.0,
+   "cold_seconds": 1.649409645004198,
+   "input": "sbml (Model.from_sbml)",
+   "jacobian": "analytical",
+   "jacobian_seconds": 1.2619387910235673,
+   "linear_solver": "KLU",
+   "load_seconds": 0.29317734902724624
+  },
+  "derived_network": {
+   "bngsim_only": [],
+   "conversion_seconds": 0.3471870219800621,
+   "converter_notes": [],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 4.443613741213517e-10,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 0.026956939195632856,
+      "err": 1.197862253832227e-09,
+      "err_over_peak": 4.443613739449641e-10,
+      "index": 8,
+      "peak": 2.6956939195632854,
+      "score": 4.4436137394496406e-08,
+      "species": "species_8",
+      "t": 144.0
+     }
+    }
+   },
+   "netgen_seconds": 1.730272357002832,
+   "network": {
+    "reactions": 138,
+    "species": 75
+   },
+   "phases": 1,
+   "seconds": 4.2019346239976585
+  },
+  "engine_budget_seconds": 1800.0,
+  "network": {
+   "reactions": 85,
+   "species": 75
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 46.43846733495593,
+    "cold_seconds": 48.24208360305056,
+    "integrator": "CVODES BDF",
+    "load_seconds": 0.004223949043080211,
+    "output": "amount",
+    "sensitivities": "none",
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 4.84635474497918,
+    "load_seconds": 0.577746098046191,
+    "method": "deterministic (LSODA)",
+    "output": "amount",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 0.7606538359541446,
+    "integrator": "cvode",
+    "load_seconds": 0.6759540060302243,
+    "output": "concentration",
+    "reset": "resetAll",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "boundary_times": [],
+    "cold_seconds": 0.4382768200011924,
+    "commands": [
+     [
+      "-o",
+      "$TMPDIR/bench-job-e2sboeix/run_network_p0",
+      "-p",
+      "cvode",
+      "-a",
+      "1e-09",
+      "-r",
+      "1e-06",
+      "--cdat",
+      "1",
+      "--fdat",
+      "0",
+      "-g",
+      "$TMPDIR/bench-job-e2sboeix/derived/netgen/model.net",
+      "$TMPDIR/bench-job-e2sboeix/derived/netgen/model.net",
+      "14.4",
+      "1000"
+     ]
+    ],
+    "input": "network derived from the SBML",
+    "phases": 1,
+    "solver": "dense"
+   }
+  },
+  "sbml": {
+   "compared_species": 63,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [],
+    "constant": [
+     "species_25",
+     "species_30",
+     "PTENActive",
+     "HSP90_Cdc37Active",
+     "PHLPPActive",
+     "TCL1Active",
+     "CTMPActive",
+     "FGF",
+     "proFGFR",
+     "TNF",
+     "proTNFR1",
+     "proTNFR2"
+    ]
+   },
+   "reactions": 85,
+   "species": 75
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 6,
+ "problem": "map3k8_vemurafenib_resistance_giani2019",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:13:17+00:00",
+   "from_key": "5e6025aba15387c24bf6021bb5abd8b10700237d9dba6a982749f5e399831f5a",
+   "from_outcome": "PASS",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": 2
+  }
+ ],
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T19:44:07.435082+00:00",
+ "trajectories": {
+  "arrays": [
+   "amici",
+   "bngsim",
+   "copasi",
+   "roadrunner",
+   "run_network",
+   "species",
+   "time"
+  ],
+  "bytes": 1102139,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 13265983 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "8925d577aa8f51fe1209d5080510df94f9fbeb4953bc40e5ef102633d1638e26"
+ },
+ "verdicts": {
+  "amici": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.955279092432391e-05,
+   "max_err_over_peak": 1.9552790923994465e-05,
+   "max_rel": 0.0,
+   "n_cells": 63063,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     1001,
+     63
+    ],
+    "reference": [
+     1001,
+     63
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 63,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.026956935699155343,
+     "err": 5.2708332767714694e-05,
+     "err_over_peak": 1.9552790923994465e-05,
+     "index": 8,
+     "peak": 2.695693569915534,
+     "score": 0.0019552790923994465,
+     "species": "species_8",
+     "t": 158.4
+    }
+   },
+   "vendored_passed": true
+  },
+  "copasi": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.1642413248991192e-05,
+   "max_err_over_peak": 1.1642413248991192e-05,
+   "max_rel": 0.0,
+   "n_cells": 63063,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     1001,
+     63
+    ],
+    "reference": [
+     1001,
+     63
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 63,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.02695697158030549,
+     "err": 3.138442030792277e-05,
+     "err_over_peak": 1.1642413248991192e-05,
+     "index": 8,
+     "peak": 2.695697158030549,
+     "score": 0.0011642413248991192,
+     "species": "species_8",
+     "t": 172.8
+    }
+   },
+   "vendored_passed": true
+  },
+  "roadrunner": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.4082534910996736e-05,
+   "max_err_over_peak": 1.4082534908360995e-05,
+   "max_rel": 0.0,
+   "n_cells": 63063,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     1001,
+     63
+    ],
+    "reference": [
+     1001,
+     63
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 63,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.026956946482706395,
+     "err": 3.7962213986553195e-05,
+     "err_over_peak": 1.4082534908360995e-05,
+     "index": 8,
+     "peak": 2.6956946482706394,
+     "score": 0.0014082534908360996,
+     "species": "species_8",
+     "t": 158.4
+    }
+   },
+   "vendored_passed": true
+  },
+  "run_network": {
+   "budget_forgiven": 0,
+   "max_abs": 0.0,
+   "max_err_over_movement": 1.8108214946026083e-05,
+   "max_err_over_peak": 1.8108214946026083e-05,
+   "max_rel": 0.0,
+   "n_cells": 63063,
+   "n_fail": 0,
+   "n_hard_fail": 0,
+   "n_soft_fail": 0,
+   "no_signal": false,
+   "passed": true,
+   "shapes": {
+    "bngsim": [
+     1001,
+     63
+    ],
+    "reference": [
+     1001,
+     63
+    ]
+   },
+   "species_check": {
+    "atol": 1e-09,
+    "atol_factor": 10.0,
+    "failing": [],
+    "floor": 1e-08,
+    "n_at_floor": 0,
+    "n_fail": 0,
+    "n_species": 63,
+    "passed": true,
+    "tol": 0.01,
+    "worst": {
+     "allowed": 0.02695694004481,
+     "err": 4.881420646185575e-05,
+     "err_over_peak": 1.8108214946026083e-05,
+     "index": 8,
+     "peak": 2.695694004481,
+     "score": 0.0018108214946026082,
+     "species": "species_8",
+     "t": 172.8
+    }
+   },
+   "vendored_passed": true
+  }
+ },
+ "wall_seconds": 62.137292854022235
+}

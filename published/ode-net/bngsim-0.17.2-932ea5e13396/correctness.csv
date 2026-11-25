@@ -1,0 +1,41 @@
+suite,position,problem,species,reactions,outcome,agreement,engine,status,passed,failed_check,max_err_over_peak,max_rel,n_cells,cold_seconds,error
+ode-net,1,noise_resistant_circadian_oscillator_vilar2002,9,16,REFERENCE_FAILED,PARTIAL 3/4 (amici: crash),amici,crash,,,,,,,RuntimeError: AMICI simulation failed with status -1
+ode-net,1,noise_resistant_circadian_oscillator_vilar2002,9,16,REFERENCE_FAILED,PARTIAL 3/4 (amici: crash),copasi,ok,True,,4.0174679240895393e-07,0.0,36009,6.856729228980839,
+ode-net,1,noise_resistant_circadian_oscillator_vilar2002,9,16,REFERENCE_FAILED,PARTIAL 3/4 (amici: crash),roadrunner,ok,True,,6.249132580923077e-08,0.0,36009,1.1783232010202482,
+ode-net,1,noise_resistant_circadian_oscillator_vilar2002,9,16,REFERENCE_FAILED,PARTIAL 3/4 (amici: crash),run_network,ok,True,,1.045410933958097e-07,0.0,36009,0.25925787701271474,
+ode-net,2,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 4/4,amici,ok,True,,2.191520899242381e-09,0.0,22237,41.646594161051326,
+ode-net,2,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 4/4,copasi,ok,True,,2.5428790015960887e-09,0.0,22237,6.544478449970484,
+ode-net,2,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 4/4,roadrunner,ok,True,,8.10028093719837e-10,0.0,22237,1.4243087529903278,
+ode-net,2,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 4/4,run_network,ok,True,,7.901668174452294e-10,0.0,22237,0.2578371720155701,
+ode-net,3,cell_cycle_oscillator_lang2024,73,332,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, copasi: crash)",amici,crash,,,,,,,RuntimeError: AMICI simulation failed with status -1
+ode-net,3,cell_cycle_oscillator_lang2024,73,332,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, copasi: crash)",copasi,crash,,,,,,,"KeyError: ""['cell__CCND'] not in index"""
+ode-net,3,cell_cycle_oscillator_lang2024,73,332,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, copasi: crash)",roadrunner,ok,True,,1.0,0.0,87673,1.7479978170013055,
+ode-net,3,cell_cycle_oscillator_lang2024,73,332,REFERENCE_FAILED,"PARTIAL 2/4 (amici: crash, copasi: crash)",run_network,ok,True,,1.0,0.0,87673,0.7140766920056194,
+ode-net,4,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 4/4,amici,ok,True,,3.452825419801079e-07,0.0,42585,44.48672764701769,
+ode-net,4,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 4/4,copasi,ok,True,,1.0213035145989255e-05,0.0,42585,6.243998460005969,
+ode-net,4,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 4/4,roadrunner,ok,True,,5.292691538474608e-08,0.0,42585,2.657394437934272,
+ode-net,4,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 4/4,run_network,ok,True,,7.676413743726419e-10,0.0,42585,0.16242863808292896,
+ode-net,5,shp2_regulation_and_function_barua2007,149,1032,PASS,FULL 4/4,amici,ok,True,,4.039202588374584e-05,0.0,29949,72.46641432098113,
+ode-net,5,shp2_regulation_and_function_barua2007,149,1032,PASS,FULL 4/4,copasi,ok,True,,0.009300128081537774,0.0,29949,4.522757729981095,
+ode-net,5,shp2_regulation_and_function_barua2007,149,1032,PASS,FULL 4/4,roadrunner,ok,True,,2.6649166941722963e-05,0.0,29949,4.140419611008838,
+ode-net,5,shp2_regulation_and_function_barua2007,149,1032,PASS,FULL 4/4,run_network,ok,True,,3.181632211036408e-05,0.0,29949,0.2144879539264366,
+ode-net,6,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 4/4,amici,ok,True,,1.1481556253867655e-08,0.0,213956,332.315157643985,
+ode-net,6,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 4/4,copasi,ok,True,,4.151215561835238e-09,0.0,213956,17.53526208398398,
+ode-net,6,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 4/4,roadrunner,ok,True,,2.0819761877151503e-10,0.0,213956,26.900672734947875,
+ode-net,6,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 4/4,run_network,ok,True,,4.821092090544263e-13,0.0,213956,2.826225592987612,
+ode-net,7,beta_catenin_destruction_complex_barua2013,409,2737,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),amici,ok,True,,1.3361949633644588e-07,0.0,409409,265.6925426980015,
+ode-net,7,beta_catenin_destruction_complex_barua2013,409,2737,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),copasi,crash,,,,,,,"KeyError: ""['I'] not in index"""
+ode-net,7,beta_catenin_destruction_complex_barua2013,409,2737,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),roadrunner,ok,True,,4.011345732799929e-08,0.0,409409,16.71257902495563,
+ode-net,7,beta_catenin_destruction_complex_barua2013,409,2737,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),run_network,ok,True,,4.049476345045554e-08,0.0,409409,2.249114240054041,
+ode-net,8,endothelial_vegfr2_and_cd47_signaling_zhang2023,870,5602,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),amici,ok,True,,3.60595673957982e-05,0.0,314070,2493.6461290880106,
+ode-net,8,endothelial_vegfr2_and_cd47_signaling_zhang2023,870,5602,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),copasi,crash,,,,,,,"KeyError: ""['PTEN_PIP3docking', 'mTOR_aktbd', 'RasGDP_rafbd', 'I'] not in index"""
+ode-net,8,endothelial_vegfr2_and_cd47_signaling_zhang2023,870,5602,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),roadrunner,ok,True,,1.0,0.0,314070,68.39597538195085,
+ode-net,8,endothelial_vegfr2_and_cd47_signaling_zhang2023,870,5602,REFERENCE_FAILED,PARTIAL 3/4 (copasi: crash),run_network,ok,True,,1.0,0.0,314070,29.859695269027725,
+ode-net,9,mapk_adaptive_resistance_frohlich2023,1612,17516,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",amici,timeout,,,,,,,TIMEOUT: no result within the 3600 s per-engine budget (stopped in: SBML import + C++ compile)
+ode-net,9,mapk_adaptive_resistance_frohlich2023,1612,17516,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",copasi,crash,,,,,,,"KeyError: ""['CP__RAFi_raf', 'CP__EGF_rtk'] not in index"""
+ode-net,9,mapk_adaptive_resistance_frohlich2023,1612,17516,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",roadrunner,ok,True,,0.00016953833990232108,0.0,324012,489.38063160399906,
+ode-net,9,mapk_adaptive_resistance_frohlich2023,1612,17516,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",run_network,ok,True,,0.0005194872604483478,0.0,324012,160.96818236005493,
+ode-net,10,ksr1_raf_mek_inhibitor_response_imoto2026,2709,27457,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",amici,timeout,,,,,,,TIMEOUT: no result within the 3600 s per-engine budget (stopped in: SBML import + C++ compile)
+ode-net,10,ksr1_raf_mek_inhibitor_response_imoto2026,2709,27457,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",copasi,crash,,,,,,,"KeyError: ""['cell__RAFi1_raf', 'cell__RAFi2_raf', 'cell__Cobimetinib_mek'] not in index"""
+ode-net,10,ksr1_raf_mek_inhibitor_response_imoto2026,2709,27457,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",roadrunner,ok,True,,1.0,0.0,544509,891.9056295050541,
+ode-net,10,ksr1_raf_mek_inhibitor_response_imoto2026,2709,27457,REFERENCE_FAILED,"PARTIAL 2/4 (amici: timeout, copasi: crash)",run_network,ok,True,,1.0,0.0,544509,410.8071811819682,

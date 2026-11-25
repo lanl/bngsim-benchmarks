@@ -1,0 +1,75 @@
+suite,position,problem,species,reactions,outcome,agreement,engine,status,passed,failed_check,max_err_over_peak,max_rel,n_cells,cold_seconds,error
+psa-net,1,bursty_autoregulated_gene_expression_lin2016,2,4,REFERENCE_FAILED,"PARTIAL 2/7 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",exact@nc=1000,ok,True,,,,402,,
+psa-net,1,bursty_autoregulated_gene_expression_lin2016,2,4,REFERENCE_FAILED,"PARTIAL 2/7 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network,ok,True,,,,402,,
+psa-net,1,bursty_autoregulated_gene_expression_lin2016,2,4,REFERENCE_FAILED,"PARTIAL 2/7 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=10,crash,,,,,,,RuntimeError: run_network failed at seed 30000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1
+psa-net,1,bursty_autoregulated_gene_expression_lin2016,2,4,REFERENCE_FAILED,"PARTIAL 2/7 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=100,crash,,,,,,,RuntimeError: run_network failed at seed 70000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1
+psa-net,1,bursty_autoregulated_gene_expression_lin2016,2,4,REFERENCE_FAILED,"PARTIAL 2/7 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=1000,crash,,,,,,,RuntimeError: run_network failed at seed 110000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1
+psa-net,1,bursty_autoregulated_gene_expression_lin2016,2,4,REFERENCE_FAILED,"PARTIAL 2/7 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=30,crash,,,,,,,RuntimeError: run_network failed at seed 50000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1
+psa-net,1,bursty_autoregulated_gene_expression_lin2016,2,4,REFERENCE_FAILED,"PARTIAL 2/7 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=300,crash,,,,,,,RuntimeError: run_network failed at seed 90000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,exact@nc=100,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,exact@nc=1000,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,exact@nc=30,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,exact@nc=300,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,run_network,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,run_network@nc=10,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,run_network@nc=100,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,run_network@nc=1000,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,run_network@nc=30,ok,True,,,,1407,,
+psa-net,2,noise_induced_bistable_futile_cycle_samoilov2005_unordered_pair,7,10,PASS,FULL 10/10,run_network@nc=300,ok,True,,,,1407,,
+psa-net,3,noise_resistant_circadian_oscillator_vilar2002,9,16,PASS,FULL 6/6,run_network,ok,True,,,,7209,,
+psa-net,3,noise_resistant_circadian_oscillator_vilar2002,9,16,PASS,FULL 6/6,run_network@nc=10,ok,True,,,,7209,,
+psa-net,3,noise_resistant_circadian_oscillator_vilar2002,9,16,PASS,FULL 6/6,run_network@nc=100,ok,True,,,,7209,,
+psa-net,3,noise_resistant_circadian_oscillator_vilar2002,9,16,PASS,FULL 6/6,run_network@nc=1000,ok,True,,,,7209,,
+psa-net,3,noise_resistant_circadian_oscillator_vilar2002,9,16,PASS,FULL 6/6,run_network@nc=30,ok,True,,,,7209,,
+psa-net,3,noise_resistant_circadian_oscillator_vilar2002,9,16,PASS,FULL 6/6,run_network@nc=300,ok,True,,,,7209,,
+psa-net,4,mapk_relaxation_oscillations_kochanczyk2017,34,65,PASS,FULL 6/6,run_network,ok,True,,,,2074,,
+psa-net,4,mapk_relaxation_oscillations_kochanczyk2017,34,65,PASS,FULL 6/6,run_network@nc=10,ok,True,,,,2074,,
+psa-net,4,mapk_relaxation_oscillations_kochanczyk2017,34,65,PASS,FULL 6/6,run_network@nc=100,ok,True,,,,2074,,
+psa-net,4,mapk_relaxation_oscillations_kochanczyk2017,34,65,PASS,FULL 6/6,run_network@nc=1000,ok,True,,,,2074,,
+psa-net,4,mapk_relaxation_oscillations_kochanczyk2017,34,65,PASS,FULL 6/6,run_network@nc=30,ok,True,,,,2074,,
+psa-net,4,mapk_relaxation_oscillations_kochanczyk2017,34,65,PASS,FULL 6/6,run_network@nc=300,ok,True,,,,2074,,
+psa-net,5,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 6/6,run_network,ok,True,,,,2257,,
+psa-net,5,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 6/6,run_network@nc=10,ok,True,,,,2257,,
+psa-net,5,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 6/6,run_network@nc=100,ok,True,,,,2257,,
+psa-net,5,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 6/6,run_network@nc=1000,ok,True,,,,2257,,
+psa-net,5,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 6/6,run_network@nc=30,ok,True,,,,2257,,
+psa-net,5,tcr_signaling_bistability_lipniacki2008,37,97,PASS,FULL 6/6,run_network@nc=300,ok,True,,,,2257,,
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",exact@nc=100,ok,True,,,,3965,,
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",exact@nc=1000,ok,True,,,,3965,,
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",exact@nc=30,ok,True,,,,3965,,
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",exact@nc=300,ok,True,,,,3965,,
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network,crash,,,,,,,"RuntimeError: run_network failed at seed 10000001 (killed by signal 11): edgepop: CD3z(A1~P,A2~P,B1~P,B2~P,C1~P,C2~P)"
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=10,crash,,,,,,,"RuntimeError: run_network failed at seed 30000001 (killed by signal 11): edgepop: CD3z(A1~P,A2~P,B1~P,B2~P,C1~P,C2~P)"
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=100,crash,,,,,,,"RuntimeError: run_network failed at seed 70000001 (killed by signal 11): edgepop: CD3z(A1~P,A2~P,B1~P,B2~P,C1~P,C2~P)"
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=1000,crash,,,,,,,"RuntimeError: run_network failed at seed 110000001 (killed by signal 11): edgepop: CD3z(A1~P,A2~P,B1~P,B2~P,C1~P,C2~P)"
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=30,crash,,,,,,,"RuntimeError: run_network failed at seed 50000001 (killed by signal 11): edgepop: CD3z(A1~P,A2~P,B1~P,B2~P,C1~P,C2~P)"
+psa-net,6,car_cd3zeta_phosphorylation_rohrs2018,65,192,REFERENCE_FAILED,"PARTIAL 4/10 (run_network: crash, run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=300,crash,,,,,,,"RuntimeError: run_network failed at seed 90000001 (killed by signal 11): edgepop: CD3z(A1~P,A2~P,B1~P,B2~P,C1~P,C2~P)"
+psa-net,7,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 6/6,run_network,ok,True,,,,4335,,
+psa-net,7,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 6/6,run_network@nc=10,ok,True,,,,4335,,
+psa-net,7,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 6/6,run_network@nc=100,ok,True,,,,4335,,
+psa-net,7,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 6/6,run_network@nc=1000,ok,True,,,,4335,,
+psa-net,7,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 6/6,run_network@nc=30,ok,True,,,,4335,,
+psa-net,7,scaffolded_mapk_cascade_kocieniewski2012,85,487,PASS,FULL 6/6,run_network@nc=300,ok,True,,,,4335,,
+psa-net,8,prion_nucleated_polymerization_rubenstein2007_benchmark,121,3843,REFERENCE_FAILED,"PARTIAL 1/6 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network,ok,True,,,,12221,,
+psa-net,8,prion_nucleated_polymerization_rubenstein2007_benchmark,121,3843,REFERENCE_FAILED,"PARTIAL 1/6 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=10,crash,,,,,,,RuntimeError: run_network failed at seed 30000001 (killed by signal 11): Found species with index 0 at line 3925: assuming this is the null species.
+psa-net,8,prion_nucleated_polymerization_rubenstein2007_benchmark,121,3843,REFERENCE_FAILED,"PARTIAL 1/6 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=100,crash,,,,,,,RuntimeError: run_network failed at seed 70000001 (killed by signal 11): Found species with index 0 at line 3925: assuming this is the null species.
+psa-net,8,prion_nucleated_polymerization_rubenstein2007_benchmark,121,3843,REFERENCE_FAILED,"PARTIAL 1/6 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=1000,crash,,,,,,,RuntimeError: run_network failed at seed 110000001 (killed by signal 11): Found species with index 0 at line 3925: assuming this is the null species.
+psa-net,8,prion_nucleated_polymerization_rubenstein2007_benchmark,121,3843,REFERENCE_FAILED,"PARTIAL 1/6 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=30,crash,,,,,,,RuntimeError: run_network failed at seed 50000001 (killed by signal 11): Found species with index 0 at line 3925: assuming this is the null species.
+psa-net,8,prion_nucleated_polymerization_rubenstein2007_benchmark,121,3843,REFERENCE_FAILED,"PARTIAL 1/6 (run_network@nc=10: crash, run_network@nc=100: crash, run_network@nc=1000: crash, run_network@nc=30: crash, run_network@nc=300: crash)",run_network@nc=300,crash,,,,,,,RuntimeError: run_network failed at seed 90000001 (killed by signal 11): Found species with index 0 at line 3925: assuming this is the null species.
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,exact@nc=10,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,exact@nc=100,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,exact@nc=1000,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,exact@nc=30,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,exact@nc=300,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,run_network,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,run_network@nc=10,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,run_network@nc=100,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,run_network@nc=1000,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,run_network@nc=30,ok,True,,,,21594,,
+psa-net,9,early_fceri_signaling_faeder2003,354,3680,PASS,FULL 11/11,run_network@nc=300,ok,True,,,,21594,,
+psa-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 6/6,run_network,ok,True,,,,7476,,
+psa-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 6/6,run_network@nc=10,ok,True,,,,7476,,
+psa-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 6/6,run_network@nc=100,ok,True,,,,7476,,
+psa-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 6/6,run_network@nc=1000,ok,True,,,,7476,,
+psa-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 6/6,run_network@nc=30,ok,True,,,,7476,,
+psa-net,10,combinatorial_egfr_signaling_blinov2006,356,3749,PASS,FULL 6/6,run_network@nc=300,ok,True,,,,7476,,

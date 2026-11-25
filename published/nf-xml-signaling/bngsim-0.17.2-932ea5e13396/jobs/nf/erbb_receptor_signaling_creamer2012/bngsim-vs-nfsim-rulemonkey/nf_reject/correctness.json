@@ -1,0 +1,692 @@
+{
+ "capability": "nf",
+ "engines": "bngsim-vs-nfsim-rulemonkey",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "8c67b8f96cc42dc37e46e70f26343de956d193d6",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness",
+ "key": "7fda685f44156fdd599c89a35ed5626b27915aff6b90e715cbc9f7c3f4899761",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "nf/bngsim-vs-nfsim-rulemonkey/2",
+    "protocol": {
+     "actions": "setParameter(\"f\",0.001)\nsimulate({suffix=>\"equil\",method=>\"nf\",t_start=>0,t_end=>500,n_steps=>5,gml=>2147483647,get_final_state=>1})\nsetParameter(\"lig\",1)\nsimulate({suffix=>\"erbb\",method=>\"nf\",t_start=>0,t_end=>10800,n_steps=>180,gml=>2147483647,get_final_state=>0})\n",
+     "replicates": 100,
+     "seed": 1,
+     "timing_replicates": 1
+    },
+    "reference_versions": {
+     "rulemonkey": {
+      "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+      "version": "3.13.0"
+     }
+    },
+    "setting": {
+     "method": "nf_reject",
+     "session": "NfsimSession"
+    },
+    "source_sha256": "6672c0a8a2d75bc08697ee4c2c7ed7c58aab68ca0e98d6fe75e7b0211a452983",
+    "verdict": {
+     "alpha": 0.001,
+     "analytic": "Bonferroni z on means and log-variances/1",
+     "independent_reference_rule": 1,
+     "outcome_rule": 2,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "nf/erbb_receptor_signaling_creamer2012/bngsim-vs-nfsim-rulemonkey/nf_reject/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "cold_seconds": 1563.2483030330623,
+   "ensemble_seconds": 1561.9437912639696,
+   "first_seed": 1,
+   "initialize_seconds": 23.648570378078148,
+   "load_seconds": 1.3040031649870798,
+   "method": "nf_reject",
+   "options": {
+    "block_same_complex_binding": true,
+    "molecule_limit": 2147483647
+   },
+   "session": "NfsimSession",
+   "simulate_seconds": 1537.2163549300749
+  },
+  "cross_setting": {
+   "error": "ParameterError: Failed to set RuleMonkey parameter 'lig': Cannot set_param during active session",
+   "setting": "nf_exact"
+  },
+  "engine_budget_seconds": 3600.0,
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "AKT_S473": 19.3,
+     "AKT_T308": 2.02,
+     "EGFREGFR": 13.74,
+     "EGFREGFREn": 32.92,
+     "EGFRErbB2": 0.27,
+     "EGFRErbB2En": 0.04,
+     "EGFRErbB3": 3.93,
+     "EGFRErbB3En": 0.52,
+     "EGFRErbB4": 5.16,
+     "EGFRErbB4En": 4.04,
+     "EGFR_1068": 0.0,
+     "EGFR_1086": 0.0,
+     "EGFR_1114": 0.0,
+     "EGFR_1148": 0.0,
+     "EGFR_1173": 0.0,
+     "EGFR_669": 0.0,
+     "EGFR_992": 0.0,
+     "ERK_T185": 0.0,
+     "ErbB2ErbB2": 0.0,
+     "ErbB2ErbB2En": 0.0,
+     "ErbB2ErbB3": 0.43,
+     "ErbB2ErbB3En": 0.05,
+     "ErbB2ErbB4": 0.0,
+     "ErbB2ErbB4En": 0.0,
+     "ErbB2_1139": 0.0,
+     "ErbB2_1196": 0.0,
+     "ErbB2_1222": 0.0,
+     "ErbB2_1248": 0.0,
+     "ErbB3ErbB3": 5.72,
+     "ErbB3ErbB3En": 5.62,
+     "ErbB3ErbB4": 0.4,
+     "ErbB3ErbB4En": 0.02,
+     "ErbB3_1054": 0.0,
+     "ErbB3_1197": 0.0,
+     "ErbB3_1222": 0.0,
+     "ErbB3_1260": 0.0,
+     "ErbB3_1276": 0.0,
+     "ErbB3_1289": 0.0,
+     "ErbB3_1328": 0.0,
+     "ErbB4ErbB4": 0.02,
+     "ErbB4ErbB4En": 0.3,
+     "ErbB4_1056": 0.0,
+     "ErbB4_1188": 0.0,
+     "ErbB4_1242": 0.0,
+     "Gab1_312": 0.0,
+     "Gab1_381": 0.0,
+     "Gab1_447": 0.0,
+     "Gab1_454": 0.0,
+     "Gab1_472": 0.0,
+     "Gab1_476": 0.0,
+     "Gab1_581": 0.0,
+     "Gab1_597": 0.0,
+     "Gab1_619": 0.0,
+     "Gab1_657": 0.0,
+     "MEK1_218": 0.0,
+     "MEK1_222": 0.0,
+     "MEK1_292": 0.0,
+     "Raf1_259": 0.22,
+     "Raf1_289": 0.0,
+     "Raf1_29": 0.0,
+     "Raf1_296": 0.0,
+     "Raf1_301": 0.0,
+     "Raf1_338": 0.0,
+     "Raf1_341": 0.0,
+     "Raf1_43": 0.0,
+     "Raf1_471": 0.0,
+     "Raf1_491": 0.0,
+     "Raf1_494": 0.0,
+     "Raf1_642": 0.0,
+     "Sos1_1132": 0.0,
+     "Sos1_1167": 0.0,
+     "Sos1_1178": 0.0,
+     "Sos1_1193": 0.0,
+     "pERK_Y187": 0.0,
+     "pSHC": 0.0
+    },
+    "final_variance": {
+     "AKT_S473": 103.70707070707074,
+     "AKT_T308": 2.646060606060608,
+     "EGFREGFR": 33.02262626262623,
+     "EGFREGFREn": 52.47838383838383,
+     "EGFRErbB2": 0.25969696969697,
+     "EGFRErbB2En": 0.03878787878787873,
+     "EGFRErbB3": 4.106161616161615,
+     "EGFRErbB3En": 0.6157575757575765,
+     "EGFRErbB4": 3.974141414141414,
+     "EGFRErbB4En": 3.9579797979798,
+     "EGFR_1068": 0.0,
+     "EGFR_1086": 0.0,
+     "EGFR_1114": 0.0,
+     "EGFR_1148": 0.0,
+     "EGFR_1173": 0.0,
+     "EGFR_669": 0.0,
+     "EGFR_992": 0.0,
+     "ERK_T185": 0.0,
+     "ErbB2ErbB2": 0.0,
+     "ErbB2ErbB2En": 0.0,
+     "ErbB2ErbB3": 0.5304040404040398,
+     "ErbB2ErbB3En": 0.04797979797979808,
+     "ErbB2ErbB4": 0.0,
+     "ErbB2ErbB4En": 0.0,
+     "ErbB2_1139": 0.0,
+     "ErbB2_1196": 0.0,
+     "ErbB2_1222": 0.0,
+     "ErbB2_1248": 0.0,
+     "ErbB3ErbB3": 11.23393939393939,
+     "ErbB3ErbB3En": 8.379393939393946,
+     "ErbB3ErbB4": 0.4242424242424238,
+     "ErbB3ErbB4En": 0.01979797979797977,
+     "ErbB3_1054": 0.0,
+     "ErbB3_1197": 0.0,
+     "ErbB3_1222": 0.0,
+     "ErbB3_1260": 0.0,
+     "ErbB3_1276": 0.0,
+     "ErbB3_1289": 0.0,
+     "ErbB3_1328": 0.0,
+     "ErbB4ErbB4": 0.03999999999999997,
+     "ErbB4ErbB4En": 0.5151515151515169,
+     "ErbB4_1056": 0.0,
+     "ErbB4_1188": 0.0,
+     "ErbB4_1242": 0.0,
+     "Gab1_312": 0.0,
+     "Gab1_381": 0.0,
+     "Gab1_447": 0.0,
+     "Gab1_454": 0.0,
+     "Gab1_472": 0.0,
+     "Gab1_476": 0.0,
+     "Gab1_581": 0.0,
+     "Gab1_597": 0.0,
+     "Gab1_619": 0.0,
+     "Gab1_657": 0.0,
+     "MEK1_218": 0.0,
+     "MEK1_222": 0.0,
+     "MEK1_292": 0.0,
+     "Raf1_259": 0.3147474747474751,
+     "Raf1_289": 0.0,
+     "Raf1_29": 0.0,
+     "Raf1_296": 0.0,
+     "Raf1_301": 0.0,
+     "Raf1_338": 0.0,
+     "Raf1_341": 0.0,
+     "Raf1_43": 0.0,
+     "Raf1_471": 0.0,
+     "Raf1_491": 0.0,
+     "Raf1_494": 0.0,
+     "Raf1_642": 0.0,
+     "Sos1_1132": 0.0,
+     "Sos1_1167": 0.0,
+     "Sos1_1178": 0.0,
+     "Sos1_1193": 0.0,
+     "pERK_Y187": 0.0,
+     "pSHC": 0.0
+    },
+    "replicates": 100
+   },
+   "nfsim": {
+    "final_mean": {
+     "AKT_S473": 16.18,
+     "AKT_T308": 1.83,
+     "EGFREGFR": 13.2,
+     "EGFREGFREn": 32.8,
+     "EGFRErbB2": 0.25,
+     "EGFRErbB2En": 0.02,
+     "EGFRErbB3": 3.74,
+     "EGFRErbB3En": 0.33,
+     "EGFRErbB4": 4.85,
+     "EGFRErbB4En": 4.45,
+     "EGFR_1068": 0.0,
+     "EGFR_1086": 0.0,
+     "EGFR_1114": 0.0,
+     "EGFR_1148": 0.0,
+     "EGFR_1173": 0.0,
+     "EGFR_669": 0.0,
+     "EGFR_992": 0.0,
+     "ERK_T185": 0.0,
+     "ErbB2ErbB2": 0.0,
+     "ErbB2ErbB2En": 0.0,
+     "ErbB2ErbB3": 0.49,
+     "ErbB2ErbB3En": 0.08,
+     "ErbB2ErbB4": 0.0,
+     "ErbB2ErbB4En": 0.0,
+     "ErbB2_1139": 0.0,
+     "ErbB2_1196": 0.0,
+     "ErbB2_1222": 0.0,
+     "ErbB2_1248": 0.0,
+     "ErbB3ErbB3": 5.38,
+     "ErbB3ErbB3En": 5.12,
+     "ErbB3ErbB4": 0.36,
+     "ErbB3ErbB4En": 0.03,
+     "ErbB3_1054": 0.0,
+     "ErbB3_1197": 0.0,
+     "ErbB3_1222": 0.0,
+     "ErbB3_1260": 0.0,
+     "ErbB3_1276": 0.0,
+     "ErbB3_1289": 0.0,
+     "ErbB3_1328": 0.0,
+     "ErbB4ErbB4": 0.02,
+     "ErbB4ErbB4En": 0.34,
+     "ErbB4_1056": 0.0,
+     "ErbB4_1188": 0.0,
+     "ErbB4_1242": 0.0,
+     "Gab1_312": 0.0,
+     "Gab1_381": 0.0,
+     "Gab1_447": 0.0,
+     "Gab1_454": 0.0,
+     "Gab1_472": 0.0,
+     "Gab1_476": 0.0,
+     "Gab1_581": 0.0,
+     "Gab1_597": 0.0,
+     "Gab1_619": 0.0,
+     "Gab1_657": 0.0,
+     "MEK1_218": 0.0,
+     "MEK1_222": 0.0,
+     "MEK1_292": 0.0,
+     "Raf1_259": 0.13,
+     "Raf1_289": 0.0,
+     "Raf1_29": 0.0,
+     "Raf1_296": 0.0,
+     "Raf1_301": 0.0,
+     "Raf1_338": 0.0,
+     "Raf1_341": 0.0,
+     "Raf1_43": 0.0,
+     "Raf1_471": 0.0,
+     "Raf1_491": 0.0,
+     "Raf1_494": 0.0,
+     "Raf1_642": 0.0,
+     "Sos1_1132": 0.0,
+     "Sos1_1167": 0.0,
+     "Sos1_1178": 0.0,
+     "Sos1_1193": 0.0,
+     "pERK_Y187": 0.0,
+     "pSHC": 0.0
+    },
+    "final_variance": {
+     "AKT_S473": 47.522828282828286,
+     "AKT_T308": 2.3647474747474737,
+     "EGFREGFR": 22.707070707070713,
+     "EGFREGFREn": 76.92929292929294,
+     "EGFRErbB2": 0.20959595959595959,
+     "EGFRErbB2En": 0.01979797979797976,
+     "EGFRErbB3": 3.5680808080808104,
+     "EGFRErbB3En": 0.36474747474747365,
+     "EGFRErbB4": 3.462121212121212,
+     "EGFRErbB4En": 3.623737373737372,
+     "EGFR_1068": 0.0,
+     "EGFR_1086": 0.0,
+     "EGFR_1114": 0.0,
+     "EGFR_1148": 0.0,
+     "EGFR_1173": 0.0,
+     "EGFR_669": 0.0,
+     "EGFR_992": 0.0,
+     "ERK_T185": 0.0,
+     "ErbB2ErbB2": 0.0,
+     "ErbB2ErbB2En": 0.0,
+     "ErbB2ErbB3": 0.5150505050505046,
+     "ErbB2ErbB3En": 0.07434343434343445,
+     "ErbB2ErbB4": 0.0,
+     "ErbB2ErbB4En": 0.0,
+     "ErbB2_1139": 0.0,
+     "ErbB2_1196": 0.0,
+     "ErbB2_1222": 0.0,
+     "ErbB2_1248": 0.0,
+     "ErbB3ErbB3": 12.015757575757572,
+     "ErbB3ErbB3En": 10.9349494949495,
+     "ErbB3ErbB4": 0.29333333333333345,
+     "ErbB3ErbB4En": 0.029393939393939365,
+     "ErbB3_1054": 0.0,
+     "ErbB3_1197": 0.0,
+     "ErbB3_1222": 0.0,
+     "ErbB3_1260": 0.0,
+     "ErbB3_1276": 0.0,
+     "ErbB3_1289": 0.0,
+     "ErbB3_1328": 0.0,
+     "ErbB4ErbB4": 0.03999999999999998,
+     "ErbB4ErbB4En": 0.5701010101010107,
+     "ErbB4_1056": 0.0,
+     "ErbB4_1188": 0.0,
+     "ErbB4_1242": 0.0,
+     "Gab1_312": 0.0,
+     "Gab1_381": 0.0,
+     "Gab1_447": 0.0,
+     "Gab1_454": 0.0,
+     "Gab1_472": 0.0,
+     "Gab1_476": 0.0,
+     "Gab1_581": 0.0,
+     "Gab1_597": 0.0,
+     "Gab1_619": 0.0,
+     "Gab1_657": 0.0,
+     "MEK1_218": 0.0,
+     "MEK1_222": 0.0,
+     "MEK1_292": 0.0,
+     "Raf1_259": 0.15464646464646445,
+     "Raf1_289": 0.0,
+     "Raf1_29": 0.0,
+     "Raf1_296": 0.0,
+     "Raf1_301": 0.0,
+     "Raf1_338": 0.0,
+     "Raf1_341": 0.0,
+     "Raf1_43": 0.0,
+     "Raf1_471": 0.0,
+     "Raf1_491": 0.0,
+     "Raf1_494": 0.0,
+     "Raf1_642": 0.0,
+     "Sos1_1132": 0.0,
+     "Sos1_1167": 0.0,
+     "Sos1_1178": 0.0,
+     "Sos1_1193": 0.0,
+     "pERK_Y187": 0.0,
+     "pSHC": 0.0
+    },
+    "replicates": 100
+   }
+  },
+  "observables": [
+   "EGFREGFR",
+   "EGFRErbB2",
+   "EGFRErbB3",
+   "EGFRErbB4",
+   "ErbB2ErbB2",
+   "ErbB2ErbB3",
+   "ErbB2ErbB4",
+   "ErbB3ErbB3",
+   "ErbB3ErbB4",
+   "ErbB4ErbB4",
+   "EGFREGFREn",
+   "EGFRErbB2En",
+   "EGFRErbB3En",
+   "EGFRErbB4En",
+   "ErbB2ErbB2En",
+   "ErbB2ErbB3En",
+   "ErbB2ErbB4En",
+   "ErbB3ErbB3En",
+   "ErbB3ErbB4En",
+   "ErbB4ErbB4En",
+   "ERK_T185",
+   "AKT_S473",
+   "EGFR_669",
+   "EGFR_992",
+   "EGFR_1068",
+   "EGFR_1086",
+   "EGFR_1114",
+   "EGFR_1148",
+   "EGFR_1173",
+   "ErbB2_1139",
+   "ErbB2_1196",
+   "ErbB2_1222",
+   "ErbB2_1248",
+   "ErbB3_1054",
+   "ErbB3_1197",
+   "ErbB3_1222",
+   "ErbB3_1260",
+   "ErbB3_1276",
+   "ErbB3_1289",
+   "ErbB3_1328",
+   "ErbB4_1056",
+   "ErbB4_1188",
+   "ErbB4_1242",
+   "pSHC",
+   "Sos1_1132",
+   "Sos1_1167",
+   "Sos1_1178",
+   "Sos1_1193",
+   "Gab1_312",
+   "Gab1_381",
+   "Gab1_447",
+   "Gab1_454",
+   "Gab1_472",
+   "Gab1_476",
+   "Gab1_581",
+   "Gab1_597",
+   "Gab1_619",
+   "Gab1_657",
+   "Raf1_29",
+   "Raf1_43",
+   "Raf1_259",
+   "Raf1_289",
+   "Raf1_296",
+   "Raf1_301",
+   "Raf1_338",
+   "Raf1_341",
+   "Raf1_471",
+   "Raf1_491",
+   "Raf1_494",
+   "Raf1_642",
+   "MEK1_218",
+   "MEK1_222",
+   "MEK1_292",
+   "pERK_Y187",
+   "AKT_T308"
+  ],
+  "protocol": {
+   "complex": true,
+   "dropped": [],
+   "gml": 2147483647,
+   "phases": [
+    {
+     "duration": 500.0,
+     "get_final_state": true,
+     "n_steps": 5,
+     "sets": [
+      [
+       "f",
+       "0.001"
+      ]
+     ]
+    },
+    {
+     "duration": 10800.0,
+     "get_final_state": false,
+     "n_steps": 180,
+     "sets": [
+      [
+       "lig",
+       "1"
+      ]
+     ]
+    }
+   ],
+   "utl": null
+  },
+  "references": {
+   "nfsim": {
+    "cold_seconds": 1589.0829161719885,
+    "driver": "BNG2.pl, running the protocol's actions",
+    "ensemble_seconds": 1589.0762528290506,
+    "first_seed": 20000001,
+    "nfsim_command": "NFsim -xml model_nfp0.xml -o model_nfp0.gdat -sim 500 -oSteps 5 -gml 2147483647 -cb -seed <seed> -ss model_nfp0.species",
+    "nfsim_simulate_cpu_seconds": 1324.853835999999,
+    "nfsim_total_cpu_seconds": 1364.6559140000002,
+    "reactions": 122134713,
+    "seeds": "first_seed + i for trajectory i (+ 10**6 per later step)",
+    "version": "1.14.3",
+    "xml_matches_harness": true
+   }
+  },
+  "rulemonkey_lineage": "same code lineage as bngsim's embedded nf_exact engine (RuleMonkey v3.13.0; bngsim 0.17.2 embeds v3.13.0-5-gdb7d1df): a cost comparator and secondary reference, not an algorithmically independent answer",
+  "xml_seconds": 2.2120925820199773,
+  "xml_sha256": "391451fdeb6120e2f8f94e341f4863c0fa85719fbd82e642c6a302ec05aaad89"
+ },
+ "outcome": "DIFF",
+ "pinned_cpu": 1,
+ "problem": "erbb_receptor_signaling_creamer2012",
+ "rescored": [
+  {
+   "at": "2026-11-25T17:12:57+00:00",
+   "from_key": "3fe7e574bfbbab77f14cbca1ca9bb2c911f459c24be3428c4ba9271fa0b03456",
+   "from_outcome": "REFERENCE_FAILED",
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   },
+   "verdict": {
+    "alpha": 0.001,
+    "analytic": "Bonferroni z on means and log-variances/1",
+    "independent_reference_rule": 1,
+    "outcome_rule": 2,
+    "permutations": 1999,
+    "stop_exceedances": 20,
+    "two_sample": "permutation max-T on means and variances/1"
+   }
+  }
+ ],
+ "rulemonkey_error": "UNSUPPORTED: the protocol has 2 network-free steps; rm_driver cannot change a parameter between runs, so it cannot replay it",
+ "schema": 1,
+ "setting": "nf_reject",
+ "started": "2026-11-24T23:06:02.622204+00:00",
+ "trajectories": {
+  "arrays": [
+   "bngsim",
+   "nfsim",
+   "observables",
+   "times"
+  ],
+  "bytes": 1021845,
+  "file": "correctness.npz",
+  "in_snapshot": false,
+  "note": "not in this snapshot: the suite's stored trajectories total 53833128 bytes, over the 5000000-byte limit; bytes and sha256 identify the file",
+  "sha256": "8cab0e4d92b6475fb85935488570f35c2867c2085f1443a903bc6cdf66317cd8"
+ },
+ "verdict_basis": {
+  "independent": [
+   "nfsim"
+  ],
+  "same_lineage": [
+   "rulemonkey"
+  ]
+ },
+ "verdicts": {
+  "nfsim": {
+   "alpha": 0.001,
+   "critical_z": 5.181629878167287,
+   "n_cells": 14025,
+   "n_flagged": {
+    "mean": 23,
+    "variance": 0
+   },
+   "n_tested": {
+    "mean": 5764,
+    "variance": 3938
+   },
+   "p_value": 0.0005,
+   "parity_core": {
+    "frac_pass": 0.9992156862745099,
+    "k": 9.486832980505138,
+    "max_z": 16.027665869531557,
+    "passed": true
+   },
+   "passed": false,
+   "permutations": 1999,
+   "replicates": [
+    100,
+    100
+   ],
+   "seed": 1468060454,
+   "stopped_early": false,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "AKT_T308",
+    "species_index": 74,
+    "statistic": "mean",
+    "time": 300.0,
+    "time_index": 11,
+    "z": 10.600967374559879
+   },
+   "z_max": 10.600967374559879,
+   "z_max_mean": 10.600967374559879,
+   "z_max_variance": 3.3175172877460004
+  }
+ },
+ "wall_seconds": 3159.4176799970446
+}

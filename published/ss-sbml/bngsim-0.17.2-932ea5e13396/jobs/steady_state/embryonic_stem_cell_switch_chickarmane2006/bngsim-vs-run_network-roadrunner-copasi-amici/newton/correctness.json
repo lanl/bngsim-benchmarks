@@ -1,0 +1,3019 @@
+{
+ "capability": "steady_state",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "09925d1c3708ea2e810991b29031a541fcb66ebb",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+ "key": "e440ae868dc0e0442768320756f879b8ab856d85e9507186e83e0d92a4ebd3cf",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "steady_state/bngsim-vs-run_network-roadrunner-copasi-amici/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "n_steps": 20,
+     "parameters": {},
+     "rtol": 1e-08,
+     "scan": {
+      "log": false,
+      "max": 100,
+      "min": 0,
+      "points": 20,
+      "species": "A"
+     },
+     "t_end": 1000000.0
+    },
+    "reference_settings": {
+     "amici": {
+      "mode": "integrationOnly",
+      "output": "state (concentration)",
+      "steady_state_tolerance_factor": 1.0,
+      "steady_state_tolerances": "protocol rtol/atol",
+      "tolerances": "protocol rtol/atol"
+     },
+     "copasi": {
+      "method": "Enhanced Newton (COPASI's defaults)",
+      "output": "concentration",
+      "task": "Steady-State"
+     },
+     "roadrunner": {
+      "allow_presimulation": true,
+      "conserved_moiety_analysis": true,
+      "integrator": "cvode, protocol tolerances",
+      "output": "concentration",
+      "solver": "nleq2"
+     },
+     "run_network": {
+      "grid": "n_steps",
+      "horizon": "t_end",
+      "input": "network derived from the SBML (ode.derive_network)",
+      "method": "cvode (dense)"
+     }
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "bngsim": {
+      "atol": "protocol (float, per-species ceiling)",
+      "input": "sbml (Model.from_sbml)",
+      "mask": null,
+      "max_time": "t_end",
+      "method": "newton",
+      "output": "concentration",
+      "rtol": "protocol"
+     },
+     "codegen": "auto"
+    },
+    "source_sha256": "75e5dc671e271d749387e7066e16a5692e0c575519b057b55e6eb0a53a799586",
+    "verdict": {
+     "agreement": "species by species at every point, |a-b| <= rtol*max(|a|,|b|) + atol/1",
+     "atol_factor": 10.0,
+     "conservation_atol": "atol_factor * protocol atol, added to the law's tolerance",
+     "conservation_tol": 1e-06,
+     "law_coeff_floor": 1e-12,
+     "peak_floor": 1e-09,
+     "residual_floor": 1e-06,
+     "residual_floor_of": "max_j g_j at the state and at the point's initial state",
+     "residual_leaves_out": "species a rate rule moves",
+     "residual_tol": 0.0001,
+     "rtol": 0.0001,
+     "settled": 0.1
+    }
+   },
+   "id": "steady_state/embryonic_stem_cell_switch_chickarmane2006/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_seconds": 0.011333929025568068,
+   "cold_seconds": 0.16969229199457914,
+   "input": "sbml (Model.from_sbml)",
+   "load_seconds": 0.10358073096722364,
+   "mask": null,
+   "method": "newton",
+   "methods_used": [
+    "integration"
+   ],
+   "points": [
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 406,
+     "n_steps": 351,
+     "n_unstable_roots_rejected": 0,
+     "residual": 9.839992703212658e-14,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 372,
+     "n_steps": 339,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.190988264269453e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 373,
+     "n_steps": 336,
+     "n_unstable_roots_rejected": 0,
+     "residual": 4.052863369827354e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 408,
+     "n_steps": 360,
+     "n_unstable_roots_rejected": 0,
+     "residual": 9.105952103761682e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 441,
+     "n_steps": 374,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.3791121023947723e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 447,
+     "n_steps": 383,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.532283791020434e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 429,
+     "n_steps": 373,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.8570938771802223e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 425,
+     "n_steps": 377,
+     "n_unstable_roots_rejected": 0,
+     "residual": 2.6578091581077514e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 469,
+     "n_steps": 396,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.48591280186221e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 460,
+     "n_steps": 404,
+     "n_unstable_roots_rejected": 0,
+     "residual": 3.529386505646866e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 454,
+     "n_steps": 395,
+     "n_unstable_roots_rejected": 0,
+     "residual": 3.4756119288995315e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 445,
+     "n_steps": 399,
+     "n_unstable_roots_rejected": 0,
+     "residual": 3.3589982658947385e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 460,
+     "n_steps": 410,
+     "n_unstable_roots_rejected": 0,
+     "residual": 2.393066765467161e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 449,
+     "n_steps": 402,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.3926764859127764e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 457,
+     "n_steps": 418,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.6009232018392766e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 464,
+     "n_steps": 422,
+     "n_unstable_roots_rejected": 0,
+     "residual": 2.977270976789014e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 795,
+     "n_steps": 704,
+     "n_unstable_roots_rejected": 0,
+     "residual": 4.669666218016878e-13,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 731,
+     "n_steps": 654,
+     "n_unstable_roots_rejected": 0,
+     "residual": 6.570343771879471e-13,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 734,
+     "n_steps": 654,
+     "n_unstable_roots_rejected": 0,
+     "residual": 6.836696863339963e-13,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 689,
+     "n_steps": 623,
+     "n_unstable_roots_rejected": 0,
+     "residual": 3.5163989533277696e-14,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    }
+   ],
+   "root_stability": [
+    ""
+   ]
+  },
+  "bngsim_integration": {
+   "config": {
+    "atol": "float (per-species ceiling)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.008144889026880264,
+    "cold_seconds": 0.12204103404656053,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.06279603904113173,
+    "mask": null,
+    "method": "integration",
+    "methods_used": [
+     "integration"
+    ],
+    "points": [
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 447,
+      "n_steps": 387,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.2093448509939849e-21,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 400,
+      "n_steps": 364,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.1826127333054566e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 400,
+      "n_steps": 357,
+      "n_unstable_roots_rejected": 0,
+      "residual": 7.401716232035902e-17,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 431,
+      "n_steps": 382,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.0934885549475076e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 466,
+      "n_steps": 397,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.6551843842577912e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 495,
+      "n_steps": 422,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.093456611578367e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 451,
+      "n_steps": 390,
+      "n_unstable_roots_rejected": 0,
+      "residual": 3.6262682851443797e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 476,
+      "n_steps": 419,
+      "n_unstable_roots_rejected": 0,
+      "residual": 3.654488697414321e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 508,
+      "n_steps": 431,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.128109147583298e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 484,
+      "n_steps": 426,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.128109147583298e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 478,
+      "n_steps": 417,
+      "n_unstable_roots_rejected": 0,
+      "residual": 8.373962205567583e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 460,
+      "n_steps": 413,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.0255931402469927e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 490,
+      "n_steps": 436,
+      "n_unstable_roots_rejected": 0,
+      "residual": 4.625929269271485e-18,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 471,
+      "n_steps": 424,
+      "n_unstable_roots_rejected": 0,
+      "residual": 6.62041431406922e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 470,
+      "n_steps": 431,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.961046448778352e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 513,
+      "n_steps": 461,
+      "n_unstable_roots_rejected": 0,
+      "residual": 6.620747637494464e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 856,
+      "n_steps": 754,
+      "n_unstable_roots_rejected": 0,
+      "residual": 3.153276678974214e-14,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 747,
+      "n_steps": 669,
+      "n_unstable_roots_rejected": 0,
+      "residual": 6.6990611570751446e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 767,
+      "n_steps": 683,
+      "n_unstable_roots_rejected": 0,
+      "residual": 7.582822355150433e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 704,
+      "n_steps": 635,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.6480364301920787e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     }
+    ],
+    "root_stability": [
+     ""
+    ]
+   },
+   "engine_free": {
+    "conservation": {
+     "max": 0.0,
+     "n_laws": 7,
+     "passed": true,
+     "tol": 1e-06,
+     "worst_point": 19
+    },
+    "evaluated": true,
+    "passed": true,
+    "residual": {
+     "evaluated": true,
+     "max": 4.1369009593024235e-14,
+     "passed": true,
+     "tol": 0.0001,
+     "worst_point": 1,
+     "worst_species": "@comp1::Protein()"
+    }
+   },
+   "vs_bngsim": {
+    "max_ratio": 0.00012974517263077674,
+    "max_rel": 1.2988789230640165e-08,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 0,
+    "worst_species": "Protein"
+   },
+   "vs_integration": {
+    "max_ratio": 4.032561150083888e-09,
+    "max_rel": 1.0,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 19,
+    "worst_species": "Protein"
+   }
+  },
+  "conservation_laws": 7,
+  "derived_network": {
+   "bngsim_only": [],
+   "conversion_seconds": 0.15498392994049937,
+   "converter_notes": [],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 0.0,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 1e-17,
+      "err": 0.0,
+      "err_over_peak": null,
+      "index": 0,
+      "peak": 0.0,
+      "score": 0.0,
+      "species": "OCT4_Gene",
+      "t": 0.0
+     }
+    }
+   },
+   "netgen_seconds": 1.161448135972023,
+   "network": {
+    "reactions": 12,
+    "species": 12
+   },
+   "phases": 1,
+   "seconds": 1.6008700049715117
+  },
+  "doses": {
+   "A": "species"
+  },
+  "engine_budget_seconds": 1800.0,
+  "integration_reference": "run_network",
+  "network": {
+   "reactions": 10,
+   "species": 12
+  },
+  "points": [
+   {
+    "A": 0.0
+   },
+   {
+    "A": 5.2631578947368425
+   },
+   {
+    "A": 10.526315789473685
+   },
+   {
+    "A": 15.789473684210527
+   },
+   {
+    "A": 21.05263157894737
+   },
+   {
+    "A": 26.315789473684212
+   },
+   {
+    "A": 31.578947368421055
+   },
+   {
+    "A": 36.8421052631579
+   },
+   {
+    "A": 42.10526315789474
+   },
+   {
+    "A": 47.36842105263158
+   },
+   {
+    "A": 52.631578947368425
+   },
+   {
+    "A": 57.89473684210527
+   },
+   {
+    "A": 63.15789473684211
+   },
+   {
+    "A": 68.42105263157896
+   },
+   {
+    "A": 73.6842105263158
+   },
+   {
+    "A": 78.94736842105263
+   },
+   {
+    "A": 84.21052631578948
+   },
+   {
+    "A": 89.47368421052633
+   },
+   {
+    "A": 94.73684210526316
+   },
+   {
+    "A": 100.0
+   }
+  ],
+  "reference_checks": {
+   "amici": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 7,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 1.9500208897563956e-06,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 0,
+      "worst_species": "@comp1::Protein()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 0.038957488536778356,
+     "max_rel": 1.0,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 0,
+     "worst_species": "Protein"
+    }
+   },
+   "copasi": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 7,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 2.5902021947642614e-16,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 4,
+      "worst_species": "@comp1::OCT4()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 4.029062687547668e-09,
+     "max_rel": 1.0,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 19,
+     "worst_species": "Protein"
+    }
+   },
+   "roadrunner": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 7,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 1.3591334645591613e-11,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 0,
+      "worst_species": "@comp1::OCT4_SOX2()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 4.030228841726408e-09,
+     "max_rel": 1.0,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 19,
+     "worst_species": "Protein"
+    }
+   },
+   "run_network": {
+    "engine_free": {
+     "conservation": {
+      "max": 3.4995067906714784e-13,
+      "n_laws": 7,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 2
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 2.944122019878235e-13,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 3,
+      "worst_species": "@comp1::OCT4_SOX2()"
+     }
+    }
+   }
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 37.814893207047135,
+    "cold_seconds": 42.022505230037495,
+    "load_seconds": 0.0012359619140625,
+    "mode": "integrationOnly (simulation to steady state)",
+    "output": "state (concentration)",
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 1.965899941045791,
+    "load_seconds": 0.19189095601905137,
+    "method": {
+     "Iteration Limit": 50,
+     "Resolution": 1e-09,
+     "Target Criterion": "Distance and Rate",
+     "Use Back Integration": false,
+     "Use Integration": true,
+     "Use Newton": true,
+     "name": "Enhanced Newton"
+    },
+    "output": "concentration",
+    "task": "Steady-State",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 3.581778735970147,
+    "conserved_moiety_analysis": true,
+    "load_seconds": 0.6077599819982424,
+    "output": "concentration",
+    "settings": {
+     "allow_presimulation": true,
+     "maximum_iterations": 100,
+     "presimulation_times": [
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "relative_tolerance": 1e-12
+    },
+    "solver": "nleq2",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "cold_seconds": 0.49870616395492107,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-10",
+     "-r",
+     "1e-08",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<point>.net",
+     "<point>.net",
+     "50000.0",
+     "20"
+    ],
+    "input": "network derived from the SBML",
+    "method": "cvode (dense), integrated to t_end",
+    "settled": {
+     "max": 0.0,
+     "per_point": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tol": 0.1
+    }
+   }
+  },
+  "sbml": {
+   "compared_species": 12,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [],
+    "constant": []
+   },
+   "reactions": 10,
+   "species": 12
+  },
+  "states": {
+   "amici": {
+    "species": [
+     "OCT4_Gene",
+     "NANOG_Gene",
+     "SOX2_Gene",
+     "targetGene",
+     "degradation",
+     "p53",
+     "A",
+     "OCT4",
+     "SOX2",
+     "NANOG",
+     "OCT4_SOX2",
+     "Protein"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      0.0,
+      9.99994911098476e-05,
+      9.999949110984759e-05,
+      9.999999100078056e-05,
+      9.997898642499988e-11,
+      0.0090908745449483
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      5.2631578947368425,
+      4.306786575772289,
+      4.306786575772289,
+      0.0019910229296291296,
+      0.18544701668918617,
+      1.6940875236633677
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      10.526315789473685,
+      7.5544667786145645,
+      7.5544667786145645,
+      0.006153428108124484,
+      0.5705855659787155,
+      5.176744890085095
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      15.789473684210527,
+      10.258972576512335,
+      10.258972576512335,
+      0.011857647489075467,
+      1.0522547323098594,
+      9.45779123280427
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      21.05263157894737,
+      12.616607685120474,
+      12.616607685120472,
+      0.01900910844047974,
+      1.5914696008822333,
+      14.06768854282665
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      26.315789473684212,
+      14.727568236373425,
+      14.727568236373424,
+      0.027739490167210154,
+      2.1685789457811984,
+      18.662354953638673
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      31.578947368421055,
+      16.651437140114115,
+      16.651437140114112,
+      0.03833937788753287,
+      2.7721491584800213,
+      22.931215942370557
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      36.8421052631579,
+      18.42728060897571,
+      18.42728060897571,
+      0.05127404581041046,
+      3.3949677128767473,
+      26.576461715566943
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      42.10526315789474,
+      20.082611109417186,
+      20.082611109417186,
+      0.06725150661724738,
+      4.032306228475171,
+      29.319980940445863
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      47.36842105263158,
+      21.63801602728327,
+      21.63801602728327,
+      0.08736081214070278,
+      4.681101155738529,
+      30.923400211068135
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      52.631578947368425,
+      23.10990661111889,
+      23.10990661111889,
+      0.11334305294108485,
+      5.339609913763613,
+      31.211855288356446
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      57.89473684210527,
+      24.512526123558377,
+      24.512526123558377,
+      0.14815663447029576,
+      6.007437882004919,
+      30.092548468117695
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      63.15789473684211,
+      25.860097790542287,
+      25.86009779054229,
+      0.19729580267723432,
+      6.686109355493004,
+      27.55865049427568
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      68.42105263157896,
+      27.170803601851702,
+      27.170803601851702,
+      0.2724437999495057,
+      7.381049473809213,
+      23.667645324923857
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      73.6842105263158,
+      28.479743572012524,
+      28.47974357201252,
+      0.40503443614347284,
+      8.109336072061472,
+      18.459905707422024
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      78.94736842105263,
+      29.93511419723791,
+      29.935114197237905,
+      0.7490741085904757,
+      8.95931875626549,
+      11.456650302188352
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      84.21052631578948,
+      83.21497232738591,
+      83.21497232738588,
+      84.67423421740719,
+      69.23346950057588,
+      0.11807791683619347
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      89.47368421052633,
+      83.26577776254135,
+      83.26577776254135,
+      84.69183043301094,
+      69.31803385723782,
+      0.11805342376253117
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      94.73684210526316,
+      83.31631068780585,
+      83.31631068780587,
+      84.70930035447044,
+      69.40219582710452,
+      0.11802915478433658
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      100.0,
+      83.36657432988825,
+      83.36657432988825,
+      84.72664568564109,
+      69.48595996301522,
+      0.11800497040369391
+     ]
+    ]
+   },
+   "bngsim": {
+    "species": [
+     "OCT4_Gene",
+     "NANOG_Gene",
+     "SOX2_Gene",
+     "targetGene",
+     "degradation",
+     "p53",
+     "A",
+     "OCT4",
+     "SOX2",
+     "NANOG",
+     "OCT4_SOX2",
+     "Protein"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      0.0,
+      9.999949110984759e-05,
+      9.999949110984759e-05,
+      9.999999100078056e-05,
+      9.997898642499988e-11,
+      0.009090909881728063
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      5.2631578947368425,
+      4.306786575772289,
+      4.306786575772289,
+      0.0019910229296291296,
+      0.18544701668918617,
+      1.6940900779740429
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      10.526315789473685,
+      7.554466778614564,
+      7.554466778614564,
+      0.006153428108124481,
+      0.5705855659787153,
+      5.176755100841141
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      15.789473684210527,
+      10.258972576512335,
+      10.258972576512335,
+      0.011857647489075467,
+      1.0522547323098594,
+      9.457811324405526
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      21.05263157894737,
+      12.61660768512047,
+      12.616607685120469,
+      0.01900910844047973,
+      1.5914696008822327,
+      14.067714960319623
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      26.315789473684212,
+      14.727568236373424,
+      14.727568236373424,
+      0.02773949016721014,
+      2.1685789457811984,
+      18.66239114937994
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      31.578947368421055,
+      16.651437140114115,
+      16.651437140114115,
+      0.03833937788753287,
+      2.7721491584800217,
+      22.931250696768355
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      36.8421052631579,
+      18.427280608975707,
+      18.427280608975707,
+      0.05127404581041046,
+      3.394967712876747,
+      26.57650601646276
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      42.10526315789474,
+      20.082611109417186,
+      20.082611109417186,
+      0.06725150661724737,
+      4.03230622847517,
+      29.320039080672274
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      47.36842105263158,
+      21.63801602728327,
+      21.63801602728327,
+      0.08736081214070272,
+      4.681101155738529,
+      30.923450714149354
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      52.631578947368425,
+      23.109906611118884,
+      23.109906611118884,
+      0.11334305294108471,
+      5.339609913763611,
+      31.21190110214199
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      57.89473684210527,
+      24.512526123558374,
+      24.512526123558374,
+      0.14815663447029556,
+      6.007437882004916,
+      30.092595067510217
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      63.15789473684211,
+      25.860097790542284,
+      25.860097790542284,
+      0.19729580267723418,
+      6.686109355493002,
+      27.55870717796933
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      68.42105263157896,
+      27.170803601851706,
+      27.170803601851702,
+      0.272443799949506,
+      7.381049473809215,
+      23.667694898489454
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      73.6842105263158,
+      28.47974357201252,
+      28.479743572012516,
+      0.405034436143473,
+      8.109336072061474,
+      18.45993352374107
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      78.94736842105263,
+      29.935114197237905,
+      29.935114197237905,
+      0.749074108590475,
+      8.95931875626549,
+      11.456671313992763
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      84.21052631578948,
+      83.21497232738585,
+      83.21497232738588,
+      84.67423421740719,
+      69.23346950057584,
+      0.11807769563142037
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      89.47368421052633,
+      83.26577776254135,
+      83.26577776254138,
+      84.69183043301098,
+      69.31803385723784,
+      0.11805319411597974
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      94.73684210526316,
+      83.31631068780582,
+      83.31631068780585,
+      84.70930035447046,
+      69.4021958271045,
+      0.11802887720729514
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      100.0,
+      83.36657432988825,
+      83.36657432988825,
+      84.7266456856411,
+      69.48595996301523,
+      0.11800474281810092
+     ]
+    ]
+   },
+   "bngsim_integration": {
+    "species": [
+     "OCT4_Gene",
+     "NANOG_Gene",
+     "SOX2_Gene",
+     "targetGene",
+     "degradation",
+     "p53",
+     "A",
+     "OCT4",
+     "SOX2",
+     "NANOG",
+     "OCT4_SOX2",
+     "Protein"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      0.0,
+      9.999949110984759e-05,
+      9.999949110984759e-05,
+      9.999999100078056e-05,
+      9.997898642499988e-11,
+      0.009090909999807977
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      5.2631578947368425,
+      4.306786575772289,
+      4.306786575772289,
+      0.0019910229296291296,
+      0.18544701668918617,
+      1.6940900717449974
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      10.526315789473685,
+      7.554466778614564,
+      7.554466778614563,
+      0.0061534281081244814,
+      0.5705855659787152,
+      5.176755105704576
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      15.789473684210527,
+      10.258972576512333,
+      10.258972576512335,
+      0.011857647489075468,
+      1.0522547323098597,
+      9.45781133533267
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      21.05263157894737,
+      12.61660768512047,
+      12.616607685120469,
+      0.01900910844047973,
+      1.5914696008822327,
+      14.067714943770277
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      26.315789473684212,
+      14.727568236373424,
+      14.727568236373424,
+      0.027739490167210137,
+      2.168578945781198,
+      18.66239113099253
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      31.578947368421055,
+      16.651437140114115,
+      16.651437140114115,
+      0.03833937788753287,
+      2.7721491584800213,
+      22.931250719053484
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      36.8421052631579,
+      18.427280608975707,
+      18.427280608975707,
+      0.05127404581041043,
+      3.3949677128767464,
+      26.57650598456861
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      42.10526315789474,
+      20.082611109417183,
+      20.082611109417183,
+      0.06725150661724737,
+      4.0323062284751705,
+      29.320039087255367
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      47.36842105263158,
+      21.63801602728327,
+      21.63801602728327,
+      0.08736081214070272,
+      4.681101155738529,
+      30.923450756501996
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      52.631578947368425,
+      23.109906611118884,
+      23.109906611118884,
+      0.11334305294108471,
+      5.339609913763611,
+      31.211901143849328
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      57.89473684210527,
+      24.512526123558374,
+      24.512526123558374,
+      0.14815663447029565,
+      6.0074378820049175,
+      30.0925951078182
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      63.15789473684211,
+      25.860097790542287,
+      25.860097790542284,
+      0.19729580267723426,
+      6.686109355493002,
+      27.558707149252523
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      68.42105263157896,
+      27.170803601851702,
+      27.170803601851706,
+      0.27244379994950607,
+      7.381049473809214,
+      23.667694915201565
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      73.6842105263158,
+      28.479743572012524,
+      28.479743572012527,
+      0.4050344361434734,
+      8.109336072061476,
+      18.45993359095213
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      78.94736842105263,
+      29.935114197237905,
+      29.935114197237905,
+      0.7490741085904759,
+      8.95931875626549,
+      11.456671349720004
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      84.21052631578948,
+      83.21497232738585,
+      83.21497232738588,
+      84.67423421740718,
+      69.23346950057586,
+      0.11807769619092919
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      89.47368421052633,
+      83.26577776254136,
+      83.26577776254135,
+      84.69183043301094,
+      69.31803385723782,
+      0.11805319332769228
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      94.73684210526316,
+      83.31631068780587,
+      83.31631068780585,
+      84.70930035447046,
+      69.4021958271045,
+      0.11802887638724727
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      100.0,
+      83.36657432988824,
+      83.36657432988825,
+      84.7266456856411,
+      69.48595996301522,
+      0.118004742775952
+     ]
+    ]
+   },
+   "copasi": {
+    "species": [
+     "OCT4_Gene",
+     "NANOG_Gene",
+     "SOX2_Gene",
+     "targetGene",
+     "degradation",
+     "p53",
+     "A",
+     "OCT4",
+     "SOX2",
+     "NANOG",
+     "OCT4_SOX2",
+     "Protein"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      0.0,
+      9.999949110984759e-05,
+      9.999949110984759e-05,
+      9.999999100078056e-05,
+      9.997898642499988e-11,
+      0.009090909999807975
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      5.2631578947368425,
+      4.306786575772288,
+      4.306786575772288,
+      0.001991022929629129,
+      0.18544701668918612,
+      1.6940900717448564
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      10.526315789473685,
+      7.554466778614564,
+      7.554466778614564,
+      0.006153428108124481,
+      0.5705855659787153,
+      5.176755105704576
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      15.789473684210527,
+      10.258972576512337,
+      10.258972576512337,
+      0.011857647489075472,
+      1.0522547323098597,
+      9.457811335332671
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      21.05263157894737,
+      12.616607685120474,
+      12.616607685120474,
+      0.01900910844047975,
+      1.5914696008822335,
+      14.067714943770284
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      26.315789473684212,
+      14.727568236373422,
+      14.727568236373422,
+      0.027739490167210123,
+      2.1685789457811975,
+      18.662391130992525
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      31.578947368421055,
+      16.651437140114115,
+      16.651437140114115,
+      0.03833937788753287,
+      2.7721491584800213,
+      22.931250719053484
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      36.8421052631579,
+      18.427280608975707,
+      18.427280608975707,
+      0.05127404581041043,
+      3.394967712876746,
+      26.576505984569042
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      42.10526315789474,
+      20.082611109417183,
+      20.082611109417183,
+      0.06725150661724735,
+      4.03230622847517,
+      29.320039087255367
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      47.36842105263158,
+      21.638016027283268,
+      21.638016027283268,
+      0.08736081214070274,
+      4.681101155738529,
+      30.92345075650199
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      52.631578947368425,
+      23.109906611118888,
+      23.109906611118888,
+      0.11334305294108474,
+      5.339609913763611,
+      31.21190114384933
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      57.89473684210527,
+      24.512526123558374,
+      24.512526123558374,
+      0.14815663447029562,
+      6.007437882004917,
+      30.09259510781819
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      63.15789473684211,
+      25.860097790542287,
+      25.860097790542287,
+      0.19729580267723423,
+      6.686109355493002,
+      27.55870714925252
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      68.42105263157896,
+      27.17080360185171,
+      27.170803601851706,
+      0.27244379994950607,
+      7.381049473809216,
+      23.667694915201572
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      73.6842105263158,
+      28.47974357201252,
+      28.479743572012524,
+      0.4050344361434736,
+      8.109336072061476,
+      18.459933590952126
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      78.94736842105263,
+      29.93511419723791,
+      29.93511419723791,
+      0.7490741085904784,
+      8.959318756265494,
+      11.456671349719972
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      84.21052631578948,
+      83.21497232738587,
+      83.2149723273859,
+      84.6742342174072,
+      69.23346950057586,
+      0.11807769619093635
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      89.47368421052633,
+      83.26577776254136,
+      83.26577776254138,
+      84.69183043301094,
+      69.31803385723784,
+      0.11805319332769226
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      94.73684210526316,
+      83.31631068780587,
+      83.31631068780585,
+      84.70930035447046,
+      69.40219582710452,
+      0.11802887638724725
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      100.0,
+      83.36657432988825,
+      83.36657432988825,
+      84.72664568564106,
+      69.48595996301522,
+      0.11800474277595205
+     ]
+    ]
+   },
+   "roadrunner": {
+    "species": [
+     "OCT4_Gene",
+     "NANOG_Gene",
+     "SOX2_Gene",
+     "targetGene",
+     "degradation",
+     "p53",
+     "A",
+     "OCT4",
+     "SOX2",
+     "NANOG",
+     "OCT4_SOX2",
+     "Protein"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      0.0,
+      9.999949110985432e-05,
+      9.999949110985431e-05,
+      9.999999100078052e-05,
+      9.997898506589344e-11,
+      0.009090909999807962
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      5.2631578947368425,
+      4.306786575772289,
+      4.306786575772289,
+      0.0019910229296291296,
+      0.18544701668918617,
+      1.6940900717448566
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      10.526315789473685,
+      7.5544667786145645,
+      7.5544667786145645,
+      0.006153428108124483,
+      0.5705855659787155,
+      5.176755105704578
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      15.789473684210527,
+      10.258972576512335,
+      10.258972576512335,
+      0.011857647489075465,
+      1.0522547323098592,
+      9.457811335332668
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      21.05263157894737,
+      12.616607685120533,
+      12.616607685120586,
+      0.019009108440477835,
+      1.5914696008821985,
+      14.067714943770293
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      26.315789473684212,
+      14.727568236373425,
+      14.727568236373425,
+      0.027739490167210144,
+      2.1685789457811984,
+      18.662391130992532
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      31.578947368421055,
+      16.651437140114115,
+      16.651437140114115,
+      0.03833937788753287,
+      2.7721491584800213,
+      22.931250719053487
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      36.8421052631579,
+      18.427280608975703,
+      18.427280608975703,
+      0.0512740458104104,
+      3.394967712876745,
+      26.57650598456904
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      42.10526315789474,
+      20.082611109417183,
+      20.082611109417183,
+      0.06725150661724733,
+      4.03230622847517,
+      29.32003908725537
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      47.36842105263158,
+      21.638016027283268,
+      21.638016027283268,
+      0.08736081214070275,
+      4.68110115573853,
+      30.923450756501992
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      52.631578947368425,
+      23.109906611118884,
+      23.109906611118884,
+      0.11334305294108477,
+      5.339609913763612,
+      31.21190114384921
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      57.89473684210527,
+      24.512526123558366,
+      24.512526123558366,
+      0.14815663447029426,
+      6.007437882004913,
+      30.09259510781426
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      63.15789473684211,
+      25.86009779054229,
+      25.860097790542287,
+      0.19729580267723443,
+      6.686109355493005,
+      27.558707149252506
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      68.42105263157896,
+      27.170803601851702,
+      27.170803601851702,
+      0.2724437999495054,
+      7.381049473809211,
+      23.667694915201604
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      73.6842105263158,
+      28.47974357201252,
+      28.479743572012516,
+      0.40503443614347234,
+      8.109336072061472,
+      18.459933590952165
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      78.94736842105263,
+      29.9351141972379,
+      29.9351141972379,
+      0.7490741085904745,
+      8.95931875626549,
+      11.45667134972002
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      84.21052631578948,
+      83.21497232738588,
+      83.21497232738587,
+      84.67423421740719,
+      69.23346950057585,
+      0.11807769619093636
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      89.47368421052633,
+      83.26577776254136,
+      83.26577776254138,
+      84.69183043301094,
+      69.31803385723782,
+      0.11805319332769228
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      94.73684210526316,
+      83.31631068780585,
+      83.31631068780585,
+      84.70930035447046,
+      69.4021958271045,
+      0.11802887638724724
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      100.0,
+      83.36657432988825,
+      83.36657432988825,
+      84.72664568564109,
+      69.48595996301523,
+      0.11800474277595203
+     ]
+    ]
+   },
+   "run_network": {
+    "species": [
+     "OCT4_Gene",
+     "NANOG_Gene",
+     "SOX2_Gene",
+     "targetGene",
+     "degradation",
+     "p53",
+     "A",
+     "OCT4",
+     "SOX2",
+     "NANOG",
+     "OCT4_SOX2",
+     "Protein"
+    ],
+    "values": [
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      -5.458087283338e-24,
+      9.999949110985e-05,
+      9.999949110985e-05,
+      9.999999100078e-05,
+      9.9978986425e-11,
+      0.009090909999808
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      5.263157894737,
+      4.306786575772,
+      4.306786575772,
+      0.001991022929629,
+      0.1854470166892,
+      1.694090071745
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      10.52631578947,
+      7.554466778615,
+      7.554466778615,
+      0.006153428108124,
+      0.5705855659787,
+      5.176755105705
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      15.78947368421,
+      10.25897257651,
+      10.25897257651,
+      0.01185764748908,
+      1.05225473231,
+      9.457811335333
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      21.05263157895,
+      12.61660768512,
+      12.61660768512,
+      0.01900910844048,
+      1.591469600882,
+      14.06771494377
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      26.31578947368,
+      14.72756823637,
+      14.72756823637,
+      0.02773949016721,
+      2.168578945781,
+      18.66239113099
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      31.57894736842,
+      16.65143714011,
+      16.65143714011,
+      0.03833937788753,
+      2.77214915848,
+      22.93125071905
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      36.84210526316,
+      18.42728060898,
+      18.42728060898,
+      0.05127404581041,
+      3.394967712877,
+      26.57650598457
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      42.10526315789,
+      20.08261110942,
+      20.08261110942,
+      0.06725150661725,
+      4.032306228475,
+      29.32003908725
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      47.36842105263,
+      21.63801602728,
+      21.63801602728,
+      0.0873608121407,
+      4.681101155739,
+      30.9234507565
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      52.63157894737,
+      23.10990661112,
+      23.10990661112,
+      0.1133430529411,
+      5.339609913764,
+      31.21190114385
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      57.89473684211,
+      24.51252612356,
+      24.51252612356,
+      0.1481566344703,
+      6.007437882005,
+      30.09259510782
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      63.15789473684,
+      25.86009779054,
+      25.86009779054,
+      0.1972958026772,
+      6.686109355493,
+      27.55870714925
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      68.42105263158,
+      27.17080360185,
+      27.17080360185,
+      0.2724437999495,
+      7.381049473809,
+      23.6676949152
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      73.68421052632,
+      28.47974357201,
+      28.47974357201,
+      0.4050344361435,
+      8.109336072061,
+      18.45993359095
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      78.94736842105,
+      29.93511419724,
+      29.93511419724,
+      0.7490741085905,
+      8.959318756265,
+      11.45667134972
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      84.21052631579,
+      83.21497232739,
+      83.21497232739,
+      84.67423421741,
+      69.23346950058,
+      0.1180776961909
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      89.47368421053,
+      83.26577776254,
+      83.26577776254,
+      84.69183043301,
+      69.31803385724,
+      0.1180531933277
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      94.73684210526,
+      83.31631068781,
+      83.31631068781,
+      84.70930035447,
+      69.4021958271,
+      0.1180288763872
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.01,
+      0.0,
+      0.0,
+      100.0,
+      83.36657432989,
+      83.36657432989,
+      84.72664568564,
+      69.48595996302,
+      0.118004742776
+     ]
+    ]
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 2,
+ "problem": "embryonic_stem_cell_switch_chickarmane2006",
+ "schema": 1,
+ "setting": "newton",
+ "started": "2026-11-24T20:38:40.342107+00:00",
+ "verdicts": {
+  "amici": {
+   "max_ratio": 0.03882774384313962,
+   "max_rel": 3.887045435765169e-06,
+   "passed": true,
+   "per_point": [
+    0.03882774384313962,
+    0.015077305239944674,
+    0.019723839022241722,
+    0.021243039377773096,
+    0.018778527792675546,
+    0.019394744536603618,
+    0.015155701560822396,
+    0.016668963809084246,
+    0.019829233970650374,
+    0.01633139460847719,
+    0.01467805913666088,
+    0.015485037403982502,
+    0.02056787143913111,
+    0.020945061497068724,
+    0.015067881336914635,
+    0.01833897126033717,
+    0.018600412616207714,
+    0.019306439902940734,
+    0.023330404516545052,
+    0.019124040972755708
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 0,
+   "worst_species": "Protein"
+  },
+  "copasi": {
+   "max_ratio": 0.00012974517072467784,
+   "max_rel": 1.2988789039820604e-08,
+   "passed": true,
+   "per_point": [
+    0.00012974517072467784,
+    3.676895969168066e-05,
+    9.394564739121681e-06,
+    1.1553373821509681e-05,
+    1.1763880674625696e-05,
+    9.85251827265077e-06,
+    9.718101203861142e-06,
+    1.2000551903704169e-05,
+    2.2452216473688735e-06,
+    1.3695750440055219e-05,
+    1.336241522204876e-05,
+    1.3394390958446666e-05,
+    1.041999183652366e-05,
+    7.060947360607138e-06,
+    3.640769967884787e-05,
+    3.118248465855841e-05,
+    4.704802327591443e-05,
+    6.627164260959252e-05,
+    6.892534609517901e-05,
+    3.541780498091333e-06
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 0,
+   "worst_species": "Protein"
+  },
+  "engine_free": {
+   "conservation": {
+    "max": 0.0,
+    "n_laws": 7,
+    "passed": true,
+    "per_point": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_point": 19
+   },
+   "evaluated": true,
+   "passed": true,
+   "residual": {
+    "evaluated": true,
+    "max": 6.494394576995241e-09,
+    "passed": true,
+    "per_point": [
+     6.494394576995241e-09,
+     1.838504932389906e-09,
+     4.697378904117258e-10,
+     5.776781827759453e-10,
+     5.882030338246188e-10,
+     4.926326253955433e-10,
+     4.859117107429909e-10,
+     6.000357965545798e-10,
+     1.1226272859388874e-10,
+     6.847980586932079e-10,
+     6.681320527438327e-10,
+     6.697325215592526e-10,
+     5.210113992058468e-10,
+     3.530575720728452e-10,
+     1.8204582958192892e-09,
+     1.5592335102296701e-09,
+     2.3692704730748295e-09,
+     3.3386964428416838e-09,
+     3.47392888639895e-09,
+     1.785898623962863e-10
+    ],
+    "tol": 0.0001,
+    "worst_point": 0,
+    "worst_species": "@comp1::Protein()"
+   }
+  },
+  "roadrunner": {
+   "max_ratio": 0.00012974515547588663,
+   "max_rel": 1.3593920906350028e-08,
+   "passed": true,
+   "per_point": [
+    0.00012974515547588663,
+    3.67689583810201e-05,
+    9.394569886131775e-06,
+    1.1553370065192031e-05,
+    1.1763874361126092e-05,
+    9.852514465353458e-06,
+    9.718102753128906e-06,
+    1.2000553240472977e-05,
+    2.245222859053022e-06,
+    1.3695751588911238e-05,
+    1.3362376521994088e-05,
+    1.3393085246621025e-05,
+    1.0419996992980728e-05,
+    7.060960869949252e-06,
+    3.6407720848095474e-05,
+    3.118252651917243e-05,
+    4.704802444285606e-05,
+    6.627164144288137e-05,
+    6.892534726161251e-05,
+    3.5417816642455113e-06
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 0,
+   "worst_species": "Protein"
+  },
+  "run_network": {
+   "max_ratio": 0.00012974519741006243,
+   "max_rel": 1.0,
+   "passed": true,
+   "per_point": [
+    0.00012974519741006243,
+    3.6768111694291915e-05,
+    9.39538482939642e-06,
+    1.1553721280892256e-05,
+    1.176408270661298e-05,
+    9.853871766845132e-06,
+    9.716581372185353e-06,
+    1.2000190976125746e-05,
+    2.243390792620397e-06,
+    1.3695107080684318e-05,
+    1.3362629210586368e-05,
+    1.3394991869223566e-05,
+    1.0420905818539153e-05,
+    7.0602824007675835e-06,
+    3.6406548841569296e-05,
+    3.11825094648482e-05,
+    4.7044967055801376e-05,
+    6.627099158476725e-05,
+    6.892931780123143e-05,
+    3.5377514354052108e-06
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 0,
+   "worst_species": "Protein"
+  }
+ },
+ "wall_seconds": 51.98186258599162
+}

@@ -1,0 +1,723 @@
+{
+ "amici_error": "RuntimeError: AMICI simulation failed with status -1",
+ "capability": "sens",
+ "copasi_error": "TIMEOUT in the correctness job, so not timed (TIMEOUT: no result within the 1800 s per-engine budget (stopped in: first solve))",
+ "engines": "bngsim-vs-amici-run_network_fd-copasi",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "eb7e3708a100cb697904413d463740463356c54d",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 88,
+   "machine": "x86_64",
+   "microcode": "0x2006e05",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/cell_cycle_oscillator_lang2024/bngsim-vs-amici-run_network_fd-copasi/auto/timing",
+ "key": "d7758cd89f99ea2a82ca6f8777e1755397c711963de79f7df3af566f2f577612",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   },
+   "loader": {
+    "glibc_version": "2.34",
+    "libstdcxx_version": "3.4.29",
+    "tag": "rocky-9.5"
+   },
+   "node_type": "Intel(R) Xeon(R) Gold 6152 CPU @ 2.10GHz | x86_64 | Linux"
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-run_network_fd-copasi/1",
+    "protocol": {
+     "atol": 1e-12,
+     "fd_atol": 1e-14,
+     "fd_rtol": 1e-12,
+     "fd_step": 0.001,
+     "fitted": [
+      "kPhRbD",
+      "kPhRbE",
+      "kDpRb",
+      "kPhRb",
+      "kSyCe1",
+      "kSyCe2",
+      "kDeCe",
+      "kDiE2fRb",
+      "kAsE2fRb",
+      "kSyE2f1",
+      "kSyE2f2",
+      "kDeE2f1",
+      "kDeE2f2",
+      "kPhE2f",
+      "kDpE2f2",
+      "kSyEmi1",
+      "kSyEmi2",
+      "kDeEmi1",
+      "kDeEmi2",
+      "kDeEmi3",
+      "kPhEmiA",
+      "kPhEmiB",
+      "kDpEmi",
+      "kSyCa1",
+      "kSyCa2",
+      "kDeCa1",
+      "kDeCa2",
+      "kDeCa3",
+      "kDpCdh",
+      "kPhCdhA",
+      "kPhCdhE",
+      "kPhCdhB",
+      "kDiACE",
+      "kAsACE",
+      "kDiACdh",
+      "kAsACdh",
+      "kPhCeA",
+      "kPhCeE",
+      "kPhFoxE",
+      "kPhFoxA",
+      "kPhFoxB",
+      "kDpFox",
+      "kSyCb1",
+      "kSyCb2",
+      "kDeCb1",
+      "kDeCb2",
+      "kDeCb3",
+      "kPhEnsa",
+      "kDpEnsa",
+      "kPhGw",
+      "kDpGw1",
+      "kDpGw2",
+      "kWee1",
+      "kWee2",
+      "kPhWeeA",
+      "kPhWeeB",
+      "kDpWee",
+      "kCdc25_1",
+      "kCdc25_2",
+      "kDpCdc25",
+      "kDipEB55",
+      "kAspEB55",
+      "kSyCdc_1",
+      "kSyCdc_2",
+      "kDeCdc_1",
+      "kDeCdc_2",
+      "kDipACdc",
+      "kAspACdc",
+      "kPhApcA",
+      "kDpApc_1",
+      "kDpApc_2",
+      "kSyFox1",
+      "kSyFox2",
+      "kDeFox1",
+      "kDeFox2",
+      "kAsEPx",
+      "kDiEPx",
+      "kAsFPcb",
+      "kDiFPcb",
+      "kAsFPcdc",
+      "kDiFPcdc",
+      "kPhC25B",
+      "kPhCAEE",
+      "kPhCAEA",
+      "kPhCAEB",
+      "kDpE2f1",
+      "kPhC25A",
+      "kSySkp2",
+      "kDeSkp2_1",
+      "kDeSkp2_2",
+      "kAsTP53PCDKN1A",
+      "kDiTP53PCDKN1A",
+      "kSyCDKN1A_1",
+      "kSyCDKN1A_2",
+      "kDeCDKN1A_1",
+      "kDeCDKN1A_2",
+      "kAsCdkn1aC",
+      "kDiCdkn1aC",
+      "kPhCDKN1AByCe",
+      "kPhCDKN1AByCa",
+      "kPhCDKN1AByCb",
+      "kDpCDKN1A",
+      "kAsFOXOPCDKN1B",
+      "kDiFOXOPCDKN1B",
+      "kSyCDKN1B_1",
+      "kSyCDKN1B_2",
+      "kDeCDKN1B_1",
+      "kDeCDKN1B_2",
+      "kAsCdkn1bC",
+      "kDiCdkn1bC",
+      "kPhCDKN1BByCe",
+      "kPhCDKN1BByCa",
+      "kPhCDKN1BByCb",
+      "kDpCDKN1B",
+      "ic_wt_cell__CCND",
+      "ic_wt_cell__CCNE_CDKN1A_B_",
+      "ic_wt_cell__E2F_DBD_RB1_Ser332u_",
+      "ic_wt_cell__E2F_DBD_RB1_Ser332p_",
+      "ic_wt_cell__CCNA_CDKN1A_B_",
+      "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15u_CDKN1A_",
+      "ic_wt_cell__E2F_DBD_RB1_1_Ser332u__RB1_E2F_1_Ser807_Ser811u_",
+      "ic_wt_cell__E2F_DBD_RB1_1_Ser332p__RB1_E2F_1_Ser807_Ser811u_",
+      "ic_wt_cell__RB1_E2F_Ser807_Ser811u_",
+      "ic_wt_cell__RB1_E2F_Ser807_Ser811p_",
+      "ic_wt_cell__PPP2R2B_ENSA_ARPP19_",
+      "ic_wt_cell__APC_FBXO5_FZR1_CDC20_Ser355u_",
+      "ic_wt_cell__CDC20_APC_",
+      "ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355p__CDC20_APC_1_",
+      "ic_wt_cell__APC_FBXO5_FZR1_CDC20_Ser355p_",
+      "ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355u__FZR1_APC_1_FBXO5_nTermu_",
+      "ic_wt_cell__FZR1_APC_FBXO5_nTermu_",
+      "ic_wt_cell__FZR1_APC_FBXO5_nTermp_",
+      "ic_wt_cell__APC_FBXO5_1_FZR1_CDC20_2_Ser355u__FBXO5_APC_1_FZR1_3_Ser182u__FZR1_APC_2_FBXO5_3_nTermu_",
+      "ic_wt_cell__FBXO5_APC_FZR1_Ser182u_",
+      "ic_wt_cell__APC_FBXO5_1_FZR1_CDC20_2_Ser355p__FBXO5_APC_1_FZR1_3_Ser182u__FZR1_APC_2_FBXO5_3_nTermu_",
+      "ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355p__FZR1_APC_1_FBXO5_nTermu_",
+      "ic_wt_cell__FBXO5_APC_FZR1_Ser182p_",
+      "ic_wt_cell__FOXM1_DBD_Thr600u_",
+      "ic_wt_cell__FOXM1_DBD_Thr600p_",
+      "ic_wt_cell__WEE1_Ser123u_",
+      "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15p_CDKN1A_",
+      "ic_wt_cell__WEE1_Ser123p_",
+      "ic_wt_cell__CDC25_pSitesp_",
+      "ic_wt_cell__CDC25_pSitesu_",
+      "ic_wt_cell__MASTL_Thr198u_",
+      "ic_wt_cell__MASTL_Thr198p_",
+      "ic_wt_cell__ENSA_ARPP19_PPP2R2B_Ser62_Ser67u_",
+      "ic_wt_cell__ENSA_ARPP19_PPP2R2B_Ser62_Ser67p_",
+      "ic_wt_cell__ENSA_ARPP19_PPP2R2B_1_Ser62_Ser67p__PPP2R2B_ENSA_ARPP19_1_",
+      "ic_wt_cell__CDKN1A_CCNE_A_B_Ser130u_",
+      "ic_wt_cell__CDKN1B_CCNE_A_Thr187u_",
+      "ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+      "ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+      "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15u_CDKN1A_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+      "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15p_CDKN1A_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+      "ic_wt_cell__CDKN1A_CCNE_A_B_Ser130p_",
+      "ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187u_",
+      "ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187u_",
+      "ic_wt_cell__CDKN1B_CCNE_A_Thr187p_",
+      "ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187p_",
+      "ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187p_"
+     ],
+     "n_steps": 300,
+     "netgen": "generate_network({overwrite=>1})",
+     "parameters": "fitted",
+     "rtol": 1e-10,
+     "t_end": 136471.6126
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "64020c9b7f7cc6c0ff584b45fedaf34777fe2ff4062ed12545d381264afa6072",
+    "timing": {
+     "budget_seconds": 120.0,
+     "max_rounds": 20,
+     "min_rounds": 5,
+     "warmup_rounds": 1
+    },
+    "timing_check": 1
+   },
+   "id": "sens/cell_cycle_oscillator_lang2024/bngsim-vs-amici-run_network_fd-copasi/auto/timing"
+  }
+ },
+ "kind": "timing",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "codegen_backend": "cc",
+   "codegen_cache_hit": false,
+   "codegen_seconds": 2.998061590944417,
+   "linear_solver": "dense",
+   "load_seconds": 0.003252363996580243,
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null,
+   "solver_stats": {
+    "n_err_test_fails": 4,
+    "n_rhs_evals": 23810,
+    "n_sens_err_test_fails": 426,
+    "n_sens_nonlin_conv_fails": 0,
+    "n_steps": 11292
+   }
+  },
+  "bngsim_cold_seconds": 13.462884088046849,
+  "configurations": {
+   "bngsim_ode": {
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 9.45639330893755e-05,
+    "load_seconds": 0.003556319046765566
+   },
+   "bngsim_simultaneous": {
+    "analytic_sensitivity_rhs": true,
+    "codegen_backend": "cc",
+    "codegen_cache_hit": true,
+    "codegen_seconds": 0.003361091949045658,
+    "linear_solver": "dense",
+    "load_seconds": 0.004183195997029543,
+    "sensitivity_method": "simultaneous",
+    "sensitivity_rhs_decline": null,
+    "solver_stats": {
+     "n_err_test_fails": 445,
+     "n_rhs_evals": 13977,
+     "n_sens_err_test_fails": 0,
+     "n_sens_nonlin_conv_fails": 0,
+     "n_steps": 11596
+    }
+   }
+  },
+  "engine_roles": {
+   "bngsim": "warm, in-process (system under test, staggered corrector)",
+   "bngsim_ode": "warm, in-process (plain solve: the unit of a finite-difference gradient)",
+   "bngsim_simultaneous": "warm, in-process (system under test, simultaneous corrector)",
+   "run_network": "fresh subprocess"
+  },
+  "fd_baselines": {
+   "bngsim_ode": {
+    "central_seconds": 38.674096405506134,
+    "forward_seconds": 19.45943458378315,
+    "parameters": 158
+   },
+   "run_network": {
+    "central_seconds": 103.38718845602125,
+    "forward_seconds": 52.02076887502335,
+    "parameters": 158
+   }
+  },
+  "netgen_seconds": 0.6935870159650221,
+  "network": {
+   "observables": 9,
+   "reactions": 332,
+   "species": 73
+  },
+  "parameters": {
+   "convention": "fitted",
+   "excluded": {
+    "kDpApc_1": "zero value: no relative step (give it a parameter_scales entry)",
+    "kDpE2f1": "zero value: no relative step (give it a parameter_scales entry)",
+    "kPhC25A": "zero value: no relative step (give it a parameter_scales entry)"
+   },
+   "n": 158,
+   "names": [
+    "kPhRbD",
+    "kPhRbE",
+    "kDpRb",
+    "kPhRb",
+    "kSyCe1",
+    "kSyCe2",
+    "kDeCe",
+    "kDiE2fRb",
+    "kAsE2fRb",
+    "kSyE2f1",
+    "kSyE2f2",
+    "kDeE2f1",
+    "kDeE2f2",
+    "kPhE2f",
+    "kDpE2f2",
+    "kSyEmi1",
+    "kSyEmi2",
+    "kDeEmi1",
+    "kDeEmi2",
+    "kDeEmi3",
+    "kPhEmiA",
+    "kPhEmiB",
+    "kDpEmi",
+    "kSyCa1",
+    "kSyCa2",
+    "kDeCa1",
+    "kDeCa2",
+    "kDeCa3",
+    "kDpCdh",
+    "kPhCdhA",
+    "kPhCdhE",
+    "kPhCdhB",
+    "kDiACE",
+    "kAsACE",
+    "kDiACdh",
+    "kAsACdh",
+    "kPhCeA",
+    "kPhCeE",
+    "kPhFoxE",
+    "kPhFoxA",
+    "kPhFoxB",
+    "kDpFox",
+    "kSyCb1",
+    "kSyCb2",
+    "kDeCb1",
+    "kDeCb2",
+    "kDeCb3",
+    "kPhEnsa",
+    "kDpEnsa",
+    "kPhGw",
+    "kDpGw1",
+    "kDpGw2",
+    "kWee1",
+    "kWee2",
+    "kPhWeeA",
+    "kPhWeeB",
+    "kDpWee",
+    "kCdc25_1",
+    "kCdc25_2",
+    "kDpCdc25",
+    "kDipEB55",
+    "kAspEB55",
+    "kSyCdc_1",
+    "kSyCdc_2",
+    "kDeCdc_1",
+    "kDeCdc_2",
+    "kDipACdc",
+    "kAspACdc",
+    "kPhApcA",
+    "kDpApc_2",
+    "kSyFox1",
+    "kSyFox2",
+    "kDeFox1",
+    "kDeFox2",
+    "kAsEPx",
+    "kDiEPx",
+    "kAsFPcb",
+    "kDiFPcb",
+    "kAsFPcdc",
+    "kDiFPcdc",
+    "kPhC25B",
+    "kPhCAEE",
+    "kPhCAEA",
+    "kPhCAEB",
+    "kSySkp2",
+    "kDeSkp2_1",
+    "kDeSkp2_2",
+    "kAsTP53PCDKN1A",
+    "kDiTP53PCDKN1A",
+    "kSyCDKN1A_1",
+    "kSyCDKN1A_2",
+    "kDeCDKN1A_1",
+    "kDeCDKN1A_2",
+    "kAsCdkn1aC",
+    "kDiCdkn1aC",
+    "kPhCDKN1AByCe",
+    "kPhCDKN1AByCa",
+    "kPhCDKN1AByCb",
+    "kDpCDKN1A",
+    "kAsFOXOPCDKN1B",
+    "kDiFOXOPCDKN1B",
+    "kSyCDKN1B_1",
+    "kSyCDKN1B_2",
+    "kDeCDKN1B_1",
+    "kDeCDKN1B_2",
+    "kAsCdkn1bC",
+    "kDiCdkn1bC",
+    "kPhCDKN1BByCe",
+    "kPhCDKN1BByCa",
+    "kPhCDKN1BByCb",
+    "kDpCDKN1B",
+    "ic_wt_cell__CCND",
+    "ic_wt_cell__CCNE_CDKN1A_B_",
+    "ic_wt_cell__E2F_DBD_RB1_Ser332u_",
+    "ic_wt_cell__E2F_DBD_RB1_Ser332p_",
+    "ic_wt_cell__CCNA_CDKN1A_B_",
+    "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15u_CDKN1A_",
+    "ic_wt_cell__E2F_DBD_RB1_1_Ser332u__RB1_E2F_1_Ser807_Ser811u_",
+    "ic_wt_cell__E2F_DBD_RB1_1_Ser332p__RB1_E2F_1_Ser807_Ser811u_",
+    "ic_wt_cell__RB1_E2F_Ser807_Ser811u_",
+    "ic_wt_cell__RB1_E2F_Ser807_Ser811p_",
+    "ic_wt_cell__PPP2R2B_ENSA_ARPP19_",
+    "ic_wt_cell__APC_FBXO5_FZR1_CDC20_Ser355u_",
+    "ic_wt_cell__CDC20_APC_",
+    "ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355p__CDC20_APC_1_",
+    "ic_wt_cell__APC_FBXO5_FZR1_CDC20_Ser355p_",
+    "ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355u__FZR1_APC_1_FBXO5_nTermu_",
+    "ic_wt_cell__FZR1_APC_FBXO5_nTermu_",
+    "ic_wt_cell__FZR1_APC_FBXO5_nTermp_",
+    "ic_wt_cell__APC_FBXO5_1_FZR1_CDC20_2_Ser355u__FBXO5_APC_1_FZR1_3_Ser182u__FZR1_APC_2_FBXO5_3_nTermu_",
+    "ic_wt_cell__FBXO5_APC_FZR1_Ser182u_",
+    "ic_wt_cell__APC_FBXO5_1_FZR1_CDC20_2_Ser355p__FBXO5_APC_1_FZR1_3_Ser182u__FZR1_APC_2_FBXO5_3_nTermu_",
+    "ic_wt_cell__APC_FBXO5_FZR1_CDC20_1_Ser355p__FZR1_APC_1_FBXO5_nTermu_",
+    "ic_wt_cell__FBXO5_APC_FZR1_Ser182p_",
+    "ic_wt_cell__FOXM1_DBD_Thr600u_",
+    "ic_wt_cell__FOXM1_DBD_Thr600p_",
+    "ic_wt_cell__WEE1_Ser123u_",
+    "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15p_CDKN1A_",
+    "ic_wt_cell__WEE1_Ser123p_",
+    "ic_wt_cell__CDC25_pSitesp_",
+    "ic_wt_cell__CDC25_pSitesu_",
+    "ic_wt_cell__MASTL_Thr198u_",
+    "ic_wt_cell__MASTL_Thr198p_",
+    "ic_wt_cell__ENSA_ARPP19_PPP2R2B_Ser62_Ser67u_",
+    "ic_wt_cell__ENSA_ARPP19_PPP2R2B_Ser62_Ser67p_",
+    "ic_wt_cell__ENSA_ARPP19_PPP2R2B_1_Ser62_Ser67p__PPP2R2B_ENSA_ARPP19_1_",
+    "ic_wt_cell__CDKN1A_CCNE_A_B_Ser130u_",
+    "ic_wt_cell__CDKN1B_CCNE_A_Thr187u_",
+    "ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+    "ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+    "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15u_CDKN1A_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+    "ic_wt_cell__CCNB_CDK1_Thr14_Tyr15p_CDKN1A_1__CDKN1A_CCNE_A_B_1_Ser130u_",
+    "ic_wt_cell__CDKN1A_CCNE_A_B_Ser130p_",
+    "ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187u_",
+    "ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187u_",
+    "ic_wt_cell__CDKN1B_CCNE_A_Thr187p_",
+    "ic_wt_cell__CCNA_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187p_",
+    "ic_wt_cell__CCNE_CDKN1A_B_1__CDKN1B_CCNE_A_1_Thr187p_"
+   ],
+   "scales": {},
+   "selection": "fitted"
+  },
+  "references": {
+   "run_network": {
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-12",
+     "-r",
+     "1e-10",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<perturbed>.net",
+     "<perturbed>.net",
+     "454.9053753333333",
+     "300"
+    ]
+   }
+  },
+  "repetitions": {
+   "engines": {
+    "bngsim": {
+     "seconds": [
+      9.776627974002622,
+      9.841718547977507,
+      9.83368098794017,
+      9.67150782502722,
+      9.771836948930286,
+      9.738631154992618
+     ]
+    },
+    "bngsim_ode": {
+     "seconds": [
+      0.12289800599683076,
+      0.1224364039953798,
+      0.12156877410598099,
+      0.12224153499118984,
+      0.12239369505550712,
+      0.12237906700465828
+     ]
+    },
+    "bngsim_simultaneous": {
+     "seconds": [
+      10.080891571007669,
+      10.017842923058197,
+      10.083363240002654,
+      10.119122729054652,
+      9.988770844065584,
+      10.048541115014814
+     ]
+    },
+    "run_network": {
+     "seconds": [
+      0.3272020890144631,
+      0.3271472050109878,
+      0.3261715949047357,
+      0.33143534197006375,
+      0.32778922899160534,
+      0.32609088998287916
+     ]
+    }
+   },
+   "order": "bngsim bngsim_simultaneous bngsim_ode run_network",
+   "rounds": 6,
+   "warmup_rounds": 1
+  },
+  "reproducibility": {
+   "bngsim": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 6,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim_ode": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 5,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "bngsim_simultaneous": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 5,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   },
+   "run_network": {
+    "max_err_over_peak": 0.0,
+    "n_reps": 5,
+    "passed": true,
+    "per_rep": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_rep": 0
+   }
+  },
+  "times": {
+   "bngsim": {
+    "ci_high": 9.837699767958838,
+    "ci_low": 9.705069490009919,
+    "confidence": 0.95,
+    "median_seconds": 9.774232461466454,
+    "rounds": 6
+   },
+   "bngsim_ode": {
+    "ci_high": 0.12266720499610528,
+    "ci_low": 0.12190515454858541,
+    "confidence": 0.95,
+    "median_seconds": 0.1223863810300827,
+    "rounds": 6
+   },
+   "bngsim_simultaneous": {
+    "ci_high": 10.101242984528653,
+    "ci_low": 10.00330688356189,
+    "confidence": 0.95,
+    "median_seconds": 10.064716343011241,
+    "rounds": 6
+   },
+   "run_network": {
+    "ci_high": 0.32961228548083454,
+    "ci_low": 0.3261312424438074,
+    "confidence": 0.95,
+    "median_seconds": 0.3271746470127255,
+    "rounds": 6
+   }
+  }
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 0,
+ "problem": "cell_cycle_oscillator_lang2024",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T21:44:42.865356+00:00",
+ "wall_seconds": 201.71915442799218
+}

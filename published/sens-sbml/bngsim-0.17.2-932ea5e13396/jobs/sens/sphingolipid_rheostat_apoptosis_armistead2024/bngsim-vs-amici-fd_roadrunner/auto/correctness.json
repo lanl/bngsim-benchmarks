@@ -1,0 +1,485 @@
+{
+ "capability": "sens",
+ "engines": "bngsim-vs-amici-fd_roadrunner",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "ac002795beda96290c7d6fbd44d4a71819186ec0",
+   "dirty": false,
+   "source_sha256": "e39bd5e5b50ef99b7573795943b5e0a2724a2722f8406287c79afae27bfa7291"
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "sens/sphingolipid_rheostat_apoptosis_armistead2024/bngsim-vs-amici-fd_roadrunner/auto/correctness",
+ "key": "ce031742a07013cd688321c0e4e58ba7ece5b719dc2ab9b83b0af47c8f077bfb",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "sens/bngsim-vs-amici-fd_roadrunner/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "petab_sha256": {
+     "conditions": "2f445469d1f174e5f41cb3a10b9013bae71a17f955856274c8807ae41da72796",
+     "measurements": "f8fc66c554581b61fe9cb98451aeb9ac123ac23476d2bc641aebc684f573b59e",
+     "observables": "b3d4e161d1755ad5cfd0b36dfaf1d11100ed1dd7b09d781f0da1986eca63b6db",
+     "parameters": "cd25ec9bd9934b41ce31d146065c695125b3a805fa9dd05fba22be48a25884eb",
+     "yaml": "5b84025116f79e1e8218218fd491c680b8f89a2646f644b28cdadf7fe8b9775f"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "fd_atol": 1e-12,
+     "fd_rtol": 1e-10,
+     "fd_step": 0.001,
+     "parameters": [
+      "k00",
+      "k0",
+      "k_d",
+      "k1",
+      "k2",
+      "k3",
+      "k4",
+      "k5",
+      "alpha_hai1a",
+      "alpha_cer"
+     ],
+     "preeq_max_time": 1000000.0,
+     "rtol": 1e-08
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "petab": "0.10.0",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "codegen": "auto",
+     "configurations": {
+      "bngsim": {
+       "sensitivity_method": "staggered"
+      },
+      "bngsim_simultaneous": {
+       "sensitivity_method": "simultaneous"
+      }
+     },
+     "linear_solver": "auto"
+    },
+    "source_sha256": "09ee7897c13f94de0fb0c9fa5c9e3ebce88f04b86076abe325eb4c63c474e734",
+    "verdict": {
+     "fd_resolved": 0.1,
+     "floor_atol": 100.0,
+     "floor_rel": 0.001,
+     "gradient_tol": 0.001,
+     "llh_atol": 0.001,
+     "llh_rtol": 1e-06,
+     "metric": "semi-scaled column error/1",
+     "tol": 0.001
+    }
+   },
+   "id": "sens/sphingolipid_rheostat_apoptosis_armistead2024/bngsim-vs-amici-fd_roadrunner/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "analytic_sensitivity_rhs": true,
+   "atol": "ExactAtol (scalar, held exactly)",
+   "codegen_backend": "cc",
+   "codegen_seconds": 1.7011849189875647,
+   "cold_seconds": 1.9366384320892394,
+   "gradient": [
+    -0.012094357028678004,
+    0.0009246139729384717,
+    -0.007890159077568626,
+    -0.006333522431017258,
+    0.00011360583004353317,
+    -0.0028554673718456398,
+    0.00033811731527144673,
+    -0.4589118063540978,
+    -6.16351081507854e-06,
+    -0.004322808875201867
+   ],
+   "gradient_magnitude": [
+    460.83031825019833,
+    0.07701106838534938,
+    194.8670059711101,
+    208.38789645478232,
+    0.07283253293292212,
+    0.0574524857822085,
+    27.755932643455072,
+    66.47705959666432,
+    4.9701659477138206e-05,
+    120.55791932144221
+   ],
+   "input": "sbml (Model.from_sbml)",
+   "linear_solver": "dense",
+   "llh": 301.91618178826457,
+   "llh_without_log_jacobian": 301.91618178826457,
+   "load_seconds": 0.16380737791769207,
+   "sensitivity_method": "staggered",
+   "sensitivity_rhs_decline": null,
+   "solve_seconds": 0.06472980696707964
+  },
+  "configurations": {
+   "bngsim_simultaneous": {
+    "max_error": 3.1772902771687955e-08,
+    "max_error_observables": 3.1772902771687955e-08,
+    "max_error_species": 3.1772902771687955e-08,
+    "n_columns": 80,
+    "n_failed": 0,
+    "n_floored": 53,
+    "n_judged": 80,
+    "params_judged": [
+     "alpha_cer",
+     "alpha_hai1a",
+     "k0",
+     "k00",
+     "k1",
+     "k2",
+     "k3",
+     "k4",
+     "k5",
+     "k_d"
+    ],
+    "passed": true,
+    "tol": 0.001,
+    "trajectory_max_err_over_peak": 5.889054489972792e-09,
+    "worst": {
+     "condition": "mutant",
+     "error": 3.1772902771687955e-08,
+     "floored": false,
+     "output": "Sphingo",
+     "parameter": "k4",
+     "time": 2.0
+    }
+   }
+  },
+  "coverage": {
+   "n_columns": 80,
+   "n_judged": 27,
+   "n_significant": 27,
+   "unjudged": []
+  },
+  "engine_budget_seconds": 1800.0,
+  "network": {
+   "events": 0,
+   "species": 4,
+   "state_species": 4
+  },
+  "parameters": {
+   "excluded": {
+    "sd_Cer_obs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_S1P_obs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_Sphinga_obs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)",
+    "sd_Sphingo_obs": "not an SBML parameter (an observable, noise or condition-table parameter: it never reaches the state)"
+   },
+   "n": 10,
+   "names": [
+    "k00",
+    "k0",
+    "k_d",
+    "k1",
+    "k2",
+    "k3",
+    "k4",
+    "k5",
+    "alpha_hai1a",
+    "alpha_cer"
+   ],
+   "scales_in_petab": {
+    "alpha_cer": "lin",
+    "alpha_hai1a": "lin",
+    "k0": "log10",
+    "k00": "log10",
+    "k1": "log10",
+    "k2": "log10",
+    "k3": "log10",
+    "k4": "log10",
+    "k5": "log10",
+    "k_d": "log10"
+   },
+   "selection": "estimated SBML parameters"
+  },
+  "petab": {
+   "condition_columns": {
+    "Cer": "species",
+    "S1P": "species",
+    "S_on": "parameter",
+    "Sphinga": "species",
+    "Sphingo": "species"
+   },
+   "conditions": 2,
+   "estimated": 14,
+   "measurement_times": 4,
+   "measurements": 58,
+   "observables": 4,
+   "with_preequilibration": 0
+  },
+  "problem_checks": {
+   "gradient_vs_amici": {
+    "max_rel_difference": 1.1242162309287583e-08,
+    "n_parameters": 10,
+    "passed": true,
+    "semi_scaled_peak": 0.9246139061028872,
+    "semi_scaled_size": 176.70006771811575,
+    "tol": 0.001,
+    "worst_parameter": "k2"
+   },
+   "llh_vs_amici": {
+    "abs_difference": 1.30077239646198e-07,
+    "allowed": 0.0013019161819183417,
+    "bngsim": 301.91618178826457,
+    "passed": true,
+    "reference": 301.9161819183418
+   },
+   "llh_vs_fd_roadrunner_nominal": {
+    "abs_difference": 4.1281396079284605e-08,
+    "allowed": 0.001301916181829546,
+    "bngsim": 301.91618178826457,
+    "passed": true,
+    "reference": 301.91618182954596
+   }
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 35.361230693990365,
+    "cold_seconds": 37.70015729300212,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "gradient": [
+     -0.01209523195142026,
+     0.0009246139729038103,
+     -0.007888756303504498,
+     -0.006339489736130121,
+     0.00011360781653986227,
+     -0.0028554683968388317,
+     0.00033875615147715,
+     -0.4589108727374678,
+     -6.1635088207119724e-06,
+     -0.004323118515184632
+    ],
+    "harness_observables_vs_amici_max_rel": 0.0,
+    "importer": "amici.importers.petab.v1 (petab 0.10.0)",
+    "integrator": "CVODES BDF, forward sensitivities",
+    "llh": 301.9161819183418,
+    "load_seconds": 0.07250947109423578,
+    "not_differentiated": {},
+    "sensitivities": "on the PEtab parameter scale, put back on a linear one",
+    "solve_seconds": 0.041750141070224345,
+    "version": "1.1.0"
+   },
+   "fd_roadrunner": {
+    "cold_seconds": 1.3211509640095755,
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "fd_atol": 1e-12,
+    "fd_rtol": 1e-10,
+    "fd_step": 0.001,
+    "gradient": [
+     -0.0120854862527775,
+     0.0009246118302697127,
+     -0.007888609426025539,
+     -0.006235128011468305,
+     0.00011358529684299921,
+     -0.0028469283537629142,
+     0.00033243321492637534,
+     -0.45884649810213585,
+     2.9415997227270787e-06,
+     -0.004313197012687953
+    ],
+    "integrator": "cvode",
+    "llh": 301.91618182954596,
+    "load_seconds": 0.4439049430657178,
+    "method": "central differences at h and h/2",
+    "output": "SBML semantics (amount if hasOnlySubstanceUnits, else concentration)",
+    "version": "2.11.0"
+   }
+  },
+  "species_in_amount": []
+ },
+ "not_applicable": {
+  "copasi": "COPASI is not wired for PEtab conditions on the SBML path"
+ },
+ "outcome": "PASS",
+ "pinned_cpu": 9,
+ "problem": "sphingolipid_rheostat_apoptosis_armistead2024",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-24T23:42:35.891686+00:00",
+ "verdicts": {
+  "amici": {
+   "max_error": 2.5743573818360788e-08,
+   "max_error_observables": 2.5743573818360788e-08,
+   "max_error_species": 2.5743573818360788e-08,
+   "n_columns": 80,
+   "n_failed": 0,
+   "n_floored": 53,
+   "n_judged": 80,
+   "params_judged": [
+    "alpha_cer",
+    "alpha_hai1a",
+    "k0",
+    "k00",
+    "k1",
+    "k2",
+    "k3",
+    "k4",
+    "k5",
+    "k_d"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 4.273801721716226e-09,
+   "worst": {
+    "condition": "wild_type",
+    "error": 2.5743573818360788e-08,
+    "floored": false,
+    "output": "Sphingo",
+    "parameter": "k4",
+    "time": 2.0
+   }
+  },
+  "fd_roadrunner": {
+   "max_error": 0.00010207810458318132,
+   "max_error_observables": 0.00010207810458318132,
+   "max_error_species": 0.00010207810458318132,
+   "n_columns": 80,
+   "n_failed": 0,
+   "n_floored": 51,
+   "n_judged": 78,
+   "params_judged": [
+    "alpha_cer",
+    "alpha_hai1a",
+    "k0",
+    "k00",
+    "k1",
+    "k2",
+    "k3",
+    "k4",
+    "k5",
+    "k_d"
+   ],
+   "passed": true,
+   "tol": 0.001,
+   "trajectory_max_err_over_peak": 6.803706381909386e-09,
+   "worst": {
+    "condition": "mutant",
+    "error": 0.00010207810458318132,
+    "floored": true,
+    "output": "Cer",
+    "parameter": "k2",
+    "time": 2.0
+   }
+  }
+ },
+ "wall_seconds": 47.01556968293153
+}

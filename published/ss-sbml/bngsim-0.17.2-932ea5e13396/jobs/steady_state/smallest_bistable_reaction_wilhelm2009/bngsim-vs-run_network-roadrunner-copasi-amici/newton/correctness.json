@@ -1,0 +1,1714 @@
+{
+ "capability": "steady_state",
+ "copasi_error": "OTHER_STATE: at point 7 (S=0.8) it returned an unstable steady state (a saddle or a source, where nothing can rest) that the integration from the initial state does not reach (X off by 1e+04 of the tolerance; 7/20 points agree)",
+ "engines": "bngsim-vs-run_network-roadrunner-copasi-amici",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "09925d1c3708ea2e810991b29031a541fcb66ebb",
+   "dirty": false
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz",
+   "governor": "performance",
+   "logical_cpus": 72,
+   "machine": "x86_64",
+   "microcode": "0xb000038",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "nfsim": {
+   "bundled_with": "BioNetGen 2.9.3",
+   "path": "./.cache/bionetgen/BioNetGen-2.9.3/bin/NFsim",
+   "sha256": "3f982a31e43c39ac375be2de2282b100e736ebe418a84b86e6e16845bc58193d",
+   "version": "1.14.3"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2695 v4 @ 2.10GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "rulemonkey": {
+   "built": true,
+   "commit": "ad3bd755cce7839e09061b747facd7025cacb861",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 15.3.0-7) 15.3.0",
+   "path": "./.cache/rulemonkey/RuleMonkey-3.13.0/bin/rm_driver",
+   "sha256": "9b96fa6b2a9ac4812243bbf9d87b19edc2545de1f9a9896dfe40de7730ace7bf",
+   "version": "3.13.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "steady_state/smallest_bistable_reaction_wilhelm2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness",
+ "key": "c9d399298f5f04679abf5eb40701c240a488b88ee5ab32b88e198c70a26931c0",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "harness": "steady_state/bngsim-vs-run_network-roadrunner-copasi-amici/1",
+    "input": {
+     "format": "sbml",
+     "harness": "1"
+    },
+    "protocol": {
+     "atol": 1e-10,
+     "n_steps": 20,
+     "parameters": {},
+     "rtol": 1e-08,
+     "scan": {
+      "log": false,
+      "max": 2.0,
+      "min": 0.1,
+      "points": 20,
+      "species": "S"
+     },
+     "t_end": 1000000.0
+    },
+    "reference_settings": {
+     "amici": {
+      "mode": "integrationOnly",
+      "output": "state (concentration)",
+      "steady_state_tolerance_factor": 1.0,
+      "steady_state_tolerances": "protocol rtol/atol",
+      "tolerances": "protocol rtol/atol"
+     },
+     "copasi": {
+      "method": "Enhanced Newton (COPASI's defaults)",
+      "output": "concentration",
+      "task": "Steady-State"
+     },
+     "roadrunner": {
+      "allow_presimulation": true,
+      "conserved_moiety_analysis": true,
+      "integrator": "cvode, protocol tolerances",
+      "output": "concentration",
+      "solver": "nleq2"
+     },
+     "run_network": {
+      "grid": "n_steps",
+      "horizon": "t_end",
+      "input": "network derived from the SBML (ode.derive_network)",
+      "method": "cvode (dense)"
+     }
+    },
+    "reference_versions": {
+     "amici": "1.1.0",
+     "copasi": "4.48.311",
+     "roadrunner": "2.11.0"
+    },
+    "setting": {
+     "bngsim": {
+      "atol": "protocol (float, per-species ceiling)",
+      "input": "sbml (Model.from_sbml)",
+      "mask": null,
+      "max_time": "t_end",
+      "method": "newton",
+      "output": "concentration",
+      "rtol": "protocol"
+     },
+     "codegen": "auto"
+    },
+    "source_sha256": "ef698f56d31c8d5a6020dae8fb08b16d670862dba2b34b5116a6c924ce56fcf6",
+    "verdict": {
+     "agreement": "species by species at every point, |a-b| <= rtol*max(|a|,|b|) + atol/1",
+     "atol_factor": 10.0,
+     "conservation_atol": "atol_factor * protocol atol, added to the law's tolerance",
+     "conservation_tol": 1e-06,
+     "law_coeff_floor": 1e-12,
+     "peak_floor": 1e-09,
+     "residual_floor": 1e-06,
+     "residual_floor_of": "max_j g_j at the state and at the point's initial state",
+     "residual_leaves_out": "species a rate rule moves",
+     "residual_tol": 0.0001,
+     "rtol": 0.0001,
+     "settled": 0.1
+    }
+   },
+   "id": "steady_state/smallest_bistable_reaction_wilhelm2009/bngsim-vs-run_network-roadrunner-copasi-amici/newton/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "bngsim": {
+   "atol": "float (per-species ceiling)",
+   "codegen_backend": "exprtk",
+   "codegen_seconds": 0.004092960036359727,
+   "cold_seconds": 0.11634073092136532,
+   "input": "sbml (Model.from_sbml)",
+   "load_seconds": 0.07123252400197089,
+   "mask": null,
+   "method": "newton",
+   "methods_used": [
+    "integration"
+   ],
+   "points": [
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 352,
+     "n_steps": 326,
+     "n_unstable_roots_rejected": 0,
+     "residual": 4.6416942949715604e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 273,
+     "n_steps": 231,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.532173484878117e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 330,
+     "n_steps": 293,
+     "n_unstable_roots_rejected": 0,
+     "residual": 4.4449196042394e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 368,
+     "n_steps": 330,
+     "n_unstable_roots_rejected": 0,
+     "residual": 4.651042450290856e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 373,
+     "n_steps": 324,
+     "n_unstable_roots_rejected": 0,
+     "residual": 9.077403585095942e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 392,
+     "n_steps": 355,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.3602494319817311e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 404,
+     "n_steps": 356,
+     "n_unstable_roots_rejected": 0,
+     "residual": 2.1658826389042958e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 409,
+     "n_steps": 369,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.9827008684395195e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 436,
+     "n_steps": 389,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.530907184380844e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 470,
+     "n_steps": 411,
+     "n_unstable_roots_rejected": 0,
+     "residual": 3.327661750480999e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 401,
+     "n_steps": 346,
+     "n_unstable_roots_rejected": 0,
+     "residual": 7.299063343934594e-12,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 377,
+     "n_steps": 327,
+     "n_unstable_roots_rejected": 0,
+     "residual": 4.210172648224824e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 371,
+     "n_steps": 327,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.9232774267473696e-10,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 381,
+     "n_steps": 330,
+     "n_unstable_roots_rejected": 0,
+     "residual": 3.505498903253043e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 373,
+     "n_steps": 336,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.77945527388358e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 377,
+     "n_steps": 342,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.4291718472547485e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 374,
+     "n_steps": 334,
+     "n_unstable_roots_rejected": 0,
+     "residual": 5.371485970615509e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 367,
+     "n_steps": 330,
+     "n_unstable_roots_rejected": 0,
+     "residual": 9.740169104728338e-10,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 421,
+     "n_steps": 371,
+     "n_unstable_roots_rejected": 0,
+     "residual": 9.595736835511342e-10,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    },
+    {
+     "jacobian": "analytical",
+     "linear_solver": "dense",
+     "method_used": "integration",
+     "n_rhs_evals": 436,
+     "n_steps": 381,
+     "n_unstable_roots_rejected": 0,
+     "residual": 1.205249096266734e-11,
+     "rhs_backend": "exprtk",
+     "root_stability": ""
+    }
+   ],
+   "root_stability": [
+    ""
+   ]
+  },
+  "bngsim_integration": {
+   "config": {
+    "atol": "float (per-species ceiling)",
+    "codegen_backend": "exprtk",
+    "codegen_seconds": 0.0043953320709988475,
+    "cold_seconds": 0.10842857405077666,
+    "input": "sbml (Model.from_sbml)",
+    "load_seconds": 0.07273930695373565,
+    "mask": null,
+    "method": "integration",
+    "methods_used": [
+     "integration"
+    ],
+    "points": [
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 379,
+      "n_steps": 352,
+      "n_unstable_roots_rejected": 0,
+      "residual": 4.706320413598022e-33,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 289,
+      "n_steps": 245,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.7887185190987706e-35,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 366,
+      "n_steps": 324,
+      "n_unstable_roots_rejected": 0,
+      "residual": 9.959256874574953e-34,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 388,
+      "n_steps": 349,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.964482403568593e-39,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 424,
+      "n_steps": 365,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.5031217788335876e-37,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 451,
+      "n_steps": 406,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.418128074160384e-32,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 450,
+      "n_steps": 395,
+      "n_unstable_roots_rejected": 0,
+      "residual": 5.2670699489384236e-34,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 435,
+      "n_steps": 393,
+      "n_unstable_roots_rejected": 0,
+      "residual": 4.1956774850959395e-30,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 478,
+      "n_steps": 424,
+      "n_unstable_roots_rejected": 0,
+      "residual": 2.3966565265965718e-35,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 503,
+      "n_steps": 439,
+      "n_unstable_roots_rejected": 0,
+      "residual": 6.780349520459372e-34,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 408,
+      "n_steps": 353,
+      "n_unstable_roots_rejected": 0,
+      "residual": 0.0,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 392,
+      "n_steps": 342,
+      "n_unstable_roots_rejected": 0,
+      "residual": 3.2023728339893768e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 394,
+      "n_steps": 345,
+      "n_unstable_roots_rejected": 0,
+      "residual": 6.0402662910232525e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 388,
+      "n_steps": 337,
+      "n_unstable_roots_rejected": 0,
+      "residual": 7.160723346098895e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 383,
+      "n_steps": 346,
+      "n_unstable_roots_rejected": 0,
+      "residual": 7.160723346098895e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 387,
+      "n_steps": 352,
+      "n_unstable_roots_rejected": 0,
+      "residual": 8.747542958250513e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 384,
+      "n_steps": 344,
+      "n_unstable_roots_rejected": 0,
+      "residual": 8.881784197001252e-16,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 389,
+      "n_steps": 350,
+      "n_unstable_roots_rejected": 0,
+      "residual": 7.105427357601002e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 451,
+      "n_steps": 397,
+      "n_unstable_roots_rejected": 0,
+      "residual": 3.552713678800501e-15,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     },
+     {
+      "jacobian": "analytical",
+      "linear_solver": "dense",
+      "method_used": "integration",
+      "n_rhs_evals": 442,
+      "n_steps": 387,
+      "n_unstable_roots_rejected": 0,
+      "residual": 1.5888218580782548e-14,
+      "rhs_backend": "exprtk",
+      "root_stability": ""
+     }
+    ],
+    "root_stability": [
+     ""
+    ]
+   },
+   "engine_free": {
+    "conservation": {
+     "max": 0.0,
+     "n_laws": 2,
+     "passed": true,
+     "tol": 1e-06,
+     "worst_point": 19
+    },
+    "evaluated": true,
+    "passed": true,
+    "residual": {
+     "evaluated": true,
+     "max": 9.646774393696573e-17,
+     "passed": true,
+     "tol": 0.0001,
+     "worst_point": 12,
+     "worst_species": "@comp1::Y()"
+    }
+   },
+   "vs_bngsim": {
+    "max_ratio": 0.0888665542050561,
+    "max_rel": 1.0000000000000098,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 9,
+    "worst_species": "X"
+   },
+   "vs_integration": {
+    "max_ratio": 4.302566367307549e-09,
+    "max_rel": 1.0000403643398827,
+    "passed": true,
+    "points": 20,
+    "points_agreed": 20,
+    "worst_point": 16,
+    "worst_species": "Y"
+   }
+  },
+  "conservation_laws": 2,
+  "derived_network": {
+   "bngsim_only": [],
+   "conversion_seconds": 0.15434987004846334,
+   "converter_notes": [],
+   "faithfulness": {
+    "atol": 1e-18,
+    "max_err_over_peak": 0.0,
+    "passed": true,
+    "rows_not_compared": [],
+    "rtol": 1e-10,
+    "species_check": {
+     "floor": 1e-17,
+     "n_fail": 0,
+     "passed": true,
+     "tol": 0.01,
+     "worst": {
+      "allowed": 0.01,
+      "err": 0.0,
+      "err_over_peak": 0.0,
+      "index": 0,
+      "peak": 1.0,
+      "score": 0.0,
+      "species": "X",
+      "t": 0.0
+     }
+    }
+   },
+   "netgen_seconds": 1.1346114960033447,
+   "network": {
+    "reactions": 5,
+    "species": 4
+   },
+   "phases": 1,
+   "seconds": 1.400754111004062
+  },
+  "doses": {
+   "S": "species"
+  },
+  "engine_budget_seconds": 1800.0,
+  "integration_reference": "run_network",
+  "network": {
+   "reactions": 4,
+   "species": 4
+  },
+  "points": [
+   {
+    "S": 0.1
+   },
+   {
+    "S": 0.2
+   },
+   {
+    "S": 0.3
+   },
+   {
+    "S": 0.4
+   },
+   {
+    "S": 0.5
+   },
+   {
+    "S": 0.6
+   },
+   {
+    "S": 0.7
+   },
+   {
+    "S": 0.7999999999999999
+   },
+   {
+    "S": 0.8999999999999999
+   },
+   {
+    "S": 0.9999999999999999
+   },
+   {
+    "S": 1.0999999999999999
+   },
+   {
+    "S": 1.2
+   },
+   {
+    "S": 1.3
+   },
+   {
+    "S": 1.4
+   },
+   {
+    "S": 1.5
+   },
+   {
+    "S": 1.5999999999999999
+   },
+   {
+    "S": 1.7
+   },
+   {
+    "S": 1.8
+   },
+   {
+    "S": 1.9
+   },
+   {
+    "S": 2.0
+   }
+  ],
+  "reference_checks": {
+   "amici": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 2,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 1.9620955932182365e-05,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 1,
+      "worst_species": "@comp1::X()"
+     }
+    },
+    "vs_integration": {
+     "max_ratio": 0.11419034596532746,
+     "max_rel": 1.0000000000058389,
+     "passed": true,
+     "points": 20,
+     "points_agreed": 20,
+     "worst_point": 0,
+     "worst_species": "X"
+    }
+   },
+   "copasi": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 2,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 2.1569513304143392e-16,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 14,
+      "worst_species": "@comp1::Y()"
+     }
+    },
+    "root": {
+     "max_real_eigenvalue": 0.27672246226592667,
+     "point": 7,
+     "spectral_radius": 13.876722705524452,
+     "stability": "unstable"
+    },
+    "vs_integration": {
+     "max_ratio": 9999.900000999989,
+     "max_rel": 1.0002269344241033,
+     "passed": false,
+     "points": 20,
+     "points_agreed": 7,
+     "worst_point": 7,
+     "worst_species": "X"
+    }
+   },
+   "roadrunner": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 2,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 1.8725377940366833e-07,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 6,
+      "worst_species": "@comp1::X()"
+     }
+    },
+    "root": {
+     "max_real_eigenvalue": -1.4999999998448201,
+     "point": 10,
+     "spectral_radius": 8.800000000265154,
+     "stability": "stable"
+    },
+    "vs_integration": {
+     "max_ratio": 9999.900001000004,
+     "max_rel": 1.000000613382857,
+     "passed": false,
+     "points": 20,
+     "points_agreed": 10,
+     "worst_point": 10,
+     "worst_species": "X"
+    }
+   },
+   "run_network": {
+    "engine_free": {
+     "conservation": {
+      "max": 0.0,
+      "n_laws": 2,
+      "passed": true,
+      "tol": 1e-06,
+      "worst_point": 19
+     },
+     "evaluated": true,
+     "passed": true,
+     "residual": {
+      "evaluated": true,
+      "max": 3.5245962052241983e-13,
+      "passed": true,
+      "tol": 0.0001,
+      "worst_point": 15,
+      "worst_species": "@comp1::Y()"
+     }
+    }
+   }
+  },
+  "references": {
+   "amici": {
+    "codegen_seconds": 37.99487550603226,
+    "cold_seconds": 42.17832329089288,
+    "load_seconds": 0.0011853029718622565,
+    "mode": "integrationOnly (simulation to steady state)",
+    "output": "state (concentration)",
+    "version": "1.1.0"
+   },
+   "copasi": {
+    "cold_seconds": 3.0583496470935643,
+    "load_seconds": 0.15684867894742638,
+    "method": {
+     "Iteration Limit": 50,
+     "Resolution": 1e-09,
+     "Target Criterion": "Distance and Rate",
+     "Use Back Integration": false,
+     "Use Integration": true,
+     "Use Newton": true,
+     "name": "Enhanced Newton"
+    },
+    "output": "concentration",
+    "task": "Steady-State",
+    "version": "4.48.311"
+   },
+   "roadrunner": {
+    "cold_seconds": 2.6544597630854696,
+    "conserved_moiety_analysis": true,
+    "load_seconds": 0.5254642440704629,
+    "output": "concentration",
+    "settings": {
+     "allow_presimulation": true,
+     "maximum_iterations": 100,
+     "presimulation_times": [
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "relative_tolerance": 1e-12
+    },
+    "solver": "nleq2",
+    "version": "2.11.0"
+   },
+   "run_network": {
+    "cold_seconds": 0.3926613569492474,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "cvode",
+     "-a",
+     "1e-10",
+     "-r",
+     "1e-08",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "<point>.net",
+     "<point>.net",
+     "50000.0",
+     "20"
+    ],
+    "input": "network derived from the SBML",
+    "method": "cvode (dense), integrated to t_end",
+    "settled": {
+     "max": 1.7084700234449997e-15,
+     "per_point": [
+      3.7029692308760005e-18,
+      3.895901357059999e-21,
+      7.769745197199999e-20,
+      1.437471650342685e-18,
+      4.16681417207967e-17,
+      9.662677461995e-18,
+      1.0685897054040003e-20,
+      1.7084700234449997e-15,
+      2.7103893955839995e-20,
+      1.2683847519659998e-19,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tol": 0.1
+    }
+   }
+  },
+  "sbml": {
+   "compared_species": 2,
+   "events": 0,
+   "not_compared": {
+    "assignment_rule": [],
+    "constant": [
+     "S",
+     "P"
+    ]
+   },
+   "reactions": 4,
+   "species": 4
+  },
+  "states": {
+   "amici": {
+    "species": [
+     "X",
+     "Y"
+    ],
+    "values": [
+     [
+      1.1419164992372858e-10,
+      4.99545524657587e-11
+     ],
+     [
+      8.955593478445822e-11,
+      8.979679497394305e-13
+     ],
+     [
+      8.380344027857505e-11,
+      1.9012746896498114e-15
+     ],
+     [
+      2.4722586870478916e-11,
+      7.709873930300733e-16
+     ],
+     [
+      8.777501245945617e-11,
+      -6.502836267018465e-15
+     ],
+     [
+      -8.119038987782921e-11,
+      9.68180316104163e-16
+     ],
+     [
+      4.512576967817143e-11,
+      5.797979562942068e-16
+     ],
+     [
+      9.115755350874199e-11,
+      -1.7286491018331798e-16
+     ],
+     [
+      7.676206869910324e-11,
+      7.631911944213289e-17
+     ],
+     [
+      9.126938568357566e-11,
+      -1.4106320346382673e-15
+     ],
+     [
+      6.881934698439457,
+      5.381934673293889
+     ],
+     [
+      7.739387678296217,
+      6.239387666392431
+     ],
+     [
+      8.582306894739908,
+      7.082306884768768
+     ],
+     [
+      9.415756784438324,
+      7.915756762333385
+     ],
+     [
+      10.242640665645332,
+      8.742640642621048
+     ],
+     [
+      11.064761501808558,
+      9.564761486038325
+     ],
+     [
+      11.883305986732514,
+      10.383305958934107
+     ],
+     [
+      12.699090814328356,
+      11.199090790943456
+     ],
+     [
+      13.512698191414717,
+      12.012698181368233
+     ],
+     [
+      14.324555309586751,
+      12.824555296140755
+     ]
+    ]
+   },
+   "bngsim": {
+    "species": [
+     "X",
+     "Y"
+    ],
+    "values": [
+     [
+      2.1259464939964544e-11,
+      9.29861701154452e-12
+     ],
+     [
+      3.87788540955447e-12,
+      -9.684582809058017e-14
+     ],
+     [
+      -1.1861873576004079e-11,
+      -2.736074901537659e-15
+     ],
+     [
+      1.2437549826328699e-11,
+      8.152066829823072e-15
+     ],
+     [
+      -2.4212226179025348e-11,
+      -1.0906487063288842e-15
+     ],
+     [
+      3.6347185867863545e-11,
+      1.1544764897511457e-14
+     ],
+     [
+      -5.8043304820808616e-12,
+      -3.838556723601248e-15
+     ],
+     [
+      5.287050970616374e-11,
+      -1.7735682945195246e-16
+     ],
+     [
+      4.082735306089e-11,
+      3.2932386627701857e-16
+     ],
+     [
+      8.886734393851982e-11,
+      1.2161340781579713e-14
+     ],
+     [
+      6.881934729191074,
+      5.381934729187222
+     ],
+     [
+      7.7393876913949535,
+      6.239387691441173
+     ],
+     [
+      8.582306905264545,
+      7.082306905464972
+     ],
+     [
+      9.415756805635164,
+      7.915756805601874
+     ],
+     [
+      10.242640687166043,
+      8.742640687216502
+     ],
+     [
+      11.064761515886419,
+      9.564761515897949
+     ],
+     [
+      11.883306010821471,
+      10.383306010781242
+     ],
+     [
+      12.699090833371365,
+      11.199090832685739
+     ],
+     [
+      13.51269820016465,
+      12.012698200799797
+     ],
+     [
+      14.324555320342785,
+      12.824555320350303
+     ]
+    ]
+   },
+   "bngsim_integration": {
+    "species": [
+     "X",
+     "Y"
+    ],
+    "values": [
+     [
+      -2.5797116904501724e-32,
+      -1.5205066447660322e-32
+     ],
+     [
+      5.662732813445207e-35,
+      -8.08001985565364e-36
+     ],
+     [
+      1.7157750643472273e-33,
+      1.1396051307592407e-33
+     ],
+     [
+      2.802826251143321e-38,
+      3.202822483694677e-39
+     ],
+     [
+      5.607838611968896e-37,
+      3.167896380639999e-38
+     ],
+     [
+      -4.52727308188124e-32,
+      -1.421518706293669e-32
+     ],
+     [
+      -9.564385908236541e-34,
+      -2.627343520514308e-34
+     ],
+     [
+      6.626751495836166e-30,
+      1.752098104273865e-30
+     ],
+     [
+      -5.345533009715505e-35,
+      -9.976899247952478e-36
+     ],
+     [
+      -1.293127907218997e-33,
+      -2.4063370368240347e-34
+     ],
+     [
+      6.88193472919817,
+      5.38193472919817
+     ],
+     [
+      7.739387691339813,
+      6.239387691339813
+     ],
+     [
+      8.582306905057553,
+      7.0823069050575524
+     ],
+     [
+      9.415756805667781,
+      7.915756805667782
+     ],
+     [
+      10.242640687119284,
+      8.742640687119284
+     ],
+     [
+      11.06476151587624,
+      9.56476151587624
+     ],
+     [
+      11.883306010855533,
+      10.383306010855533
+     ],
+     [
+      12.699090833947006,
+      11.199090833947004
+     ],
+     [
+      13.512698199637793,
+      12.012698199637793
+     ],
+     [
+      14.32455532033676,
+      12.82455532033676
+     ]
+    ]
+   },
+   "copasi": {
+    "species": [
+     "X",
+     "Y"
+    ],
+    "values": [
+     [
+      -1.2227963912491473e-22,
+      -2.2927432335929065e-22
+     ],
+     [
+      -6.928284629755575e-24,
+      -6.495266840393916e-24
+     ],
+     [
+      -2.9025296566700728e-24,
+      -1.8140810354182763e-24
+     ],
+     [
+      -2.7056035547583253e-24,
+      -1.2682516662931655e-24
+     ],
+     [
+      -2.379400643192501e-24,
+      -8.922752411973296e-25
+     ],
+     [
+      -4.102907748909804e-23,
+      -1.2821586715341249e-23
+     ],
+     [
+      -4.214421322071088e-24,
+      -1.128862854126191e-24
+     ],
+     [
+      2.4000000000000004,
+      0.9000000000000004
+     ],
+     [
+      2.130306154330093,
+      0.6303061543300933
+     ],
+     [
+      2.0000000000000004,
+      0.5000000000000003
+     ],
+     [
+      1.9180652708018286,
+      0.4180652708018287
+     ],
+     [
+      1.860612308660186,
+      0.3606123086601862
+     ],
+     [
+      1.8176930949424475,
+      0.31769309494244746
+     ],
+     [
+      1.7842431943322172,
+      0.28424319433221734
+     ],
+     [
+      1.7573593128807152,
+      0.25735931288071484
+     ],
+     [
+      1.7352384841237594,
+      0.23523848412375956
+     ],
+     [
+      1.716693989144466,
+      0.21669398914446616
+     ],
+     [
+      1.7009091660529918,
+      0.20090916605299194
+     ],
+     [
+      1.6873018003622067,
+      0.18730180036220684
+     ],
+     [
+      1.6754446796632416,
+      0.1754446796632414
+     ]
+    ]
+   },
+   "roadrunner": {
+    "species": [
+     "X",
+     "Y"
+    ],
+    "values": [
+     [
+      3.2118777396927166e-13,
+      -2.0644173393497098e-13
+     ],
+     [
+      -6.110026008340715e-17,
+      -7.935340402488921e-17
+     ],
+     [
+      -1.0896766605745335e-18,
+      -6.823466122701858e-19
+     ],
+     [
+      -1.1557278984415965e-19,
+      -5.410146038952094e-20
+     ],
+     [
+      -2.4377218639297297e-20,
+      -9.14682023415003e-21
+     ],
+     [
+      -1.5179605961244816e-20,
+      -4.744329946214836e-21
+     ],
+     [
+      -7.92343644986709e-13,
+      -3.518880379208109e-13
+     ],
+     [
+      -2.5282381192373815e-13,
+      -8.730621580209551e-14
+     ],
+     [
+      -8.187171170481822e-14,
+      -2.3326337539047094e-14
+     ],
+     [
+      -2.7836420489991143e-14,
+      -6.76901169883904e-15
+     ],
+     [
+      -1.0075411961904139e-14,
+      -2.1371476347685207e-15
+     ],
+     [
+      -3.908407800824526e-15,
+      -7.341296162265044e-16
+     ],
+     [
+      -1.6309287865392042e-15,
+      -2.742991560108352e-16
+     ],
+     [
+      -7.338952461804661e-16,
+      -1.115001754557355e-16
+     ],
+     [
+      -3.560900834570865e-16,
+      -4.9250667025194127e-17
+     ],
+     [
+      -1.8587680100308512e-16,
+      -2.3576523296595406e-17
+     ],
+     [
+      -1.0379322698227992e-16,
+      -1.2160478965273729e-17
+     ],
+     [
+      -6.154918340954887e-17,
+      -6.70725924075704e-18
+     ],
+     [
+      -3.842354944061606e-17,
+      -3.919662127416985e-18
+     ],
+     [
+      -2.5041986455091555e-17,
+      -2.4050208067578744e-18
+     ]
+    ]
+   },
+   "run_network": {
+    "species": [
+     "X",
+     "Y"
+    ],
+    "values": [
+     [
+      -5.446028545468e-27,
+      -3.887232030775e-27
+     ],
+     [
+      -1.086815220378e-29,
+      5.710271760509e-30
+     ],
+     [
+      1.594011915844e-28,
+      2.481599681401e-29
+     ],
+     [
+      9.552831546853e-31,
+      3.188188286349e-34
+     ],
+     [
+      6.35596813133e-29,
+      4.944492994772e-32
+     ],
+     [
+      9.310910071475e-27,
+      -1.895652909822e-28
+     ],
+     [
+      2.369513767844e-29,
+      -5.624583928517e-30
+     ],
+     [
+      3.23815439805e-24,
+      1.009348232644e-27
+     ],
+     [
+      -6.786551673451e-29,
+      -5.790660743837e-31
+     ],
+     [
+      -1.645985544652e-28,
+      -3.128750379299e-30
+     ],
+     [
+      6.881934729198,
+      5.381934729198
+     ],
+     [
+      7.73938769134,
+      6.23938769134
+     ],
+     [
+      8.582306905058,
+      7.082306905058
+     ],
+     [
+      9.415756805668,
+      7.915756805668
+     ],
+     [
+      10.24264068712,
+      8.742640687119
+     ],
+     [
+      11.06476151588,
+      9.564761515876
+     ],
+     [
+      11.88330601086,
+      10.38330601086
+     ],
+     [
+      12.69909083395,
+      11.19909083395
+     ],
+     [
+      13.51269819964,
+      12.01269819964
+     ],
+     [
+      14.32455532034,
+      12.82455532034
+     ]
+    ]
+   }
+  }
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 8,
+ "problem": "smallest_bistable_reaction_wilhelm2009",
+ "roadrunner_error": "OTHER_STATE: at point 10 (S=1.1) it returned a stable steady state that the integration from the initial state does not reach (X off by 1e+04 of the tolerance; 10/20 points agree)",
+ "schema": 1,
+ "setting": "newton",
+ "started": "2026-11-24T20:38:40.342808+00:00",
+ "verdicts": {
+  "amici": {
+   "max_ratio": 0.11753662146128063,
+   "max_rel": 1.6948913162360086,
+   "passed": true,
+   "per_point": [
+    0.09293112378792856,
+    0.08567728208399507,
+    0.09566451215305602,
+    0.01228500667243575,
+    0.11198625567898275,
+    0.11753662146128063,
+    0.050929870335292435,
+    0.038286694790435345,
+    0.0359344397980196,
+    0.0024020198219684864,
+    0.00010385227754841846,
+    4.014565576528386e-05,
+    2.9222051844991854e-05,
+    5.46605657904444e-05,
+    5.100853800778385e-05,
+    3.121800646800643e-05,
+    4.993259484741773e-05,
+    3.727249811274054e-05,
+    1.617567095395117e-05,
+    1.887728434283581e-05
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 5,
+   "worst_species": "X"
+  },
+  "engine_free": {
+   "conservation": {
+    "max": 0.0,
+    "n_laws": 2,
+    "passed": true,
+    "per_point": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tol": 1e-06,
+    "worst_point": 19
+   },
+   "evaluated": true,
+   "passed": true,
+   "residual": {
+    "evaluated": true,
+    "max": 6.825970998111432e-06,
+    "passed": true,
+    "per_point": [
+     3.3355706259069084e-06,
+     9.144380245128693e-07,
+     2.1421297836551808e-06,
+     1.8792072234279771e-06,
+     3.157357745939229e-06,
+     4.15343122596189e-06,
+     5.893540059716494e-07,
+     4.8655236030342265e-06,
+     3.4210216385099162e-06,
+     6.825970998111432e-06,
+     1.5395571868560894e-13,
+     9.979345897974546e-13,
+     4.644632467087473e-12,
+     6.988697182433746e-13,
+     9.949199143370687e-13,
+     2.1491157167664517e-13,
+     7.109806870489381e-13,
+     1.0981790183858302e-11,
+     9.375865110255077e-12,
+     1.0734692284813958e-13
+    ],
+    "tol": 0.0001,
+    "worst_point": 9,
+    "worst_species": "@comp1::X()"
+   }
+  },
+  "run_network": {
+   "max_ratio": 0.0888665542050561,
+   "max_rel": 1.000000000005691,
+   "passed": true,
+   "per_point": [
+    0.02125941974357568,
+    0.0038778839057555282,
+    0.011861859505616296,
+    0.01243753435708337,
+    0.02421216755597763,
+    0.03634705375655167,
+    0.005804327113057582,
+    0.052870230178558714,
+    0.040827186374294736,
+    0.0888665542050561,
+    2.0026083271487675e-08,
+    1.6214916247565398e-07,
+    5.746253410251552e-07,
+    8.353589757084225e-08,
+    1.1152386532541166e-07,
+    2.294715991224279e-08,
+    7.585005368879316e-08,
+    1.1288838239259626e-06,
+    9.654640027844778e-07,
+    8.033615461273502e-09
+   ],
+   "points": 20,
+   "points_agreed": 20,
+   "worst_point": 9,
+   "worst_species": "X"
+  }
+ },
+ "wall_seconds": 51.56071411399171
+}

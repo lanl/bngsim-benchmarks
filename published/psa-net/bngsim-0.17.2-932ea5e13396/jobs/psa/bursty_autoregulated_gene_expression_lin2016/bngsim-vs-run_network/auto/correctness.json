@@ -1,0 +1,987 @@
+{
+ "capability": "psa",
+ "engines": "bngsim-vs-run_network",
+ "environment": {
+  "amici": {
+   "version": "1.1.0"
+  },
+  "bionetgen": {
+   "fetched": true,
+   "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+   "version": "2.9.3"
+  },
+  "bngsim": {
+   "build_commit": "932ea5e13396",
+   "stale": false,
+   "version": "0.17.2"
+  },
+  "copasi": {
+   "basico": "0.92",
+   "version": "4.48.311"
+  },
+  "harness": {
+   "bench": "0.1.0",
+   "forced_env": {
+    "BNGSIM_CODEGEN_STRICT": "1"
+   },
+   "parity_core": {
+    "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+    "ref": "v0.17.2",
+    "upstream": "lanl/bngsim"
+   }
+  },
+  "harness_source": {
+   "commit": "d032d7649c5f333a7439d92c8a4261ec68405fb5",
+   "dirty": true
+  },
+  "host": {
+   "boost": null,
+   "cpu_model": "Intel(R) Xeon(R) CPU E5-2660 v3 @ 2.60GHz",
+   "governor": "performance",
+   "logical_cpus": 40,
+   "machine": "x86_64",
+   "microcode": "0x2b",
+   "no_turbo": "0",
+   "release": "4.18.0-553.184.1.el8_10.x86_64",
+   "system": "Linux",
+   "usable_cpus": 1
+  },
+  "loader": {
+   "glibc_version": "2.34",
+   "libstdcxx_version": "3.4.29",
+   "rpms": [
+    "9049801a0f9865ffbdb16835c2345c46c00b671582377ae7f7cf1a9a8798bfb5",
+    "c2396f89268ca7d21f0571bfd38ad33657b4a845e446d8662d41c432f1c194de"
+   ],
+   "swapped": true,
+   "tag": "rocky-9.5"
+  },
+  "node_type": "Intel(R) Xeon(R) CPU E5-2660 v3 @ 2.60GHz | x86_64 | Linux",
+  "python": "3.12.16",
+  "roadrunner": {
+   "version": "2.11.0"
+  },
+  "text_encoding": "utf-8"
+ },
+ "job_id": "psa/bursty_autoregulated_gene_expression_lin2016/bngsim-vs-run_network/auto/correctness",
+ "key": "dcff29e335e6d33702e985d5e7f271448763e772d12bf940eca42b88f5f68b9f",
+ "key_parts": {
+  "environment": {
+   "bionetgen": {
+    "sha256": "b85743d422aa3fd112aceb3725dd1b1f2ff1ad829d20d71682680426582bcb5d",
+    "version": "2.9.3"
+   },
+   "bngsim": {
+    "build_commit": "932ea5e13396",
+    "version": "0.17.2"
+   },
+   "harness": {
+    "bench": "0.1.0",
+    "forced_env": {
+     "BNGSIM_CODEGEN_STRICT": "1"
+    },
+    "parity_core": {
+     "commit": "932ea5e1339660c938315d5c61d65c0257e3c7a6",
+     "ref": "v0.17.2",
+     "upstream": "lanl/bngsim"
+    }
+   }
+  },
+  "job": {
+   "definition": {
+    "accuracy": {
+     "flag_from_poplevel": 100,
+     "means": "permutation max-T on means/1"
+    },
+    "harness": "psa/bngsim-vs-run_network/1",
+    "protocol": {
+     "n_steps": 200,
+     "netgen": "generate_network({overwrite=>1})",
+     "poplevels": [
+      10,
+      30,
+      100,
+      300,
+      1000
+     ],
+     "replicates": 10000,
+     "seed": 1,
+     "t_end": 36000,
+     "timing_replicates": 100
+    },
+    "setting": {
+     "exact": "ssa",
+     "method": "psa",
+     "propensities": "auto"
+    },
+    "source_sha256": "50f0ed2754c925bdfa8cae677190f433da97547083b94449ee4f870f0636e2d7",
+    "verdict": {
+     "alpha": 0.001,
+     "permutations": 1999,
+     "stop_exceedances": 20,
+     "two_sample": "permutation max-T on means and variances/1"
+    }
+   },
+   "id": "psa/bursty_autoregulated_gene_expression_lin2016/bngsim-vs-run_network/auto/correctness"
+  }
+ },
+ "kind": "correctness",
+ "measurements": {
+  "engine_budget_seconds": 1800.0,
+  "engines": {
+   "bngsim": {
+    "codegen_seconds": 0.0004036979953525588,
+    "cold_seconds": 18.264675776998047,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 18.26249066001037,
+    "events_per_trajectory": {
+     "max": 12953.0,
+     "mean": 4139.1753,
+     "median": 3675.0
+    },
+    "first_seed": 1,
+    "load_seconds": 0.0015052179951453581,
+    "method": "ssa",
+    "propensity_backend": "interpreted"
+   },
+   "bngsim@nc=10": {
+    "codegen_seconds": 0.0003712699981406331,
+    "cold_seconds": 13.402122671002871,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 13.39963321200048,
+    "events_per_trajectory": {
+     "max": 7296.0,
+     "mean": 2249.8757,
+     "median": 2000.0
+    },
+    "first_seed": 20000001,
+    "load_seconds": 0.001784863998182118,
+    "method": "psa",
+    "poplevel": 10.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 0.9999,
+     "mbar_max": {
+      "reaction": 4,
+      "value": 73.50903848756153
+     },
+     "peak_population": 1743.0,
+     "regime": "scaled",
+     "scaled_fraction": 0.9999,
+     "scaled_reactions": [
+      4
+     ],
+     "speedup": {
+      "max": 2.25903662901798,
+      "mean": 1.677006612160222,
+      "median": 1.6814218618525225,
+      "min": 1.0
+     },
+     "trajectories": 10000
+    }
+   },
+   "bngsim@nc=100": {
+    "codegen_seconds": 0.00037240100209601223,
+    "cold_seconds": 17.498074996998184,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 17.495849767001346,
+    "events_per_trajectory": {
+     "max": 8080.0,
+     "mean": 3096.4091,
+     "median": 2932.5
+    },
+    "first_seed": 60000001,
+    "load_seconds": 0.001590011001098901,
+    "method": "psa",
+    "poplevel": 100.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 0.8092,
+     "mbar_max": {
+      "reaction": 4,
+      "value": 5.7888273635189655
+     },
+     "peak_population": 1394.0,
+     "regime": "scaled",
+     "scaled_fraction": 0.8092,
+     "scaled_reactions": [
+      4
+     ],
+     "speedup": {
+      "max": 1.6565126581963885,
+      "mean": 1.245661756799712,
+      "median": 1.2641810733775247,
+      "min": 1.0
+     },
+     "trajectories": 10000
+    }
+   },
+   "bngsim@nc=1000": {
+    "codegen_seconds": 0.00035161300911568105,
+    "cold_seconds": 22.088122485991335,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 22.085862144987914,
+    "events_per_trajectory": {
+     "max": 13678.0,
+     "mean": 4138.5387,
+     "median": 3645.0
+    },
+    "first_seed": 100000001,
+    "load_seconds": 0.001635824010008946,
+    "method": "psa",
+    "poplevel": 1000.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 0.0,
+     "mbar_max": {
+      "reaction": 3,
+      "value": 1.0000000000000002
+     },
+     "peak_population": 1323.0,
+     "regime": "exact",
+     "scaled_fraction": 0.0,
+     "scaled_reactions": [],
+     "speedup": {
+      "max": 1.0,
+      "mean": 1.0,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 10000
+    }
+   },
+   "bngsim@nc=30": {
+    "codegen_seconds": 0.000383388003683649,
+    "cold_seconds": 14.799490221004817,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 14.797076845003176,
+    "events_per_trajectory": {
+     "max": 7338.0,
+     "mean": 2533.2297,
+     "median": 2302.0
+    },
+    "first_seed": 40000001,
+    "load_seconds": 0.0017527250020066276,
+    "method": "psa",
+    "poplevel": 30.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 0.9989,
+     "mbar_max": {
+      "reaction": 4,
+      "value": 19.736129435114936
+     },
+     "peak_population": 1373.0,
+     "regime": "scaled",
+     "scaled_fraction": 0.9989,
+     "scaled_reactions": [
+      4
+     ],
+     "speedup": {
+      "max": 1.9327863523663744,
+      "mean": 1.4964546032419221,
+      "median": 1.5342889724292852,
+      "min": 1.0
+     },
+     "trajectories": 10000
+    }
+   },
+   "bngsim@nc=300": {
+    "codegen_seconds": 0.00036673599970526993,
+    "cold_seconds": 21.860556350002298,
+    "diagnostics": {
+     "n_negative_crossings": 0,
+     "n_reverse_fires": 0,
+     "n_rounded_populations": 0,
+     "propensity_backend": "interpreted"
+    },
+    "ensemble_seconds": 21.858305011002813,
+    "events_per_trajectory": {
+     "max": 10869.0,
+     "mean": 4039.8777,
+     "median": 3714.0
+    },
+    "first_seed": 80000001,
+    "load_seconds": 0.0016250859916908666,
+    "method": "psa",
+    "poplevel": 300.0,
+    "propensity_backend": "interpreted",
+    "psa": {
+     "crossed_fraction": 0.4075,
+     "mbar_max": {
+      "reaction": 4,
+      "value": 1.6688674721688421
+     },
+     "peak_population": 1332.0,
+     "regime": "scaled",
+     "scaled_fraction": 0.4075,
+     "scaled_reactions": [
+      4
+     ],
+     "speedup": {
+      "max": 1.2630693309774499,
+      "mean": 1.0203703523181258,
+      "median": 1.0,
+      "min": 1.0
+     },
+     "trajectories": 10000
+    }
+   },
+   "run_network": {
+    "cold_seconds": 85.30006674300239,
+    "command": [
+     "-o",
+     "<out>",
+     "-p",
+     "ssa",
+     "-h",
+     "<seed>",
+     "--cdat",
+     "1",
+     "--fdat",
+     "0",
+     "-g",
+     "model.net",
+     "model.net",
+     "180.0",
+     "200"
+    ],
+    "ensemble_seconds": 85.299597566991,
+    "first_seed": 10000001,
+    "method": "ssa (direct method)",
+    "seeds": "first_seed + i for trajectory i"
+   }
+  },
+  "ensembles": {
+   "bngsim": {
+    "final_mean": {
+     "Protein()": 303.1292,
+     "mRNA()": 0.2547
+    },
+    "final_variance": {
+     "Protein()": 45434.66797415743,
+     "mRNA()": 0.2826561756175601
+    },
+    "replicates": 10000
+   },
+   "bngsim@nc=10": {
+    "final_mean": {
+     "Protein()": 274.6195,
+     "mRNA()": 0.2397
+    },
+    "final_variance": {
+     "Protein()": 51005.649084658806,
+     "mRNA()": 0.25786969696966794
+    },
+    "replicates": 10000
+   },
+   "bngsim@nc=100": {
+    "final_mean": {
+     "Protein()": 300.3735,
+     "mRNA()": 0.2563
+    },
+    "final_variance": {
+     "Protein()": 45949.0114989,
+     "mRNA()": 0.2774380538053753
+    },
+    "replicates": 10000
+   },
+   "bngsim@nc=1000": {
+    "final_mean": {
+     "Protein()": 301.1943,
+     "mRNA()": 0.2612
+    },
+    "final_variance": {
+     "Protein()": 45459.38928643857,
+     "mRNA()": 0.28220278027803836
+    },
+    "replicates": 10000
+   },
+   "bngsim@nc=30": {
+    "final_mean": {
+     "Protein()": 292.2652,
+     "mRNA()": 0.2566
+    },
+    "final_variance": {
+     "Protein()": 47087.8080497653,
+     "mRNA()": 0.284984938493828
+    },
+    "replicates": 10000
+   },
+   "bngsim@nc=300": {
+    "final_mean": {
+     "Protein()": 301.5142,
+     "mRNA()": 0.26
+    },
+    "final_variance": {
+     "Protein()": 44611.97439579975,
+     "mRNA()": 0.2816281628162706
+    },
+    "replicates": 10000
+   },
+   "run_network": {
+    "final_mean": {
+     "Protein()": 302.2848,
+     "mRNA()": 0.2652
+    },
+    "final_variance": {
+     "Protein()": 45266.77676663661,
+     "mRNA()": 0.2896979297929446
+    },
+    "replicates": 10000
+   }
+  },
+  "netgen_seconds": 0.30573473901313264,
+  "network": {
+   "reactions": 4,
+   "species": 2
+  },
+  "psa": {
+   "accuracy": {
+    "nc=10": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 35460.0,
+        "time_index": 197
+       },
+       "max": 0.16405395552314977,
+       "se": 0.027067181509725285
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Protein()",
+        "species_index": 1,
+        "time": 36000.0,
+        "time_index": 200
+       },
+       "max": 0.13375159447744742,
+       "se": 0.014569197660201412
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.0005,
+       "passed": false,
+       "permutations": 1999,
+       "replicates": [
+        10000,
+        10000
+       ],
+       "stopped_early": false,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Protein()",
+        "species_index": 1,
+        "statistic": "mean",
+        "time": 36000.0,
+        "time_index": 200,
+        "z": 9.161381306757452
+       },
+       "z_max": 9.161381306757452
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "Protein()",
+        "species_index": 1,
+        "time": 12600.0,
+        "time_index": 70
+       },
+       "at_min": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 35460.0,
+        "time_index": 197
+       },
+       "max": 1.2027661308485271,
+       "median": 1.059902465044257,
+       "min": 0.8405861279879304,
+       "n_cells": 400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 0.9999,
+      "mbar_max": {
+       "reaction": 4,
+       "value": 73.50903848756153
+      },
+      "peak_population": 1743.0,
+      "regime": "scaled",
+      "scaled_fraction": 0.9999,
+      "scaled_reactions": [
+       4
+      ],
+      "speedup": {
+       "max": 2.25903662901798,
+       "mean": 1.677006612160222,
+       "median": 1.6814218618525225,
+       "min": 1.0
+      },
+      "trajectories": 10000
+     },
+     "poplevel": 10,
+     "regime": "scaled"
+    },
+    "nc=100": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 26640.0,
+        "time_index": 148
+       },
+       "max": 0.08749544294568,
+       "se": 0.02642830847225375
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 26640.0,
+        "time_index": 148
+       },
+       "max": 0.048335192792149845,
+       "se": 0.014599816198083074
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.17094017094017094,
+       "passed": true,
+       "permutations": 117,
+       "replicates": [
+        10000,
+        10000
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "statistic": "mean",
+        "time": 26640.0,
+        "time_index": 148,
+        "z": 3.309847186287498
+       },
+       "z_max": 3.309847186287498
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 9900.0,
+        "time_index": 55
+       },
+       "at_min": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 14940.0,
+        "time_index": 83
+       },
+       "max": 1.1677269290214798,
+       "median": 1.0179609686014695,
+       "min": 0.9079532914843705,
+       "n_cells": 400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 0.8092,
+      "mbar_max": {
+       "reaction": 4,
+       "value": 5.7888273635189655
+      },
+      "peak_population": 1394.0,
+      "regime": "scaled",
+      "scaled_fraction": 0.8092,
+      "scaled_reactions": [
+       4
+      ],
+      "speedup": {
+       "max": 1.6565126581963885,
+       "mean": 1.245661756799712,
+       "median": 1.2641810733775247,
+       "min": 1.0
+      },
+      "trajectories": 10000
+     },
+     "poplevel": 100,
+     "regime": "scaled"
+    },
+    "nc=1000": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 34740.0,
+        "time_index": 193
+       },
+       "max": 0.06963179001093696,
+       "se": 0.027688292021567744
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 20700.0,
+        "time_index": 115
+       },
+       "max": 0.03786490700185885,
+       "se": 0.014490965563872136
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.8333333333333334,
+       "passed": true,
+       "permutations": 24,
+       "replicates": [
+        10000,
+        10000
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "statistic": "mean",
+        "time": 20700.0,
+        "time_index": 115,
+        "z": 2.6126203296493618
+       },
+       "z_max": 2.6126203296493618
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 22320.0,
+        "time_index": 124
+       },
+       "at_min": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 16380.0,
+        "time_index": 91
+       },
+       "max": 1.1249495336986488,
+       "median": 1.0026174082193218,
+       "min": 0.9077563893974914,
+       "n_cells": 400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 0.0,
+      "mbar_max": {
+       "reaction": 3,
+       "value": 1.0000000000000002
+      },
+      "peak_population": 1323.0,
+      "regime": "exact",
+      "scaled_fraction": 0.0,
+      "scaled_reactions": [],
+      "speedup": {
+       "max": 1.0,
+       "mean": 1.0,
+       "median": 1.0,
+       "min": 1.0
+      },
+      "trajectories": 10000
+     },
+     "poplevel": 1000,
+     "regime": "exact"
+    },
+    "nc=30": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 34740.0,
+        "time_index": 193
+       },
+       "max": 0.08822457163689391,
+       "se": 0.02781930037741432
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "Protein()",
+        "species_index": 1,
+        "time": 35640.0,
+        "time_index": 198
+       },
+       "max": 0.0559279048744148,
+       "se": 0.014228190281927913
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.016877637130801686,
+       "passed": true,
+       "permutations": 1185,
+       "replicates": [
+        10000,
+        10000
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "Protein()",
+        "species_index": 1,
+        "statistic": "mean",
+        "time": 35640.0,
+        "time_index": 198,
+        "z": 3.92936194188524
+       },
+       "z_max": 3.92936194188524
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 10620.0,
+        "time_index": 59
+       },
+       "at_min": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 4140.0,
+        "time_index": 23
+       },
+       "max": 1.1320696954845522,
+       "median": 1.0039640976988164,
+       "min": 0.8826443544123621,
+       "n_cells": 400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 0.9989,
+      "mbar_max": {
+       "reaction": 4,
+       "value": 19.736129435114936
+      },
+      "peak_population": 1373.0,
+      "regime": "scaled",
+      "scaled_fraction": 0.9989,
+      "scaled_reactions": [
+       4
+      ],
+      "speedup": {
+       "max": 1.9327863523663744,
+       "mean": 1.4964546032419221,
+       "median": 1.5342889724292852,
+       "min": 1.0
+      },
+      "trajectories": 10000
+     },
+     "poplevel": 30,
+     "regime": "scaled"
+    },
+    "nc=300": {
+     "bngsim": {
+      "mean_error_over_peak": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 34740.0,
+        "time_index": 193
+       },
+       "max": 0.071090047393365,
+       "se": 0.027678773673251233
+      },
+      "mean_shift_sd": {
+       "at": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 11340.0,
+        "time_index": 63
+       },
+       "max": 0.04037834958787734,
+       "se": 0.014488263195508347
+      },
+      "means": {
+       "alpha": 0.001,
+       "p_value": 0.7142857142857143,
+       "passed": true,
+       "permutations": 28,
+       "replicates": [
+        10000,
+        10000
+       ],
+       "stopped_early": true,
+       "test": "permutation max-T on per-cell means (Westfall-Young)",
+       "worst": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "statistic": "mean",
+        "time": 11340.0,
+        "time_index": 63,
+        "z": 2.786498231418999
+       },
+       "z_max": 2.786498231418999
+      },
+      "variance_ratio": {
+       "at_max": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 13140.0,
+        "time_index": 73
+       },
+       "at_min": {
+        "species": "mRNA()",
+        "species_index": 0,
+        "time": 4680.0,
+        "time_index": 26
+       },
+       "max": 1.1414452769847871,
+       "median": 1.012018204929305,
+       "min": 0.8679853906103916,
+       "n_cells": 400
+      }
+     },
+     "bngsim_psa": {
+      "crossed_fraction": 0.4075,
+      "mbar_max": {
+       "reaction": 4,
+       "value": 1.6688674721688421
+      },
+      "peak_population": 1332.0,
+      "regime": "scaled",
+      "scaled_fraction": 0.4075,
+      "scaled_reactions": [
+       4
+      ],
+      "speedup": {
+       "max": 1.2630693309774499,
+       "mean": 1.0203703523181258,
+       "median": 1.0,
+       "min": 1.0
+      },
+      "trajectories": 10000
+     },
+     "poplevel": 300,
+     "regime": "scaled"
+    }
+   },
+   "flag_from_poplevel": 100,
+   "flags": [],
+   "poplevels": [
+    10,
+    30,
+    100,
+    300,
+    1000
+   ]
+  },
+  "trajectory_timeout_seconds": 60.0,
+  "zeroth_order_reactions": 1
+ },
+ "outcome": "REFERENCE_FAILED",
+ "pinned_cpu": 0,
+ "problem": "bursty_autoregulated_gene_expression_lin2016",
+ "run_network@nc=1000_error": "RuntimeError: run_network failed at seed 110000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1",
+ "run_network@nc=100_error": "RuntimeError: run_network failed at seed 70000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1",
+ "run_network@nc=10_error": "RuntimeError: run_network failed at seed 30000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1",
+ "run_network@nc=300_error": "RuntimeError: run_network failed at seed 90000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1",
+ "run_network@nc=30_error": "RuntimeError: run_network failed at seed 50000001 (exit 1): ERROR: scaling factor of 0 th reaction < 1",
+ "schema": 1,
+ "setting": "auto",
+ "started": "2026-11-23T22:30:11.684677+00:00",
+ "verdicts": {
+  "exact@nc=1000": {
+   "alpha": 0.001,
+   "n_cells": 402,
+   "n_tested": {
+    "mean": 400,
+    "variance": 400
+   },
+   "p_value": 0.7692307692307693,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 94.86832980505137,
+    "max_z": 2.613000964977861,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 26,
+   "replicates": [
+    10000,
+    10000
+   ],
+   "seed": 3509411736,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "mRNA()",
+    "species_index": 0,
+    "statistic": "variance",
+    "time": 22320.0,
+    "time_index": 124,
+    "z": 2.9335180793325843
+   },
+   "z_max": 2.9335180793325843,
+   "z_max_mean": 2.6126203296493618,
+   "z_max_variance": 2.9335180793325843
+  },
+  "run_network": {
+   "alpha": 0.001,
+   "n_cells": 402,
+   "n_tested": {
+    "mean": 400,
+    "variance": 400
+   },
+   "p_value": 0.47619047619047616,
+   "parity_core": {
+    "frac_pass": 1.0,
+    "k": 94.86832980505137,
+    "max_z": 2.73079126914936,
+    "passed": true
+   },
+   "passed": true,
+   "permutations": 42,
+   "replicates": [
+    10000,
+    10000
+   ],
+   "seed": 1835504127,
+   "stopped_early": true,
+   "test": "permutation max-T on per-cell means and variances (Westfall-Young)",
+   "worst": {
+    "species": "mRNA()",
+    "species_index": 0,
+    "statistic": "variance",
+    "time": 25380.0,
+    "time_index": 141,
+    "z": 2.9149460715862507
+   },
+   "z_max": 2.9149460715862507,
+   "z_max_mean": 2.730350520768834,
+   "z_max_variance": 2.9149460715862507
+  }
+ },
+ "wall_seconds": 204.5474457550008
+}
