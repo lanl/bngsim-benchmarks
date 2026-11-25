@@ -42,7 +42,7 @@ scratch directory), and `bench publish` refuses if anything of that kind survive
 | `suite`, `capabilities` | the suite and the capabilities its jobs exercise |
 | `published` | when the snapshot was written (UTC) |
 | `bngsim` | version and compiled build commit of the BNGsim under test |
-| `engines` | each reference engine's version(s) across the records |
+| `engines` | each engine's version(s) across the records: BioNetGen, libRoadRunner, COPASI and AMICI in every manifest (as recorded in each job's environment), then NFsim (the binary BioNetGen bundles), RuleMonkey (`rm_driver`), Antimony and PEtab only where the suite's jobs use them |
 | `node_type` | the CPU model, architecture and OS of the timing node |
 | `harness` | the harness version, the vendored verdict code, and the git commits of the harness that ran the jobs |
 | `members` | the suite's models in position order: source pin (repo, commit, path, sha256), publications, verification evidence, size |

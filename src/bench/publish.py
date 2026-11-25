@@ -270,6 +270,50 @@ def _write_csv(path: Path, columns: list[str], rows: list[dict]) -> None:
 # --------------------------------------------------------------------------- #
 # Publish
 # --------------------------------------------------------------------------- #
+# Engines every manifest names, from each record's environment.
+ENGINES = ("bionetgen", "roadrunner", "copasi", "amici")
+# Engines a manifest names only where the suite uses them, after ENGINES.
+USED_ENGINES = ("nfsim", "rulemonkey", "antimony", "petab")
+
+
+def _used_engines(rec: dict[str, Any]) -> dict[str, Any]:
+    """The USED_ENGINES one record's job used, with the version it ran: NFsim (the
+    binary BioNetGen bundles) and RuleMonkey (rm_driver) where the job's engines name
+    them, Antimony where its input was converted with it, PEtab where its definition
+    keys on it."""
+    parts = str(rec.get("job_id") or "").split("/")
+    named = set(parts[2].split("-")) if len(parts) > 2 else set()
+    definition = ((rec.get("key_parts") or {}).get("job") or {}).get("definition") or {}
+    refs = definition.get("reference_versions") or {}
+    environment = rec.get("environment") or {}
+    out: dict[str, Any] = {}
+    if "nfsim" in named:
+        out["nfsim"] = (environment.get("nfsim") or {}).get("version")
+    if "rulemonkey" in named or "rulemonkey" in refs:
+        out["rulemonkey"] = ((environment.get("rulemonkey") or {}).get("version")
+                             or (refs.get("rulemonkey") or {}).get("version"))
+    conversion = definition.get("input")
+    if isinstance(conversion, dict) and "antimony" in conversion:
+        out["antimony"] = conversion["antimony"]
+    if "petab" in refs:
+        out["petab"] = refs["petab"]
+    return out
+
+
+def engine_versions(records: list[dict[str, Any]]) -> dict[str, list[Any]]:
+    """The manifest's ``engines``: each engine's versions across the records, for
+    ENGINES always and for USED_ENGINES where a record's job used one."""
+    out = {name: _distinct(records, "environment", name, "version") for name in ENGINES}
+    used: dict[str, list[Any]] = {}
+    for rec in records:
+        for name, version in _used_engines(rec).items():
+            versions = used.setdefault(name, [])
+            if version is not None and version not in versions:
+                versions.append(version)
+    out.update({name: used[name] for name in USED_ENGINES if name in used})
+    return out
+
+
 def _distinct(records: list[dict[str, Any]], *path: str) -> list[Any]:
     out: list[Any] = []
     for rec in records:
@@ -407,17 +451,13 @@ def publish(
                                      "sha256": stored[job.id].get("sha256")}
         job_entries.append(entry)
 
-    def engine_versions() -> dict[str, list[Any]]:
-        return {name: _distinct(records, "environment", name, "version")
-                for name in ("bionetgen", "roadrunner", "copasi", "amici")}
-
     manifest = {
         "schema": SCHEMA,
         "suite": suite,
         "capabilities": sorted({j.capability for j in suite_jobs}),
         "published": (now or dt.datetime.now(dt.UTC)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "bngsim": bngsim,
-        "engines": engine_versions(),
+        "engines": engine_versions(records),
         "node_type": node_types[0] if node_types else None,
         "harness": {
             "bench": _distinct(records, "environment", "harness", "bench"),

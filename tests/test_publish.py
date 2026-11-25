@@ -398,3 +398,34 @@ def test_every_row_names_its_jobs_setting(suite, tmp_path):
     with open(dest / "timing.csv", encoding="utf-8") as fh:
         (row,) = [r for r in csv.DictReader(fh) if r["problem"] == "model_01"]
     assert (row["status"], row["setting"]) == ("withheld", "auto")
+
+
+def test_the_manifest_names_every_engine_the_suite_uses():
+    from bench.publish import engine_versions
+
+    env = {"bionetgen": {"version": "2.9.3"}, "roadrunner": {"version": "2.11.0"},
+           "nfsim": {"version": "1.14.3"}, "rulemonkey": {"version": "3.13.0"}}
+    nf = {"job_id": "nf/m/bngsim-vs-nfsim-rulemonkey/nf_exact/correctness", "environment": env,
+          "key_parts": {"job": {"definition": {"reference_versions": {
+              "rulemonkey": {"version": "3.13.0", "commit": "c"}}}}}}
+    ode = {"job_id": "ode/m/bngsim-vs-run_network-roadrunner/auto/correctness",
+           "environment": env, "key_parts": {"job": {"definition": {
+               "reference_versions": {"roadrunner": "2.11.0", "petab": "0.10.0"},
+               "input": {"format": "antimony", "antimony": "3.3.0"}}}}}
+    assert engine_versions([nf]) == {"bionetgen": ["2.9.3"], "roadrunner": ["2.11.0"],
+                                     "copasi": [], "amici": [], "nfsim": ["1.14.3"],
+                                     "rulemonkey": ["3.13.0"]}
+    assert engine_versions([ode]) == {"bionetgen": ["2.9.3"], "roadrunner": ["2.11.0"],
+                                      "copasi": [], "amici": [], "antimony": ["3.3.0"],
+                                      "petab": ["0.10.0"]}
+
+
+def test_the_committed_manifests_name_the_engines_their_suites_use():
+    from conftest import REPO
+
+    for man in (REPO / "published").glob("*/*/manifest.json"):
+        m = json.loads(man.read_text())
+        extra = set(m["engines"]) - {"bionetgen", "roadrunner", "copasi", "amici"}
+        want = {"nfsim", "rulemonkey"} if m["suite"].startswith("nf-") else \
+            {"petab"} if m["suite"] == "sens-sbml" else set()
+        assert extra == want, m["suite"]

@@ -60,7 +60,8 @@ OUTCOME_MEANINGS = {
     "BAD_TEST": "the model could not be prepared, or every engine failed",
 }
 ENGINE_NAMES = {"bionetgen": "BioNetGen", "roadrunner": "libRoadRunner", "copasi": "COPASI",
-                "amici": "AMICI"}
+                "amici": "AMICI", "nfsim": "NFsim", "rulemonkey": "RuleMonkey",
+                "antimony": "Antimony", "petab": "PEtab"}
 # A per-reference status as a table cell (correctness.csv's ``status``).
 STATUS_CELLS = {"ok": "ok", "crash": "crash", "timeout": "timeout", "n/a": "unsupported",
                 "not_applicable": "–"}
