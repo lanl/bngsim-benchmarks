@@ -1,0 +1,84 @@
+name: Staleness
+
+# Whether the published results (published/) still say what the repository would
+# measure now, and whether a newer bngsim has been released: `bench staleness`
+# (docs/published_format.md, "Summaries and staleness"), every Monday, on every push
+# to main and on demand. One issue, titled as TITLE below, stays open and up to date
+# while a published suite is out of date, and is closed when none is. Nothing is
+# pushed: the index regenerated with the day's status is kept as the run's artifact.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"  # Mondays, 06:17 UTC
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: staleness
+  cancel-in-progress: false
+
+jobs:
+  staleness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TITLE: Published results are out of date
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        with:
+          # As in ci.yml: the latest pixi, the locked environment.
+          cache: true
+          locked: true
+
+      - name: Check every published snapshot and regenerate the index
+        id: check
+        run: |
+          # Exit 0: every published suite is current; 1: one is out of date;
+          # anything else (PyPI unreadable, an error) fails the run.
+          set +e
+          pixi run bench staleness --write --markdown staleness.md \
+            --link-base "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/published"
+          rc=$?
+          set -e
+          if [ "$rc" -gt 1 ]; then exit "$rc"; fi
+          if [ "$rc" -eq 1 ]; then stale=true; else stale=false; fi
+          echo "stale=$stale" >> "$GITHUB_OUTPUT"
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          printf '\nChecked by [run %s](%s) at %s.\n' "$GITHUB_RUN_ID" "$run" "$GITHUB_SHA" \
+            >> staleness.md
+          cat staleness.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the regenerated index
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-index
+          path: |
+            published/README.md
+            published/index.json
+            staleness.md
+
+      - name: Open, update or close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          STALE: ${{ steps.check.outputs.stale }}
+        run: |
+          number=$(gh issue list --state open --limit 200 --json number,title \
+                     --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n 1)
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [ "$STALE" = true ]; then
+            if [ -n "$number" ]; then
+              gh issue edit "$number" --body-file staleness.md
+            else
+              gh issue create --title "$TITLE" --body-file staleness.md
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --comment "Every published suite is current ([run $GITHUB_RUN_ID]($run))."
+          fi

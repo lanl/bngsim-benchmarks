@@ -7,6 +7,9 @@
     bench rescore [PATTERN...]       re-score stored correctness results with the current verdict
     bench gather                     assemble results into reports/
     bench publish SUITE              a suite's results, scrubbed, into published/ (to commit)
+    bench publish --index            regenerate published/README.md, index.json and every
+                                     snapshot's README.md from the committed data
+    bench staleness                  which published snapshots are out of date, and why
     bench fetch-bionetgen            download and check BioNetGen
     bench fetch-models [PATTERN...]  download and check the pinned model files
     bench fetch-glibc                install a newer glibc loader (old-glibc Linux)
@@ -275,20 +278,94 @@ def cmd_gather(args) -> int:
     return 0
 
 
+def _release(published: Path, offline: bool) -> tuple[dict | None, str | None]:
+    """The newest bngsim release to judge the snapshots by, and why it could not be
+    looked up: on PyPI now, or (``offline``) the one published/index.json records."""
+    from . import staleness, summary
+
+    recorded = summary.recorded_release(published)
+    if offline:
+        return recorded, None
+    try:
+        releases = staleness.look_up_releases()
+    except (OSError, ValueError) as exc:
+        return recorded, f"could not look up the newest bngsim release on PyPI: {exc}"
+    return {"version": releases[-1], "releases": releases,
+            "checked": dt.datetime.now(dt.UTC).date().isoformat()}, None
+
+
 def cmd_publish(args) -> int:
+    from . import summary
     from .publish import PublishError, default_slurm_config, publish
     from .results import fingerprints_now
 
+    if not args.suite and not args.index:
+        print("give a suite to publish, or --index to regenerate the summaries",
+              file=sys.stderr)
+        return 2
     problems = specs.load_all(args.problems)
-    try:
-        dest = publish(args.suite, problems, jobs_mod.jobs_for(problems), args.results,
-                       args.out, fingerprints_now(), root=ROOT,
-                       slurm_config=default_slurm_config(ROOT))
-    except PublishError as exc:
-        print(exc, file=sys.stderr)
-        return 1
-    print(f"published {args.suite} -> {dest}")
+    jobs = jobs_mod.jobs_for(problems)
+    if args.suite:
+        try:
+            dest = publish(args.suite, problems, jobs, args.results, args.out,
+                           fingerprints_now(), root=ROOT,
+                           slurm_config=default_slurm_config(ROOT))
+        except PublishError as exc:
+            print(exc, file=sys.stderr)
+            return 1
+        print(f"published {args.suite} -> {dest}")
+    # The summaries: every snapshot's README and the index, with each suite's status.
+    release, error = _release(args.out, args.offline)
+    if error:
+        kept = f"keeping the recorded {release['version']} ({release['checked']})" \
+            if release else "no release recorded"
+        print(f"warning: {error}; {kept}", file=sys.stderr)
+    written = summary.write(summary.generated(args.out, problems, jobs, release=release,
+                                              root=ROOT))
+    for path in written:
+        print(f"wrote {path}")
+    if not written:
+        print("summaries already current")
     return 0
+
+
+def cmd_staleness(args) -> int:
+    from . import staleness, summary
+
+    problems = specs.load_all(args.problems)
+    jobs = jobs_mod.jobs_for(problems)
+    release, error = _release(args.out, args.offline)
+    if error:
+        print(error, file=sys.stderr)
+        return 2
+    idx = summary.index(args.out, problems, jobs, release=release, root=ROOT)
+    for e in idx["suites"]:
+        print(f"{e['suite']:<20} {e['status']:<14} {e.get('snapshot') or ''}")
+        for why in e.get("reasons") or []:
+            print(f"    - {why}")
+        for note in e.get("notes") or []:
+            print(f"    ({note})")
+    stale = [e for e in idx["suites"] if e["status"] == staleness.OUT_OF_DATE]
+    seen = (f"{release['version']} (looked up {release['checked']})" if release
+            else "not looked up")
+    print(f"\nnewest bngsim release on PyPI: {seen}")
+    counts = Counter(e["status"] for e in idx["suites"])
+    print(", ".join(f"{counts[s]} {s.lower()}" for s in
+                    (staleness.OUT_OF_DATE, staleness.CURRENT, staleness.NOT_PUBLISHED)))
+    shown = summary.committed_status(args.out) == summary.status_of(idx)
+    if not shown:
+        print("published/README.md does not show this: run `bench publish --index` "
+              "and commit it")
+    if args.markdown:
+        args.markdown.write_text(summary.staleness_markdown(idx, shown=shown,
+                                                            link_base=args.link_base),
+                                 encoding="utf-8")
+    if args.write:
+        written = summary.write(summary.generated(args.out, problems, jobs, release=release,
+                                                  root=ROOT))
+        for path in written:
+            print(f"wrote {path}")
+    return 1 if stale else 0
 
 
 def cmd_fetch_bionetgen(args) -> int:
@@ -843,9 +920,31 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("publish",
                        help="write a suite's results, scrubbed, to published/ for committing")
     _common(p)
-    p.add_argument("suite", help="a suite name, e.g. ode-net")
+    p.add_argument("suite", nargs="?", help="a suite name, e.g. ode-net")
     p.add_argument("--out", type=Path, default=ROOT / "published")
+    p.add_argument("--index", action="store_true",
+                   help="only regenerate the summaries: published/README.md, index.json "
+                        "and every snapshot's README.md (publishing a suite does too)")
+    p.add_argument("--offline", action="store_true",
+                   help="judge the snapshots by the bngsim release index.json records "
+                        "instead of looking up PyPI")
     p.set_defaults(fn=cmd_publish, patterns=None)
+
+    p = sub.add_parser("staleness",
+                       help="which published snapshots are out of date, and why "
+                            "(exit 1 when one is, 2 when PyPI cannot be read)")
+    _common(p)
+    p.add_argument("--out", type=Path, default=ROOT / "published",
+                   help="the published results (default: ./published)")
+    p.add_argument("--offline", action="store_true",
+                   help="use the bngsim release index.json records instead of PyPI")
+    p.add_argument("--markdown", type=Path,
+                   help="also write the out-of-date suites as markdown (an issue body)")
+    p.add_argument("--link-base", default=None,
+                   help="URL that published/ paths in --markdown are relative to")
+    p.add_argument("--write", action="store_true",
+                   help="also regenerate the summaries with this status (as publish --index)")
+    p.set_defaults(fn=cmd_staleness, patterns=None)
 
     p = sub.add_parser("fetch-bionetgen", help="download and check BioNetGen")
     _common(p)

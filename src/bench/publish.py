@@ -7,8 +7,9 @@ results were measured on (``bngsim-<version>-<build commit>``):
 
     manifest.json        what was measured, on what, with which engines and harness,
                          and the suite's members with their provenance
-    correctness.csv      one row per (problem, reference engine)
-    timing.csv           one row per (problem, engine)
+    correctness.csv      one row per (problem, setting, reference engine)
+    timing.csv           one row per (problem, setting, engine)
+    README.md            the same for people, generated from the three files above
     jobs/<job id>.json   every job's full result record
     jobs/<job id>.npz    the trajectories a correctness job stored, when the suite's
                          total is at most TRAJECTORIES_LIMIT_BYTES
@@ -53,12 +54,12 @@ _DROP = (
 )
 
 CORRECTNESS_COLUMNS = [
-    "suite", "position", "problem", "species", "reactions", "outcome", "agreement",
+    "suite", "position", "problem", "setting", "species", "reactions", "outcome", "agreement",
     "engine", "status", "passed", "failed_check", "max_err_over_peak", "max_rel", "n_cells",
     "cold_seconds", "error",
 ]
 TIMING_COLUMNS = [
-    "suite", "position", "problem", "species", "reactions", "outcome", "engine", "role",
+    "suite", "position", "problem", "setting", "species", "reactions", "outcome", "engine", "role",
     "status", "presim_seconds", "netgen_seconds", "codegen_seconds", "load_seconds",
     "backend", "sim_median_seconds", "sim_ci_low_seconds", "sim_ci_high_seconds",
     "rounds", "reproducible", "error",
@@ -172,13 +173,17 @@ def _not_applicable(rec: dict[str, Any], *, besides: set[str]) -> dict[str, str]
             if name not in besides}
 
 
-def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list[dict]:
+def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any],
+                     setting: str | None = None) -> list[dict]:
     """One row per reference engine: its verdict, or why it has none -- including a
-    reference that does not apply to the model, so no engine is left out."""
+    reference that does not apply to the model, so no engine is left out. ``setting``
+    is the job's (a member may have a job per setting: network-free ``nf_exact`` and
+    ``nf_reject``); the record's own when not given."""
     verdicts = rec.get("verdicts") or {}
     refs = (rec.get("measurements") or {}).get("references") or {}
     species, reactions = _size(rec, problem)
     base = {"suite": suite, "position": problem.suites[suite], "problem": problem.id,
+            "setting": setting or rec.get("setting"),
             "species": species, "reactions": reactions, "outcome": rec.get("outcome"),
             "agreement": reference_agreement(rec)}
     rows = []
@@ -205,9 +210,10 @@ def correctness_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) ->
     return rows
 
 
-def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list[dict]:
+def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any],
+                setting: str | None = None) -> list[dict]:
     """One row per engine: its one-time pre-sim cost and per-solve time, or why it
-    was not timed."""
+    was not timed. ``setting`` as in ``correctness_rows``."""
     m = rec.get("measurements") or {}
     times = m.get("times") or {}
     presim = _presim(m)
@@ -215,6 +221,7 @@ def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list
     rounds = (m.get("repetitions") or {}).get("rounds")
     species, reactions = _size(rec, problem)
     base = {"suite": suite, "position": problem.suites[suite], "problem": problem.id,
+            "setting": setting or rec.get("setting"),
             "species": species, "reactions": reactions, "outcome": rec.get("outcome")}
     rows = []
     for engine, t in times.items():
@@ -241,13 +248,14 @@ def timing_rows(suite: str, problem: specs.Problem, rec: dict[str, Any]) -> list
 
 
 def withheld_timing_row(suite: str, problem: specs.Problem, correctness: dict[str, Any],
-                        reason: str) -> dict:
-    """The one row of a timing the snapshot withholds: the member and its size, outcome
-    WITHHELD, status ``withheld`` and the reason (e.g. ``correctness DIFF``) in
-    ``error``; no engine, no numbers."""
+                        reason: str, setting: str | None = None) -> dict:
+    """The one row of a timing the snapshot withholds: the member, its setting and
+    size, outcome WITHHELD, status ``withheld`` and the reason (e.g. ``correctness
+    DIFF``) in ``error``; no engine, no numbers."""
     species, reactions = _size(correctness, problem)
     return {"suite": suite, "position": problem.suites[suite], "problem": problem.id,
-            "species": species, "reactions": reactions, "outcome": WITHHELD,
+            "setting": setting or correctness.get("setting"), "species": species,
+            "reactions": reactions, "outcome": WITHHELD,
             "engine": None, "status": "withheld", "error": reason}
 
 
@@ -262,6 +270,50 @@ def _write_csv(path: Path, columns: list[str], rows: list[dict]) -> None:
 # --------------------------------------------------------------------------- #
 # Publish
 # --------------------------------------------------------------------------- #
+# Engines every manifest names, from each record's environment.
+ENGINES = ("bionetgen", "roadrunner", "copasi", "amici")
+# Engines a manifest names only where the suite uses them, after ENGINES.
+USED_ENGINES = ("nfsim", "rulemonkey", "antimony", "petab")
+
+
+def _used_engines(rec: dict[str, Any]) -> dict[str, Any]:
+    """The USED_ENGINES one record's job used, with the version it ran: NFsim (the
+    binary BioNetGen bundles) and RuleMonkey (rm_driver) where the job's engines name
+    them, Antimony where its input was converted with it, PEtab where its definition
+    keys on it."""
+    parts = str(rec.get("job_id") or "").split("/")
+    named = set(parts[2].split("-")) if len(parts) > 2 else set()
+    definition = ((rec.get("key_parts") or {}).get("job") or {}).get("definition") or {}
+    refs = definition.get("reference_versions") or {}
+    environment = rec.get("environment") or {}
+    out: dict[str, Any] = {}
+    if "nfsim" in named:
+        out["nfsim"] = (environment.get("nfsim") or {}).get("version")
+    if "rulemonkey" in named or "rulemonkey" in refs:
+        out["rulemonkey"] = ((environment.get("rulemonkey") or {}).get("version")
+                             or (refs.get("rulemonkey") or {}).get("version"))
+    conversion = definition.get("input")
+    if isinstance(conversion, dict) and "antimony" in conversion:
+        out["antimony"] = conversion["antimony"]
+    if "petab" in refs:
+        out["petab"] = refs["petab"]
+    return out
+
+
+def engine_versions(records: list[dict[str, Any]]) -> dict[str, list[Any]]:
+    """The manifest's ``engines``: each engine's versions across the records, for
+    ENGINES always and for USED_ENGINES where a record's job used one."""
+    out = {name: _distinct(records, "environment", name, "version") for name in ENGINES}
+    used: dict[str, list[Any]] = {}
+    for rec in records:
+        for name, version in _used_engines(rec).items():
+            versions = used.setdefault(name, [])
+            if version is not None and version not in versions:
+                versions.append(version)
+    out.update({name: used[name] for name in USED_ENGINES if name in used})
+    return out
+
+
 def _distinct(records: list[dict[str, Any]], *path: str) -> list[Any]:
     out: list[Any] = []
     for rec in records:
@@ -382,15 +434,15 @@ def publish(
         p = by_problem[job.problem]
         if job.id in withheld:
             time_rows.append(withheld_timing_row(suite, p, scrubbed[job.requires],
-                                                 withheld[job.id]))
+                                                 withheld[job.id], job.setting))
             job_entries.append({"job_id": job.id, "problem": job.problem, "kind": job.kind,
                                 "outcome": WITHHELD, "withheld": withheld[job.id]})
             continue
         rec = scrubbed[job.id]
         if job.kind == CORRECTNESS:
-            corr_rows += correctness_rows(suite, p, rec)
+            corr_rows += correctness_rows(suite, p, rec, job.setting)
         else:
-            time_rows += timing_rows(suite, p, rec)
+            time_rows += timing_rows(suite, p, rec, job.setting)
         entry = {"job_id": job.id, "problem": job.problem, "kind": job.kind,
                  "outcome": rec.get("outcome"), "file": f"jobs/{job.id}.json"}
         if job.id in stored:
@@ -399,17 +451,13 @@ def publish(
                                      "sha256": stored[job.id].get("sha256")}
         job_entries.append(entry)
 
-    def engine_versions() -> dict[str, list[Any]]:
-        return {name: _distinct(records, "environment", name, "version")
-                for name in ("bionetgen", "roadrunner", "copasi", "amici")}
-
     manifest = {
         "schema": SCHEMA,
         "suite": suite,
         "capabilities": sorted({j.capability for j in suite_jobs}),
         "published": (now or dt.datetime.now(dt.UTC)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "bngsim": bngsim,
-        "engines": engine_versions(),
+        "engines": engine_versions(records),
         "node_type": node_types[0] if node_types else None,
         "harness": {
             "bench": _distinct(records, "environment", "harness", "bench"),
@@ -448,6 +496,10 @@ def publish(
     _write_csv(dest / "timing.csv", TIMING_COLUMNS, time_rows)
     (dest / "manifest.json").write_text(
         json.dumps(_sweep(manifest, _replacements(root)), indent=1) + "\n", encoding="utf-8")
+    # The snapshot's summary for people, from the three files just written (bench.summary).
+    from .summary import README, read_snapshot, snapshot_readme
+
+    (dest / README).write_text(snapshot_readme(read_snapshot(dest)), encoding="utf-8")
     return dest
 
 

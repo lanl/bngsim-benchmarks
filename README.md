@@ -119,7 +119,9 @@ and any part of an id selects jobs:
 | `pixi run bench run --until slurm` | the same, up to the end of the current Slurm allocation |
 | `pixi run bench rescore` | re-score stored correctness results after the verdict changes, without re-simulating |
 | `pixi run bench gather` | collect results into `reports/`, with a readable `reports/summary.md` |
-| `pixi run bench publish SUITE` | write a complete suite's results, scrubbed of where they ran, to `published/` for committing; format in [docs/published_format.md](docs/published_format.md) |
+| `pixi run bench publish SUITE` | write a complete suite's results, scrubbed of where they ran, to `published/` for committing, with a README for people and the index [`published/README.md`](published/README.md); format in [docs/published_format.md](docs/published_format.md) |
+| `pixi run bench publish --index` | regenerate every published README and the index from the committed data |
+| `pixi run bench staleness` | which published snapshots are out of date (a newer bngsim on PyPI, or changed members, models, protocols, verdicts, harness or engine pins), and why |
 
 Each job writes one file under `results/`, named after its id. A correctness job also
 stores the trajectories it compared beside it, as a `.npz`. A result stays
