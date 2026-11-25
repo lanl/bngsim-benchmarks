@@ -440,8 +440,9 @@ def test_the_outcome_needs_an_independent_reference_to_pass_or_refute(passed, er
 
 def test_the_rule_is_in_the_verdict_so_a_change_restales_and_rescores():
     assert nf.VERDICT["independent_reference_rule"] == 1
-    assert {k: v for k, v in nf.VERDICT.items() if k != "independent_reference_rule"} \
-        == nf.SSA_VERDICT
+    assert nf.VERDICT["bngsim_refusal_rule"] == 1
+    rules = ("independent_reference_rule", "bngsim_refusal_rule")
+    assert {k: v for k, v in nf.VERDICT.items() if k not in rules} == nf.SSA_VERDICT
     assert nf.independent(["nfsim", "rulemonkey", "run_network", "bngsim_ssa"]) == \
         ["nfsim", "run_network", "bngsim_ssa"]
 
@@ -456,6 +457,64 @@ def test_bngsim_failing_is_an_exception_and_with_every_reference_a_bad_test(monk
                            "rulemonkey": _fake_reference(boom="y")},
              bngsim=_fake_bngsim(boom={"nf_exact": "no"}))
     assert nf.run_correctness(_job("nf_exact"), None, _ctx(tmp_path))["outcome"] == "BAD_TEST"
+
+
+REFUSAL = ("ParameterError: Failed to set RuleMonkey parameter 'lig': Cannot set_param during "
+           "active session")
+
+
+@pytest.mark.parametrize("bn_error, refs, expected", [
+    # As a record written before the rule has it, and as the adapter words it now.
+    (REFUSAL, {"rulemonkey": "UNSUPPORTED: two steps"}, "UNSUPPORTED"),
+    (f"RuntimeError: UNSUPPORTED: bngsim's RuleMonkeySession will not change a parameter "
+     f"after initialize: {REFUSAL}", {}, "UNSUPPORTED"),
+    # Every reference failing too does not make a refusal a BAD_TEST.
+    (REFUSAL, {"nfsim": "x", "rulemonkey": "y"}, "UNSUPPORTED"),
+    ("RuntimeError: NFsim error in NFcore/system.cpp", {}, "EXCEPTION"),
+    ("TIMEOUT: bngsim ran past its budget", {}, "TIMEOUT"),
+])
+def test_bngsims_own_refusal_is_unsupported_not_an_exception(bn_error, refs, expected):
+    assert nf.verdict_outcome(bn_error, refs, ["nfsim", "rulemonkey"], {}) == expected
+
+
+class _RefusingSession:
+    def __init__(self):
+        self.calls = []
+
+    def clear_param_overrides(self):
+        pass
+
+    def initialize(self, seed):
+        self.calls.append(("initialize", seed))
+
+    def set_param(self, name, value):
+        raise ValueError(f"Failed to set RuleMonkey parameter '{name}': Cannot set_param "
+                         "during active session")
+
+    def simulate(self, t0, t1, n):
+        return types.SimpleNamespace(observables=np.zeros((n, 2)), observable_names=NAMES)
+
+
+def test_the_adapter_reports_the_refusal_in_bngsims_words():
+    # The two-step protocol sets k between its steps; RuleMonkeySession refuses.
+    eng = object.__new__(nf.BngsimNF)
+    eng.setting, eng.nf, eng.names = "nf_exact", TWO_STEP, NAMES
+    eng.session, eng.sets_live = _RefusingSession(), True
+    eng.split = {"initialize_seconds": 0.0, "simulate_seconds": 0.0}
+    with pytest.raises(RuntimeError, match=r"^UNSUPPORTED: bngsim's RuleMonkeySession .* sets k "
+                                           r"before network-free step 2: .*active session"):
+        eng.trajectory(7)
+
+
+def test_a_refusal_rescores_to_unsupported():
+    # A stored record from before the rule: EXCEPTION, its error BNGsim's own words.
+    job = _job("nf_exact")
+    stack = _fake_stack(20, 3)
+    arrays = {"nfsim": stack, "observables": np.asarray(NAMES),
+              "times": np.linspace(0.0, 10.0, N_T)}
+    rec = {"outcome": "EXCEPTION", "bngsim_error": REFUSAL,
+           "rulemonkey_error": "UNSUPPORTED: two steps", "measurements": {}}
+    assert nf.rescore(job, rec, arrays)["outcome"] == "UNSUPPORTED"
 
 
 def test_preparation_failure_is_a_bad_test(monkeypatch, tmp_path):

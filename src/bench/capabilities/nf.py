@@ -59,7 +59,10 @@ not a DIFF. Recorded beside the verdicts, and not gating:
 
 Known reference gaps are recorded, never worked around: NFsim stops with NaN on a
 rate law that divides by a single-copy count (RuleWorld/nfsim#115), which the
-``nfsim`` adapter reports as such.
+``nfsim`` adapter reports as such. Nor is BNGsim's own refusal: ``nf_exact`` cannot
+change a parameter between network-free steps (``RuleMonkeySession`` takes
+``set_param`` before ``initialize`` only), and that is UNSUPPORTED, in BNGsim's words
+(``BNGSIM_REFUSALS``).
 
 **Timing.** As in ``ssa``: one timed unit is an ensemble of ``timing_replicates``
 trajectories from the same seeds every round, interleaved round-robin with the
@@ -121,7 +124,15 @@ REPRO_TOL = 1e-9
 # verdicts combine into the outcome (``verdict_outcome``): in the correctness
 # definition, so a change restales every correctness result (re-scored by
 # ``bench rescore`` from its stored ensembles).
-VERDICT = {**SSA_VERDICT, "independent_reference_rule": 1}
+VERDICT = {**SSA_VERDICT, "independent_reference_rule": 1, "bngsim_refusal_rule": 1}
+# BNGsim refusing a protocol in its own words (a feature it does not have) is its
+# result, UNSUPPORTED, as in the sens capability -- never EXCEPTION, and never worked
+# around. RuleMonkeySession takes set_param before initialize only (RuleMonkey's own
+# library refuses a parameter change on a live session), so nf_exact cannot run a
+# protocol that sets a parameter between network-free steps. The message is matched
+# as well as the adapter's UNSUPPORTED prefix, so ``bench rescore`` reclassifies a
+# record written before the rule (``bngsim_refusal_rule``).
+BNGSIM_REFUSALS = ("Cannot set_param during active session",)
 
 DEFAULT_SEED = 1
 DEFAULT_TIMING_REPLICATES = 20
@@ -418,7 +429,16 @@ class BngsimNF:
         for p in self.nf.phases:
             if p.index > 0:
                 for change in p.sets:
-                    s.set_param(change.name, self._value(change.value))
+                    try:
+                        s.set_param(change.name, self._value(change.value))
+                    except Exception as exc:
+                        if bngsim_refused(str(exc)):
+                            raise RuntimeError(
+                                f"UNSUPPORTED: bngsim's {SESSION[self.setting]} will not change "
+                                f"a parameter after initialize, and the protocol sets "
+                                f"{change.name} before network-free step {p.index + 1}: "
+                                f"{exc}") from exc
+                        raise
             if p.index == 0 or not self.nf.phases[p.index - 1].get_final_state:
                 t0 = time.perf_counter()
                 s.initialize(seed=phase_seed(seed, p.index))
@@ -832,12 +852,23 @@ def independent(applicable: list[str]) -> list[str]:
     return [name for name in applicable if name not in SAME_LINEAGE_REFERENCES]
 
 
+def bngsim_refused(bn_error: str | None) -> bool:
+    """Whether BNGsim's error is its own refusal of the protocol (``BNGSIM_REFUSALS``,
+    or an error the adapter marked UNSUPPORTED), not a failure."""
+    if not bn_error:
+        return False
+    if any(part.strip() == "UNSUPPORTED" for part in bn_error.split(":")[:2]):
+        return True
+    return any(s in bn_error for s in BNGSIM_REFUSALS)
+
+
 def verdict_outcome(bn_error: str | None, ref_errors: dict[str, str], applicable: list[str],
                     verdicts: dict[str, Any]) -> str:
     """The outcome, with the same-lineage rule on top of ``_common.outcome``.
 
     A BNGsim failure is EXCEPTION (TIMEOUT when it ran out of time), BAD_TEST when
-    every reference failed too. An independent reference that ran and disagrees
+    every reference failed too; BNGsim refusing the protocol in its own words is
+    UNSUPPORTED (``bngsim_refused``). An independent reference that ran and disagrees
     makes it DIFF, even when another reference failed to run (``OUTCOME_RULE``: a
     disagreement is never masked). Otherwise any reference that failed to run makes
     it REFERENCE_FAILED. With every reference compared: PASS needs BNGsim to agree
@@ -848,6 +879,8 @@ def verdict_outcome(bn_error: str | None, ref_errors: dict[str, str], applicable
     """
     if bn_error:
         result = outcome(bn_error, ref_errors, len(applicable), False)
+        if result in ("EXCEPTION", "BAD_TEST") and bngsim_refused(bn_error):
+            return "UNSUPPORTED"
         return "TIMEOUT" if bn_error.startswith("TIMEOUT") and result == "EXCEPTION" else result
     judges = [name for name in independent(applicable) if name in verdicts]
     if any(not verdicts[name].get("passed") for name in judges):

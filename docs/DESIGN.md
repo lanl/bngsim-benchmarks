@@ -666,6 +666,15 @@ distribution whose `NFsim` launches the unchanged binary under the loader swap.
   network samples the law of exact SSA on it, so these are the strictest references;
   they are run from the seed species only (one network-free step).
 
+**BNGsim refusing a protocol.** `RuleMonkeySession` takes `set_param` before
+`initialize` only (RuleMonkey's own library refuses a parameter change on a live
+session), so `nf_exact` cannot run a protocol that sets a parameter between
+network-free steps (Chylek 2014, Creamer 2012). That refusal, in BNGsim's own words,
+is UNSUPPORTED, as in the sens capability (§5.6), not EXCEPTION; the references still
+run and are stored. It is never worked around (no save/load replay of the session).
+The rule is part of the verdict's definition (`bngsim_refusal_rule`), so a record
+written before it is reclassified by `bench rescore`.
+
 **The verdict** is §5.3's two-sample test, unchanged, on the model's observables by
 name: a permutation max-T test on per-cell means and variances, false-alarm rate at
 most `alpha` = 10^-3 per comparison, with parity_core's ensemble verdict recorded
